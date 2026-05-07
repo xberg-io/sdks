@@ -1,0 +1,46 @@
+name: spec-sync
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: refresh vendored OpenAPI spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Checkout sibling kreuzberg-cloud
+        uses: actions/checkout@v6
+        with:
+          repository: kreuzberg-dev/kreuzberg-cloud
+          path: _kreuzberg-cloud
+          ref: main
+      - name: Copy spec
+        run: cp _kreuzberg-cloud/frontend/openapi-backend.yaml spec/openapi.yaml
+      - name: Detect drift
+        id: diff
+        run: |
+          if git diff --quiet -- spec/openapi.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
+          title: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
+          body: |
+            Automated sync of `spec/openapi.yaml` from `kreuzberg-dev/kreuzberg-cloud@main`.
+
+            Run `task generate` and review per-language diffs before merging.
+          branch: chore/spec-sync
+          delete-branch: true
+          add-paths: spec/openapi.yaml

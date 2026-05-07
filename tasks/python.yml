@@ -1,0 +1,63 @@
+version: "3"
+
+# Python client tasks (uv workspace member at packages/python).
+
+vars:
+  PKG_DIR: packages/python
+  GENERATED_DIR: packages/python/src/kreuzberg_cloud/_generated
+
+tasks:
+  generate:
+    desc: "Regenerate Python client from spec/openapi.yaml using openapi-python-client"
+    cmds:
+      - rm -rf {{.GENERATED_DIR}}
+      - mkdir -p {{.GENERATED_DIR}}
+      - uv run openapi-python-client generate
+        --path spec/openapi.yaml
+        --config {{.PKG_DIR}}/openapi-python-client.yaml
+        --output-path {{.GENERATED_DIR}}/_pkg
+        --overwrite
+        --meta none
+      - mv {{.GENERATED_DIR}}/_pkg/* {{.GENERATED_DIR}}/
+      - rmdir {{.GENERATED_DIR}}/_pkg
+      - touch {{.GENERATED_DIR}}/__init__.py
+
+  install:
+    desc: "Install Python package and dev deps via uv"
+    cmds:
+      - uv sync
+
+  build:
+    desc: "Build Python distribution (wheel + sdist) via uv build"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - uv build
+
+  test:
+    desc: "Run Python test suite"
+    cmds:
+      - uv run pytest {{.PKG_DIR}}/tests -v
+
+  test:cov:
+    desc: "Run Python tests with coverage"
+    cmds:
+      - uv run pytest {{.PKG_DIR}}/tests --cov=kreuzberg_cloud --cov-report=term --cov-report=html
+
+  lint:
+    desc: "Lint Python sources (ruff + mypy)"
+    cmds:
+      - uv run ruff check {{.PKG_DIR}}/src {{.PKG_DIR}}/tests
+      - uv run mypy {{.PKG_DIR}}/src
+
+  format:
+    desc: "Format Python sources (ruff)"
+    cmds:
+      - uv run ruff format {{.PKG_DIR}}/src {{.PKG_DIR}}/tests
+      - uv run ruff check --fix {{.PKG_DIR}}/src {{.PKG_DIR}}/tests
+
+  publish:
+    desc: "Publish wheel + sdist to PyPI (uses UV_PUBLISH_TOKEN or trusted publishing)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - uv build
+      - uv publish

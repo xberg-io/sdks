@@ -1,0 +1,56 @@
+version: "3"
+
+# TypeScript client tasks (pnpm workspace member at packages/typescript).
+
+vars:
+  PKG_DIR: packages/typescript
+
+tasks:
+  generate:
+    desc: "Regenerate TypeScript schema types from spec/openapi.yaml"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - mkdir -p src/_generated
+      - pnpm exec openapi-typescript ../../spec/openapi.yaml -o src/_generated/schema.d.ts
+
+  install:
+    desc: "Install TypeScript deps via pnpm"
+    cmds:
+      - pnpm install
+
+  build:
+    desc: "Bundle TypeScript ESM + .d.ts via tsdown"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run build
+
+  test:
+    desc: "Run TypeScript test suite (vitest)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run test
+
+  test:cov:
+    desc: "Run TypeScript tests with coverage"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run test:coverage
+
+  lint:
+    desc: "Lint TypeScript (oxlint + tsc --noEmit)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run lint
+
+  format:
+    desc: "Format TypeScript (oxfmt)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run format
+
+  publish:
+    desc: "Publish to npm with provenance"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm run build
+      - pnpm publish --access public --provenance --no-git-checks

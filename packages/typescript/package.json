@@ -1,0 +1,72 @@
+{
+  "name": "@kreuzberg/cloud",
+  "version": "0.0.1",
+  "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API",
+  "license": "MIT",
+  "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",
+  "homepage": "https://kreuzberg.cloud",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk.git",
+    "directory": "packages/typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
+  },
+  "keywords": [
+    "kreuzberg",
+    "cloud",
+    "openapi",
+    "client",
+    "sdk",
+    "document-extraction"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "generate": "openapi-typescript ../../spec/openapi.yaml -o src/_generated/schema.d.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src tests && tsc --noEmit",
+    "format": "oxfmt --write src tests",
+    "format:check": "oxfmt --check src tests",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "msw": "^2.7.0",
+    "openapi-typescript": "^7.13.0",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.62.0",
+    "tsdown": "^0.18.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

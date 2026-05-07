@@ -1,0 +1,59 @@
+name: ci-go
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/go/**"
+      - "spec/openapi.yaml"
+      - "tasks/go.yml"
+      - "go.work"
+      - ".github/workflows/ci-go.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/go/**"
+      - "spec/openapi.yaml"
+      - "tasks/go.yml"
+      - "go.work"
+
+concurrency:
+  group: ci-go-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (go${{ matrix.go }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go: ["1.26"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - name: Install task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          working-directory: packages/go/v1
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Generate client
+        run: task go:generate
+      - name: Lint
+        run: task go:lint
+      - name: Test (with coverage)
+        run: task go:test:cov

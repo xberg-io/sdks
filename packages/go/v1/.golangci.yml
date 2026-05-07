@@ -1,0 +1,80 @@
+version: "2"
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - gocyclo
+    - goconst
+    - gocritic
+    - gosec
+    - misspell
+    - nakedret
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 20
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 30
+    revive:
+      confidence: 0.8
+      severity: warning
+      enable-all-rules: false
+      rules:
+        - name: blank-imports
+        - name: context-keys-type
+        - name: time-naming
+        - name: var-declaration
+        - name: errorf
+        - name: context-as-argument
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: range
+        - name: receiver-naming
+        - name: indent-error-flow
+  exclusions:
+    generated: lax
+    rules:
+      - linters: [goconst, gocyclo, gosec, errcheck]
+        path: _test\.go
+      - path: generated\.go
+        linters: [revive, govet, staticcheck, gosec, gocyclo, goconst]
+    paths:
+      - generated.go
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: true
+
+formatters:
+  exclusions:
+    generated: lax

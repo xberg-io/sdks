@@ -1,0 +1,61 @@
+version: "3"
+
+# Go client tasks (module at packages/go/v1).
+
+vars:
+  PKG_DIR: packages/go/v1
+
+tasks:
+  generate:
+    desc: "Regenerate Go client from spec/openapi.yaml (downconverts 3.1 → 3.0 first)"
+    cmds:
+      # oapi-codegen does not yet support OpenAPI 3.1 (oapi-codegen/oapi-codegen#373).
+      # Downconvert the vendored 3.1 spec to 3.0 first, then generate.
+      #
+      # NOTE: kreuzberg-cloud's spec uses 3.1 nullable unions inside oneOfs
+      # (`oneOf: [{type: null}, $ref]`). oapi-codegen v2.7 chokes on these.
+      # Generation is blocked until upstream emits 3.0 or oapi-codegen 3.1
+      # support lands. The hand-written client.go remains buildable in the
+      # meantime.
+      - npx --yes @apiture/openapi-down-convert -i spec/openapi.yaml -o /tmp/kreuzberg-cloud-openapi-3.0.yaml
+      - cd {{.PKG_DIR}} && go tool oapi-codegen -config oapi-codegen.yaml /tmp/kreuzberg-cloud-openapi-3.0.yaml
+      - cd {{.PKG_DIR}} && go mod tidy
+
+  install:
+    desc: "Download Go module dependencies"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  build:
+    desc: "Compile Go module (verifies build, no artifact)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go build ./...
+
+  test:
+    desc: "Run Go test suite"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go test -race -v ./...
+
+  test:cov:
+    desc: "Run Go tests with coverage"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go test -race -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out
+
+  lint:
+    desc: "Lint Go sources (golangci-lint + govulncheck)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - golangci-lint run ./...
+      - govulncheck ./...
+
+  format:
+    desc: "Format Go sources (gofmt)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go fmt ./...

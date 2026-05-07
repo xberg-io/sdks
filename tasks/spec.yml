@@ -1,0 +1,31 @@
+version: "3"
+
+# Tasks for managing the vendored OpenAPI specification.
+
+vars:
+  SPEC_PATH: spec/openapi.yaml
+  UPSTREAM_LOCAL: ../kreuzberg-cloud/frontend/openapi-backend.yaml
+  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "http://localhost:8080"}}/api-doc/openapi.json'
+
+tasks:
+  fetch:
+    desc: "Refresh spec/openapi.yaml from sibling kreuzberg-cloud repo"
+    cmds:
+      - cp {{.UPSTREAM_LOCAL}} {{.SPEC_PATH}}
+      - git diff --stat {{.SPEC_PATH}} || true
+
+  fetch:remote:
+    desc: "Refresh spec/openapi.yaml from a running kreuzberg-cloud API server"
+    cmds:
+      - curl -fsSL {{.UPSTREAM_URL}} | python3 -c "import sys, yaml, json; yaml.safe_dump(json.load(sys.stdin), sys.stdout, sort_keys=False)" > {{.SPEC_PATH}}
+      - git diff --stat {{.SPEC_PATH}} || true
+
+  check:
+    desc: "Fail if vendored spec drifted from sibling kreuzberg-cloud copy"
+    cmds:
+      - diff -q {{.SPEC_PATH}} {{.UPSTREAM_LOCAL}}
+
+  show:
+    desc: "Print the current vendored spec path"
+    cmds:
+      - echo "{{.SPEC_PATH}}"

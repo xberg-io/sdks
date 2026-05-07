@@ -1,0 +1,102 @@
+version: "3"
+
+# ============================================================================
+# kreuzberg-cloud-sdk — Root Taskfile
+# ============================================================================
+# Multi-language client SDK monorepo. Per-language tasks live under
+# tasks/{python,typescript,go,spec}.yml and are namespaced (python:test, etc.).
+# ============================================================================
+
+includes:
+  python:
+    taskfile: ./tasks/python.yml
+  typescript:
+    taskfile: ./tasks/typescript.yml
+    aliases: [ts]
+  go:
+    taskfile: ./tasks/go.yml
+  spec:
+    taskfile: ./tasks/spec.yml
+  version:
+    taskfile: ./tasks/version.yml
+
+tasks:
+  default:
+    desc: "List available tasks"
+    cmds:
+      - task --list
+
+  setup:
+    desc: "Install all language toolchains and pre-commit hooks"
+    cmds:
+      - uv sync
+      - pnpm install
+      - cd packages/go/v1 && go mod download
+      - prek install
+      - prek install --hook-type commit-msg
+
+  generate:
+    desc: "Regenerate all language clients from spec/openapi.yaml"
+    cmds:
+      - task: python:generate
+      - task: typescript:generate
+      - task: go:generate
+
+  build:
+    desc: "Build distributable artifacts for all languages"
+    cmds:
+      - task: python:build
+      - task: typescript:build
+      - task: go:build
+
+  test:
+    desc: "Run all language test suites"
+    cmds:
+      - task: python:test
+      - task: typescript:test
+      - task: go:test
+
+  lint:
+    desc: "Lint all code via prek (pre-commit framework)"
+    cmds:
+      - prek run --all-files
+
+  format:
+    desc: "Format all code"
+    cmds:
+      - task: python:format
+      - task: typescript:format
+      - task: go:format
+
+  fmt:
+    desc: "Alias for format"
+    cmds:
+      - task: format
+
+  validate:
+    desc: "Run lint + tests for all languages (CI parity)"
+    cmds:
+      - task: lint
+      - task: test
+
+  clean:
+    desc: "Remove generated clients and build artifacts"
+    cmds:
+      - rm -rf packages/python/src/kreuzberg_cloud/_generated
+      - rm -rf packages/typescript/src/_generated
+      - rm -f packages/go/v1/generated.go
+      - rm -rf packages/python/dist packages/typescript/dist
+      - rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage
+
+  versions:sync:
+    desc: "Propagate root VERSION to all language package manifests"
+    cmds:
+      - task: version:sync
+
+  update:
+    desc: "Update dependencies (compatible only)"
+    cmds:
+      - uv sync --upgrade
+      - pnpm update -r
+      - cd packages/go/v1 && go get -u ./... && go mod tidy
+      - prek autoupdate

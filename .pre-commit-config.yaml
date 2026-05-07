@@ -1,0 +1,71 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+exclude: ^(packages/python/src/kreuzberg_cloud/_generated/|packages/typescript/src/_generated/|packages/go/v1/generated\.go|spec/openapi\.yaml|node_modules/|dist/|coverage/)
+
+repos:
+  # Commit message linting
+  - repo: https://github.com/Goldziher/gitfluff
+    rev: v0.8.0
+    hooks:
+      - id: gitfluff-lint
+        args: ["--write"]
+        stages: [commit-msg]
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
+      - id: check-json
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: check-toml
+      - id: check-case-conflict
+
+  # TOML formatting
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "v2.21.2"
+    hooks:
+      - id: pyproject-fmt
+
+  # Python: ruff lint + format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Shared kreuzberg-dev hooks (mypy, oxlint/oxfmt, go-fmt, golangci-lint, govulncheck, shfmt, shellcheck)
+  - repo: https://github.com/kreuzberg-dev/pre-commit-hooks
+    rev: v1.0.0
+    hooks:
+      - id: mypy
+        files: ^packages/python/src/.*\.py$
+      - id: oxlint
+      - id: oxfmt
+      - id: go-fmt
+      - id: golangci-lint
+      - id: govulncheck
+      - id: shfmt
+        args: ["-w", "-i", "2"]
+      - id: shellcheck
+        args: ["-x"]
+
+  # GitHub Actions linting
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  # Spelling
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.46.0
+    hooks:
+      - id: typos
+        args: [--force-exclude]

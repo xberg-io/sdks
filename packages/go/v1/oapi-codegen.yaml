@@ -1,0 +1,14 @@
+# oapi-codegen configuration. Run via `task go:generate`.
+# Outputs a single generated.go containing types + an HTTP client.
+#
+# NOTE: oapi-codegen does not yet support OpenAPI 3.1 (issue #373). The
+# `go:generate` task downconverts spec/openapi.yaml to 3.0 first via
+# @apiture/openapi-down-convert, writing to /tmp before invoking this tool.
+
+package: kreuzbergcloud
+output: generated.go
+generate:
+  models: true
+  client: true
+output-options:
+  skip-prune: false

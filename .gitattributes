@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+spec/openapi.yaml linguist-generated=false
+packages/python/src/kreuzberg_cloud/_generated/** linguist-generated=true
+packages/typescript/src/_generated/** linguist-generated=true
+packages/go/v1/generated.go linguist-generated=true

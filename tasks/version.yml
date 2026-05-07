@@ -1,0 +1,28 @@
+version: "3"
+
+# Version management tasks. Source of truth: repo-root VERSION file.
+
+vars:
+  VERSION_FILE: VERSION
+
+tasks:
+  show:
+    desc: "Print the current SDK version"
+    cmds:
+      - cat {{.VERSION_FILE}}
+
+  sync:
+    desc: "Propagate VERSION to packages/python/pyproject.toml and packages/typescript/package.json"
+    cmds:
+      - python3 scripts/sync-versions.py
+
+  bump:
+    desc: "Set a new version (usage: task version:bump -- 0.1.0)"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "usage: task version:bump -- <new-version>" >&2
+          exit 1
+        fi
+        echo "{{.CLI_ARGS}}" > {{.VERSION_FILE}}
+      - task: sync

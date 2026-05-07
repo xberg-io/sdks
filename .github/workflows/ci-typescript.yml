@@ -1,0 +1,63 @@
+name: ci-typescript
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/typescript/**"
+      - "spec/openapi.yaml"
+      - "tasks/typescript.yml"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/ci-typescript.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/typescript/**"
+      - "spec/openapi.yaml"
+      - "tasks/typescript.yml"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+
+concurrency:
+  group: ci-typescript-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (node${{ matrix.node }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ["20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.0.8
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install deps
+        run: pnpm install
+      - name: Generate client
+        run: task typescript:generate
+      - name: Typecheck + lint
+        run: task typescript:lint
+      - name: Test (with coverage)
+        run: task typescript:test:cov
+      - name: Build
+        run: task typescript:build

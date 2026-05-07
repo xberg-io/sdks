@@ -1,0 +1,56 @@
+# Build artifacts
+build/
+dist/
+target/
+*.whl
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+coverage.lcov
+
+# TypeScript / Node
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+coverage/
+.vitest-cache/
+
+# Go
+vendor/
+*.test
+*.out
+go.work.sum
+
+# Generated client code (kept out of git; produced by `task generate`)
+packages/python/src/kreuzberg_cloud/_generated/
+packages/typescript/src/_generated/
+packages/go/v1/generated.go
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+.env
+.env.local

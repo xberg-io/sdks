@@ -1,0 +1,7 @@
+// Package kreuzbergcloud is the official Go client for the Kreuzberg Cloud
+// document-processing API. It is generated from the upstream OpenAPI 3.1
+// specification at https://api.kreuzberg.cloud/api-doc/openapi.json.
+//
+// Most users should construct a [Client] via [New] and pass a context.Context
+// to each request method.
+package kreuzbergcloud
