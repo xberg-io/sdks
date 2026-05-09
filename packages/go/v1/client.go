@@ -104,5 +104,3 @@ func (c *Client) authorize(_ context.Context, req *http.Request) error {
 	return nil
 }
 
-// apiKey returns the configured API key (may be empty for anonymous calls).
-func (c *Client) apiKey() string { return c.cfg.apiKey }

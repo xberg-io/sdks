@@ -178,10 +178,10 @@ func jobResultFromTerminal(job *Job) (*JobResult, error) {
 		}
 		return nil, fmt.Errorf("kreuzberg-cloud: job %s failed: %s", job.ID, message)
 	case JobStatusCancelled:
-		return nil, fmt.Errorf("kreuzberg-cloud: job %s was cancelled", job.ID)
+		return nil, fmt.Errorf("kreuzberg-cloud: job %s was canceled", job.ID)
 	default:
 		return nil, fmt.Errorf(
-			"kreuzberg-cloud: job %s reached unrecognised terminal status %q",
+			"kreuzberg-cloud: job %s reached unrecognized terminal status %q",
 			job.ID, job.Status,
 		)
 	}

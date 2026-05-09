@@ -19,7 +19,7 @@ const (
 	JobStatusCompleted      = "completed"
 	JobStatusPartialSuccess = "partial_success"
 	JobStatusFailed         = "failed"
-	JobStatusCancelled      = "cancelled"
+	JobStatusCancelled      = "cancelled" //nolint:misspell // server-side enum value
 )
 
 // terminalJobStatuses lists the statuses for which the server will produce no

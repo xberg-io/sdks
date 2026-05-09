@@ -38,9 +38,11 @@ func (c *Client) doJSON(ctx context.Context, spec requestSpec, out any) error {
 	if err != nil {
 		return err
 	}
-	defer body.Close()
+	defer closeQuietly(body)
 	if out == nil {
-		_, _ = io.Copy(io.Discard, body)
+		if _, copyErr := io.Copy(io.Discard, body); copyErr != nil {
+			return fmt.Errorf("kreuzberg-cloud: discarding response body: %w", copyErr)
+		}
 		return nil
 	}
 	if err := json.NewDecoder(body).Decode(out); err != nil {
@@ -122,9 +124,12 @@ func (c *Client) doOnceWithCancel(
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return &cancellingReadCloser{rc: resp.Body, cancel: cancel}, nil
 	}
-	defer resp.Body.Close()
+	defer closeQuietly(resp.Body)
 	defer cancel()
-	body, _ := io.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("kreuzberg-cloud: reading error response body: %w", readErr)
+	}
 	return nil, classifyHTTPError(resp.StatusCode, body, resp.Header)
 }
 
@@ -149,7 +154,7 @@ func retryAfter(err error) time.Duration {
 	return 0
 }
 
-// nextBackoff computes the backoff for the given attempt, honouring an
+// nextBackoff computes the backoff for the given attempt, honoring an
 // optional server-suggested Retry-After value. Attempt is zero-based.
 func nextBackoff(attempt int, suggested time.Duration) time.Duration {
 	if suggested > 0 {
@@ -166,6 +171,18 @@ func nextBackoff(attempt int, suggested time.Duration) time.Duration {
 		}
 	}
 	return delay
+}
+
+// closeQuietly closes c, swallowing the error. We intentionally drop the
+// error: the caller has already obtained the data it needs from the response,
+// and a Close failure on read is not actionable.
+func closeQuietly(c io.Closer) {
+	if c == nil {
+		return
+	}
+	if err := c.Close(); err != nil {
+		_ = err
+	}
 }
 
 // cancellingReadCloser wraps a response body so the per-request cancel func

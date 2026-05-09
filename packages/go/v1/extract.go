@@ -72,12 +72,16 @@ func (c *Client) ExtractBatch(
 	}
 	jobs := make([]*Job, len(resp.JobIDs))
 	for i, id := range resp.JobIDs {
-		jobs[i] = &Job{ID: id, Filename: files[i].Name, Status: resp.Status}
+		filename := ""
+		if i < len(files) {
+			filename = files[i].Name
+		}
+		jobs[i] = &Job{ID: id, Filename: filename, Status: resp.Status}
 	}
 	return jobs, nil
 }
 
-// buildMultipartBody serialises files and optional ExtractionOptions into a
+// buildMultipartBody serializes files and optional ExtractionOptions into a
 // multipart/form-data body matching the API's documented wire format:
 //
 //	parts: file (one per document) + optional "options" (JSON string)
