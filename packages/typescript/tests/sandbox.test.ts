@@ -111,9 +111,7 @@ describe("KreuzbergCloud.fromSandbox", () => {
         HttpResponse.json({ error: "denied" }, { status: 401 }),
       ),
     );
-    await expect(
-      KreuzbergCloud.fromSandbox({ baseUrl: TEST_BASE_URL }),
-    ).rejects.toThrow(/denied/);
+    await expect(KreuzbergCloud.fromSandbox({ baseUrl: TEST_BASE_URL })).rejects.toThrow(/denied/);
   });
 
   it("makeClient (default base URL) constructs without throwing", () => {

@@ -103,4 +103,3 @@ func (c *Client) authorize(_ context.Context, req *http.Request) error {
 	}
 	return nil
 }
-

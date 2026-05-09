@@ -102,9 +102,7 @@ describe("extractAndWait", () => {
       ),
     );
     const client = makeClient();
-    await expect(
-      client.extractAndWait({ file: new Blob(["data"]) }),
-    ).rejects.toThrow(/failed/);
+    await expect(client.extractAndWait({ file: new Blob(["data"]) })).rejects.toThrow(/failed/);
   });
 
   it("propagates TimeoutError when waitForJob deadline is exceeded", async () => {
@@ -136,13 +134,9 @@ describe("extractAndWait", () => {
 
   it("propagates AuthError surfaced from the extract submission", async () => {
     server.use(
-      http.post(url("/v1/extract"), () =>
-        HttpResponse.json({ error: "no auth" }, { status: 401 }),
-      ),
+      http.post(url("/v1/extract"), () => HttpResponse.json({ error: "no auth" }, { status: 401 })),
     );
     const client = makeClient();
-    await expect(
-      client.extractAndWait({ file: new Blob(["data"]) }),
-    ).rejects.toThrow(/no auth/);
+    await expect(client.extractAndWait({ file: new Blob(["data"]) })).rejects.toThrow(/no auth/);
   });
 });

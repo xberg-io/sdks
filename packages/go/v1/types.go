@@ -40,13 +40,13 @@ func IsTerminalStatus(status string) bool {
 // Job is the lifecycle envelope returned by GET /v1/jobs/{id}. The optional
 // Result field is populated once the job reaches a terminal status.
 type Job struct {
-	ID                string          `json:"id"`
-	Filename          string          `json:"filename"`
-	Status            string          `json:"status"`
-	CreatedAt         time.Time       `json:"created_at"`
-	ProcessingTimeMs  *int64          `json:"processing_time_ms,omitempty"`
-	Result            *JobResult      `json:"result,omitempty"`
-	RawResponseBody   json.RawMessage `json:"-"`
+	ID               string          `json:"id"`
+	Filename         string          `json:"filename"`
+	Status           string          `json:"status"`
+	CreatedAt        time.Time       `json:"created_at"`
+	ProcessingTimeMs *int64          `json:"processing_time_ms,omitempty"`
+	Result           *JobResult      `json:"result,omitempty"`
+	RawResponseBody  json.RawMessage `json:"-"`
 }
 
 // JobResult is the extraction payload produced on terminal success. The shape

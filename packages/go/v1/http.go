@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	contentTypeJSON    = "application/json"
-	maxRetryBackoff    = 30 * time.Second
+	contentTypeJSON     = "application/json"
+	maxRetryBackoff     = 30 * time.Second
 	initialRetryBackoff = 250 * time.Millisecond
-	retryBackoffFactor = 2
+	retryBackoffFactor  = 2
 )
 
 // requestSpec describes a single HTTP request issued by the typed helpers

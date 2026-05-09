@@ -38,27 +38,21 @@ describe("error mapping", () => {
 
   it("maps 403 to AuthError", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "forbidden" }, { status: 403 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "forbidden" }, { status: 403 })),
     );
     await expect(makeClient().getJob("x")).rejects.toBeInstanceOf(AuthError);
   });
 
   it("maps 404 to NotFoundError", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "not found" }, { status: 404 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "not found" }, { status: 404 })),
     );
     await expect(makeClient().getJob("x")).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("maps 422 to ValidationError", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "bad input" }, { status: 422 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "bad input" }, { status: 422 })),
     );
     await expect(makeClient().getJob("x")).rejects.toBeInstanceOf(ValidationError);
   });
@@ -92,9 +86,7 @@ describe("error mapping", () => {
 
   it("treats 429 without Retry-After as RateLimitError with no retryAfter", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "slow down" }, { status: 429 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "slow down" }, { status: 429 })),
     );
     try {
       await makeClient().getJob("x");
@@ -107,9 +99,7 @@ describe("error mapping", () => {
 
   it("maps 500 to ServerError and surfaces the body", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "boom" }, { status: 500 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "boom" }, { status: 500 })),
     );
     try {
       await makeClient().getJob("x");
@@ -123,9 +113,7 @@ describe("error mapping", () => {
 
   it("maps 503 to ServerError", async () => {
     server.use(
-      http.get(url("/v1/jobs/x"), () =>
-        HttpResponse.json({ error: "down" }, { status: 503 }),
-      ),
+      http.get(url("/v1/jobs/x"), () => HttpResponse.json({ error: "down" }, { status: 503 })),
     );
     await expect(makeClient().getJob("x")).rejects.toBeInstanceOf(ServerError);
   });

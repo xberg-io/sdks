@@ -9,12 +9,7 @@
 
 import createOpenApiClient, { type Client } from "openapi-fetch";
 import type { paths } from "./_generated/schema.js";
-import {
-  KreuzbergError,
-  RateLimitError,
-  TimeoutError,
-  raiseForStatus,
-} from "./errors.js";
+import { KreuzbergError, RateLimitError, TimeoutError, raiseForStatus } from "./errors.js";
 import type {
   ExtractResponse,
   ExtractionOptions,
