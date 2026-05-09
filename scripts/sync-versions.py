@@ -70,9 +70,9 @@ def main() -> int:
     if update_package_json(TYPESCRIPT_PACKAGE, version):
         changed.append(str(TYPESCRIPT_PACKAGE.relative_to(REPO_ROOT)))
     if changed:
-        print(f"synced version {version} -> {', '.join(changed)}")
+        print(f"synced version {version} -> {', '.join(changed)}")  # noqa: T201
     else:
-        print(f"version {version} already in sync")
+        print(f"version {version} already in sync")  # noqa: T201
     return 0
 
 
