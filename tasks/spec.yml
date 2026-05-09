@@ -1,29 +1,34 @@
 version: "3"
 
 # Tasks for managing the vendored OpenAPI specification.
+#
+# Source of truth is the public extraction API spec emitted by
+# kreuzberg-cloud/services/api (utoipa-generated). The sibling cloud repo
+# commits the JSON snapshot at services/api/spec/openapi.json; we vendor
+# it here as YAML to match the codegen toolchain's preferred input format.
 
 vars:
   SPEC_PATH: spec/openapi.yaml
-  UPSTREAM_LOCAL: ../kreuzberg-cloud/frontend/openapi-backend.yaml
-  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "http://localhost:8080"}}/api-doc/openapi.json'
+  UPSTREAM_LOCAL: ../kreuzberg-cloud/services/api/spec/openapi.json
+  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "https://api.kreuzberg.cloud"}}/api-doc/openapi.json'
 
 tasks:
   fetch:
-    desc: "Refresh spec/openapi.yaml from sibling kreuzberg-cloud repo"
+    desc: "Refresh spec/openapi.yaml from sibling kreuzberg-cloud repo (JSON → YAML)"
     cmds:
-      - cp {{.UPSTREAM_LOCAL}} {{.SPEC_PATH}}
+      - yq -P -oy '.' {{.UPSTREAM_LOCAL}} > {{.SPEC_PATH}}
       - git diff --stat {{.SPEC_PATH}} || true
 
   fetch:remote:
     desc: "Refresh spec/openapi.yaml from a running kreuzberg-cloud API server"
     cmds:
-      - curl -fsSL {{.UPSTREAM_URL}} | python3 -c "import sys, yaml, json; yaml.safe_dump(json.load(sys.stdin), sys.stdout, sort_keys=False)" > {{.SPEC_PATH}}
+      - curl -fsSL {{.UPSTREAM_URL}} | yq -P -oy '.' > {{.SPEC_PATH}}
       - git diff --stat {{.SPEC_PATH}} || true
 
   check:
     desc: "Fail if vendored spec drifted from sibling kreuzberg-cloud copy"
     cmds:
-      - diff -q {{.SPEC_PATH}} {{.UPSTREAM_LOCAL}}
+      - diff -q <(yq -P -oy '.' {{.UPSTREAM_LOCAL}}) {{.SPEC_PATH}}
 
   show:
     desc: "Print the current vendored spec path"

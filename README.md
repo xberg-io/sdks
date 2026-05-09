@@ -1,13 +1,14 @@
 # kreuzberg-cloud-sdk
 
-Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) API,
-generated from the upstream OpenAPI 3.1 specification.
+Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud)
+public extraction API, generated from the upstream OpenAPI 3.1 specification
+(`kreuzberg-cloud/services/api/spec/openapi.json`).
 
-| Language | Package | Registry |
-|----------|---------|----------|
-| Python | `kreuzberg-cloud` | [PyPI](https://pypi.org/project/kreuzberg-cloud/) |
-| TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) |
-| Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) |
+| Language | Package | Registry | Status |
+|----------|---------|----------|--------|
+| Python | `kreuzberg-cloud` | [PyPI](https://pypi.org/project/kreuzberg-cloud/) | generated (httpx) |
+| TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) | generated (openapi-fetch) |
+| Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) | hand-written interim — codegen blocked on [oapi-codegen 3.1 support](https://github.com/oapi-codegen/oapi-codegen/issues/373) |
 
 ## Layout
 
@@ -32,11 +33,16 @@ task lint        # prek run --all-files
 task test        # run all language test suites
 ```
 
-The OpenAPI spec is vendored from `kreuzberg-cloud`. To refresh:
+The OpenAPI spec is vendored from `kreuzberg-cloud`. The source of truth is
+the public extraction API spec emitted by `services/api` (utoipa-generated)
+and committed at `kreuzberg-cloud/services/api/spec/openapi.json`. To refresh:
 
 ```sh
-task spec:fetch  # copy from ../kreuzberg-cloud/frontend/openapi-backend.yaml
+task spec:fetch  # copy + JSON→YAML from ../kreuzberg-cloud/services/api/spec/openapi.json
 ```
+
+CI also runs a weekly `spec-sync` workflow that opens an automated PR with
+the latest snapshot.
 
 ## Versioning
 
