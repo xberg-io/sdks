@@ -36,11 +36,26 @@ func WithUserAgent(ua string) Option {
 	return func(c *clientConfig) { c.userAgent = ua }
 }
 
+// WithTimeout sets a per-request timeout that wraps the caller's context for
+// every HTTP call. Zero or negative values disable the wrapper (the caller's
+// context governs the deadline).
+func WithTimeout(d time.Duration) Option {
+	return func(c *clientConfig) { c.timeout = d }
+}
+
+// WithRetries sets the maximum number of automatic retry attempts on
+// retryable HTTP responses (429, 502, 503, 504). Default: 0 (no retries).
+func WithRetries(n int) Option {
+	return func(c *clientConfig) { c.retries = n }
+}
+
 type clientConfig struct {
 	baseURL    string
 	apiKey     string
 	userAgent  string
 	httpClient *http.Client
+	timeout    time.Duration
+	retries    int
 }
 
 // Client is a thin wrapper around the generated openapi-fetch client. It
@@ -88,3 +103,6 @@ func (c *Client) authorize(_ context.Context, req *http.Request) error {
 	}
 	return nil
 }
+
+// apiKey returns the configured API key (may be empty for anonymous calls).
+func (c *Client) apiKey() string { return c.cfg.apiKey }
