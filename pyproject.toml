@@ -3,6 +3,14 @@ name = "kreuzberg-cloud-sdk-workspace"
 version = "0.0.0"
 description = "Workspace root for the kreuzberg-cloud SDK monorepo"
 requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
 
 [dependency-groups]
 dev = [
@@ -21,9 +29,9 @@ dev = [
 ]
 
 [tool.uv]
+sources.kreuzberg-cloud = { workspace = true }
 package = false
 workspace.members = [ "packages/python" ]
-sources.kreuzberg-cloud = { workspace = true }
 cache-keys = [
   { file = "pyproject.toml" },
   { file = "packages/python/pyproject.toml" },
@@ -107,10 +115,7 @@ implicit_reexport = false
 show_error_codes = true
 strict = true
 namespace_packages = true
-
-[[tool.mypy.overrides]]
-module = [ "httpx", "respx" ]
-ignore_missing_imports = true
+overrides = [ { module = [ "httpx", "respx" ], ignore_missing_imports = true } ]
 
 [tool.pytest]
 ini_options.testpaths = [ "packages/python/tests" ]
@@ -121,8 +126,8 @@ ini_options.asyncio_default_fixture_loop_scope = "function"
 [tool.coverage]
 run.branch = true
 run.omit = [
-  "packages/python/tests/*",
   "packages/python/src/kreuzberg_cloud/_generated/*",
+  "packages/python/tests/*",
 ]
 run.plugins = [ "covdefaults" ]
 run.source = [ "packages/python/src/kreuzberg_cloud" ]

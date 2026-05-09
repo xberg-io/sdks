@@ -7,17 +7,17 @@ name = "kreuzberg-cloud"
 version = "0.0.1"
 description = "Official Python client for the Kreuzberg Cloud document-processing API."
 readme = "README.md"
+keywords = [ "client", "cloud", "document-extraction", "kreuzberg", "openapi", "sdk" ]
 license = "MIT"
 license-files = [ "../../LICENSE" ]
-authors = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
 maintainers = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
-keywords = [ "kreuzberg", "cloud", "openapi", "client", "sdk", "document-extraction" ]
+authors = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -27,29 +27,22 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
-requires-python = ">=3.10"
 dependencies = [
   "attrs>=24.2",
   "httpx>=0.28.1",
   "python-dateutil>=2.9",
-  "typing-extensions>=4.12 ; python_version < '3.11'",
+  "typing-extensions>=4.12; python_version<'3.11'",
 ]
+urls.Documentation = "https://docs.kreuzberg.cloud"
+urls.Homepage = "https://kreuzberg.cloud"
+urls.Issues = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
+urls.Repository = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk"
 
-[project.urls]
-Homepage = "https://kreuzberg.cloud"
-Documentation = "https://docs.kreuzberg.cloud"
-Repository = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk"
-Issues = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
-
-[tool.hatch.build]
-packages = [ "src/kreuzberg_cloud" ]
-
-[tool.hatch.build.targets.wheel]
-packages = [ "src/kreuzberg_cloud" ]
-
-[tool.hatch.build.targets.sdist]
-include = [
+[tool.hatch]
+build.packages = [ "src/kreuzberg_cloud" ]
+build.targets.sdist.include = [
   "src/kreuzberg_cloud/**",
   "README.md",
   "pyproject.toml",
 ]
+build.targets.wheel.packages = [ "src/kreuzberg_cloud" ]
