@@ -26,6 +26,7 @@ VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:[-+][\w.+-]+)?$")
 
 
 def read_version() -> str:
+    """Return the canonical version string from the repo-root VERSION file."""
     raw = VERSION_FILE.read_text(encoding="utf-8").strip()
     if not VERSION_PATTERN.match(raw):
         sys.exit(f"VERSION file contains invalid semver: {raw!r}")
@@ -33,6 +34,7 @@ def read_version() -> str:
 
 
 def update_pyproject(path: Path, version: str) -> bool:
+    """Rewrite the ``project.version`` line in a pyproject.toml; return True if changed."""
     text = path.read_text(encoding="utf-8")
     new_text, count = re.subn(
         r'(?m)^(version\s*=\s*")[^"]+(")',
@@ -49,6 +51,7 @@ def update_pyproject(path: Path, version: str) -> bool:
 
 
 def update_package_json(path: Path, version: str) -> bool:
+    """Rewrite the ``version`` field in a package.json; return True if changed."""
     raw = path.read_text(encoding="utf-8")
     data = json.loads(raw)
     if data.get("version") == version:
@@ -59,6 +62,7 @@ def update_package_json(path: Path, version: str) -> bool:
 
 
 def main() -> int:
+    """Propagate the root VERSION value to every per-package manifest."""
     version = read_version()
     changed: list[str] = []
     if update_pyproject(PYTHON_PYPROJECT, version):
