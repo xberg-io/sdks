@@ -38,10 +38,38 @@ jobs:
       release_node: ${{ steps.metadata.outputs.release_node }}
       release_go: ${{ steps.metadata.outputs.release_go }}
     steps:
-      - uses: kreuzberg-dev/actions/prepare-release-metadata@v1
+      - name: Extract release metadata
         id: metadata
-        with:
-          available-targets: "python,node,go"
+        shell: bash
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_FORCE_REPUBLISH: ${{ inputs.force_republish }}
+        run: |
+          set -euo pipefail
+          tag="${INPUT_TAG:-$REF_NAME}"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+][A-Za-z0-9.+-]+)?$ ]]; then
+            echo "tag '$tag' does not match v<semver>" >&2
+            exit 1
+          fi
+          version="${tag#v}"
+          if [[ "$version" =~ -(rc|alpha|beta|pre|dev) ]]; then
+            npm_tag="next"
+          else
+            npm_tag="latest"
+          fi
+          {
+            echo "tag=$tag"
+            echo "version=$version"
+            echo "npm_tag=$npm_tag"
+            echo "dry_run=${INPUT_DRY_RUN:-false}"
+            echo "force_republish=${INPUT_FORCE_REPUBLISH:-false}"
+            echo "release_python=true"
+            echo "release_node=true"
+            echo "release_go=true"
+          } >> "$GITHUB_OUTPUT"
+          echo "tag=$tag version=$version npm_tag=$npm_tag dry_run=${INPUT_DRY_RUN:-false} force_republish=${INPUT_FORCE_REPUBLISH:-false}"
 
   validate-versions:
     needs: prepare
