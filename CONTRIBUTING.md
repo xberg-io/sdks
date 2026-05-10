@@ -64,7 +64,7 @@ Releases use a single unified `vX.Y.Z` tag that drives all three publishes from 
 2. `task release:check` — pre-flight: validates semver, runs lint + test + build.
 3. Commit: `git commit -am "chore(release): vX.Y.Z"` and open a PR to `main`.
 4. After merge to `main`: `git checkout main && git pull && task release:tag` creates the annotated `vX.Y.Z` tag locally (refuses to run on a dirty tree).
-5. `git push origin vX.Y.Z` — pushes the tag, triggering `.github/workflows/release.yml`:
+5. `git push origin vX.Y.Z` — pushes the tag, triggering `.github/workflows/publish.yaml`:
     - Validates every manifest matches the tag's version.
     - Pre-checks PyPI + npm registries; skips already-published versions.
     - Builds + publishes Python (PyPI, OIDC trusted publisher) and TypeScript (npm, `--provenance`, org `NPM_TOKEN`).
