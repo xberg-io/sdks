@@ -236,11 +236,14 @@ jobs:
             exit 1
           fi
           for tgz in "${tarballs[@]}"; do
-            echo "publishing $tgz tag=${NPM_TAG:-latest} dry=${DRY_RUN}"
+            # npm publish needs a './' or absolute prefix on a tarball path,
+            # otherwise it interprets bare 'dir/file.tgz' as a git/pkg ref.
+            abs="$(realpath "$tgz")"
+            echo "publishing $abs tag=${NPM_TAG:-latest} dry=${DRY_RUN}"
             if [ "${DRY_RUN}" = "true" ]; then
-              npm publish --dry-run --access public --provenance --tag "${NPM_TAG:-latest}" "$tgz"
+              npm publish --dry-run --access public --provenance --tag "${NPM_TAG:-latest}" "$abs"
             else
-              npm publish --access public --provenance --tag "${NPM_TAG:-latest}" "$tgz"
+              npm publish --access public --provenance --tag "${NPM_TAG:-latest}" "$abs"
             fi
           done
 
