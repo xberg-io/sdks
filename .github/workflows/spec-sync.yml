@@ -1,6 +1,9 @@
 name: spec-sync
 
 on:
+  # Weekly sweep on Monday 06:00 UTC. Source of truth is
+  # kreuzberg-cloud/services/api/spec/openapi.json — the canonical OpenAPI
+  # spec emitted by the public extraction API (utoipa-generated).
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
@@ -21,8 +24,16 @@ jobs:
           repository: kreuzberg-dev/kreuzberg-cloud
           path: _kreuzberg-cloud
           ref: main
-      - name: Copy spec
-        run: cp _kreuzberg-cloud/frontend/openapi-backend.yaml spec/openapi.yaml
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      - name: Convert JSON spec to YAML
+        run: |
+          yq -P -oy '.' \
+            _kreuzberg-cloud/services/api/spec/openapi.json \
+            > spec/openapi.yaml
       - name: Detect drift
         id: diff
         run: |
@@ -38,7 +49,9 @@ jobs:
           commit-message: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
           title: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
           body: |
-            Automated sync of `spec/openapi.yaml` from `kreuzberg-dev/kreuzberg-cloud@main`.
+            Automated sync of `spec/openapi.yaml` from
+            `kreuzberg-dev/kreuzberg-cloud@main:services/api/spec/openapi.json`
+            (the canonical public extraction API spec).
 
             Run `task generate` and review per-language diffs before merging.
           branch: chore/spec-sync

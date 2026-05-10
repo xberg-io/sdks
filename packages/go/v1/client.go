@@ -10,7 +10,7 @@ import (
 // DefaultBaseURL is the production endpoint of the Kreuzberg Cloud API.
 const DefaultBaseURL = "https://api.kreuzberg.cloud"
 
-const userAgent = "kreuzberg-cloud-go/0.0.1"
+const userAgent = "kreuzberg-cloud-go/" + Version
 
 // Option configures a Client constructed via New.
 type Option func(*clientConfig)
@@ -36,11 +36,26 @@ func WithUserAgent(ua string) Option {
 	return func(c *clientConfig) { c.userAgent = ua }
 }
 
+// WithTimeout sets a per-request timeout that wraps the caller's context for
+// every HTTP call. Zero or negative values disable the wrapper (the caller's
+// context governs the deadline).
+func WithTimeout(d time.Duration) Option {
+	return func(c *clientConfig) { c.timeout = d }
+}
+
+// WithRetries sets the maximum number of automatic retry attempts on
+// retryable HTTP responses (429, 502, 503, 504). Default: 0 (no retries).
+func WithRetries(n int) Option {
+	return func(c *clientConfig) { c.retries = n }
+}
+
 type clientConfig struct {
 	baseURL    string
 	apiKey     string
 	userAgent  string
 	httpClient *http.Client
+	timeout    time.Duration
+	retries    int
 }
 
 // Client is a thin wrapper around the generated openapi-fetch client. It

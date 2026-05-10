@@ -1,56 +1,68 @@
 # kreuzberg-cloud-sdk
 
-Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) API,
-generated from the upstream OpenAPI 3.1 specification.
+<div align="center">
 
-| Language | Package | Registry |
-|----------|---------|----------|
-| Python | `kreuzberg-cloud` | [PyPI](https://pypi.org/project/kreuzberg-cloud/) |
-| TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) |
-| Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) |
+<img width="3384" height="573" alt="Kreuzberg Cloud" src="https://github.com/user-attachments/assets/1b6c6ad7-3b6d-4171-b1c9-f2026cc9deb8">
 
-## Layout
+</div>
 
-```
-packages/
-  python/         # PyPI distribution (httpx-based, fully async)
-  typescript/     # npm distribution (ESM-only, openapi-fetch)
-  go/v1/          # Go module (oapi-codegen, stdlib net/http)
-spec/
-  openapi.yaml    # Vendored copy of the API spec
-tasks/            # Per-language Taskfile fragments
-```
+<div align="center" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0;">
 
-## Development
+<a href="https://pypi.org/project/kreuzberg-cloud/"><img src="https://img.shields.io/pypi/v/kreuzberg-cloud?label=PyPI&color=007ec6" alt="PyPI"></a>
+<a href="https://www.npmjs.com/package/@kreuzberg/cloud"><img src="https://img.shields.io/npm/v/%40kreuzberg%2Fcloud?label=npm&color=007ec6" alt="npm"></a>
+<a href="https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
+<a href="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+<a href="https://docs.kreuzberg.cloud"><img src="https://img.shields.io/badge/docs-kreuzberg.cloud-007ec6" alt="Documentation"></a>
+<a href="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/actions/workflows/validate.yml"><img src="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
 
-This repo is part of the [`kreuzberg-dev`](https://github.com/kreuzberg-dev) polyrepo.
+</div>
 
+<div align="center" style="margin-top: 20px;">
+
+<a href="https://discord.gg/xt9WY3GnKR"><img height="22" src="https://img.shields.io/badge/Discord-Join%20our%20community-7289da?logo=discord&logoColor=white" alt="Discord"></a>
+
+</div>
+
+Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) public extraction API. Generated from the upstream OpenAPI 3.1 specification.
+
+| Language | Package | Registry | Status |
+|----------|---------|----------|--------|
+| Python | `kreuzberg-cloud` | [PyPI](https://pypi.org/project/kreuzberg-cloud/) | generated (httpx) |
+| TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) | generated (openapi-fetch) |
+| Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) | hand-written interim — codegen blocked on [oapi-codegen 3.1 support](https://github.com/oapi-codegen/oapi-codegen/issues/373) |
+
+## Install
+
+**Python:**
 ```sh
-task setup       # install pnpm + uv + Go deps, install pre-commit hooks
-task generate    # regenerate clients from spec/openapi.yaml
-task lint        # prek run --all-files
-task test        # run all language test suites
+pip install kreuzberg-cloud
 ```
 
-The OpenAPI spec is vendored from `kreuzberg-cloud`. To refresh:
-
+**TypeScript / Node.js:**
 ```sh
-task spec:fetch  # copy from ../kreuzberg-cloud/frontend/openapi-backend.yaml
+pnpm add @kreuzberg/cloud
+# or npm install @kreuzberg/cloud
+# or yarn add @kreuzberg/cloud
 ```
 
-## Versioning
+**Go:**
+```sh
+go get github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1
+```
 
-Each package versions independently; tags are language-scoped:
+For language-specific quickstarts, examples, and API documentation, see the per-language READMEs in `packages/{python,typescript,go/v1}/`.
 
-- `python-vX.Y.Z` → PyPI
-- `ts-vX.Y.Z` → npm
-- `go/vX.Y.Z` → Go module proxy
+## Documentation
 
-## Contact
+- API & Quickstart: [docs.kreuzberg.cloud](https://docs.kreuzberg.cloud)
+- API Reference: [docs.kreuzberg.cloud/reference/api](https://docs.kreuzberg.cloud/reference/api/)
+- Sandbox onboarding: zero-friction key issuance documented in the per-language READMEs
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 
-- Issues: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues
-- Email: contact@kreuzberg.dev
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflows, repo layout, and release procedures.
 
 ## License
 
-MIT © Kreuzberg, Inc. — see [LICENSE](./LICENSE).
+MIT — see [LICENSE](LICENSE).

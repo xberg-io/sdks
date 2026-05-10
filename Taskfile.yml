@@ -79,6 +79,35 @@ tasks:
       - task: lint
       - task: test
 
+  release:check:
+    desc: "Pre-flight: validate version semver, lint, test, build"
+    cmds:
+      - |
+        version=$(cat VERSION)
+        python3 -c "import re,sys;sys.exit(0 if re.match(r'^\d+\.\d+\.\d+([-+][\w.+-]+)?$','$version') else 1)" || { echo "VERSION '$version' is not valid semver" >&2; exit 1; }
+        echo "version: $version"
+      - task: lint
+      - task: test
+      - task: build
+      - echo "ready to tag v$(cat VERSION)"
+
+  release:tag:
+    desc: "Create and push the unified release tag (vX.Y.Z) — refuses if working tree dirty"
+    cmds:
+      - |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "working tree is dirty — commit or stash before tagging" >&2
+          exit 1
+        fi
+        version=$(cat VERSION)
+        tag="v$version"
+        if git rev-parse "$tag" >/dev/null 2>&1; then
+          echo "tag $tag already exists locally" >&2
+          exit 1
+        fi
+        git tag -a "$tag" -m "Release $tag"
+        echo "created tag $tag — push with: git push origin $tag"
+
   clean:
     desc: "Remove generated clients and build artifacts"
     cmds:

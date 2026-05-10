@@ -24,11 +24,9 @@ jobs:
         with:
           enable-cache: true
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11.0.8
       - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
           cache: pnpm
       - uses: actions/setup-go@v6
         with:
@@ -40,5 +38,13 @@ jobs:
           uv sync
           pnpm install
           (cd packages/go/v1 && go mod download)
+      - name: Install task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+      - name: Generate SDK bindings
+        run: |
+          task python:generate
+          task typescript:generate
       - name: Run prek
         run: prek run --all-files --show-diff-on-failure

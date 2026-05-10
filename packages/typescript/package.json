@@ -1,7 +1,7 @@
 {
   "name": "@kreuzberg/cloud",
   "version": "0.0.1",
-  "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API",
+  "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API.",
   "license": "MIT",
   "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",
   "homepage": "https://kreuzberg.cloud",
@@ -38,7 +38,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public",

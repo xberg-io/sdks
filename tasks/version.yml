@@ -26,3 +26,46 @@ tasks:
         fi
         echo "{{.CLI_ARGS}}" > {{.VERSION_FILE}}
       - task: sync
+
+  set:
+    desc: "Set an explicit version and propagate (usage: task version:set -- 0.1.0)"
+    requires:
+      vars: [CLI_ARGS]
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "usage: task version:set -- <new-version>" >&2
+          exit 1
+        fi
+        echo "{{.CLI_ARGS}}" > {{.VERSION_FILE}}
+      - task: sync
+
+  bump:patch:
+    desc: "Bump patch (X.Y.Z -> X.Y.(Z+1)) and propagate"
+    cmds:
+      - |
+        current=$(cat {{.VERSION_FILE}})
+        next=$(python3 -c "import re,sys;m=re.match(r'^(\d+)\.(\d+)\.(\d+)(.*)$','$current');print(f'{m[1]}.{m[2]}.{int(m[3])+1}')")
+        echo "$next" > {{.VERSION_FILE}}
+        echo "bumped $current -> $next"
+      - task: sync
+
+  bump:minor:
+    desc: "Bump minor (X.Y.Z -> X.(Y+1).0) and propagate"
+    cmds:
+      - |
+        current=$(cat {{.VERSION_FILE}})
+        next=$(python3 -c "import re,sys;m=re.match(r'^(\d+)\.(\d+)\.(\d+)(.*)$','$current');print(f'{m[1]}.{int(m[2])+1}.0')")
+        echo "$next" > {{.VERSION_FILE}}
+        echo "bumped $current -> $next"
+      - task: sync
+
+  bump:major:
+    desc: "Bump major (X.Y.Z -> (X+1).0.0) and propagate"
+    cmds:
+      - |
+        current=$(cat {{.VERSION_FILE}})
+        next=$(python3 -c "import re,sys;m=re.match(r'^(\d+)\.(\d+)\.(\d+)(.*)$','$current');print(f'{int(m[1])+1}.0.0')")
+        echo "$next" > {{.VERSION_FILE}}
+        echo "bumped $current -> $next"
+      - task: sync

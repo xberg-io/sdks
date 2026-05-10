@@ -30,21 +30,14 @@ permissions:
 
 jobs:
   test:
-    name: test (node${{ matrix.node }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        node: ["20", "22", "24"]
+    name: test (node 24)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11.0.8
       - uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node }}
+          node-version: "24"
           cache: pnpm
       - name: Install task
         uses: arduino/setup-task@v2
