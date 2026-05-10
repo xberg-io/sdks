@@ -9,7 +9,7 @@ description = "Official Python client for the Kreuzberg Cloud document-processin
 readme = "README.md"
 keywords = [ "client", "cloud", "document-extraction", "kreuzberg", "openapi", "sdk" ]
 license = "MIT"
-license-files = [ "../../LICENSE" ]
+license-files = [ "LICENSE" ]
 maintainers = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
 authors = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
 requires-python = ">=3.10"
@@ -33,16 +33,17 @@ dependencies = [
   "python-dateutil>=2.9",
   "typing-extensions>=4.12; python_version<'3.11'",
 ]
+urls.Changelog = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/blob/main/CHANGELOG.md"
 urls.Documentation = "https://docs.kreuzberg.cloud"
 urls.Homepage = "https://kreuzberg.cloud"
 urls.Issues = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
 urls.Repository = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk"
 
 [tool.hatch]
-build.packages = [ "src/kreuzberg_cloud" ]
 build.targets.sdist.include = [
   "src/kreuzberg_cloud/**",
   "README.md",
+  "LICENSE",
   "pyproject.toml",
 ]
 build.targets.wheel.packages = [ "src/kreuzberg_cloud" ]
