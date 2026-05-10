@@ -109,9 +109,9 @@ jobs:
         run: |
           set -euo pipefail
           status=$(curl -sS -o /dev/null -w '%{http_code}' \
-            "https://pypi.org/pypi/kreuzberg-cloud/${VERSION}/json")
+            "https://pypi.org/pypi/kreuzberg-cloud-sdk/${VERSION}/json")
           if [ "$status" = "200" ]; then exists=true; else exists=false; fi
-          echo "kreuzberg-cloud ${VERSION} on PyPI: status=$status exists=$exists"
+          echo "kreuzberg-cloud-sdk ${VERSION} on PyPI: status=$status exists=$exists"
           echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
   check-npm:
@@ -183,7 +183,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/kreuzberg-cloud
+      url: https://pypi.org/p/kreuzberg-cloud-sdk
     permissions:
       id-token: write
     steps:

@@ -1,7 +1,7 @@
 [project]
 name = "kreuzberg-cloud-sdk-workspace"
 version = "0.0.0"
-description = "Workspace root for the kreuzberg-cloud SDK monorepo"
+description = "Workspace root for the kreuzberg-cloud-sdk SDK monorepo"
 requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
@@ -15,7 +15,7 @@ classifiers = [
 [dependency-groups]
 dev = [
   "covdefaults>=2.3.0",
-  "kreuzberg-cloud",
+  "kreuzberg-cloud-sdk",
   "mypy>=1.20.2",
   "openapi-python-client>=0.27",
   "prek>=0.3.9",
@@ -29,7 +29,7 @@ dev = [
 ]
 
 [tool.uv]
-sources.kreuzberg-cloud = { workspace = true }
+sources.kreuzberg-cloud-sdk = { workspace = true }
 package = false
 workspace.members = [ "packages/python" ]
 cache-keys = [

@@ -8,7 +8,7 @@
 
 <div align="center" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0;">
 
-<a href="https://pypi.org/project/kreuzberg-cloud/"><img src="https://img.shields.io/pypi/v/kreuzberg-cloud?label=PyPI&color=007ec6" alt="PyPI"></a>
+<a href="https://pypi.org/project/kreuzberg-cloud-sdk/"><img src="https://img.shields.io/pypi/v/kreuzberg-cloud-sdk?label=PyPI&color=007ec6" alt="PyPI"></a>
 <a href="https://www.npmjs.com/package/@kreuzberg/cloud"><img src="https://img.shields.io/npm/v/%40kreuzberg%2Fcloud?label=npm&color=007ec6" alt="npm"></a>
 <a href="https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
 <a href="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
@@ -27,7 +27,7 @@ Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) public e
 
 | Language | Package | Registry | Status |
 |----------|---------|----------|--------|
-| Python | `kreuzberg-cloud` | [PyPI](https://pypi.org/project/kreuzberg-cloud/) | generated (httpx) |
+| Python | `kreuzberg-cloud-sdk` | [PyPI](https://pypi.org/project/kreuzberg-cloud-sdk/) | generated (httpx) |
 | TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) | generated (openapi-fetch) |
 | Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) | hand-written interim — codegen blocked on [oapi-codegen 3.1 support](https://github.com/oapi-codegen/oapi-codegen/issues/373) |
 
@@ -35,7 +35,7 @@ Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) public e
 
 **Python:**
 ```sh
-pip install kreuzberg-cloud
+pip install kreuzberg-cloud-sdk
 ```
 
 **TypeScript / Node.js:**
