@@ -101,12 +101,18 @@ jobs:
     outputs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
-      - uses: kreuzberg-dev/actions/check-registry@v1
+      - name: Probe PyPI
         id: check
-        with:
-          registry: pypi
-          package: kreuzberg-cloud
-          version: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "https://pypi.org/pypi/kreuzberg-cloud/${VERSION}/json")
+          if [ "$status" = "200" ]; then exists=true; else exists=false; fi
+          echo "kreuzberg-cloud ${VERSION} on PyPI: status=$status exists=$exists"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
   check-npm:
     needs: prepare
@@ -115,12 +121,18 @@ jobs:
     outputs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
-      - uses: kreuzberg-dev/actions/check-registry@v1
+      - name: Probe npm
         id: check
-        with:
-          registry: npm
-          package: "@kreuzberg/cloud"
-          version: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "https://registry.npmjs.org/@kreuzberg%2Fcloud/${VERSION}")
+          if [ "$status" = "200" ]; then exists=true; else exists=false; fi
+          echo "@kreuzberg/cloud ${VERSION} on npm: status=$status exists=$exists"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
   build-python:
     needs: [prepare, validate-versions]
