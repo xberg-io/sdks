@@ -191,10 +191,16 @@ jobs:
         with:
           name: python-dist
           path: dist/
-      - uses: kreuzberg-dev/actions/publish-pypi@v1
+      - name: Publish to PyPI (OIDC trusted publisher)
+        if: needs.prepare.outputs.dry_run != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
-          dry-run: ${{ needs.prepare.outputs.dry_run }}
+          skip-existing: true
+          verbose: true
+      - name: Dry-run summary
+        if: needs.prepare.outputs.dry_run == 'true'
+        run: ls -la dist/
 
   publish-npm:
     needs: [prepare, validate-versions, check-npm, build-typescript]
@@ -207,19 +213,36 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
       - uses: actions/download-artifact@v7
         with:
           name: typescript-dist
-          path: packages/typescript/dist-pack/
-      - uses: kreuzberg-dev/actions/publish-npm@v1
-        with:
-          packages-dir: packages/typescript/dist-pack
-          npm-tag: ${{ needs.prepare.outputs.npm_tag }}
-          provenance: "true"
-          dry-run: ${{ needs.prepare.outputs.dry_run }}
+          path: dist-pack/
+      - name: Publish to npm (with provenance)
+        shell: bash
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ needs.prepare.outputs.npm_tag }}
+          DRY_RUN: ${{ needs.prepare.outputs.dry_run }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          tarballs=(dist-pack/*.tgz)
+          if [ ${#tarballs[@]} -eq 0 ]; then
+            echo "no .tgz found in dist-pack/" >&2
+            exit 1
+          fi
+          for tgz in "${tarballs[@]}"; do
+            echo "publishing $tgz tag=${NPM_TAG:-latest} dry=${DRY_RUN}"
+            if [ "${DRY_RUN}" = "true" ]; then
+              npm publish --dry-run --access public --provenance --tag "${NPM_TAG:-latest}" "$tgz"
+            else
+              npm publish --access public --provenance --tag "${NPM_TAG:-latest}" "$tgz"
+            fi
+          done
 
   tag-go:
     needs: [prepare, validate-versions]
