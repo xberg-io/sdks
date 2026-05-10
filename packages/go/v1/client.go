@@ -10,7 +10,7 @@ import (
 // DefaultBaseURL is the production endpoint of the Kreuzberg Cloud API.
 const DefaultBaseURL = "https://api.kreuzberg.cloud"
 
-const userAgent = "kreuzberg-cloud-go/0.0.1"
+const userAgent = "kreuzberg-cloud-go/" + Version
 
 // Option configures a Client constructed via New.
 type Option func(*clientConfig)
