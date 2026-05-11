@@ -35,7 +35,15 @@ vendor/
 *.out
 go.work.sum
 
+# Dart
+.dart_tool/
+.packages
+pubspec.lock
+
 # Generated client code (kept out of git; produced by `task generate`)
+# NOTE: packages/dart/lib/src/_generated/ is intentionally NOT gitignored —
+# pub.dev archives only include git-tracked files, so the generated tree must
+# ship inside the package.
 packages/python/src/kreuzberg_cloud/_generated/
 packages/typescript/src/_generated/
 packages/go/v1/generated.go

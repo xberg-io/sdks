@@ -1,0 +1,14 @@
+swagger_parser:
+  schema_path: ../../spec/openapi.yaml
+  output_directory: lib/src/_generated
+  language: dart
+  json_serializer: freezed
+  use_freezed3: true
+  root_client: true
+  root_client_name: KreuzbergCloudApi
+  export_file: true
+  client_postfix: Client
+  unknown_enum_value: true
+  enums_to_json: true
+  mark_files_as_generated: true
+  union_fallback: fallback

@@ -4,7 +4,7 @@ version: "3"
 # kreuzberg-cloud-sdk — Root Taskfile
 # ============================================================================
 # Multi-language client SDK monorepo. Per-language tasks live under
-# tasks/{python,typescript,go,spec}.yml and are namespaced (python:test, etc.).
+# tasks/{python,typescript,go,dart,spec}.yml and are namespaced (python:test, etc.).
 # ============================================================================
 
 includes:
@@ -15,6 +15,8 @@ includes:
     aliases: [ts]
   go:
     taskfile: ./tasks/go.yml
+  dart:
+    taskfile: ./tasks/dart.yml
   spec:
     taskfile: ./tasks/spec.yml
   version:
@@ -32,6 +34,7 @@ tasks:
       - uv sync
       - pnpm install
       - cd packages/go/v1 && go mod download
+      - cd packages/dart && dart pub get
       - prek install
       - prek install --hook-type commit-msg
 
@@ -41,6 +44,7 @@ tasks:
       - task: python:generate
       - task: typescript:generate
       - task: go:generate
+      - task: dart:generate
 
   build:
     desc: "Build distributable artifacts for all languages"
@@ -48,6 +52,7 @@ tasks:
       - task: python:build
       - task: typescript:build
       - task: go:build
+      - task: dart:build
 
   test:
     desc: "Run all language test suites"
@@ -55,6 +60,7 @@ tasks:
       - task: python:test
       - task: typescript:test
       - task: go:test
+      - task: dart:test
 
   lint:
     desc: "Lint all code via prek (pre-commit framework)"
@@ -67,6 +73,7 @@ tasks:
       - task: python:format
       - task: typescript:format
       - task: go:format
+      - task: dart:format
 
   fmt:
     desc: "Alias for format"
@@ -114,6 +121,8 @@ tasks:
       - rm -rf packages/python/src/kreuzberg_cloud/_generated
       - rm -rf packages/typescript/src/_generated
       - rm -f packages/go/v1/generated.go
+      - rm -rf packages/dart/lib/src/_generated
+      - rm -rf packages/dart/.dart_tool packages/dart/build
       - rm -rf packages/python/dist packages/typescript/dist
       - rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage
 

@@ -9,6 +9,8 @@ Affected files:
   - packages/typescript/package.json                        (``version``)
   - packages/python/src/kreuzberg_cloud/__init__.py         (``__version__``)
   - packages/go/v1/version.go                               (``const Version``)
+  - packages/dart/pubspec.yaml                              (``version``)
+  - packages/dart/lib/src/version.dart                      (``packageVersion``)
 Go module versions for the module path itself live in git tags only.
 """
 
@@ -25,6 +27,8 @@ PYTHON_PYPROJECT = REPO_ROOT / "packages" / "python" / "pyproject.toml"
 TYPESCRIPT_PACKAGE = REPO_ROOT / "packages" / "typescript" / "package.json"
 PYTHON_INIT = REPO_ROOT / "packages" / "python" / "src" / "kreuzberg_cloud" / "__init__.py"
 GO_VERSION = REPO_ROOT / "packages" / "go" / "v1" / "version.go"
+DART_PUBSPEC = REPO_ROOT / "packages" / "dart" / "pubspec.yaml"
+DART_VERSION = REPO_ROOT / "packages" / "dart" / "lib" / "src" / "version.dart"
 
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:[-+][\w.+-]+)?$")
 
@@ -99,6 +103,40 @@ def update_go_version(path: Path, version: str) -> bool:
     return True
 
 
+def update_dart_pubspec(path: Path, version: str) -> bool:
+    """Rewrite the top-level ``version:`` field in pubspec.yaml; return True if changed."""
+    text = path.read_text(encoding="utf-8")
+    new_text, count = re.subn(
+        r"(?m)^(version:\s*)\S+",
+        rf"\g<1>{version}",
+        text,
+        count=1,
+    )
+    if count == 0:
+        sys.exit(f"no version line found in {path}")
+    if new_text == text:
+        return False
+    path.write_text(new_text, encoding="utf-8")
+    return True
+
+
+def update_dart_version(path: Path, version: str) -> bool:
+    """Rewrite the ``packageVersion`` literal in version.dart; return True if changed."""
+    text = path.read_text(encoding="utf-8")
+    new_text, count = re.subn(
+        r"(?m)^(const String packageVersion\s*=\s*')[^']+(';)",
+        rf"\g<1>{version}\g<2>",
+        text,
+        count=1,
+    )
+    if count == 0:
+        sys.exit(f"no `packageVersion` line found in {path}")
+    if new_text == text:
+        return False
+    path.write_text(new_text, encoding="utf-8")
+    return True
+
+
 def main() -> int:
     """Propagate the root VERSION value to every per-package manifest."""
     version = read_version()
@@ -111,6 +149,10 @@ def main() -> int:
         changed.append(str(PYTHON_INIT.relative_to(REPO_ROOT)))
     if update_go_version(GO_VERSION, version):
         changed.append(str(GO_VERSION.relative_to(REPO_ROOT)))
+    if update_dart_pubspec(DART_PUBSPEC, version):
+        changed.append(str(DART_PUBSPEC.relative_to(REPO_ROOT)))
+    if update_dart_version(DART_VERSION, version):
+        changed.append(str(DART_VERSION.relative_to(REPO_ROOT)))
     if changed:
         print(f"synced version {version} -> {', '.join(changed)}")  # noqa: T201
     else:

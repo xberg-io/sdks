@@ -1,0 +1,58 @@
+version: "3"
+
+# Dart client tasks (pub workspace member at packages/dart).
+# Mirrors tasks/python.yml.
+
+vars:
+  PKG_DIR: packages/dart
+  GENERATED_DIR: packages/dart/lib/src/_generated
+
+tasks:
+  generate:
+    desc: "Regenerate Dart client from spec/openapi.yaml via swagger_parser"
+    cmds:
+      - rm -rf {{.GENERATED_DIR}}
+      - cd {{.PKG_DIR}} && dart run swagger_parser
+      - cd {{.PKG_DIR}} && dart run build_runner build --delete-conflicting-outputs
+
+  install:
+    desc: "Install Dart deps via dart pub"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart pub get
+
+  build:
+    desc: "Static-analyze the Dart package"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart analyze
+
+  test:
+    desc: "Run the Dart test suite"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart test
+
+  lint:
+    desc: "Static analysis (fatal on infos for CI parity)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart analyze --fatal-infos
+
+  format:
+    desc: "Format Dart sources"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart format lib test example
+
+  publish:dry:
+    desc: "Dry-run the pub.dev publish flow"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart pub publish --dry-run
+
+  publish:
+    desc: "Publish to pub.dev (assumes dart pub login has been completed)"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - dart pub publish --force
