@@ -138,3 +138,4 @@ tasks:
       - pnpm update -r
       - cd packages/go/v1 && go get -u ./... && go mod tidy
       - prek autoupdate
+      - gh-actions-updater --update .

@@ -43,7 +43,7 @@ repos:
 
   # Shared kreuzberg-dev hooks (mypy, oxlint/oxfmt, go-fmt, golangci-lint, govulncheck, shfmt, shellcheck)
   - repo: https://github.com/kreuzberg-dev/pre-commit-hooks
-    rev: v1.0.0
+    rev: v1.0.1
     hooks:
       - id: mypy
         files: ^packages/python/src/.*\.py$
@@ -63,9 +63,15 @@ repos:
     hooks:
       - id: actionlint
 
+  # GitHub Actions pin maintenance
+  - repo: https://github.com/Goldziher/gh-actions-updater
+    rev: v0.1.1
+    hooks:
+      - id: gh-actions-updater
+
   # Spelling
   - repo: https://github.com/crate-ci/typos
-    rev: v1.46.0
+    rev: v1.46.1
     hooks:
       - id: typos
         args: [--force-exclude]
