@@ -10,7 +10,7 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
+      - "pubdev-v*"
 
 permissions:
   contents: read
