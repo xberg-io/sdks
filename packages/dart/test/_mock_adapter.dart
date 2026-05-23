@@ -51,14 +51,16 @@ class MockAdapter implements HttpClientAdapter {
     Object? body,
     Map<String, List<String>> headers = const {},
   }) {
-    _responses.add(MockResponse(
-      statusCode: statusCode,
-      body: body,
-      headers: {
-        'content-type': const ['application/json'],
-        ...headers,
-      },
-    ));
+    _responses.add(
+      MockResponse(
+        statusCode: statusCode,
+        body: body,
+        headers: {
+          'content-type': const ['application/json'],
+          ...headers,
+        },
+      ),
+    );
   }
 
   @override
@@ -77,16 +79,20 @@ class MockAdapter implements HttpClientAdapter {
       }
     }
 
-    captured.add(CapturedRequest(
-      method: options.method,
-      path: options.path,
-      headers: {...options.headers},
-      queryParameters: {...options.queryParameters},
-      body: capturedBody,
-    ));
+    captured.add(
+      CapturedRequest(
+        method: options.method,
+        path: options.path,
+        headers: {...options.headers},
+        queryParameters: {...options.queryParameters},
+        body: capturedBody,
+      ),
+    );
 
     if (_responses.isEmpty) {
-      throw StateError('MockAdapter: no response queued for ${options.method} ${options.path}');
+      throw StateError(
+        'MockAdapter: no response queued for ${options.method} ${options.path}',
+      );
     }
     final response = _responses.removeAt(0);
     final bodyBytes = _encodeBody(response.body);

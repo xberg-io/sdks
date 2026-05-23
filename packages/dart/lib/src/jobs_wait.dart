@@ -95,5 +95,6 @@ Future<List<JobResponse>> pollManyUntilTerminal({
 
 /// Caps a [Duration] at `max`, used by callers that want explicit bounds on
 /// backoff arithmetic without exposing [math].
-Duration capDuration(Duration value, Duration max) =>
-    value > max ? max : Duration(milliseconds: math.max(0, value.inMilliseconds));
+Duration capDuration(Duration value, Duration max) => value > max
+    ? max
+    : Duration(milliseconds: math.max(0, value.inMilliseconds));

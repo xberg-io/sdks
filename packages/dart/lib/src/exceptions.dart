@@ -7,11 +7,7 @@ import 'package:meta/meta.dart';
 /// the numeric HTTP status is in [status].
 @immutable
 class ApiException implements Exception {
-  const ApiException({
-    required this.status,
-    required this.message,
-    this.body,
-  });
+  const ApiException({required this.status, required this.message, this.body});
 
   /// HTTP status code.
   final int status;
@@ -54,10 +50,8 @@ class ValidationException extends ApiException {
 
 /// 404 — requested resource does not exist.
 class NotFoundException extends ApiException {
-  const NotFoundException({
-    required super.message,
-    super.body,
-  }) : super(status: 404);
+  const NotFoundException({required super.message, super.body})
+    : super(status: 404);
 
   @override
   String toString() => 'NotFoundException: $message';
@@ -101,10 +95,7 @@ class ServerException extends ApiException {
 /// status 0). The job may still complete on the server.
 @immutable
 class JobWaitTimeoutException implements Exception {
-  const JobWaitTimeoutException({
-    required this.jobId,
-    required this.elapsed,
-  });
+  const JobWaitTimeoutException({required this.jobId, required this.elapsed});
 
   /// The job that did not reach a terminal status in time.
   final String jobId;

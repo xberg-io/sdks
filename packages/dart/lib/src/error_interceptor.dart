@@ -16,10 +16,7 @@ class ErrorInterceptor extends Interceptor {
           requestOptions: err.requestOptions,
           response: err.response,
           type: err.type,
-          error: ApiException(
-            status: 0,
-            message: err.message ?? err.type.name,
-          ),
+          error: ApiException(status: 0, message: err.message ?? err.type.name),
         ),
       );
       return;
@@ -27,7 +24,8 @@ class ErrorInterceptor extends Interceptor {
 
     final status = response.statusCode ?? 0;
     final body = response.data;
-    final message = _extractMessage(body) ?? response.statusMessage ?? 'HTTP $status';
+    final message =
+        _extractMessage(body) ?? response.statusMessage ?? 'HTTP $status';
 
     final apiException = _classify(status, message, body, response);
     handler.next(
@@ -88,7 +86,7 @@ class ErrorInterceptor extends Interceptor {
   ///
   /// Supports both delta-seconds (`Retry-After: 120`) and HTTP-date format
   /// (`Retry-After: Wed, 21 Oct 2026 07:28:00 GMT`). Returns `null` if the
-  /// header is absent or unparseable.
+  /// header is absent or unparsable.
   static Duration? _parseRetryAfter(String? value) {
     if (value == null || value.isEmpty) {
       return null;

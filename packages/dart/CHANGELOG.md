@@ -1,3 +1,8 @@
+## 0.1.0
+
+- Default API endpoint is now `https://api.kreuzberg.dev`.
+- Updated generated package metadata and dependency pins for the SDK release.
+
 ## 0.0.1
 
 - Initial release of the Kreuzberg Cloud Dart SDK.

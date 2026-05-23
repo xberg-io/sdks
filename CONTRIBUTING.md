@@ -6,7 +6,7 @@ Official client SDKs for the Kreuzberg Cloud public extraction API, generated fr
 
 ## Layout
 
-```
+```text
 packages/
   python/         # PyPI distribution (httpx-based, sync + async)
   typescript/     # npm distribution (ESM-only, openapi-fetch)
@@ -65,11 +65,11 @@ Releases use a single unified `vX.Y.Z` tag that drives all three publishes from 
 3. Commit: `git commit -am "chore(release): vX.Y.Z"` and open a PR to `main`.
 4. After merge to `main`: `git checkout main && git pull && task release:tag` creates the annotated `vX.Y.Z` tag locally (refuses to run on a dirty tree).
 5. `git push origin vX.Y.Z` — pushes the tag, triggering `.github/workflows/publish.yaml`:
-    - Validates every manifest matches the tag's version.
-    - Pre-checks PyPI + npm registries; skips already-published versions.
-    - Builds + publishes Python (PyPI, OIDC trusted publisher) and TypeScript (npm, `--provenance`, org `NPM_TOKEN`).
-    - Creates the Go module subtag `packages/go/v1/vX.Y.Z` via `kreuzberg-dev/actions/finalize-release@v1`.
-    - Auto-generates a GitHub Release with notes.
+   - Validates every manifest matches the tag's version.
+   - Pre-checks PyPI + npm registries; skips already-published versions.
+   - Builds + publishes Python (PyPI, OIDC trusted publisher) and TypeScript (npm, `--provenance`, org `NPM_TOKEN`).
+   - Creates the Go module subtag `packages/go/v1/vX.Y.Z` via `kreuzberg-dev/actions/finalize-release@v1`.
+   - Auto-generates a GitHub Release with notes.
 6. `workflow_dispatch` supports `dry_run=true` and `force_republish=true` for staged verification before tagging.
 
 ## Code style & checks
@@ -78,6 +78,6 @@ Run `prek run --all-files` to validate formatting, linting, and type checking ac
 
 ## Contact
 
-- Issues: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues
-- Email: contact@kreuzberg.dev
-- Discord: https://discord.gg/xt9WY3GnKR
+- Issues: <https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues>
+- Email: <contact@kreuzberg.dev>
+- Discord: <https://discord.gg/xt9WY3GnKR>

@@ -63,17 +63,22 @@ class KreuzbergCloudClient {
     RetryPolicy retryPolicy = const RetryPolicy(),
     String? userAgent,
     Dio? dio,
-  })  : _userAgent = userAgent ?? 'kreuzberg-cloud-sdk-dart/$packageVersion',
-        _dio = dio ?? _buildDio(baseUrl: baseUrl, timeout: timeout) {
+  }) : _userAgent = userAgent ?? 'kreuzberg-cloud-sdk-dart/$packageVersion',
+       _dio = dio ?? _buildDio(baseUrl: baseUrl, timeout: timeout) {
     _dio.interceptors
-      ..add(InterceptorsWrapper(
-        onRequest: (options, handler) {
-          options.headers.putIfAbsent('Authorization', () => 'Bearer $apiKey');
-          options.headers.putIfAbsent('User-Agent', () => _userAgent);
-          options.headers.putIfAbsent('Accept', () => 'application/json');
-          handler.next(options);
-        },
-      ))
+      ..add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            options.headers.putIfAbsent(
+              'Authorization',
+              () => 'Bearer $apiKey',
+            );
+            options.headers.putIfAbsent('User-Agent', () => _userAgent);
+            options.headers.putIfAbsent('Accept', () => 'application/json');
+            handler.next(options);
+          },
+        ),
+      )
       ..add(const ErrorInterceptor())
       ..add(RetryInterceptor(dio: _dio, policy: retryPolicy));
     _api = KreuzbergCloudApi(_dio, baseUrl: baseUrl);
@@ -147,7 +152,11 @@ class KreuzbergCloudClient {
     WebhookConfig? webhook,
   }) async {
     if (files.isEmpty) {
-      throw ArgumentError.value(files, 'files', 'must contain at least one file');
+      throw ArgumentError.value(
+        files,
+        'files',
+        'must contain at least one file',
+      );
     }
     final form = FormData();
     for (final file in files) {
@@ -162,9 +171,7 @@ class KreuzbergCloudClient {
     final response = await _dio.post<Map<String, dynamic>>(
       '/v1/extract',
       data: form,
-      options: Options(
-        contentType: 'multipart/form-data',
-      ),
+      options: Options(contentType: 'multipart/form-data'),
     );
     return ExtractResponse.fromJson(response.data!);
   }

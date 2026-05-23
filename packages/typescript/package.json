@@ -1,6 +1,6 @@
 {
   "name": "@kreuzberg/cloud",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API.",
   "license": "MIT",
   "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",
@@ -59,14 +59,14 @@
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@vitest/coverage-v8": "^4.1.5",
-    "msw": "^2.7.0",
+    "@types/node": "^25.9.1",
+    "@vitest/coverage-v8": "^4.1.7",
+    "msw": "^2.14.6",
     "openapi-typescript": "^7.13.0",
     "oxfmt": "^0.47.0",
-    "oxlint": "^1.62.0",
-    "tsdown": "^0.18.0",
+    "oxlint": "^1.66.0",
+    "tsdown": "^0.18.4",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.7"
   }
 }

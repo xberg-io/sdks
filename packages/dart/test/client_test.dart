@@ -22,7 +22,10 @@ void main() {
         ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(adapter);
       await client.healthz();
-      expect(adapter.captured.single.headers['Authorization'], 'Bearer test-key');
+      expect(
+        adapter.captured.single.headers['Authorization'],
+        'Bearer test-key',
+      );
     });
 
     test('User-Agent header carries package version', () async {
@@ -58,10 +61,13 @@ void main() {
 
     test('readyz returns parsed ReadinessResponse with checks', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {
-          'status': 'ready',
-          'checks': {'database': 'ok', 'nats': 'ok'},
-        });
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'status': 'ready',
+            'checks': {'database': 'ok', 'nats': 'ok'},
+          },
+        );
       final client = _newClient(adapter);
       final res = await client.readyz();
       expect(res.status, 'ready');
@@ -73,12 +79,15 @@ void main() {
   group('jobs', () {
     test('getJob fetches /v1/jobs/{id}', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {
-          'id': '550e8400-e29b-41d4-a716-446655440000',
-          'filename': 'foo.pdf',
-          'status': 'pending',
-          'created_at': '2026-05-11T12:00:00Z',
-        });
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'id': '550e8400-e29b-41d4-a716-446655440000',
+            'filename': 'foo.pdf',
+            'status': 'pending',
+            'created_at': '2026-05-11T12:00:00Z',
+          },
+        );
       final client = _newClient(adapter);
       final job = await client.getJob('550e8400-e29b-41d4-a716-446655440000');
       expect(job.id, '550e8400-e29b-41d4-a716-446655440000');
@@ -100,14 +109,17 @@ void main() {
   group('usage', () {
     test('getUsage forwards query parameters', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {
-          'period_start': '2026-05-01',
-          'period_end': '2026-06-01',
-          'total_pages': 0,
-          'total_documents': 0,
-          'total_failed': 0,
-          'by_mime_type': <String, dynamic>{},
-        });
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'period_start': '2026-05-01',
+            'period_end': '2026-06-01',
+            'total_pages': 0,
+            'total_documents': 0,
+            'total_failed': 0,
+            'by_mime_type': <String, dynamic>{},
+          },
+        );
       final client = _newClient(adapter);
       await client.getUsage(start: '2026-05-01', end: '2026-06-01');
       expect(adapter.captured.single.queryParameters['start'], '2026-05-01');
@@ -121,7 +133,8 @@ void main() {
       required Object? body,
       required Matcher matcher,
     }) async {
-      final adapter = MockAdapter()..enqueueJson(statusCode: status, body: body);
+      final adapter = MockAdapter()
+        ..enqueueJson(statusCode: status, body: body);
       final client = _newClient(adapter);
       try {
         await client.healthz();
@@ -131,64 +144,90 @@ void main() {
       }
     }
 
-    test('401 -> AuthException', () => assertMaps(
-          status: 401,
-          body: {'error': 'no auth'},
-          matcher: isA<AuthException>(),
-        ));
+    test(
+      '401 -> AuthException',
+      () => assertMaps(
+        status: 401,
+        body: {'error': 'no auth'},
+        matcher: isA<AuthException>(),
+      ),
+    );
 
-    test('403 -> AuthException', () => assertMaps(
-          status: 403,
-          body: {'error': 'forbidden'},
-          matcher: isA<AuthException>(),
-        ));
+    test(
+      '403 -> AuthException',
+      () => assertMaps(
+        status: 403,
+        body: {'error': 'forbidden'},
+        matcher: isA<AuthException>(),
+      ),
+    );
 
-    test('400 -> ValidationException', () => assertMaps(
-          status: 400,
-          body: {'error': 'bad input'},
-          matcher: isA<ValidationException>(),
-        ));
+    test(
+      '400 -> ValidationException',
+      () => assertMaps(
+        status: 400,
+        body: {'error': 'bad input'},
+        matcher: isA<ValidationException>(),
+      ),
+    );
 
-    test('422 -> ValidationException', () => assertMaps(
-          status: 422,
-          body: {'error': 'bad input'},
-          matcher: isA<ValidationException>(),
-        ));
+    test(
+      '422 -> ValidationException',
+      () => assertMaps(
+        status: 422,
+        body: {'error': 'bad input'},
+        matcher: isA<ValidationException>(),
+      ),
+    );
 
-    test('404 -> NotFoundException', () => assertMaps(
-          status: 404,
-          body: {'error': 'gone'},
-          matcher: isA<NotFoundException>(),
-        ));
+    test(
+      '404 -> NotFoundException',
+      () => assertMaps(
+        status: 404,
+        body: {'error': 'gone'},
+        matcher: isA<NotFoundException>(),
+      ),
+    );
 
-    test('429 -> RateLimitException', () => assertMaps(
-          status: 429,
-          body: {'error': 'slow down'},
-          matcher: isA<RateLimitException>(),
-        ));
+    test(
+      '429 -> RateLimitException',
+      () => assertMaps(
+        status: 429,
+        body: {'error': 'slow down'},
+        matcher: isA<RateLimitException>(),
+      ),
+    );
 
-    test('500 -> ServerException', () => assertMaps(
-          status: 500,
-          body: {'error': 'oops'},
-          matcher: isA<ServerException>(),
-        ));
+    test(
+      '500 -> ServerException',
+      () => assertMaps(
+        status: 500,
+        body: {'error': 'oops'},
+        matcher: isA<ServerException>(),
+      ),
+    );
 
-    test('503 -> ServerException', () => assertMaps(
-          status: 503,
-          body: {'error': 'down'},
-          matcher: isA<ServerException>(),
-        ));
+    test(
+      '503 -> ServerException',
+      () => assertMaps(
+        status: 503,
+        body: {'error': 'down'},
+        matcher: isA<ServerException>(),
+      ),
+    );
 
     test('429 parses Retry-After delta-seconds', () async {
       final adapter = MockAdapter()
-        ..enqueue(const MockResponse(
-          statusCode: 429,
-          body: {'error': 'slow down'},
-          headers: {
-            'content-type': ['application/json'],
-            'retry-after': ['7'],
-          },
-        ));
+        ..enqueue(
+          const MockResponse(
+            statusCode: 429,
+            body: {'error': 'slow down'},
+            headers: {
+              'content-type': ['application/json'],
+              'retry-after': ['7'],
+            },
+          ),
+        );
       final client = _newClient(adapter);
       try {
         await client.healthz();
@@ -259,14 +298,16 @@ void main() {
 
     test('honors Retry-After header on 429', () async {
       final adapter = MockAdapter()
-        ..enqueue(const MockResponse(
-          statusCode: 429,
-          body: {'error': 'slow'},
-          headers: {
-            'content-type': ['application/json'],
-            'retry-after': ['0'],
-          },
-        ))
+        ..enqueue(
+          const MockResponse(
+            statusCode: 429,
+            body: {'error': 'slow'},
+            headers: {
+              'content-type': ['application/json'],
+              'retry-after': ['0'],
+            },
+          ),
+        )
         ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(
         adapter,
@@ -281,24 +322,33 @@ void main() {
   group('waitForJob', () {
     test('polls until terminal status', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {
-          'id': 'job-1',
-          'filename': 'f.pdf',
-          'status': 'pending',
-          'created_at': '2026-05-11T12:00:00Z',
-        })
-        ..enqueueJson(statusCode: 200, body: {
-          'id': 'job-1',
-          'filename': 'f.pdf',
-          'status': 'processing',
-          'created_at': '2026-05-11T12:00:00Z',
-        })
-        ..enqueueJson(statusCode: 200, body: {
-          'id': 'job-1',
-          'filename': 'f.pdf',
-          'status': 'completed',
-          'created_at': '2026-05-11T12:00:00Z',
-        });
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'id': 'job-1',
+            'filename': 'f.pdf',
+            'status': 'pending',
+            'created_at': '2026-05-11T12:00:00Z',
+          },
+        )
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'id': 'job-1',
+            'filename': 'f.pdf',
+            'status': 'processing',
+            'created_at': '2026-05-11T12:00:00Z',
+          },
+        )
+        ..enqueueJson(
+          statusCode: 200,
+          body: {
+            'id': 'job-1',
+            'filename': 'f.pdf',
+            'status': 'completed',
+            'created_at': '2026-05-11T12:00:00Z',
+          },
+        );
       final client = _newClient(adapter);
       final job = await client.waitForJob(
         'job-1',
@@ -313,12 +363,15 @@ void main() {
     test('throws JobWaitTimeoutException when deadline elapses', () async {
       final adapter = MockAdapter();
       for (var i = 0; i < 100; i++) {
-        adapter.enqueueJson(statusCode: 200, body: {
-          'id': 'job-1',
-          'filename': 'f.pdf',
-          'status': 'processing',
-          'created_at': '2026-05-11T12:00:00Z',
-        });
+        adapter.enqueueJson(
+          statusCode: 200,
+          body: {
+            'id': 'job-1',
+            'filename': 'f.pdf',
+            'status': 'processing',
+            'created_at': '2026-05-11T12:00:00Z',
+          },
+        );
       }
       final client = _newClient(adapter);
       try {

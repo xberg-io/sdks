@@ -1,0 +1,13 @@
+# rumdl - Rust-based Markdown linter
+# https://github.com/rvben/rumdl
+
+respect-gitignore = true
+exclude = ["node_modules", "dist", "coverage"]
+
+# MD013: Line length (tables, links, and generated references can be long)
+# MD033: Inline HTML (badge rows use HTML)
+# MD041: First line H1 not required for changelogs
+disable = ["MD013", "MD033", "MD041"]
+
+[MD024]
+siblings_only = true

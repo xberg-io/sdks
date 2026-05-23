@@ -9,7 +9,11 @@ void main() {
     });
 
     test('preserves body', () {
-      const e = ApiException(status: 400, message: 'bad', body: {'error': 'bad'});
+      const e = ApiException(
+        status: 400,
+        message: 'bad',
+        body: {'error': 'bad'},
+      );
       expect(e.body, {'error': 'bad'});
     });
   });

@@ -10,13 +10,13 @@
     "generate": "pnpm -r --if-present run generate"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/coverage-v8": "^4.1.7",
     "oxfmt": "^0.47.0",
-    "oxlint": "^1.62.0",
-    "tsdown": "^0.18.0",
-    "tsx": "^4.21.0",
+    "oxlint": "^1.66.0",
+    "tsdown": "^0.18.4",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.7"
   },
   "packageManager": "pnpm@11.0.8+sha512.4c4097e1dd2d42372c4e7fa5a791ff28fc75a484c7ac192e64b1df0fdef17594ba982f9b4fed9adfb3c757846f565b799b2763fb3733d1de1bcb82cf46684912",
   "engines": {

@@ -132,10 +132,16 @@ tasks:
       - task: version:sync
 
   update:
-    desc: "Update dependencies (compatible only)"
+    desc: "Alias for upgrade"
+    cmds:
+      - task: upgrade
+
+  upgrade:
+    desc: "Update dependencies and tool pins"
     cmds:
       - uv sync --upgrade
       - pnpm update -r
       - cd packages/go/v1 && go get -u ./... && go mod tidy
+      - cd packages/dart && dart pub upgrade
       - prek autoupdate
-      - gh-actions-updater --update .
+      - uvx --from gh-actions-updater gau --update .

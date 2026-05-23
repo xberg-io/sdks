@@ -35,10 +35,7 @@ class RetryPolicy {
 /// [ErrorInterceptor] into [RateLimitException.retryAfter]); otherwise uses
 /// exponential backoff bounded by [RetryPolicy.maxBackoff].
 class RetryInterceptor extends Interceptor {
-  RetryInterceptor({
-    required this.dio,
-    required this.policy,
-  });
+  RetryInterceptor({required this.dio, required this.policy});
 
   final Dio dio;
   final RetryPolicy policy;
@@ -74,10 +71,7 @@ class RetryInterceptor extends Interceptor {
       receiveTimeout: options.receiveTimeout,
       contentType: options.contentType,
       responseType: options.responseType,
-      extra: {
-        ...options.extra,
-        _retryAttemptKey: attempt + 1,
-      },
+      extra: {...options.extra, _retryAttemptKey: attempt + 1},
     );
 
     try {

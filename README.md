@@ -30,15 +30,18 @@ Official client SDKs for the [Kreuzberg Cloud](https://kreuzberg.cloud) public e
 | Python | `kreuzberg-cloud-sdk` | [PyPI](https://pypi.org/project/kreuzberg-cloud-sdk/) | generated (httpx) |
 | TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) | generated (openapi-fetch) |
 | Go | `github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1) | hand-written interim — codegen blocked on [oapi-codegen 3.1 support](https://github.com/oapi-codegen/oapi-codegen/issues/373) |
+| Dart | `kreuzberg_cloud_sdk` | [pub.dev](https://pub.dev/packages/kreuzberg_cloud_sdk) | generated (Retrofit + Dio) |
 
 ## Install
 
 **Python:**
+
 ```sh
 pip install kreuzberg-cloud-sdk
 ```
 
 **TypeScript / Node.js:**
+
 ```sh
 pnpm add @kreuzberg/cloud
 # or npm install @kreuzberg/cloud
@@ -46,11 +49,18 @@ pnpm add @kreuzberg/cloud
 ```
 
 **Go:**
+
 ```sh
 go get github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1
 ```
 
-For language-specific quickstarts, examples, and API documentation, see the per-language READMEs in `packages/{python,typescript,go/v1}/`.
+**Dart:**
+
+```sh
+dart pub add kreuzberg_cloud_sdk
+```
+
+For language-specific quickstarts, examples, and API documentation, see the per-language READMEs in `packages/{python,typescript,go/v1,dart}/`.
 
 ## Documentation
 

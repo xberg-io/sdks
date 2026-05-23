@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-23
+
+### Added
+
+- Dart client `kreuzberg_cloud_sdk` on pub.dev with async extraction, webhook delivery fields, presigned uploads, job polling, retry policy, and typed exceptions.
+
+### Changed
+
+- Default SDK API endpoint is now `https://api.kreuzberg.dev` across Python, TypeScript, Go, and Dart.
+- Dependency update tooling now exposes `task upgrade`, refreshes Dart dependencies, updates pre-commit hooks, and runs GitHub Actions pin maintenance through `uvx`.
+
+### Fixed
+
+- Multipart extraction requests now send file, options, and webhook fields in the wire format expected by the API.
+- Python package metadata now publishes as `kreuzberg-cloud-sdk`.
+
 ## [0.0.1] - 2026-05-10
 
 ### Added
@@ -18,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/releases/tag/v0.0.1
