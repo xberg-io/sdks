@@ -107,7 +107,7 @@ func TestWaitForJob_PollsUntilTerminal(t *testing.T) {
 			status = "completed"
 			extra = `,"result":{"content":"finished"}`
 		}
-		fmt.Fprintf(
+		_, _ = fmt.Fprintf(
 			w,
 			`{"id":"j","filename":"a.pdf","status":%q,"created_at":"2025-12-21T10:00:00Z"%s}`,
 			status, extra,
@@ -184,7 +184,7 @@ func TestWaitForJob_ExponentialBackoffIncreases(t *testing.T) {
 			status = "completed"
 			extra = `,"result":{"content":"done"}`
 		}
-		fmt.Fprintf(
+		_, _ = fmt.Fprintf(
 			w,
 			`{"id":"j","filename":"a.pdf","status":%q,"created_at":"2025-12-21T10:00:00Z"%s}`,
 			status, extra,
@@ -213,7 +213,7 @@ func TestWaitForJobs_ParallelCompletion(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/v1/jobs/")
-		fmt.Fprintf(
+		_, _ = fmt.Fprintf(
 			w,
 			`{"id":%q,"filename":"a.pdf","status":"completed","created_at":"2025-12-21T10:00:00Z","result":{"content":%q}}`,
 			id, "result-"+id,

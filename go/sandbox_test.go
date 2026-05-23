@@ -94,7 +94,7 @@ func TestCreateSandboxKey_RateLimitedReturnsRateLimitError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Retry-After", "5")
 		w.WriteHeader(http.StatusTooManyRequests)
-		fmt.Fprintf(w, `{"error":"too fast"}`)
+		_, _ = fmt.Fprintf(w, `{"error":"too fast"}`)
 	}))
 	defer server.Close()
 	client := mustClient(t, kreuzbergcloud.WithBaseURL(server.URL))
