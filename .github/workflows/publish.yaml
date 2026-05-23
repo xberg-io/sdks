@@ -228,8 +228,14 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   tag-go:
-    needs: [prepare, validate-versions]
-    if: needs.prepare.outputs.release_go == 'true'
+    needs: [prepare, validate-versions, github-release]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.prepare.outputs.release_go == 'true' &&
+      needs.validate-versions.result == 'success' &&
+      (needs.github-release.result == 'success' ||
+       needs.prepare.outputs.dry_run == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -244,11 +250,16 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   github-release:
-    needs: [prepare, publish-pypi, publish-npm, tag-go]
+    needs: [prepare, publish-pypi, publish-npm]
     if: |
       always() &&
       !cancelled() &&
-      needs.prepare.outputs.dry_run != 'true'
+      needs.prepare.outputs.dry_run != 'true' &&
+      needs.prepare.result == 'success' &&
+      (needs.publish-pypi.result == 'success' ||
+       needs.publish-pypi.result == 'skipped') &&
+      (needs.publish-npm.result == 'success' ||
+       needs.publish-npm.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write
