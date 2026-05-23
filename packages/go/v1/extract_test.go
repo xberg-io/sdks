@@ -57,6 +57,7 @@ func TestExtract_MultipartBodyShape(t *testing.T) {
 		filenames    []string
 		contentTypes []string
 		options      string
+		webhook      string
 	}
 	var got capture
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +81,8 @@ func TestExtract_MultipartBodyShape(t *testing.T) {
 				got.contentTypes = append(got.contentTypes, part.Header.Get("Content-Type"))
 			case "options":
 				got.options = string(body)
+			case "webhook":
+				got.webhook = string(body)
 			}
 		}
 		w.WriteHeader(http.StatusAccepted)
@@ -122,6 +125,9 @@ func TestExtract_MultipartBodyShape(t *testing.T) {
 	}
 	if !strings.Contains(got.options, `"disable_ocr":false`) {
 		t.Errorf("options = %q, missing disable_ocr=false", got.options)
+	}
+	if got.webhook != `{"url":""}` {
+		t.Errorf("webhook = %q, want empty webhook stub", got.webhook)
 	}
 }
 

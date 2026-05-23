@@ -84,7 +84,7 @@ func (c *Client) ExtractBatch(
 // buildMultipartBody serializes files and optional ExtractionOptions into a
 // multipart/form-data body matching the API's documented wire format:
 //
-//	parts: file (one per document) + optional "options" (JSON string)
+//	parts: file (one per document) + optional "options" (JSON string) + "webhook" (JSON string)
 func buildMultipartBody(
 	files []FileSource,
 	opts *ExtractionOptions,
@@ -121,6 +121,9 @@ func buildMultipartBody(
 			return nil, "", fmt.Errorf("kreuzberg-cloud: writing options field: %w", err)
 		}
 	}
+	if err := writer.WriteField("webhook", `{"url":""}`); err != nil {
+		return nil, "", fmt.Errorf("kreuzberg-cloud: writing webhook field: %w", err)
+	}
 	if err := writer.Close(); err != nil {
 		return nil, "", fmt.Errorf("kreuzberg-cloud: closing multipart writer: %w", err)
 	}
@@ -143,6 +146,8 @@ func sniffContentType(filename string) string {
 		return "text/plain"
 	case strings.HasSuffix(lower, ".md"):
 		return "text/markdown"
+	case strings.HasSuffix(lower, ".csv"):
+		return "text/csv"
 	case strings.HasSuffix(lower, ".docx"):
 		return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 	default:

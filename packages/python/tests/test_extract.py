@@ -33,7 +33,7 @@ def test_extract_sync_happy_path_with_bytes(base_url: str, api_key: str) -> None
 
 
 @respx.mock
-def test_extract_sync_sends_multipart_with_files_field(base_url: str, api_key: str) -> None:
+def test_extract_sync_sends_multipart_with_file_and_webhook_fields(base_url: str, api_key: str) -> None:
     job_id = "22222222-2222-2222-2222-222222222222"
     route = respx.post(f"{base_url}/v1/extract").mock(
         return_value=httpx.Response(202, json=make_extract_response(job_ids=[job_id])),
@@ -50,7 +50,9 @@ def test_extract_sync_sends_multipart_with_files_field(base_url: str, api_key: s
     content_type = request.headers["content-type"]
     assert content_type.startswith("multipart/form-data")
     body = request.content
-    assert b'name="files"' in body
+    assert b'name="file"' in body
+    assert b'name="webhook"' in body
+    assert b'{"url": ""}' in body
     assert b"data" in body
 
 
@@ -133,6 +135,7 @@ def test_extract_sync_accepts_path_input(tmp_path: object, base_url: str, api_ke
 
     body = route.calls.last.request.content
     assert b'filename="fixture.txt"' in body
+    assert b"Content-Type: text/plain" in body
 
 
 @respx.mock

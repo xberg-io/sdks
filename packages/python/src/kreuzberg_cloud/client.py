@@ -10,6 +10,7 @@ package root).
 from __future__ import annotations
 
 import asyncio
+import mimetypes
 import sys
 import time
 from pathlib import Path
@@ -70,27 +71,35 @@ def _prepare_file_part(file: FileInput) -> tuple[str, bytes | BinaryIO, str]:
     - File-like: probe ``.name`` for a filename, fall back to ``upload.bin``.
     """
     if isinstance(file, Path):
-        return (file.name, file.read_bytes(), "application/octet-stream")
+        return (file.name, file.read_bytes(), _guess_mime_type(file.name))
     if isinstance(file, (bytes, bytearray)):
         return ("upload.bin", bytes(file), "application/octet-stream")
     name = getattr(file, "name", None)
     filename = Path(str(name)).name if isinstance(name, str) and name else "upload.bin"
-    return (filename, file, "application/octet-stream")
+    return (filename, file, _guess_mime_type(filename))
 
 
 def _multipart_files(file: FileInput) -> list[tuple[str, tuple[str, bytes | BinaryIO, str]]]:
     """Build the ``files=`` argument for ``httpx`` multipart upload of a single document."""
-    return [("files", _prepare_file_part(file))]
+    return [("file", _prepare_file_part(file))]
 
 
 def _multipart_data(options: OptionsInput) -> dict[str, str] | None:
     """Build the ``data=`` argument carrying serialized options as a JSON-encoded multipart part."""
-    coerced = _coerce_options(options)
-    if coerced is None:
-        return None
     import json  # local import — keeps stdlib import out of hot path  # noqa: PLC0415
 
-    return {"options": json.dumps(coerced)}
+    data = {"webhook": json.dumps({"url": ""})}
+    coerced = _coerce_options(options)
+    if coerced is None:
+        return data
+    data["options"] = json.dumps(coerced)
+    return data
+
+
+def _guess_mime_type(filename: str) -> str:
+    if filename.lower().endswith(".md"):
+        return "text/markdown"
+    return mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
 
 def _job_id_from_extract_response(payload: Any) -> str:

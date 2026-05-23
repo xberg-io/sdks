@@ -427,7 +427,7 @@ function toBlob(file: FileLike): { blob: Blob; filename: string } {
   }
   const wrapper = file;
   const name = wrapper.name ?? "upload.bin";
-  const mimeType = wrapper.mimeType ?? "application/octet-stream";
+  const mimeType = wrapper.mimeType ?? guessMimeType(name);
   if (wrapper.data instanceof Blob) {
     return { blob: wrapper.data, filename: name };
   }
@@ -435,6 +435,26 @@ function toBlob(file: FileLike): { blob: Blob; filename: string } {
     blob: new Blob([new Uint8Array(wrapper.data)], { type: mimeType }),
     filename: name,
   };
+}
+
+function guessMimeType(filename: string): string {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith(".csv")) {
+    return "text/csv";
+  }
+  if (lower.endsWith(".md")) {
+    return "text/markdown";
+  }
+  if (lower.endsWith(".pdf")) {
+    return "application/pdf";
+  }
+  if (lower.endsWith(".txt")) {
+    return "text/plain";
+  }
+  if (lower.endsWith(".docx")) {
+    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  }
+  return "application/octet-stream";
 }
 
 /** Guess a display name for a file (used to populate `Job.filename`). */

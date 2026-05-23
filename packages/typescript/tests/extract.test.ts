@@ -80,20 +80,21 @@ describe("extract", () => {
 
   it("accepts a wrapper { name, data } and uses the provided name", async () => {
     let filenames: string[] = [];
+    let contentTypes: string[] = [];
     server.use(
       http.post(url("/v1/extract"), async ({ request }) => {
         const form = await request.formData();
-        filenames = form
-          .getAll("file")
-          .filter((v): v is File => v instanceof File)
-          .map((f) => f.name);
+        const files = form.getAll("file").filter((v): v is File => v instanceof File);
+        filenames = files.map((f) => f.name);
+        contentTypes = files.map((f) => f.type);
         return HttpResponse.json({ job_ids: ["job-X"], status: "pending" }, { status: 202 });
       }),
     );
 
     const client = makeClient();
-    await client.extract({ file: { name: "report.pdf", data: new Uint8Array([1]) } });
-    expect(filenames).toEqual(["report.pdf"]);
+    await client.extract({ file: { name: "report.md", data: new Uint8Array([1]) } });
+    expect(filenames).toEqual(["report.md"]);
+    expect(contentTypes).toEqual(["text/markdown"]);
   });
 
   it("serializes options as a JSON multipart part", async () => {
