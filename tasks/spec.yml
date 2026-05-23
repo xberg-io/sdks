@@ -10,7 +10,7 @@ version: "3"
 vars:
   SPEC_PATH: spec/openapi.yaml
   UPSTREAM_LOCAL: ../kreuzberg-cloud/services/api/spec/openapi.json
-  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "https://api.kreuzberg.cloud"}}/api-doc/openapi.json'
+  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "https://api.kreuzberg.dev"}}/api-doc/openapi.json'
 
 tasks:
   fetch:

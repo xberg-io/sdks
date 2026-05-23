@@ -20,7 +20,7 @@ import type {
 } from "./types.js";
 import { SUCCESS_JOB_STATUSES, TERMINAL_JOB_STATUSES } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://api.kreuzberg.cloud";
+const DEFAULT_BASE_URL = "https://api.kreuzberg.dev";
 const USER_AGENT = "kreuzberg-cloud-typescript/0.0.1";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_POLL_INTERVAL_MS = 1_000;

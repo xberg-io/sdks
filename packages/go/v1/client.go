@@ -8,7 +8,7 @@ import (
 )
 
 // DefaultBaseURL is the production endpoint of the Kreuzberg Cloud API.
-const DefaultBaseURL = "https://api.kreuzberg.cloud"
+const DefaultBaseURL = "https://api.kreuzberg.dev"
 
 const userAgent = "kreuzberg-cloud-go/" + Version
 
