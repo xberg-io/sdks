@@ -2,7 +2,7 @@ name: kreuzberg_cloud_sdk
 description: >-
   Official Dart client SDK for the Kreuzberg Cloud document extraction API.
   Asynchronous extraction with webhook delivery, presigned uploads, and job polling.
-version: 0.1.0
+version: 0.1.1
 homepage: https://kreuzberg.dev
 repository: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk
 issue_tracker: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues

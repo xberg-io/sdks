@@ -1,7 +1,8 @@
 name: Publish pub.dev
 
-# pub.dev OIDC trusted publishing rejects tokens from `release` events.
-# This workflow fires on tag push instead, which produces an accepted token.
+# pub.dev OIDC trusted publishing rejects tokens from `release` events and
+# branch refs. This workflow publishes from version tags, which produce an
+# accepted token matching the configured `v{{version}}` tag pattern.
 #
 # One-time setup: on pub.dev -> package -> Admin -> Automated publishing,
 # set the workflow path to `.github/workflows/publish-pubdev.yaml`.

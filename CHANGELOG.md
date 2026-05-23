@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-23
+
+### Fixed
+
+- Added a split pub.dev publishing workflow so Dart releases publish from a tag-push OIDC token accepted by pub.dev.
+- Updated npm release publishing to use npm trusted publishing instead of the repository `NPM_TOKEN` secret.
+- Included Dart package version validation in the release workflow.
+
 ## [0.1.0] - 2026-05-23
 
 ### Added
@@ -34,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/releases/tag/v0.0.1

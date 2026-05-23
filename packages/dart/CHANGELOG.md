@@ -1,3 +1,7 @@
+## 0.1.1
+
+- Publish Dart releases from the split pub.dev workflow.
+
 ## 0.1.0
 
 - Default API endpoint is now `https://api.kreuzberg.dev`.
