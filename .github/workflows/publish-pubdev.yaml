@@ -10,7 +10,6 @@ on:
   push:
     tags:
       - "v*"
-      - "pubdev-v*"
 
 permissions:
   contents: read
