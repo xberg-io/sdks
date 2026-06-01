@@ -11,7 +11,8 @@ _OcrPipelineConfig _$OcrPipelineConfigFromJson(Map<String, dynamic> json) =>
       qualityThresholds: json['quality_thresholds'] == null
           ? null
           : OcrQualityThresholds.fromJson(
-              json['quality_thresholds'] as Map<String, dynamic>),
+              json['quality_thresholds'] as Map<String, dynamic>,
+            ),
       stages: (json['stages'] as List<dynamic>?)
           ?.map((e) => OcrPipelineStage.fromJson(e as Map<String, dynamic>))
           .toList(),

@@ -42,8 +42,17 @@ def make_extract_response(*, job_ids: list[str] | None = None, status: str = "pe
 
 
 def make_extraction_result(*, content: str = "hello world") -> dict[str, Any]:
-    """Build a minimal ExtractionResult dict (just content + mime_type)."""
-    return {"content": content, "mime_type": "text/plain"}
+    """Build a minimal ExtractionResult dict.
+
+    ``metadata`` and ``tables`` became required fields in the post-shadow-type
+    OpenAPI surface; provide empty defaults so wire-level parsing succeeds.
+    """
+    return {
+        "content": content,
+        "mime_type": "text/plain",
+        "metadata": {},
+        "tables": [],
+    }
 
 
 @pytest.fixture

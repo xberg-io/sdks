@@ -15,10 +15,10 @@ _ContentFilterConfig _$ContentFilterConfigFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ContentFilterConfigToJson(
-        _ContentFilterConfig instance) =>
-    <String, dynamic>{
-      'include_footers': instance.includeFooters,
-      'include_headers': instance.includeHeaders,
-      'include_watermarks': instance.includeWatermarks,
-      'strip_repeating_text': instance.stripRepeatingText,
-    };
+  _ContentFilterConfig instance,
+) => <String, dynamic>{
+  'include_footers': instance.includeFooters,
+  'include_headers': instance.includeHeaders,
+  'include_watermarks': instance.includeWatermarks,
+  'strip_repeating_text': instance.stripRepeatingText,
+};

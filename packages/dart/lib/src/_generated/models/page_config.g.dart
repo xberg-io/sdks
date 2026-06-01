@@ -7,10 +7,10 @@ part of 'page_config.dart';
 // **************************************************************************
 
 _PageConfig _$PageConfigFromJson(Map<String, dynamic> json) => _PageConfig(
-      extractPages: json['extract_pages'] as bool?,
-      insertPageMarkers: json['insert_page_markers'] as bool?,
-      markerFormat: json['marker_format'] as String?,
-    );
+  extractPages: json['extract_pages'] as bool?,
+  insertPageMarkers: json['insert_page_markers'] as bool?,
+  markerFormat: json['marker_format'] as String?,
+);
 
 Map<String, dynamic> _$PageConfigToJson(_PageConfig instance) =>
     <String, dynamic>{

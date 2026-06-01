@@ -8,13 +8,18 @@ part of 'extract_response.dart';
 
 _ExtractResponse _$ExtractResponseFromJson(Map<String, dynamic> json) =>
     _ExtractResponse(
-      jobIds:
-          (json['job_ids'] as List<dynamic>).map((e) => e as String).toList(),
       status: json['status'] as String,
+      crawlJobIds: (json['crawl_job_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      jobIds: (json['job_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$ExtractResponseToJson(_ExtractResponse instance) =>
     <String, dynamic>{
-      'job_ids': instance.jobIds,
       'status': instance.status,
+      'crawl_job_ids': instance.crawlJobIds,
+      'job_ids': instance.jobIds,
     };

@@ -11,10 +11,9 @@ _ExtractionOptions _$ExtractionOptionsFromJson(Map<String, dynamic> json) =>
       extractionConfig: json['extraction_config'] == null
           ? null
           : ExtractionConfig.fromJson(
-              json['extraction_config'] as Map<String, dynamic>),
+              json['extraction_config'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$ExtractionOptionsToJson(_ExtractionOptions instance) =>
-    <String, dynamic>{
-      'extraction_config': instance.extractionConfig,
-    };
+    <String, dynamic>{'extraction_config': instance.extractionConfig};

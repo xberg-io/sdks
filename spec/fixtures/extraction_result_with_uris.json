@@ -1,0 +1,26 @@
+{
+  "content": "# Research Notes\n\nSee the [official documentation](https://docs.example.com) for details.\nContact us at [support@example.com](mailto:support@example.com).\nRefer to [Figure 1](#fig-1) for the diagram.",
+  "mime_type": "text/markdown",
+  "metadata": {},
+  "tables": [],
+  "uris": [
+    {
+      "kind": "hyperlink",
+      "url": "https://docs.example.com",
+      "label": "official documentation",
+      "page": 1
+    },
+    {
+      "kind": "email",
+      "url": "mailto:support@example.com",
+      "label": "support@example.com",
+      "page": 1
+    },
+    {
+      "kind": "anchor",
+      "url": "#fig-1",
+      "label": "Figure 1",
+      "page": 1
+    }
+  ]
+}

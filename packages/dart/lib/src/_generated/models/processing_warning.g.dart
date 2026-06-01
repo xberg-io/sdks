@@ -8,12 +8,9 @@ part of 'processing_warning.dart';
 
 _ProcessingWarning _$ProcessingWarningFromJson(Map<String, dynamic> json) =>
     _ProcessingWarning(
-      message: json['message'] as String?,
-      source: json['source'] as String?,
+      message: json['message'] as String,
+      source: json['source'] as String,
     );
 
 Map<String, dynamic> _$ProcessingWarningToJson(_ProcessingWarning instance) =>
-    <String, dynamic>{
-      'message': instance.message,
-      'source': instance.source,
-    };
+    <String, dynamic>{'message': instance.message, 'source': instance.source};

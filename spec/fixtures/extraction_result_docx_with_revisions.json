@@ -1,0 +1,58 @@
+{
+  "content": "The project timeline has been updated to reflect the new delivery date.",
+  "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "metadata": {
+    "title": "Project Plan v2",
+    "authors": ["Alice Smith"]
+  },
+  "tables": [],
+  "revisions": [
+    {
+      "kind": "insertion",
+      "revision_id": "42",
+      "author": "Alice",
+      "timestamp": "2024-03-15T10:30:00Z",
+      "anchor": null,
+      "delta": {
+        "content": [],
+        "table_changes": []
+      }
+    },
+    {
+      "kind": "deletion",
+      "revision_id": "43",
+      "author": "Alice",
+      "timestamp": "2024-03-15T10:32:00Z",
+      "anchor": null,
+      "delta": {
+        "content": [],
+        "table_changes": []
+      }
+    },
+    {
+      "kind": "comment",
+      "revision_id": "44",
+      "author": "Bob",
+      "timestamp": "2024-03-16T09:00:00Z",
+      "anchor": null,
+      "delta": {
+        "content": [],
+        "table_changes": []
+      }
+    }
+  ],
+  "extracted_keywords": [
+    {
+      "text": "project timeline",
+      "score": 0.42,
+      "algorithm": "yake",
+      "positions": [4, 30]
+    },
+    {
+      "text": "delivery date",
+      "score": 0.38,
+      "algorithm": "yake",
+      "positions": [55, 68]
+    }
+  ]
+}

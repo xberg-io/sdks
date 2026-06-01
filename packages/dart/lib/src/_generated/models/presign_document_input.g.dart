@@ -7,20 +7,19 @@ part of 'presign_document_input.dart';
 // **************************************************************************
 
 _PresignDocumentInput _$PresignDocumentInputFromJson(
-        Map<String, dynamic> json) =>
-    _PresignDocumentInput(
-      filename: json['filename'] as String,
-      mimeType: json['mime_type'] as String,
-      config: json['config'] == null
-          ? null
-          : FileExtractionConfig.fromJson(
-              json['config'] as Map<String, dynamic>),
-    );
+  Map<String, dynamic> json,
+) => _PresignDocumentInput(
+  filename: json['filename'] as String,
+  mimeType: json['mime_type'] as String,
+  config: json['config'] == null
+      ? null
+      : FileExtractionConfig.fromJson(json['config'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$PresignDocumentInputToJson(
-        _PresignDocumentInput instance) =>
-    <String, dynamic>{
-      'filename': instance.filename,
-      'mime_type': instance.mimeType,
-      'config': instance.config,
-    };
+  _PresignDocumentInput instance,
+) => <String, dynamic>{
+  'filename': instance.filename,
+  'mime_type': instance.mimeType,
+  'config': instance.config,
+};

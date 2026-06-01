@@ -19,8 +19,7 @@ abstract class OcrConfig with _$OcrConfig {
     @JsonKey(name: 'auto_rotate')
     bool? autoRotate,
 
-    /// OCR backend: only "tesseract" is supported. Any other value.
-    /// (`easyocr`, `paddleocr`, `vlm`, …) is rejected at the API.
+    /// OCR backend: "tesseract", "easyocr", or "vlm"
     String? backend,
 
     /// Structured OCR element extraction

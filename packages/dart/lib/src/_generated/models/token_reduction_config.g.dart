@@ -7,15 +7,15 @@ part of 'token_reduction_config.dart';
 // **************************************************************************
 
 _TokenReductionConfig _$TokenReductionConfigFromJson(
-        Map<String, dynamic> json) =>
-    _TokenReductionConfig(
-      mode: json['mode'] as String?,
-      preserveImportantWords: json['preserve_important_words'] as bool?,
-    );
+  Map<String, dynamic> json,
+) => _TokenReductionConfig(
+  mode: json['mode'] as String?,
+  preserveImportantWords: json['preserve_important_words'] as bool?,
+);
 
 Map<String, dynamic> _$TokenReductionConfigToJson(
-        _TokenReductionConfig instance) =>
-    <String, dynamic>{
-      'mode': instance.mode,
-      'preserve_important_words': instance.preserveImportantWords,
-    };
+  _TokenReductionConfig instance,
+) => <String, dynamic>{
+  'mode': instance.mode,
+  'preserve_important_words': instance.preserveImportantWords,
+};

@@ -11,12 +11,16 @@ part 'extract_response.g.dart';
 @Freezed()
 abstract class ExtractResponse with _$ExtractResponse {
   const factory ExtractResponse({
-    /// Job IDs for tracking (one per document)
-    @JsonKey(name: 'job_ids')
-    required List<String> jobIds,
-
     /// Job status
     required String status,
+
+    /// Crawl job IDs (one per URL group)
+    @JsonKey(name: 'crawl_job_ids')
+    List<String>? crawlJobIds,
+
+    /// Job IDs for direct file extractions
+    @JsonKey(name: 'job_ids')
+    List<String>? jobIds,
   }) = _ExtractResponse;
   
   factory ExtractResponse.fromJson(Map<String, Object?> json) => _$ExtractResponseFromJson(json);

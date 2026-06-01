@@ -5,28 +5,31 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'bounding_box.dart';
-import 'row.dart';
 
 part 'table.freezed.dart';
 part 'table.g.dart';
 
-/// Extracted table.
+/// Extracted table structure.
+///
+/// Represents a table detected and extracted from a document (PDF, image, etc.).
+/// Tables are converted to both structured cell data and Markdown format.
 @Freezed()
 abstract class Table with _$Table {
   const factory Table({
-    /// Bounding box on the page
-    @JsonKey(name: 'bounding_box')
-    BoundingBox? boundingBox,
-
-    /// 2D grid of cells (rows of string values)
-    List<Row>? cells,
+    /// Table cells as a 2D vector (rows × columns)
+    required List<List<String>> cells,
 
     /// Markdown representation of the table
-    String? markdown,
+    required String markdown,
 
-    /// Page number (0-indexed)
+    /// Page number where the table was found (1-indexed)
     @JsonKey(name: 'page_number')
-    int? pageNumber,
+    required int pageNumber,
+
+    /// Bounding box of the table on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+    /// Only populated for PDF-extracted tables when position data is available.
+    @JsonKey(name: 'bounding_box')
+    BoundingBox? boundingBox,
   }) = _Table;
   
   factory Table.fromJson(Map<String, Object?> json) => _$TableFromJson(json);

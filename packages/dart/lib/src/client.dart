@@ -9,8 +9,10 @@ import '_generated/models/confirm_upload_request.dart';
 import '_generated/models/confirm_upload_response.dart';
 import '_generated/models/extract_json_request.dart';
 import '_generated/models/extract_response.dart';
+import '_generated/models/crawl_job_response.dart';
 import '_generated/models/extraction_options.dart';
 import '_generated/models/health_response.dart';
+import '_generated/models/job_lookup_response.dart';
 import '_generated/models/job_response.dart';
 import '_generated/models/presign_upload_request.dart';
 import '_generated/models/presign_upload_response.dart';
@@ -179,7 +181,25 @@ class KreuzbergCloudClient {
   // ---- Jobs -------------------------------------------------------------
 
   /// Fetches the current status (and result, when terminal) of a job.
-  Future<JobResponse> getJob(String jobId) => _api.jobs.getJob(id: jobId);
+  ///
+  /// The underlying `/v1/jobs/{id}` endpoint can return either an extraction
+  /// job ([JobResponse]) or a crawl job ([CrawlJobResponse]). This helper
+  /// unwraps the extraction variant for back-compat; use [getJobLookup] to
+  /// access the full discriminated response.
+  Future<JobResponse> getJob(String jobId) async {
+    final lookup = await _api.jobs.getJob(id: jobId);
+    return switch (lookup) {
+      JobLookupResponseExtraction(:final value) => value,
+      JobLookupResponseCrawl() => throw StateError(
+        'Job $jobId is a crawl job; use getJobLookup() to access it.',
+      ),
+    };
+  }
+
+  /// Fetches the discriminated lookup response for a job ID, preserving the
+  /// extraction-vs-crawl distinction.
+  Future<JobLookupResponse> getJobLookup(String jobId) =>
+      _api.jobs.getJob(id: jobId);
 
   /// Polls [getJob] until the job reaches a terminal status, or `timeout`
   /// elapses. Throws [JobWaitTimeoutException] on timeout, or [ApiException]

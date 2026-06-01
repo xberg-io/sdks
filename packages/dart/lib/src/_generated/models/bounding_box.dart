@@ -7,13 +7,20 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'bounding_box.freezed.dart';
 part 'bounding_box.g.dart';
 
-/// Bounding box coordinates.
+/// Bounding box coordinates for element positioning.
 @Freezed()
 abstract class BoundingBox with _$BoundingBox {
   const factory BoundingBox({
+    /// Left x-coordinate
     required double x0,
+
+    /// Right x-coordinate
     required double x1,
+
+    /// Bottom y-coordinate
     required double y0,
+
+    /// Top y-coordinate
     required double y1,
   }) = _BoundingBox;
   

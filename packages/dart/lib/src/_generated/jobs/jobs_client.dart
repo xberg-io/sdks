@@ -5,7 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../models/job_response.dart';
+import '../models/job_lookup_response.dart';
 
 part 'jobs_client.g.dart';
 
@@ -15,9 +15,14 @@ abstract class JobsClient {
 
   /// Get job status and results.
   ///
-  /// [id] - Job ID (UUID).
+  /// Accepts both extraction job IDs (returned in `job_ids`) and crawl job IDs.
+  /// (returned in `crawl_job_ids`) from `POST /v1/extract`. When the ID belongs.
+  /// to a crawl job, the response body follows the `CrawlJobResponse` schema.
+  /// instead of `JobResponse`.
+  ///
+  /// [id] - Job ID or crawl job ID (UUID).
   @GET('/v1/jobs/{id}')
-  Future<JobResponse> getJob({
+  Future<JobLookupResponse> getJob({
     @Path('id') required String id,
   });
 }

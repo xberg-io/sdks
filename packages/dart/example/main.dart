@@ -40,7 +40,7 @@ Future<void> main() async {
       ),
     );
 
-    final jobId = accepted.jobIds.first;
+    final jobId = accepted.jobIds!.first;
     stderr.writeln('submitted job $jobId');
 
     final finished = await client.waitForJob(

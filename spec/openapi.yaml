@@ -4,7 +4,8 @@ info:
   description: Cloud document extraction API powered by Kreuzberg. Supports asynchronous extraction with webhook delivery.
   contact:
     name: Kreuzberg Cloud
-    url: https://kreuzberg.dev
+    url: https://docs.kreuzberg.cloud
+    email: support@kreuzberg.cloud
   license:
     name: BUSL-1.1
   version: 1.0.0
@@ -43,10 +44,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReadinessResponse'
               example:
+                status: ready
                 checks:
                   database: ok
                   nats: ok
-                status: ready
         "503":
           description: Service is not ready
           content:
@@ -57,7 +58,7 @@ paths:
     post:
       tags:
         - extract
-      summary: Submit documents for extraction
+      summary: '`POST /v1/extract` — Submit documents for extraction'
       description: |-
         Accepts `application/json` or `multipart/form-data`.
 
@@ -72,22 +73,37 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ExtractJsonRequest'
-            example:
-              documents:
-                - data: SGVsbG8gV29ybGQ=
-                  filename: invoice.pdf
-                  mime_type: application/pdf
-              options:
-                extraction_config:
-                  ocr:
-                    backend: tesseract
-                    language: eng
-                  output_format: markdown
-              webhook:
-                metadata:
-                  request_id: abc123
-                secret: my-secret
-                url: https://example.com/webhook
+            examples:
+              File extraction:
+                summary: Extract from base64-encoded documents
+                value:
+                  documents:
+                    - filename: invoice.pdf
+                      mime_type: application/pdf
+                      data: SGVsbG8gV29ybGQ=
+                  options:
+                    extraction_config:
+                      output_format: markdown
+                      ocr:
+                        backend: tesseract
+                        language: eng
+                  webhook:
+                    url: https://example.com/webhook
+                    secret: my-secret
+                    metadata:
+                      request_id: abc123
+              URL crawl extraction:
+                summary: Crawl URLs and extract all discovered documents
+                value:
+                  urls:
+                    - url: https://example.com/docs
+                  crawl_config:
+                    max_depth: 2
+                    max_pages: 50
+                    stay_on_domain: true
+                  webhook:
+                    url: https://example.com/webhook
+                    secret: my-secret
         required: true
       responses:
         "202":
@@ -99,6 +115,8 @@ paths:
               example:
                 job_ids:
                   - 550e8400-e29b-41d4-a716-446655440000
+                crawl_job_ids:
+                  - 660e9400-f39c-51e5-b827-557766551111
                 status: pending
         "400":
           description: Invalid request
@@ -106,7 +124,7 @@ paths:
             application/json:
               schema: {}
               example:
-                error: At least one document is required
+                error: At least one document or URL is required
         "401":
           description: Unauthorized
           content:
@@ -114,13 +132,6 @@ paths:
               schema: {}
               example:
                 error: Missing project context
-        "429":
-          description: Free page credit exhausted — add a payment method to continue
-          content:
-            application/json:
-              schema: {}
-              example:
-                error: Free page credit exhausted. Add a payment method to continue extracting.
       security:
         - bearer_auth: []
   /v1/jobs/{id}:
@@ -128,11 +139,16 @@ paths:
       tags:
         - jobs
       summary: Get job status and results
+      description: |-
+        Accepts both extraction job IDs (returned in `job_ids`) and crawl job IDs
+        (returned in `crawl_job_ids`) from `POST /v1/extract`. When the ID belongs
+        to a crawl job, the response body follows the `CrawlJobResponse` schema
+        instead of `JobResponse`.
       operationId: get_job
       parameters:
         - name: id
           in: path
-          description: Job ID (UUID)
+          description: Job ID or crawl job ID (UUID)
           required: true
           schema:
             type: string
@@ -144,24 +160,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobResponse'
+                $ref: '#/components/schemas/JobLookupResponse'
               example:
-                created_at: "2025-12-21T10:00:00Z"
-                filename: invoice.pdf
                 id: 550e8400-e29b-41d4-a716-446655440000
+                filename: invoice.pdf
+                status: completed
+                created_at: "2025-12-21T10:00:00Z"
                 result:
-                  content:
-                    - confidence: 0.95
-                      page_number: 1
-                      text: 'Invoice total: $1,234.56'
+                  content: 'Invoice total: $1,234.56'
+                  mime_type: text/markdown
+                  tables: []
                   images: []
                   metadata:
-                    author: John Doe
-                    page_count: 1
-                    subject: Monthly Invoice
                     title: 'Invoice #12345'
-                  tables: []
-                status: completed
         "400":
           description: Invalid job ID format
           content:
@@ -204,6 +215,49 @@ paths:
                 error: Database connection unavailable
       security:
         - bearer_auth: []
+  /v1/sandbox/key:
+    post:
+      tags:
+        - super::sandbox
+      summary: Create sandbox API key
+      description: |-
+        Issues an ephemeral API key valid for 24 hours with a 50-page quota.
+        Limited to 10 keys per IP per 24 hours to prevent abuse.
+
+        # Returns
+        - `200 OK` with `CreateSandboxKeyResponse` on success
+        - `429 Too Many Requests` if IP has issued 10+ keys in past 24 hours
+        - `500 Internal Server Error` on database errors
+      operationId: create_sandbox_key
+      responses:
+        "200":
+          description: Sandbox key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSandboxKeyResponse'
+              example:
+                api_key: sk_sandbox_ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234
+                expires_at: "2025-12-21T10:00:00Z"
+                pages_remaining: 50
+        "429":
+          description: 'Rate limit exceeded: max 10 keys per IP per 24 hours'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxErrorResponse'
+              example:
+                error: rate_limited
+                message: 'Rate limit exceeded: max 10 keys per IP per 24 hours'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxErrorResponse'
+              example:
+                error: internal_error
+                message: Failed to create sandbox key
   /v1/uploads/confirm:
     post:
       tags:
@@ -266,16 +320,16 @@ paths:
               example:
                 batch_id: batch_550e8400-e29b-41d4-a716
                 uploads:
-                  - expires_in_secs: 3600
-                    job_id: 550e8400-e29b-41d4-a716-446655440000
-                    method: PUT
+                  - job_id: 550e8400-e29b-41d4-a716-446655440000
+                    upload_url: https://storage.googleapis.com/kreuzberg-dev-uploads/...
                     object_key: projects/abc123/uploads/550e8400-e29b-41d4-a716-446655440000
-                    upload_url: https://storage.googleapis.com/kreuzberg-dev-uploads/...
-                  - expires_in_secs: 3600
-                    job_id: 550e8400-e29b-41d4-a716-446655440001
                     method: PUT
-                    object_key: projects/abc123/uploads/550e8400-e29b-41d4-a716-446655440001
+                    expires_in_secs: 3600
+                  - job_id: 550e8400-e29b-41d4-a716-446655440001
                     upload_url: https://storage.googleapis.com/kreuzberg-dev-uploads/...
+                    object_key: projects/abc123/uploads/550e8400-e29b-41d4-a716-446655440001
+                    method: PUT
+                    expires_in_secs: 3600
         "400":
           description: Invalid request
           content:
@@ -319,26 +373,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
               example:
+                period_start: "2026-05-01"
+                period_end: "2026-06-01"
+                total_pages: 5432
+                total_documents: 87
+                total_failed: 2
+                quota_limit: 100000
+                quota_remaining: 94568
                 by_mime_type:
                   application/pdf:
                     documents: 65
-                    failed: 1
                     pages: 3200
+                    failed: 1
                   image/png:
                     documents: 15
-                    failed: 0
                     pages: 1800
+                    failed: 0
                   text/plain:
                     documents: 7
-                    failed: 1
                     pages: 432
-                period_end: "2026-06-01"
-                period_start: "2026-05-01"
-                quota_limit: 100000
-                quota_remaining: 94568
-                total_documents: 87
-                total_failed: 2
-                total_pages: 5432
+                    failed: 1
         "400":
           description: Invalid date format
         "401":
@@ -347,9 +401,234 @@ paths:
         - bearer_auth: []
 components:
   schemas:
+    AnnotationKind:
+      oneOf:
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - bold
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - italic
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - underline
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - strikethrough
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - code
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - subscript
+        - type: object
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - superscript
+        - type: object
+          required:
+            - url
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - link
+            title:
+              type:
+                - string
+                - "null"
+            url:
+              type: string
+        - type: object
+          description: Highlighted text (PDF highlights, HTML `<mark>`).
+          required:
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - highlight
+        - type: object
+          description: Text color (CSS-compatible value, e.g. "#ff0000", "red").
+          required:
+            - value
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - color
+            value:
+              type: string
+        - type: object
+          description: Font size with units (e.g. "12pt", "1.2em", "16px").
+          required:
+            - value
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - font_size
+            value:
+              type: string
+        - type: object
+          description: Extensible annotation for format-specific styling.
+          required:
+            - name
+            - annotation_type
+          properties:
+            annotation_type:
+              type: string
+              enum:
+                - custom
+            name:
+              type: string
+            value:
+              type:
+                - string
+                - "null"
+      description: Types of inline text annotations.
+    ArchiveEntry:
+      type: object
+      description: |-
+        A single file extracted from an archive.
+
+        When archives (ZIP, TAR, 7Z, GZIP) are extracted with recursive extraction
+        enabled, each processable file produces its own full `ExtractionResult`.
+      required:
+        - path
+        - mime_type
+        - result
+      properties:
+        mime_type:
+          type: string
+          description: Detected MIME type of the file.
+        path:
+          type: string
+          description: Archive-relative file path (e.g. "folder/document.pdf").
+        result:
+          $ref: '#/components/schemas/ExtractionResult'
+          description: Full extraction result for this file.
+    ArchiveMetadata:
+      type: object
+      description: |-
+        Archive (ZIP/TAR/7Z) metadata.
+
+        Extracted from compressed archive files containing file lists and size information.
+      required:
+        - format
+        - file_count
+        - file_list
+        - total_size
+      properties:
+        compressed_size:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Compressed size in bytes (if available)
+          minimum: 0
+        file_count:
+          type: integer
+          format: int32
+          description: Total number of files in the archive
+          minimum: 0
+        file_list:
+          type: array
+          items:
+            type: string
+          description: List of file paths within the archive
+        format:
+          type: string
+          description: Archive format ("ZIP", "TAR", "7Z", etc.)
+        total_size:
+          type: integer
+          format: int64
+          description: Total uncompressed size in bytes
+          minimum: 0
+    Attributes:
+      type: object
+      description: |-
+        Element attributes in Djot.
+
+        Represents the attributes attached to elements using {.class #id key="value"} syntax.
+      properties:
+        classes:
+          type: array
+          items:
+            type: string
+          description: CSS classes (.class1 .class2)
+        id:
+          type:
+            - string
+            - "null"
+          description: Element ID (#identifier)
+        key_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          description: Key-value pairs (key="value")
+    BlockType:
+      type: string
+      description: Types of block-level elements in Djot.
+      enum:
+        - paragraph
+        - heading
+        - blockquote
+        - code_block
+        - list_item
+        - ordered_list
+        - bullet_list
+        - task_list
+        - definition_list
+        - definition_term
+        - definition_description
+        - div
+        - section
+        - thematic_break
+        - raw_block
+        - math_display
     BoundingBox:
       type: object
-      description: Bounding box coordinates.
+      description: Bounding box coordinates for element positioning.
       required:
         - x0
         - y0
@@ -359,36 +638,141 @@ components:
         x0:
           type: number
           format: double
+          description: Left x-coordinate
         x1:
           type: number
           format: double
+          description: Right x-coordinate
         y0:
           type: number
           format: double
+          description: Bottom y-coordinate
         y1:
           type: number
           format: double
+          description: Top y-coordinate
+    BrowserOverrides:
+      type: object
+      description: |-
+        Browser rendering overrides for a specific crawl request.
+        Allows per-request override of browser backend, mode, and stealth settings.
+      properties:
+        backend:
+          type:
+            - string
+            - "null"
+          description: 'Browser backend: "native" (lightweight Rust-based) or "chromiumoxide" (Chrome-based)'
+          example: native
+        mode:
+          type:
+            - string
+            - "null"
+          description: 'Browser mode: "auto" (default, use browser if needed), "always" (always use), or "never" (never use)'
+          example: auto
+        stealth:
+          type:
+            - boolean
+            - "null"
+          description: Enable browser stealth mode (TLS fingerprint + UA spoof) — only honored by native backend
+          example: false
+    BypassMode:
+      type: string
+      description: |-
+        Bypass mode — determines whether cloud provides credentials (managed) or
+        the customer does (bring-your-own).
+      enum:
+        - managed
+        - byo
+    BypassRequestOverride:
+      type: object
+      description: |-
+        Per-request bypass override. When set on a crawl request, applies an
+        external bypass provider (e.g., Bright Data, Zyte, ScrapingBee) to bypass
+        WAF/antibot on the crawl.
+      required:
+        - mode
+        - vendor
+      properties:
+        credentials:
+          description: |-
+            Per-vendor credentials JSON. Required when mode = byo; ignored for
+            managed (cloud uses its own credentials from Secret Manager).
+        mode:
+          $ref: '#/components/schemas/BypassMode'
+          description: Whether cloud provides vendor credentials (managed) or caller does (byo).
+        vendor:
+          type: string
+          description: |-
+            Vendor identifier — must be registered in bypass-providers/registry.
+            Today: "bright_data" | "zyte" | "scrapingbee".
+    CellChange:
+      type: object
+      description: |-
+        A single changed cell within a table.
+
+        Defined here (rather than only in `crate::diff`) so `RevisionDelta` can
+        reference it unconditionally, without requiring the `diff` Cargo feature.
+        `crate::diff` re-exports this type verbatim.
+      required:
+        - row
+        - col
+        - from
+        - to
+      properties:
+        col:
+          type: integer
+          description: Zero-based column index.
+          minimum: 0
+        from:
+          type: string
+          description: Value before the change.
+        row:
+          type: integer
+          description: Zero-based row index.
+          minimum: 0
+        to:
+          type: string
+          description: Value after the change.
     Chunk:
       type: object
-      description: Text chunk with optional embedding.
+      description: |-
+        A text chunk with optional embedding and metadata.
+
+        Chunks are created when chunking is enabled in `ExtractionConfig`. Each chunk
+        contains the text content, optional embedding vector (if embedding generation
+        is configured), and metadata about its position in the document.
+      required:
+        - content
+        - metadata
       properties:
+        chunk_type:
+          $ref: '#/components/schemas/ChunkType'
+          description: |-
+            Semantic structural classification of this chunk.
+
+            Assigned by the heuristic classifier based on content patterns and
+            heading context. Defaults to `ChunkType::Unknown` when no rule matches.
         content:
           type: string
-          description: Chunk text content
+          description: The text content of this chunk.
         embedding:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: number
             format: float
-          description: Embedding vector (when embedding is enabled)
+          description: |-
+            Optional embedding vector for this chunk.
+
+            Only populated when `EmbeddingConfig` is provided in chunking configuration.
+            The dimensionality depends on the chosen embedding model.
         metadata:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ChunkMetadata'
-              description: Chunk position metadata
+          $ref: '#/components/schemas/ChunkMetadata'
+          description: Metadata about this chunk's position and properties.
     ChunkMetadata:
       type: object
-      description: Chunk position and size metadata.
+      description: Metadata about a chunk's position in the original document.
       required:
         - byte_start
         - byte_end
@@ -397,38 +781,92 @@ components:
       properties:
         byte_end:
           type: integer
-          format: int64
+          description: Byte offset where this chunk ends in the original text (UTF-8 valid boundary).
           minimum: 0
         byte_start:
           type: integer
-          format: int64
+          description: Byte offset where this chunk starts in the original text (UTF-8 valid boundary).
           minimum: 0
         chunk_index:
           type: integer
-          format: int64
+          description: Zero-based index of this chunk in the document.
           minimum: 0
         first_page:
           type:
             - integer
             - "null"
-          format: int64
+          format: int32
+          description: |-
+            First page number this chunk spans (1-indexed).
+
+            Only populated when page tracking is enabled in extraction configuration.
           minimum: 0
+        heading_context:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/HeadingContext'
+              description: |-
+                Heading context when using Markdown chunker.
+
+                Contains the heading hierarchy this chunk falls under.
+                Only populated when `ChunkerType::Markdown` is used.
+        image_indices:
+          type: array
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Indices into `ExtractionResult.images` for images on pages covered by this chunk.
+
+            Contains zero-based indices into the top-level `images` collection for every
+            image whose `page_number` falls within `[first_page, last_page]`.
+            Empty when image extraction is disabled or the chunk spans no pages with images.
         last_page:
           type:
             - integer
             - "null"
-          format: int64
+          format: int32
+          description: |-
+            Last page number this chunk spans (1-indexed, equal to first_page for single-page chunks).
+
+            Only populated when page tracking is enabled in extraction configuration.
           minimum: 0
         token_count:
           type:
             - integer
             - "null"
-          format: int64
+          description: |-
+            Number of tokens in this chunk (if available).
+
+            This is calculated by the embedding model's tokenizer if embeddings are enabled.
           minimum: 0
         total_chunks:
           type: integer
-          format: int64
+          description: Total number of chunks in the document.
           minimum: 0
+    ChunkType:
+      type: string
+      description: |-
+        Semantic structural classification of a text chunk.
+
+        Assigned by the heuristic classifier in `chunking::classifier`.
+        Defaults to `Unknown` when no rule matches.
+        Designed to be extended in future versions without breaking changes.
+      enum:
+        - heading
+        - party_list
+        - definitions
+        - operative_clause
+        - signature_block
+        - schedule
+        - table_like
+        - formula
+        - code_block
+        - image
+        - org_chart
+        - diagram
+        - unknown
     ChunkingConfig:
       type: object
       description: Text chunking configuration.
@@ -507,6 +945,567 @@ components:
         strip_repeating_text:
           type: boolean
           description: Strip cross-page repeating text
+    ContentLayer:
+      type: string
+      description: |-
+        Content layer classification for document nodes.
+
+        Replaces separate body/furniture arrays with per-node granularity.
+      enum:
+        - body
+        - header
+        - footer
+        - footnote
+    CrawlChildJob:
+      type: object
+      description: A child extraction job spawned by a crawl job.
+      required:
+        - id
+        - filename
+        - status
+      properties:
+        body_bytes:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: |-
+            Raw body size in bytes of the source document fed to extraction.
+            For HTML pages this is the rendered HTML length; for binary
+            documents it is the downloaded file size. Lets callers detect
+            suspiciously small responses (e.g. WAF challenge pages captured
+            as the "document" — typically 5–30 KB).
+          example: 18234
+        filename:
+          type: string
+          description: Filename
+          example: guide.pdf
+        id:
+          type: string
+          format: uuid
+          description: Job ID (queryable via GET /v1/jobs/{id})
+          example: 550e8400-e29b-41d4-a716-446655440000
+        processing_time_ms:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Processing time in ms (when completed)
+          example: 1234
+        result:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ExtractionResult'
+              description: Extraction result (when completed)
+        source_url:
+          type:
+            - string
+            - "null"
+          description: Source URL where this document was found
+          example: https://example.com/docs/guide.pdf
+        status:
+          type: string
+          description: Job status
+          example: completed
+      example:
+        id: 550e8400-e29b-41d4-a716-446655440000
+        source_url: https://example.com/docs/guide.pdf
+        filename: guide.pdf
+        status: completed
+        processing_time_ms: 1234
+    CrawlConfig:
+      type: object
+      description: Crawl policy configuration — controls URL crawling behavior.
+      properties:
+        allow_subdomains:
+          type:
+            - boolean
+            - "null"
+          description: 'Allow subdomains of the seed domain (default: true)'
+          example: true
+        allowed_file_types:
+          type: array
+          items:
+            type: string
+          description: 'MIME types of documents to extract (default: all supported by kreuzberg)'
+          example:
+            - application/pdf
+            - text/html
+        browser:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BrowserOverrides'
+              description: Browser rendering configuration overrides for this request
+        bypass:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BypassRequestOverride'
+              description: |-
+                Per-request bypass override. When set, applies an external bypass
+                provider to bypass WAF/antibot on the crawl.
+        document_url_depth:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: 'Max depth for URL-following from documents (default: 1, max: 3)'
+          example: 1
+          maximum: 3
+          minimum: 0
+        exclude_paths:
+          type: array
+          items:
+            type: string
+          description: Regex patterns — skip URLs matching these
+          example:
+            - /admin/.*
+            - /login
+        extract_page_content:
+          type:
+            - boolean
+            - "null"
+          description: 'Also extract the HTML page content as markdown (default: false)'
+          example: false
+        follow_document_urls:
+          type:
+            - boolean
+            - "null"
+          description: 'Follow URLs discovered inside extracted documents (default: false)'
+          example: false
+        include_paths:
+          type: array
+          items:
+            type: string
+          description: Regex patterns — only crawl URLs matching these
+          example:
+            - /docs/.*
+            - /blog/.*
+        max_concurrent:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: 'Maximum concurrent requests (default: 10)'
+          example: 10
+          minimum: 0
+        max_depth:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: 'Maximum crawl depth from seed URL (default: 2, max: 5)'
+          example: 2
+          maximum: 5
+          minimum: 0
+        max_pages:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: 'Maximum pages to crawl (default: 100, max: 10000)'
+          example: 100
+          maximum: 10000
+          minimum: 0
+        output_mode:
+          type:
+            - string
+            - "null"
+          description: |-
+            Output mode (default: "extract").
+            - "scrape":  single-page fetch, no recursion, no extraction
+            - "crawl":   multi-page crawl, no extraction (raw content returned)
+            - "extract": multi-page crawl + extract each discovered document
+          example: extract
+        proxy:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ProxyOverride'
+              description: |-
+                Per-request proxy override. When set, this proxy is used for this
+                crawl instead of the worker's process-wide proxy pool.
+        request_timeout_secs:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: 'Per-request timeout in seconds (default: 30)'
+          example: 30
+          minimum: 0
+        respect_robots_txt:
+          type:
+            - boolean
+            - "null"
+          description: 'Respect robots.txt (default: true)'
+          example: true
+        stay_on_domain:
+          type:
+            - boolean
+            - "null"
+          description: 'Stay on the same domain as seed URL (default: true)'
+          example: true
+        strategy:
+          type:
+            - string
+            - "null"
+          description: 'Crawl strategy: "bfs" (default), "dfs", "best_first", "adaptive"'
+          example: bfs
+        user_agent:
+          type:
+            - string
+            - "null"
+          description: Custom User-Agent string
+          example: KreuzbergBot/1.0
+      example:
+        max_depth: 2
+        max_pages: 100
+        max_concurrent: 10
+        stay_on_domain: true
+        allow_subdomains: true
+        respect_robots_txt: true
+    CrawlJobResponse:
+      type: object
+      description: Response for crawl job status query
+      required:
+        - id
+        - status
+        - seed_urls
+        - output_mode
+        - created_at
+        - progress
+      properties:
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (RFC3339)
+          example: "2025-12-21T10:00:00Z"
+        id:
+          type: string
+          format: uuid
+          description: Crawl job ID
+          example: 660e9400-f39c-51e5-b827-557766551111
+        jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlChildJob'
+          description: Child extraction jobs (populated when output_mode=extract)
+        output_mode:
+          type: string
+          description: Output mode this job was submitted with (scrape, crawl, or extract)
+          example: extract
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawledPage'
+          description: Crawled raw pages (populated when output_mode=scrape|crawl)
+        progress:
+          $ref: '#/components/schemas/CrawlProgress'
+          description: Crawl progress counters
+        seed_urls:
+          type: array
+          items:
+            type: string
+          description: Seed URLs that were submitted
+          example:
+            - https://example.com/docs
+        status:
+          $ref: '#/components/schemas/CrawlJobStatus'
+          description: Crawl job status
+      example:
+        id: 660e9400-f39c-51e5-b827-557766551111
+        status: extracting
+        seed_urls:
+          - https://example.com/docs
+        created_at: "2025-12-21T10:00:00Z"
+        progress:
+          pages_crawled: 42
+          documents_discovered: 15
+          documents_extracted: 10
+          documents_failed: 0
+        jobs: []
+    CrawlJobStatus:
+      type: string
+      description: Crawl job status
+      enum:
+        - pending
+        - crawling
+        - extracting
+        - completed
+        - partial_success
+        - failed
+        - cancelled
+    CrawlProgress:
+      type: object
+      description: Crawl progress counters
+      required:
+        - pages_crawled
+        - documents_discovered
+        - documents_extracted
+        - documents_failed
+      properties:
+        documents_discovered:
+          type: integer
+          format: int32
+        documents_extracted:
+          type: integer
+          format: int32
+        documents_failed:
+          type: integer
+          format: int32
+        pages_crawled:
+          type: integer
+          format: int32
+    CrawledPage:
+      type: object
+      description: A raw crawled page persisted for output_mode=scrape|crawl.
+      required:
+        - url
+        - status
+        - fetched_at
+      properties:
+        content_url:
+          type:
+            - string
+            - "null"
+          description: Presigned URL for downloading the raw content
+        error:
+          type:
+            - string
+            - "null"
+          description: Error message (when status=failed)
+        fetched_at:
+          type: string
+          format: date-time
+          description: Fetch timestamp (RFC3339)
+          example: "2025-12-21T10:00:00Z"
+        mime_type:
+          type:
+            - string
+            - "null"
+          description: MIME type
+          example: text/html
+        size_bytes:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Size in bytes
+          example: 12345
+        status:
+          type: string
+          description: 'Fetch status: "completed" | "failed"'
+          example: completed
+        url:
+          type: string
+          description: Source URL
+          example: https://example.com/docs/index.html
+      example:
+        url: https://example.com/docs/index.html
+        status: completed
+        mime_type: text/html
+        size_bytes: 12345
+        fetched_at: "2025-12-21T10:00:00Z"
+    CreateSandboxKeyRequest:
+      type: object
+      description: Sandbox key creation request (body not used, but for API clarity)
+    CreateSandboxKeyResponse:
+      type: object
+      description: Sandbox key response
+      required:
+        - api_key
+        - expires_at
+        - pages_remaining
+      properties:
+        api_key:
+          type: string
+          description: 'The sandbox API key (use in Authorization: Bearer header)'
+          example: sk_sandbox_ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234
+        expires_at:
+          type: string
+          format: date-time
+          description: When the key expires (RFC3339 format)
+          example: "2025-12-21T10:00:00Z"
+        pages_remaining:
+          type: integer
+          format: int32
+          description: Page extraction quota for this key
+          example: 50
+    CsvMetadata:
+      type: object
+      description: CSV/TSV file metadata.
+      required:
+        - row_count
+        - column_count
+        - has_header
+      properties:
+        column_count:
+          type: integer
+          format: int32
+          minimum: 0
+        column_types:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+        delimiter:
+          type:
+            - string
+            - "null"
+        has_header:
+          type: boolean
+        row_count:
+          type: integer
+          format: int32
+          minimum: 0
+    DiffLine:
+      oneOf:
+        - type: object
+          description: Unchanged context line.
+          required:
+            - text
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - context
+            text:
+              type: string
+              description: Unchanged context line.
+        - type: object
+          description: Line added in the "after" version.
+          required:
+            - text
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - added
+            text:
+              type: string
+              description: Line added in the "after" version.
+        - type: object
+          description: Line removed from the "before" version.
+          required:
+            - text
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - removed
+            text:
+              type: string
+              description: Line removed from the "before" version.
+      description: |-
+        A single line in a unified-diff hunk.
+
+        Defined here (rather than only in `crate::diff`) so `RevisionDelta` can
+        reference it unconditionally, without requiring the `diff` Cargo feature.
+        `crate::diff` re-exports this type verbatim.
+    DjotContent:
+      type: object
+      description: |-
+        Comprehensive Djot document structure with semantic preservation.
+
+        This type captures the full richness of Djot markup, including:
+        - Block-level structures (headings, lists, blockquotes, code blocks, etc.)
+        - Inline formatting (emphasis, strong, highlight, subscript, superscript, etc.)
+        - Attributes (classes, IDs, key-value pairs)
+        - Links, images, footnotes
+        - Math expressions (inline and display)
+        - Tables with full structure
+
+        Available when the `djot` feature is enabled.
+      required:
+        - plain_text
+        - blocks
+        - metadata
+        - tables
+        - images
+        - links
+        - footnotes
+      properties:
+        attributes:
+          description: Attributes mapped by element identifier (if present)
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormattedBlock'
+          description: Structured block-level content
+        footnotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Footnote'
+          description: Footnote definitions
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/DjotImage'
+          description: Extracted images with metadata
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/DjotLink'
+          description: Extracted links with URLs
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+          description: Metadata from YAML frontmatter
+        plain_text:
+          type: string
+          description: Plain text representation for backwards compatibility
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+          description: Extracted tables as structured data
+    DjotImage:
+      type: object
+      description: Image element in Djot.
+      required:
+        - src
+        - alt
+      properties:
+        alt:
+          type: string
+          description: Alternative text
+        attributes:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/Attributes'
+              description: Element attributes
+        src:
+          type: string
+          description: Image source URL or path
+        title:
+          type:
+            - string
+            - "null"
+          description: Optional title
+    DjotLink:
+      type: object
+      description: Link element in Djot.
+      required:
+        - url
+        - text
+      properties:
+        attributes:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/Attributes'
+              description: Element attributes
+        text:
+          type: string
+          description: Link text content
+        title:
+          type:
+            - string
+            - "null"
+          description: Optional title
+        url:
+          type: string
+          description: Link URL
     DocumentInput:
       type: object
       description: Document input for JSON extraction requests
@@ -524,6 +1523,333 @@ components:
         mime_type:
           type: string
           description: MIME type of the document
+    DocumentNode:
+      type: object
+      description: |-
+        A single node in the document tree.
+
+        Each node has deterministic `id`, typed `content`, optional `parent`/`children`
+        for tree structure, and metadata like page number, bounding box, and content layer.
+      required:
+        - id
+        - content
+      properties:
+        annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextAnnotation'
+          description: |-
+            Inline annotations (formatting, links) on this node's text content.
+
+            Only meaningful for text-carrying nodes; empty for containers.
+        attributes:
+          type:
+            - object
+            - "null"
+          description: |-
+            Format-specific key-value attributes.
+
+            Extensible bag for miscellaneous data without a dedicated typed field: CSS classes,
+            LaTeX environment names, Excel cell formulas, slide layout names, etc.
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        bbox:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BoundingBox'
+              description: Bounding box in document coordinates.
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeIndex'
+          description: Child node indices in reading order.
+        content:
+          $ref: '#/components/schemas/NodeContent'
+          description: Node content — tagged enum, type-specific data only.
+        content_layer:
+          $ref: '#/components/schemas/ContentLayer'
+          description: Content layer classification.
+        id:
+          $ref: '#/components/schemas/NodeId'
+          description: Deterministic identifier (hash of content + position).
+        page:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Page number where this node starts (1-indexed).
+          minimum: 0
+        page_end:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Page number where this node ends (for multi-page tables/sections).
+          minimum: 0
+        parent:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/NodeIndex'
+              description: Parent node index (`None` = root-level node).
+    DocumentRelationship:
+      type: object
+      description: A resolved relationship between two nodes in the document tree.
+      required:
+        - source
+        - target
+        - kind
+      properties:
+        kind:
+          $ref: '#/components/schemas/RelationshipKind'
+          description: Semantic kind of the relationship.
+        source:
+          $ref: '#/components/schemas/NodeIndex'
+          description: Source node index (the referencing node).
+        target:
+          $ref: '#/components/schemas/NodeIndex'
+          description: Target node index (the referenced node).
+    DocumentRevision:
+      type: object
+      description: |-
+        A single tracked change embedded in a document.
+
+        Populated by per-format extractors that understand change-tracking metadata
+        (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`, …). Every
+        extractor defaults to `ExtractionResult.revisions = None` until a
+        format-specific implementation is added.
+      required:
+        - revision_id
+        - kind
+        - delta
+      properties:
+        anchor:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/RevisionAnchor'
+              description: |-
+                Best-effort document location for this revision.
+
+                Resolution is format-dependent and may be `None` when the location
+                cannot be determined (e.g. changes inside table cells before
+                table-cell anchor support is added).
+        author:
+          type:
+            - string
+            - "null"
+          description: Display name of the author who made this change, when available.
+        delta:
+          $ref: '#/components/schemas/RevisionDelta'
+          description: The content changes that make up this revision.
+        kind:
+          $ref: '#/components/schemas/RevisionKind'
+          description: Semantic kind of this revision.
+        revision_id:
+          type: string
+          description: |-
+            Format-specific revision identifier.
+
+            For DOCX this is the `w:id` attribute value on the change element
+            (e.g. `"42"`). When the attribute is absent a synthetic fallback is
+            generated (`"docx-ins-0"`, `"docx-del-3"`, …).
+        timestamp:
+          type:
+            - string
+            - "null"
+          description: |-
+            ISO-8601 timestamp of the change, when available.
+
+            Stored as a plain string so this type remains FFI-friendly and
+            unconditionally available without the `chrono` optional dep.
+            DOCX populates this from the `w:date` attribute (e.g.
+            `"2024-03-15T10:30:00Z"`).
+    DocumentStructure:
+      type: object
+      description: |-
+        Top-level structured document representation.
+
+        A flat array of nodes with index-based parent/child references forming a tree.
+        Root-level nodes have `parent: None`. Use `body_roots()` and `furniture_roots()`
+        to iterate over top-level content by layer.
+
+        # Validation
+
+        Call `validate()` after construction to verify all node indices are in bounds
+        and parent-child relationships are bidirectionally consistent.
+      required:
+        - nodes
+      properties:
+        node_types:
+          type: array
+          items:
+            type: string
+          description: |-
+            Sorted, deduplicated list of node type names present in this document.
+
+            Each value is the snake_case `node_type` tag of the corresponding
+            [`NodeContent`] variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …).
+
+            Computed from [`nodes`] via [`DocumentStructure::finalize_node_types`].
+            Empty until that method is called (internal construction paths call it
+            at the end of derivation).
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentNode'
+          description: All nodes in document/reading order.
+        relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentRelationship'
+          description: |-
+            Resolved relationships between nodes (footnote refs, citations, anchor links, etc.).
+
+            Populated during derivation from the internal document representation.
+            Empty when no relationships are detected.
+        source_format:
+          type:
+            - string
+            - "null"
+          description: |-
+            Origin format identifier (e.g. "docx", "pptx", "html", "pdf").
+
+            Allows renderers to apply format-aware heuristics when converting
+            the document tree to output formats.
+    Element:
+      type: object
+      description: |-
+        Semantic element extracted from document.
+
+        Represents a logical unit of content with semantic classification,
+        unique identifier, and metadata for tracking origin and position.
+      required:
+        - element_id
+        - element_type
+        - text
+        - metadata
+      properties:
+        element_id:
+          $ref: '#/components/schemas/ElementId'
+          description: Unique element identifier
+        element_type:
+          $ref: '#/components/schemas/ElementType'
+          description: Semantic type of this element
+        metadata:
+          $ref: '#/components/schemas/ElementMetadata'
+          description: Metadata about the element
+        text:
+          type: string
+          description: Text content of the element
+    ElementId:
+      type: string
+      description: |-
+        Unique identifier for semantic elements.
+
+        Wraps a string identifier that is deterministically generated
+        from element type, content, and page number.
+    ElementMetadata:
+      type: object
+      description: Metadata for a semantic element.
+      required:
+        - additional
+      properties:
+        additional:
+          type: object
+          description: Additional custom metadata
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        coordinates:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BoundingBox'
+              description: Bounding box coordinates if available
+        element_index:
+          type:
+            - integer
+            - "null"
+          description: Position index in the element sequence
+          minimum: 0
+        filename:
+          type:
+            - string
+            - "null"
+          description: Source filename or document name
+        page_number:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Page number (1-indexed)
+          minimum: 0
+    ElementType:
+      type: string
+      description: |-
+        Semantic element type classification.
+
+        Categorizes text content into semantic units for downstream processing.
+        Supports the element types commonly found in Unstructured documents.
+      enum:
+        - title
+        - narrative_text
+        - heading
+        - list_item
+        - table
+        - image
+        - page_break
+        - code_block
+        - block_quote
+        - footer
+        - header
+    EmailMetadata:
+      type: object
+      description: |-
+        Email metadata extracted from .eml and .msg files.
+
+        Includes sender/recipient information, message ID, and attachment list.
+      required:
+        - to_emails
+        - cc_emails
+        - bcc_emails
+        - attachments
+      properties:
+        attachments:
+          type: array
+          items:
+            type: string
+          description: List of attachment filenames
+        bcc_emails:
+          type: array
+          items:
+            type: string
+          description: BCC recipients
+        cc_emails:
+          type: array
+          items:
+            type: string
+          description: CC recipients
+        from_email:
+          type:
+            - string
+            - "null"
+          description: Sender's email address
+        from_name:
+          type:
+            - string
+            - "null"
+          description: Sender's display name
+        message_id:
+          type:
+            - string
+            - "null"
+          description: Message-ID header value
+        to_emails:
+          type: array
+          items:
+            type: string
+          description: Primary recipients
     EmbeddingConfig:
       type: object
       description: Embedding generation configuration for chunks.
@@ -547,6 +1873,17 @@ components:
             - boolean
             - "null"
           description: Show model download progress
+    ErrorMetadata:
+      type: object
+      description: Error metadata (for batch operations).
+      required:
+        - error_type
+        - message
+      properties:
+        error_type:
+          type: string
+        message:
+          type: string
     ErrorResponse:
       type: object
       description: Error response
@@ -557,12 +1894,37 @@ components:
           type: string
           description: Error message
           example: Invalid job ID format
+    ExcelMetadata:
+      type: object
+      description: |-
+        Excel/spreadsheet format metadata.
+
+        Identifies the document as a spreadsheet source via the `FormatMetadata::Excel`
+        discriminant. Sheet count and sheet names are stored inside this struct.
+      properties:
+        sheet_count:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Number of sheets in the workbook.
+          minimum: 0
+        sheet_names:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+          description: Names of all sheets in the workbook.
     ExtractJsonRequest:
       type: object
       description: JSON body for `POST /v1/extract`
-      required:
-        - documents
       properties:
+        crawl_config:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/CrawlConfig'
+              description: Crawl configuration (applies to all URLs, can be overridden per-URL)
         documents:
           type: array
           items:
@@ -573,6 +1935,11 @@ components:
             - type: "null"
             - $ref: '#/components/schemas/ExtractionOptions'
               description: Extraction options (optional)
+        urls:
+          type: array
+          items:
+            $ref: '#/components/schemas/UrlInput'
+          description: URLs to crawl and extract documents from
         webhook:
           oneOf:
             - type: "null"
@@ -582,37 +1949,81 @@ components:
       type: object
       description: Extract response (HTTP 202)
       required:
-        - job_ids
         - status
       properties:
+        crawl_job_ids:
+          type: array
+          items:
+            type: string
+          description: Crawl job IDs (one per URL group)
         job_ids:
           type: array
           items:
             type: string
-          description: Job IDs for tracking (one per document)
+          description: Job IDs for direct file extractions
         status:
           type: string
           description: Job status
     ExtractedImage:
       type: object
-      description: Extracted image with base64-encoded data.
+      description: |-
+        Extracted image from a document.
+
+        Contains raw image data, metadata, and optional nested OCR results.
+        Raw bytes allow cross-language compatibility - users can convert to
+        PIL.Image (Python), Sharp (Node.js), or other formats as needed.
+      required:
+        - data
+        - format
+        - image_index
       properties:
+        bits_per_component:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Bits per color component (e.g., 8, 16)
+          minimum: 0
         bounding_box:
           oneOf:
             - type: "null"
             - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box on the page
+              description: |-
+                Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+                Only populated for PDF-extracted images when position data is available from the PDF extractor.
+        cluster_id:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: |-
+            Identifier shared across images that form a single logical figure
+            (e.g. all raster tiles of one technical drawing). `None` for singletons.
+          minimum: 0
+        colorspace:
+          type:
+            - string
+            - "null"
+          description: Colorspace information (e.g., "RGB", "CMYK", "Gray")
         data:
-          type: string
-          description: Base64-encoded image data
+          type: array
+          items:
+            type: integer
+            format: binary
+            minimum: 0
+          description: |-
+            Raw image data (PNG, JPEG, WebP, etc. bytes).
+            Uses `bytes::Bytes` for cheap cloning of large buffers.
         description:
           type:
             - string
             - "null"
-          description: Image description
+          description: Optional description of the image
         format:
           type: string
-          description: Image format (e.g., "PNG", "JPEG")
+          description: |-
+            Image format (e.g., "jpeg", "png", "webp")
+            Uses Cow<'static, str> to avoid allocation for static literals.
         height:
           type:
             - integer
@@ -622,16 +2033,48 @@ components:
           minimum: 0
         image_index:
           type: integer
-          format: int64
-          description: Image index within the document
+          format: int32
+          description: Zero-indexed position of this image in the document/page
           minimum: 0
+        image_kind:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ImageKind'
+              description: |-
+                Heuristic classification of what this image likely depicts.
+                `None` if classification was disabled or inconclusive.
+        is_mask:
+          type: boolean
+          description: Whether this image is a mask image
+        kind_confidence:
+          type:
+            - number
+            - "null"
+          format: float
+          description: Confidence score for `image_kind`, in the range 0.0 to 1.0.
+        ocr_result:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ExtractionResult'
+              description: |-
+                Nested OCR extraction result (if image was OCRed)
+
+                When OCR is performed on this image, the result is embedded here
+                rather than in a separate collection, making the relationship explicit.
         page_number:
           type:
             - integer
             - "null"
           format: int32
-          description: Page number the image was found on
+          description: Page/slide number where image was found (1-indexed)
           minimum: 0
+        source_path:
+          type:
+            - string
+            - "null"
+          description: |-
+            Original source path of the image within the document archive (e.g., "media/image1.png" in DOCX).
+            Used for rendering image references when the binary data is not extracted.
         width:
           type:
             - integer
@@ -639,6 +2082,36 @@ components:
           format: int32
           description: Image width in pixels
           minimum: 0
+    ExtractedUri:
+      type: object
+      description: |-
+        A URI extracted from a document.
+
+        Represents any link, reference, or resource pointer found during extraction.
+        The `kind` field classifies the URI semantically, while `label` carries
+        optional human-readable display text.
+      required:
+        - url
+        - kind
+      properties:
+        kind:
+          $ref: '#/components/schemas/UriKind'
+          description: Semantic classification of the URI.
+        label:
+          type:
+            - string
+            - "null"
+          description: Optional display text / label for the link.
+        page:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Optional page number where the URI was found (1-indexed).
+          minimum: 0
+        url:
+          type: string
+          description: The URL or path string.
     ExtractionConfig:
       type: object
       description: Top-level extraction configuration — mirrors kreuzberg::ExtractionConfig.
@@ -776,6 +2249,13 @@ components:
             - boolean
             - "null"
           description: Enable extraction result caching
+    ExtractionMethod:
+      type: string
+      description: How the extracted text was produced.
+      enum:
+        - native
+        - ocr
+        - mixed
     ExtractionOptions:
       type: object
       description: Extraction options (shared by JSON and multipart requests)
@@ -787,55 +2267,248 @@ components:
               description: Kreuzberg extraction configuration (optional, null = defaults).
     ExtractionResult:
       type: object
-      description: Extraction result — aligned with kreuzberg::ExtractionResult.
+      description: |-
+        General extraction result used by the core extraction API.
+
+        This is the main result type returned by all extraction functions.
+      required:
+        - content
+        - mime_type
+        - metadata
+        - tables
       properties:
+        annotations:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/PdfAnnotation'
+          description: |-
+            PDF annotations extracted from the document.
+
+            When annotation extraction is enabled via `PdfConfig::extract_annotations`,
+            this field contains text notes, highlights, links, stamps, and other
+            annotations found in PDF documents.
+        children:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/ArchiveEntry'
+          description: |-
+            Nested extraction results from archive contents.
+
+            When extracting archives, each processable file inside produces its own
+            full extraction result. Set to `None` for non-archive formats.
+            Use `max_archive_depth` in config to control recursion depth.
         chunks:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: '#/components/schemas/Chunk'
-          description: Text chunks (when chunking is enabled)
+          description: |-
+            Text chunks when chunking is enabled.
+
+            When chunking configuration is provided, the content is split into
+            overlapping chunks for efficient processing. Each chunk contains the text,
+            optional embeddings (if enabled), and metadata about its position.
         content:
           type: string
-          description: Full extracted text content
         detected_languages:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: string
-          description: Detected document languages
-        images:
-          type: array
-          items:
-            $ref: '#/components/schemas/ExtractedImage'
-          description: Extracted images (base64 encoded)
-        metadata:
+        djot_content:
           oneOf:
             - type: "null"
-            - $ref: '#/components/schemas/Metadata'
-              description: Document metadata
+            - $ref: '#/components/schemas/DjotContent'
+              description: |-
+                Rich Djot content structure (when extracting Djot documents).
+
+                When extracting Djot documents with structured extraction enabled,
+                this field contains the full semantic structure including:
+                - Block-level elements with nesting
+                - Inline formatting with attributes
+                - Links, images, footnotes
+                - Math expressions
+                - Complete attribute information
+
+                The `content` field still contains plain text for backward compatibility.
+
+                Always `None` for non-Djot documents.
+        document:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/DocumentStructure'
+              description: |-
+                Structured document tree (when document structure extraction is enabled).
+
+                When `include_document_structure` is true in `ExtractionConfig`, this field
+                contains the full hierarchical representation of the document including:
+                - Heading-driven section nesting
+                - Table grids with cell-level metadata
+                - Content layer classification (body, header, footer, footnote)
+                - Inline text annotations (formatting, links)
+                - Bounding boxes and page numbers
+
+                Independent of `result_format` — can be combined with Unified or ElementBased.
+        elements:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/Element'
+          description: |-
+            Semantic elements when element-based result format is enabled.
+
+            When result_format is set to ElementBased, this field contains semantic
+            elements with type classification, unique identifiers, and metadata for
+            Unstructured-compatible element-based processing.
+        extracted_keywords:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/Keyword'
+          description: |-
+            Extracted keywords when keyword extraction is enabled.
+
+            When keyword extraction (RAKE or YAKE) is configured, this field contains
+            the extracted keywords with scores, algorithm info, and position data.
+            Previously stored in `metadata.additional["keywords"]`.
+        extraction_method:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ExtractionMethod'
+              description: |-
+                Extraction strategy used to produce the returned text.
+
+                Populated when the extractor can reliably distinguish native text extraction,
+                OCR-only extraction, or mixed native/OCR output.
+        images:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/ExtractedImage'
+          description: |-
+            Extracted images from the document.
+
+            When image extraction is enabled via `ImageExtractionConfig`, this field
+            contains all images found in the document with their raw data and metadata.
+            Each image may optionally contain a nested `ocr_result` if OCR was performed.
+        llm_usage:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/LlmUsage'
+          description: |-
+            LLM token usage and cost data for all LLM calls made during this extraction.
+
+            Contains one entry per LLM call. Multiple entries are produced when
+            VLM OCR, structured extraction, or LLM embeddings run during
+            the same extraction.
+
+            `None` when no LLM was used.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
         mime_type:
           type: string
-          description: Content MIME type (e.g., "text/plain", "text/markdown")
+        ocr_elements:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/OcrElement'
+          description: |-
+            OCR elements with full spatial and confidence metadata.
+
+            When OCR is performed with element extraction enabled, this field contains
+            the structured representation of detected text including:
+            - Bounding geometry (rectangles or quadrilaterals)
+            - Confidence scores (detection and recognition)
+            - Rotation information
+            - Hierarchical relationships (Tesseract only)
+
+            This field preserves all metadata that would otherwise be lost when
+            converting to plain text or markdown output formats.
+
+            Only populated when `OcrElementConfig.include_elements` is true.
         pages:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: '#/components/schemas/PageContent'
-          description: Per-page content (when page extraction is enabled)
+          description: |-
+            Per-page content when page extraction is enabled.
+
+            When page extraction is configured, the document is split into per-page content
+            with tables and images mapped to their respective pages.
         processing_warnings:
           type: array
           items:
             $ref: '#/components/schemas/ProcessingWarning'
-          description: Non-fatal processing warnings
+          description: |-
+            Non-fatal warnings collected during processing pipeline stages.
+
+            Captures errors from optional pipeline features (embedding, chunking,
+            language detection, output formatting) that don't prevent extraction
+            but may indicate degraded results.
+            Previously stored as individual keys in `metadata.additional`.
         quality_score:
           type:
             - number
             - "null"
           format: double
-          description: Document quality score (0.0-1.0)
+          description: |-
+            Document quality score from quality analysis.
+
+            A value between 0.0 and 1.0 indicating the overall text quality.
+            Previously stored in `metadata.additional["quality_score"]`.
+        revisions:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/DocumentRevision'
+          description: |-
+            Tracked changes embedded in the source document.
+
+            Populated by per-format extractors that understand change-tracking
+            metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`,
+            …). Every extractor defaults to `None` until its format-specific
+            implementation is added. Extractors that do populate this field follow
+            the "accepted-changes" convention: inserted text is present in
+            `content`, deleted text is absent — the revision list is the separate
+            audit trail.
+        structured_output:
+          description: |-
+            Structured extraction output from LLM-based JSON schema extraction.
+
+            When `structured_extraction` is configured in `ExtractionConfig`, the
+            extracted document content is sent to a VLM with the provided JSON schema.
+            The response is parsed and stored here as a JSON value matching the schema.
         tables:
           type: array
           items:
             $ref: '#/components/schemas/Table'
-          description: Extracted tables
+        uris:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/ExtractedUri'
+          description: |-
+            URIs/links discovered during document extraction.
+
+            Contains hyperlinks, image references, citations, email addresses, and
+            other URI-like references found in the document. Always extracted when
+            present in the source document.
     FileExtractionConfig:
       type: object
       description: |-
@@ -913,6 +2586,195 @@ components:
           oneOf:
             - type: "null"
             - $ref: '#/components/schemas/TokenReductionConfig'
+    Footnote:
+      type: object
+      description: Footnote in Djot.
+      required:
+        - label
+        - content
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormattedBlock'
+          description: Footnote content blocks
+        label:
+          type: string
+          description: Footnote label
+    FormatMetadata:
+      oneOf:
+        - $ref: '#/components/schemas/ExcelMetadata'
+        - $ref: '#/components/schemas/EmailMetadata'
+        - $ref: '#/components/schemas/PptxMetadata'
+        - $ref: '#/components/schemas/ArchiveMetadata'
+        - $ref: '#/components/schemas/ImageMetadata'
+        - $ref: '#/components/schemas/XmlMetadata'
+        - $ref: '#/components/schemas/TextMetadata'
+        - $ref: '#/components/schemas/HtmlMetadata'
+        - $ref: '#/components/schemas/OcrMetadata'
+        - $ref: '#/components/schemas/CsvMetadata'
+        - $ref: '#/components/schemas/PstMetadata'
+      description: Format-specific metadata (discriminated union). Only one format type can exist per extraction result.
+      discriminator:
+        propertyName: format_type
+        mapping:
+          archive: '#/components/schemas/ArchiveMetadata'
+          csv: '#/components/schemas/CsvMetadata'
+          email: '#/components/schemas/EmailMetadata'
+          excel: '#/components/schemas/ExcelMetadata'
+          html: '#/components/schemas/HtmlMetadata'
+          image: '#/components/schemas/ImageMetadata'
+          ocr: '#/components/schemas/OcrMetadata'
+          pptx: '#/components/schemas/PptxMetadata'
+          pst: '#/components/schemas/PstMetadata'
+          text: '#/components/schemas/TextMetadata'
+          xml: '#/components/schemas/XmlMetadata'
+    FormattedBlock:
+      type: object
+      description: |-
+        Block-level element in a Djot document.
+
+        Represents structural elements like headings, paragraphs, lists, code blocks, etc.
+      required:
+        - block_type
+        - inline_content
+      properties:
+        attributes:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/Attributes'
+              description: Element attributes (classes, IDs, key-value pairs)
+        block_type:
+          $ref: '#/components/schemas/BlockType'
+          description: Type of block element
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormattedBlock'
+          description: Nested blocks for containers (blockquotes, list items, divs)
+        code:
+          type:
+            - string
+            - "null"
+          description: Raw code content for code blocks
+        inline_content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InlineElement'
+          description: Inline content within the block
+        language:
+          type:
+            - string
+            - "null"
+          description: Language identifier for code blocks
+        level:
+          type:
+            - integer
+            - "null"
+          description: Heading level (1-6) for headings, or nesting level for lists
+          minimum: 0
+    GridCell:
+      type: object
+      description: Individual grid cell with position and span metadata.
+      required:
+        - content
+        - row
+        - col
+      properties:
+        bbox:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BoundingBox'
+              description: Bounding box for this cell (if available).
+        col:
+          type: integer
+          format: int32
+          description: Zero-indexed column position.
+          minimum: 0
+        col_span:
+          type: integer
+          format: int32
+          description: Number of columns this cell spans.
+          minimum: 0
+        content:
+          type: string
+          description: Cell text content.
+        is_header:
+          type: boolean
+          description: Whether this is a header cell.
+        row:
+          type: integer
+          format: int32
+          description: Zero-indexed row position.
+          minimum: 0
+        row_span:
+          type: integer
+          format: int32
+          description: Number of rows this cell spans.
+          minimum: 0
+    HeaderMetadata:
+      type: object
+      description: Header/heading element metadata.
+      required:
+        - level
+        - text
+        - depth
+        - html_offset
+      properties:
+        depth:
+          type: integer
+          format: int32
+          description: Document tree depth at the header element
+          minimum: 0
+        html_offset:
+          type: integer
+          format: int32
+          description: Byte offset in original HTML document
+          minimum: 0
+        id:
+          type:
+            - string
+            - "null"
+          description: HTML id attribute if present
+        level:
+          type: integer
+          format: int32
+          description: 'Header level: 1 (h1) through 6 (h6)'
+          minimum: 0
+        text:
+          type: string
+          description: Normalized text content of the header
+    HeadingContext:
+      type: object
+      description: |-
+        Heading context for a chunk within a Markdown document.
+
+        Contains the heading hierarchy from document root to this chunk's section.
+      required:
+        - headings
+      properties:
+        headings:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeadingLevel'
+          description: |-
+            The heading hierarchy from document root to this chunk's section.
+            Index 0 is the outermost (h1), last element is the most specific.
+    HeadingLevel:
+      type: object
+      description: A single heading in the hierarchy.
+      required:
+        - level
+        - text
+      properties:
+        level:
+          type: integer
+          format: int32
+          description: Heading depth (1 = h1, 2 = h2, etc.)
+          minimum: 0
+        text:
+          type: string
+          description: The text content of the heading.
     HealthResponse:
       type: object
       description: Health check response for liveness probes
@@ -923,6 +2785,49 @@ components:
           type: string
           description: Service status
           example: ok
+    HierarchicalBlock:
+      type: object
+      description: |-
+        A text block with hierarchy level assignment.
+
+        Represents a block of text with semantic heading information extracted from
+        font size clustering and hierarchical analysis.
+      required:
+        - text
+        - font_size
+        - level
+      properties:
+        bbox:
+          type:
+            - array
+            - "null"
+          items:
+            type: number
+            format: float
+          description: |-
+            Bounding box information for the block
+
+            Contains coordinates as (left, top, right, bottom) in PDF units.
+        font_size:
+          type: number
+          format: float
+          description: The font size of the text in this block
+        level:
+          type: string
+          description: |-
+            The hierarchy level of this block (H1-H6 or Body)
+
+            Levels correspond to HTML heading tags:
+            - "h1": Top-level heading
+            - "h2": Secondary heading
+            - "h3": Tertiary heading
+            - "h4": Quaternary heading
+            - "h5": Quinary heading
+            - "h6": Senary heading
+            - "body": Body text (no heading level)
+        text:
+          type: string
+          description: The text content of this block
     HierarchyConfig:
       type: object
       description: Heading hierarchy detection configuration.
@@ -946,6 +2851,101 @@ components:
             - "null"
           format: float
           description: OCR coverage threshold
+    HtmlMetadata:
+      type: object
+      description: |-
+        HTML metadata extracted from HTML documents.
+
+        Includes document-level metadata, Open Graph data, Twitter Card metadata,
+        and extracted structural elements (headers, links, images, structured data).
+      properties:
+        author:
+          type:
+            - string
+            - "null"
+          description: Document author from `<meta name="author">` tag
+        base_href:
+          type:
+            - string
+            - "null"
+          description: Base URL from `<base href="">` tag for resolving relative URLs
+        canonical_url:
+          type:
+            - string
+            - "null"
+          description: Canonical URL from `<link rel="canonical">` tag
+        description:
+          type:
+            - string
+            - "null"
+          description: Document description from `<meta name="description">` tag
+        headers:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderMetadata'
+          description: Extracted header elements with hierarchy
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageMetadataType'
+          description: Extracted images with source and dimensions
+        keywords:
+          type: array
+          items:
+            type: string
+          description: Document keywords from `<meta name="keywords">` tag, split on commas
+        language:
+          type:
+            - string
+            - "null"
+          description: Document language from `lang` attribute
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkMetadata'
+          description: Extracted hyperlinks with type classification
+        meta_tags:
+          type: object
+          description: |-
+            Additional meta tags not covered by specific fields
+            Keys are meta name/property attributes, values are content
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        open_graph:
+          type: object
+          description: |-
+            Open Graph metadata (og:* properties) for social media
+            Keys like "title", "description", "image", "url", etc.
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        structured_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/StructuredData'
+          description: Extracted structured data blocks
+        text_direction:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/TextDirection'
+              description: Document text direction from `dir` attribute
+        title:
+          type:
+            - string
+            - "null"
+          description: Document title from `<title>` tag
+        twitter_card:
+          type: object
+          description: |-
+            Twitter Card metadata (twitter:* properties)
+            Keys like "card", "site", "creator", "title", "description", "image", etc.
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
     ImageExtractionConfig:
       type: object
       description: Image extraction and processing configuration.
@@ -989,6 +2989,234 @@ components:
             - "null"
           format: int32
           description: Target DPI for image normalization
+    ImageKind:
+      type: string
+      description: Heuristic classification of what an image likely depicts.
+      enum:
+        - photograph
+        - diagram
+        - chart
+        - drawing
+        - text_block
+        - decoration
+        - logo
+        - icon
+        - tile_fragment
+        - mask
+        - page_raster
+        - unknown
+    ImageMetadata:
+      type: object
+      description: |-
+        Image metadata extracted from image files.
+
+        Includes dimensions, format, and EXIF data.
+      required:
+        - width
+        - height
+        - format
+        - exif
+      properties:
+        exif:
+          type: object
+          description: EXIF metadata tags
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        format:
+          type: string
+          description: Image format (e.g., "PNG", "JPEG", "TIFF")
+        height:
+          type: integer
+          format: int32
+          description: Image height in pixels
+          minimum: 0
+        width:
+          type: integer
+          format: int32
+          description: Image width in pixels
+          minimum: 0
+    ImageMetadataType:
+      type: object
+      description: Image element metadata.
+      required:
+        - src
+        - image_type
+        - attributes
+      properties:
+        alt:
+          type:
+            - string
+            - "null"
+          description: Alternative text from alt attribute
+        attributes:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          description: Additional attributes as key-value pairs
+        dimensions:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Image dimensions as (width, height) if available
+        image_type:
+          $ref: '#/components/schemas/ImageType'
+          description: Image type classification
+        src:
+          type: string
+          description: Image source (URL, data URI, or SVG content)
+        title:
+          type:
+            - string
+            - "null"
+          description: Title attribute
+    ImagePreprocessingMetadata:
+      type: object
+      description: |-
+        Image preprocessing metadata.
+
+        Tracks the transformations applied to an image during OCR preprocessing,
+        including DPI normalization, resizing, and resampling.
+      required:
+        - original_dimensions
+        - original_dpi
+        - target_dpi
+        - scale_factor
+        - auto_adjusted
+        - final_dpi
+        - resample_method
+        - dimension_clamped
+        - skipped_resize
+      properties:
+        auto_adjusted:
+          type: boolean
+          description: Whether DPI was auto-adjusted based on content
+        calculated_dpi:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Calculated optimal DPI (if auto_adjust_dpi enabled)
+        dimension_clamped:
+          type: boolean
+          description: Whether dimensions were clamped to max_image_dimension
+        final_dpi:
+          type: integer
+          format: int32
+          description: Final DPI after processing
+        new_dimensions:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int64
+            minimum: 0
+          description: New dimensions after resizing (if resized)
+        original_dimensions:
+          type: array
+          items:
+            type: integer
+            format: int64
+            minimum: 0
+          description: Original image dimensions (width, height) in pixels
+        original_dpi:
+          type: array
+          items:
+            type: number
+            format: double
+          description: Original image DPI (horizontal, vertical)
+        resample_method:
+          type: string
+          description: Resampling algorithm used ("LANCZOS3", "CATMULLROM", etc.)
+        resize_error:
+          type:
+            - string
+            - "null"
+          description: Error message if resize failed
+        scale_factor:
+          type: number
+          format: double
+          description: Scaling factor applied to the image
+        skipped_resize:
+          type: boolean
+          description: Whether resize was skipped (dimensions already optimal)
+        target_dpi:
+          type: integer
+          format: int32
+          description: Target DPI from configuration
+    ImageType:
+      type: string
+      description: Image type classification.
+      enum:
+        - data-uri
+        - inline-svg
+        - external
+        - relative
+    InlineElement:
+      type: object
+      description: |-
+        Inline element within a block.
+
+        Represents text with formatting, links, images, etc.
+      required:
+        - element_type
+        - content
+      properties:
+        attributes:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/Attributes'
+              description: Element attributes
+        content:
+          type: string
+          description: Text content
+        element_type:
+          $ref: '#/components/schemas/InlineType'
+          description: Type of inline element
+        metadata:
+          type:
+            - object
+            - "null"
+          description: Additional metadata (e.g., href for links, src/alt for images)
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+    InlineType:
+      type: string
+      description: Types of inline elements in Djot.
+      enum:
+        - text
+        - strong
+        - emphasis
+        - highlight
+        - subscript
+        - superscript
+        - insert
+        - delete
+        - code
+        - link
+        - image
+        - span
+        - math
+        - raw_inline
+        - footnote_ref
+        - symbol
+    JobLookupResponse:
+      oneOf:
+        - $ref: '#/components/schemas/JobResponse'
+          description: Extraction job details.
+        - $ref: '#/components/schemas/CrawlJobResponse'
+          description: Crawl job details.
+      description: Response for either an extraction job or a crawl job.
     JobResponse:
       type: object
       description: Response for job status query
@@ -1040,6 +3268,38 @@ components:
         - partial_success
         - failed
         - cancelled
+    Keyword:
+      type: object
+      description: Extracted keyword with metadata.
+      required:
+        - text
+        - score
+        - algorithm
+      properties:
+        algorithm:
+          $ref: '#/components/schemas/KeywordAlgorithm'
+          description: Algorithm that extracted this keyword.
+        positions:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            minimum: 0
+          description: Optional positions where keyword appears in text (character offsets).
+        score:
+          type: number
+          format: float
+          description: Relevance score (higher is better, algorithm-specific range).
+        text:
+          type: string
+          description: The keyword text.
+    KeywordAlgorithm:
+      type: string
+      description: Keyword algorithm selection.
+      enum:
+        - yake
+        - rake
     LanguageDetectionConfig:
       type: object
       description: Language detection configuration.
@@ -1080,81 +3340,689 @@ components:
             - string
             - "null"
           description: 'Preset: "fast" or "accurate"'
+    LayoutRegion:
+      type: object
+      description: |-
+        A detected layout region on a page.
+
+        When layout detection is enabled, each page may have layout regions
+        identifying different content types (text, pictures, tables, etc.)
+        with confidence scores and spatial positions.
+      required:
+        - class_name
+        - confidence
+        - bounding_box
+        - area_fraction
+      properties:
+        area_fraction:
+          type: number
+          format: double
+          description: Fraction of the page area covered by this region (0.0 to 1.0).
+        bounding_box:
+          $ref: '#/components/schemas/BoundingBox'
+          description: Bounding box in document coordinate space.
+        class_name:
+          type: string
+          description: Layout class name (e.g. "picture", "table", "text", "section_header").
+        confidence:
+          type: number
+          format: double
+          description: Confidence score from the layout detection model (0.0 to 1.0).
+    LinkMetadata:
+      type: object
+      description: Link element metadata.
+      required:
+        - href
+        - text
+        - link_type
+        - rel
+        - attributes
+      properties:
+        attributes:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          description: Additional attributes as key-value pairs
+        href:
+          type: string
+          description: The href URL value
+        link_type:
+          $ref: '#/components/schemas/LinkType'
+          description: Link type classification
+        rel:
+          type: array
+          items:
+            type: string
+          description: Rel attribute values
+        text:
+          type: string
+          description: Link text content (normalized)
+        title:
+          type:
+            - string
+            - "null"
+          description: Optional title attribute
+    LinkType:
+      type: string
+      description: Link type classification.
+      enum:
+        - anchor
+        - internal
+        - external
+        - email
+        - phone
+        - other
+    LlmUsage:
+      type: object
+      description: |-
+        Token usage and cost data for a single LLM call made during extraction.
+
+        Populated when VLM OCR, structured extraction, or LLM-based embeddings
+        are used. Multiple entries may be present when multiple LLM calls occur
+        within one extraction (e.g. VLM OCR + structured extraction).
+      required:
+        - model
+        - source
+      properties:
+        estimated_cost:
+          type:
+            - number
+            - "null"
+          format: double
+          description: Estimated cost in USD based on the provider's published pricing.
+        finish_reason:
+          type:
+            - string
+            - "null"
+          description: Why the model stopped generating (e.g. "stop", "length", "content_filter").
+        input_tokens:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Number of input/prompt tokens consumed.
+          minimum: 0
+        model:
+          type: string
+          description: The LLM model identifier (e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4-20250514").
+        output_tokens:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Number of output/completion tokens generated.
+          minimum: 0
+        source:
+          type: string
+          description: |-
+            The pipeline stage that triggered this LLM call
+            (e.g. "vlm_ocr", "structured_extraction", "embeddings").
+        total_tokens:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Total tokens (input + output).
+          minimum: 0
     Metadata:
       type: object
-      description: Document metadata — aligned with kreuzberg::Metadata.
+      description: |-
+        Extraction result metadata.
+
+        Contains common fields applicable to all formats, format-specific metadata
+        via a discriminated union, and additional custom fields from postprocessors.
       properties:
         abstract_text:
           type:
             - string
             - "null"
+          description: Abstract or summary text (from frontmatter).
         additional:
           type: object
+          description: |-
+            Additional custom fields from postprocessors.
+
+            Serialized as a nested `"additional"` object (not flattened at root level).
+            Uses `Cow<'static, str>` keys so static string keys avoid allocation.
           additionalProperties: {}
           propertyNames:
             type: string
         authors:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: string
+          description: Primary author(s) - always Vec for consistency
         category:
           type:
             - string
             - "null"
+          description: Document category (from frontmatter or classification).
         created_at:
           type:
             - string
             - "null"
+          description: Creation timestamp (ISO 8601 format)
         created_by:
           type:
             - string
             - "null"
+          description: User who created the document
         document_version:
           type:
             - string
             - "null"
+          description: Document version string (from frontmatter).
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ErrorMetadata'
+              description: Error metadata (for batch operations)
         extraction_duration_ms:
           type:
             - integer
             - "null"
           format: int64
+          description: |-
+            Extraction duration in milliseconds (for benchmarking).
+
+            This field is populated by batch extraction to provide per-file timing
+            information. It's `None` for single-file extraction (which uses external timing).
           minimum: 0
+        format:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/FormatMetadata'
+              description: |-
+                Format-specific metadata (discriminated union)
+
+                Contains detailed metadata specific to the document format.
+                Serialized as a nested `"format"` object with a `format_type` discriminator field.
+        image_preprocessing:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ImagePreprocessingMetadata'
+              description: Image preprocessing metadata (when OCR preprocessing was applied)
+        json_schema:
+          description: JSON schema (for structured data extraction)
         keywords:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: string
+          description: Keywords/tags - always Vec for consistency
         language:
           type:
             - string
             - "null"
+          description: Primary language (ISO 639 code)
         modified_at:
           type:
             - string
             - "null"
+          description: Last modification timestamp (ISO 8601 format)
         modified_by:
           type:
             - string
             - "null"
+          description: User who last modified the document
+        ocr_used:
+          type: boolean
+          description: |-
+            Whether OCR was used during extraction.
+
+            Set to `true` whenever the extraction pipeline ran an OCR backend
+            (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary
+            or fallback text. `false` means native text extraction was used exclusively.
         output_format:
           type:
             - string
             - "null"
+          description: |-
+            Output format identifier (e.g., "markdown", "html", "text").
+
+            Set by the output format pipeline stage when format conversion is applied.
+            Previously stored in `metadata.additional["output_format"]`.
         pages:
           oneOf:
             - type: "null"
             - $ref: '#/components/schemas/PageStructure'
+              description: Page/slide/sheet structure with boundaries
         subject:
           type:
             - string
             - "null"
+          description: Document subject or description
         tags:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: string
+          description: Document tags (from frontmatter).
         title:
           type:
             - string
             - "null"
+          description: Document title
+    NodeContent:
+      oneOf:
+        - type: object
+          description: Document title.
+          required:
+            - text
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - title
+            text:
+              type: string
+        - type: object
+          description: Section heading with level (1-6).
+          required:
+            - level
+            - text
+            - node_type
+          properties:
+            level:
+              type: integer
+              format: int32
+              minimum: 0
+            node_type:
+              type: string
+              enum:
+                - heading
+            text:
+              type: string
+        - type: object
+          description: Body text paragraph.
+          required:
+            - text
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - paragraph
+            text:
+              type: string
+        - type: object
+          description: List container — children are `ListItem` nodes.
+          required:
+            - ordered
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - list
+            ordered:
+              type: boolean
+        - type: object
+          description: Individual list item.
+          required:
+            - text
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - list_item
+            text:
+              type: string
+        - type: object
+          description: Table with structured cell grid.
+          required:
+            - grid
+            - node_type
+          properties:
+            grid:
+              $ref: '#/components/schemas/TableGrid'
+            node_type:
+              type: string
+              enum:
+                - table
+        - type: object
+          description: Image reference.
+          required:
+            - node_type
+          properties:
+            description:
+              type:
+                - string
+                - "null"
+            image_index:
+              type:
+                - integer
+                - "null"
+              format: int32
+              minimum: 0
+            node_type:
+              type: string
+              enum:
+                - image
+            src:
+              type:
+                - string
+                - "null"
+              description: Source URL or path of the image (from `<img src="...">` or `![](src)`).
+        - type: object
+          description: Code block.
+          required:
+            - text
+            - node_type
+          properties:
+            language:
+              type:
+                - string
+                - "null"
+            node_type:
+              type: string
+              enum:
+                - code
+            text:
+              type: string
+        - type: object
+          description: Block quote — container, children carry the quoted content.
+          required:
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - quote
+        - type: object
+          description: Mathematical formula / equation.
+          required:
+            - text
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - formula
+            text:
+              type: string
+        - type: object
+          description: Footnote reference content.
+          required:
+            - text
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - footnote
+            text:
+              type: string
+        - type: object
+          description: |-
+            Logical grouping container (section, key-value area).
+
+            `heading_level` + `heading_text` capture the section heading directly
+            rather than relying on a first-child positional convention.
+          required:
+            - node_type
+          properties:
+            heading_level:
+              type:
+                - integer
+                - "null"
+              format: int32
+              minimum: 0
+            heading_text:
+              type:
+                - string
+                - "null"
+            label:
+              type:
+                - string
+                - "null"
+            node_type:
+              type: string
+              enum:
+                - group
+        - type: object
+          description: Page break marker.
+          required:
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - page_break
+        - type: object
+          description: Presentation slide container — children are the slide's content nodes.
+          required:
+            - number
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - slide
+            number:
+              type: integer
+              format: int32
+              description: 1-indexed slide number.
+              minimum: 0
+            title:
+              type:
+                - string
+                - "null"
+        - type: object
+          description: Definition list container — children are `DefinitionItem` nodes.
+          required:
+            - node_type
+          properties:
+            node_type:
+              type: string
+              enum:
+                - definition_list
+        - type: object
+          description: Individual definition list entry with term and definition.
+          required:
+            - term
+            - definition
+            - node_type
+          properties:
+            definition:
+              type: string
+            node_type:
+              type: string
+              enum:
+                - definition_item
+            term:
+              type: string
+        - type: object
+          description: Citation or bibliographic reference.
+          required:
+            - key
+            - text
+            - node_type
+          properties:
+            key:
+              type: string
+            node_type:
+              type: string
+              enum:
+                - citation
+            text:
+              type: string
+        - type: object
+          description: |-
+            Admonition / callout container (note, warning, tip, etc.).
+
+            Children carry the admonition body content.
+          required:
+            - kind
+            - node_type
+          properties:
+            kind:
+              type: string
+              description: Kind of admonition (e.g. "note", "warning", "tip", "danger").
+            node_type:
+              type: string
+              enum:
+                - admonition
+            title:
+              type:
+                - string
+                - "null"
+        - type: object
+          description: |-
+            Raw block preserved verbatim from the source format.
+
+            Used for content that cannot be mapped to a semantic node type
+            (e.g. JSX in MDX, raw LaTeX in markdown, embedded HTML).
+          required:
+            - format
+            - content
+            - node_type
+          properties:
+            content:
+              type: string
+            format:
+              type: string
+              description: Source format identifier (e.g. "html", "latex", "jsx").
+            node_type:
+              type: string
+              enum:
+                - raw_block
+        - type: object
+          description: Structured metadata block (email headers, YAML frontmatter, etc.).
+          required:
+            - entries
+            - node_type
+          properties:
+            entries:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+            node_type:
+              type: string
+              enum:
+                - metadata_block
+      description: |-
+        Tagged enum for node content. Each variant carries only type-specific data.
+
+        Uses `#[serde(tag = "node_type")]` to avoid "type" keyword collision in
+        Go/Java/TypeScript bindings.
+    NodeId:
+      type: string
+      description: |-
+        Deterministic node identifier.
+
+        Generated from a hash of `node_type + text + page`. The same document
+        always produces the same IDs, making them useful for diffing, caching,
+        and external references.
+    NodeIndex:
+      type: integer
+      format: int32
+      description: |-
+        Newtype for node indices into the `DocumentStructure::nodes` array.
+
+        Uses `u32` for cross-platform consistency (WASM is 32-bit) and to avoid
+        confusion with page numbers or other `usize` values.
+      minimum: 0
+    OcrBoundingGeometry:
+      oneOf:
+        - type: object
+          description: Axis-aligned bounding box (typical for Tesseract output).
+          required:
+            - left
+            - top
+            - width
+            - height
+            - type
+          properties:
+            height:
+              type: integer
+              format: int32
+              description: Height in pixels
+              minimum: 0
+            left:
+              type: integer
+              format: int32
+              description: Left x-coordinate in pixels
+              minimum: 0
+            top:
+              type: integer
+              format: int32
+              description: Top y-coordinate in pixels
+              minimum: 0
+            type:
+              type: string
+              enum:
+                - rectangle
+            width:
+              type: integer
+              format: int32
+              description: Width in pixels
+              minimum: 0
+        - type: object
+          description: |-
+            4-point quadrilateral for rotated/skewed text (PaddleOCR).
+
+            Points are in clockwise order starting from top-left:
+            `[top_left, top_right, bottom_right, bottom_left]`
+          required:
+            - points
+            - type
+          properties:
+            points:
+              type: array
+              items:
+                type: array
+                items:
+                  type: integer
+                  format: int32
+                  minimum: 0
+              description: Four corner points as `[[x, y], ...]` in clockwise order
+            type:
+              type: string
+              enum:
+                - quadrilateral
+      description: |-
+        Bounding geometry for an OCR element.
+
+        Supports both axis-aligned rectangles (from Tesseract) and 4-point quadrilaterals
+        (from PaddleOCR and rotated text detection).
+    OcrConfidence:
+      type: object
+      description: |-
+        Confidence scores for an OCR element.
+
+        Separates detection confidence (how confident that text exists at this location)
+        from recognition confidence (how confident about the actual text content).
+      required:
+        - recognition
+      properties:
+        detection:
+          type:
+            - number
+            - "null"
+          format: double
+          description: |-
+            Detection confidence: how confident the OCR engine is that text exists here.
+
+            PaddleOCR provides this as `box_score`, Tesseract doesn't have a direct equivalent.
+            Range: 0.0 to 1.0 (or None if not available).
+        recognition:
+          type: number
+          format: double
+          description: |-
+            Recognition confidence: how confident about the text content.
+
+            Range: 0.0 to 1.0.
     OcrConfig:
       type: object
       description: OCR backend and language configuration.
@@ -1168,9 +4036,7 @@ components:
           type:
             - string
             - "null"
-          description: |-
-            OCR backend: only "tesseract" is supported. Any other value
-            (`easyocr`, `paddleocr`, `vlm`, …) is rejected at the API.
+          description: 'OCR backend: "tesseract", "easyocr", or "vlm"'
         element_config:
           oneOf:
             - type: "null"
@@ -1205,6 +4071,54 @@ components:
             - string
             - "null"
           description: Custom Jinja2 prompt template for VLM OCR
+    OcrElement:
+      type: object
+      description: |-
+        A unified OCR element representing detected text with full metadata.
+
+        This is the primary type for structured OCR output, preserving all information
+        from both Tesseract and PaddleOCR backends.
+      required:
+        - text
+        - geometry
+        - confidence
+      properties:
+        backend_metadata:
+          type: object
+          description: Backend-specific metadata that doesn't fit the unified schema.
+          additionalProperties: {}
+          propertyNames:
+            type: string
+        confidence:
+          $ref: '#/components/schemas/OcrConfidence'
+          description: Confidence scores for detection and recognition.
+        geometry:
+          $ref: '#/components/schemas/OcrBoundingGeometry'
+          description: Bounding geometry (rectangle or quadrilateral).
+        level:
+          $ref: '#/components/schemas/OcrElementLevel'
+          description: Hierarchical level (word, line, block, page).
+        page_number:
+          type: integer
+          format: int32
+          description: Page number (1-indexed).
+          minimum: 0
+        parent_id:
+          type:
+            - string
+            - "null"
+          description: |-
+            Parent element ID for hierarchical relationships.
+
+            Only used for Tesseract output which has word -> line -> block hierarchy.
+        rotation:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/OcrRotation'
+              description: Rotation information (if detected).
+        text:
+          type: string
+          description: The recognized text content.
     OcrElementConfig:
       type: object
       description: Structured OCR element extraction configuration.
@@ -1226,6 +4140,57 @@ components:
             - string
             - "null"
           description: 'Minimum hierarchical level: "word", "line", "block", "page"'
+    OcrElementLevel:
+      type: string
+      description: |-
+        Hierarchical level of an OCR element.
+
+        Maps to Tesseract's page segmentation hierarchy and provides
+        equivalent semantics for PaddleOCR.
+      enum:
+        - word
+        - line
+        - block
+        - page
+    OcrMetadata:
+      type: object
+      description: |-
+        OCR processing metadata.
+
+        Captures information about OCR processing configuration and results.
+      required:
+        - language
+        - psm
+        - output_format
+        - table_count
+      properties:
+        language:
+          type: string
+          description: OCR language code(s) used
+        output_format:
+          type: string
+          description: Output format (e.g., "text", "hocr")
+        psm:
+          type: integer
+          format: int32
+          description: Tesseract Page Segmentation Mode (PSM)
+        table_cols:
+          type:
+            - integer
+            - "null"
+          format: int32
+          minimum: 0
+        table_count:
+          type: integer
+          format: int32
+          description: Number of tables detected
+          minimum: 0
+        table_rows:
+          type:
+            - integer
+            - "null"
+          format: int32
+          minimum: 0
     OcrPipelineConfig:
       type: object
       description: Multi-backend OCR pipeline with quality-based fallback.
@@ -1248,9 +4213,7 @@ components:
       properties:
         backend:
           type: string
-          description: |-
-            Backend name. Only "tesseract" is supported; any other value is
-            rejected at the API boundary.
+          description: 'Backend name: "tesseract", "easyocr", or custom'
         language:
           type:
             - string
@@ -1357,6 +4320,48 @@ components:
             - "null"
           format: int64
           minimum: 0
+    OcrRotation:
+      type: object
+      description: Rotation information for an OCR element.
+      required:
+        - angle_degrees
+      properties:
+        angle_degrees:
+          type: number
+          format: double
+          description: Rotation angle in degrees (0, 90, 180, 270 for PaddleOCR).
+        confidence:
+          type:
+            - number
+            - "null"
+          format: double
+          description: Confidence score for the rotation detection.
+    PageBoundary:
+      type: object
+      description: |-
+        Byte offset boundary for a page.
+
+        Tracks where a specific page's content starts and ends in the main content string,
+        enabling mapping from byte positions to page numbers. Offsets are guaranteed to be
+        at valid UTF-8 character boundaries when using standard String methods (push_str, push, etc.).
+      required:
+        - byte_start
+        - byte_end
+        - page_number
+      properties:
+        byte_end:
+          type: integer
+          description: Byte offset where this page ends in the content string (UTF-8 valid boundary, exclusive)
+          minimum: 0
+        byte_start:
+          type: integer
+          description: Byte offset where this page starts in the content string (UTF-8 valid boundary, inclusive)
+          minimum: 0
+        page_number:
+          type: integer
+          format: int32
+          description: Page number (1-indexed)
+          minimum: 0
     PageConfig:
       type: object
       description: Page extraction configuration.
@@ -1374,33 +4379,284 @@ components:
           description: Page marker format template (e.g., "\n\n<!-- PAGE {page_num} -->\n\n")
     PageContent:
       type: object
-      description: Per-page content.
+      description: |-
+        Content for a single page/slide.
+
+        When page extraction is enabled, documents are split into per-page content
+        with associated tables and images mapped to each page.
+
+        # Performance
+
+        Uses Arc-wrapped tables and images for memory efficiency:
+        - `Vec<Arc<Table>>` enables zero-copy sharing of table data
+        - `Vec<Arc<ExtractedImage>>` enables zero-copy sharing of image data
+        - Maintains exact JSON compatibility via custom Serialize/Deserialize
+
+        This reduces memory overhead for documents with shared tables/images
+        by avoiding redundant copies during serialization.
       required:
         - page_number
+        - content
       properties:
         content:
           type: string
-          description: Extracted text for this page
+          description: Text content for this page
+        hierarchy:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/PageHierarchy'
+              description: |-
+                Hierarchy information for the page (when hierarchy extraction is enabled)
+
+                Contains text hierarchy levels (H1-H6) extracted from the page content.
+        image_indices:
+          type: array
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Indices into `ExtractionResult.images` for images found on this page.
+
+            Each value is a zero-based index into the top-level `images` collection.
+            Only populated when `extract_images = true` in the extraction config.
         is_blank:
           type:
             - boolean
             - "null"
-          description: Whether the page is blank
+          description: |-
+            Whether this page is blank (no meaningful text content)
+
+            Determined during extraction based on text content analysis.
+            A page is blank if it has fewer than 3 non-whitespace characters
+            and contains no tables or images.
+        layout_regions:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/LayoutRegion'
+          description: |-
+            Layout detection regions for this page (when layout detection is enabled).
+
+            Contains detected layout regions with class, confidence, bounding box,
+            and area fraction. Only populated when layout detection is configured.
         page_number:
           type: integer
           format: int32
-          description: Page number (0-indexed)
+          description: Page number (1-indexed)
           minimum: 0
+        section_name:
+          type:
+            - string
+            - "null"
+          description: |-
+            Section name this slide belongs to (PPTX only).
+
+            PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in
+            `ppt/presentation.xml`). Only populated when the source is a PPTX file and
+            the slide belongs to a named section.
+        sheet_name:
+          type:
+            - string
+            - "null"
+          description: |-
+            Sheet name for this page (XLSX/ODS only).
+
+            Each spreadsheet sheet maps to one `PageContent` entry. This field carries the
+            sheet's display name as it appears in the workbook. `None` for all non-spreadsheet
+            formats and for sheets with an empty name.
+        speaker_notes:
+          type:
+            - string
+            - "null"
+          description: |-
+            Speaker notes for this slide (PPTX only).
+
+            Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`).
+            Only populated when the source is a PPTX file and notes are present.
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+          description: |-
+            Tables found on this page (uses Arc for memory efficiency)
+
+            Serializes as Vec<Table> for JSON compatibility while maintaining
+            Arc semantics in-memory for zero-copy sharing.
+    PageHierarchy:
+      type: object
+      description: |-
+        Page hierarchy structure containing heading levels and block information.
+
+        Used when PDF text hierarchy extraction is enabled. Contains hierarchical
+        blocks with heading levels (H1-H6) for semantic document structure.
+      required:
+        - block_count
+      properties:
+        block_count:
+          type: integer
+          format: int32
+          description: Number of hierarchy blocks on this page
+          minimum: 0
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/HierarchicalBlock'
+          description: Hierarchical blocks with heading levels
+    PageInfo:
+      type: object
+      description: |-
+        Metadata for individual page/slide/sheet.
+
+        Captures per-page information including dimensions, content counts,
+        and visibility state (for presentations).
+      required:
+        - number
+      properties:
+        dimensions:
+          type:
+            - array
+            - "null"
+          items:
+            type: number
+            format: double
+          description: 'Dimensions in points (PDF) or pixels (images): (width, height)'
+        has_vector_graphics:
+          type: boolean
+          description: |-
+            Whether this page contains non-trivial vector graphics (paths, shapes, curves)
+
+            Indicates the presence of vector-drawn content such as charts, diagrams,
+            or geometric shapes (e.g., from Adobe InDesign, LaTeX TikZ). These are
+            invisible to `ExtractionResult.images` since they are not embedded as raster
+            XObjects. Set to `true` when path count exceeds a heuristic threshold,
+            signaling that downstream consumers may want to rasterize the page to
+            capture this content.
+
+            Only populated for PDFs; `None` for other document types.
+        hidden:
+          type:
+            - boolean
+            - "null"
+          description: Whether this page is hidden (e.g., in presentations)
+        image_count:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Number of images on this page
+          minimum: 0
+        is_blank:
+          type:
+            - boolean
+            - "null"
+          description: |-
+            Whether this page is blank (no meaningful text, no images, no tables)
+
+            A page is considered blank if it has fewer than 3 non-whitespace characters
+            and contains no tables or images. This is useful for filtering out empty pages
+            in scanned documents or PDFs with blank separator pages.
+        number:
+          type: integer
+          format: int32
+          description: Page number (1-indexed)
+          minimum: 0
+        table_count:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Number of tables on this page
+          minimum: 0
+        title:
+          type:
+            - string
+            - "null"
+          description: Page title (usually for presentations)
     PageStructure:
       type: object
-      description: Page structure metadata.
+      description: |-
+        Unified page structure for documents.
+
+        Supports different page types (PDF pages, PPTX slides, Excel sheets)
+        with character offset boundaries for chunk-to-page mapping.
       required:
         - total_count
+        - unit_type
       properties:
+        boundaries:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/PageBoundary'
+          description: |-
+            Character offset boundaries for each page
+
+            Maps character ranges in the extracted content to page numbers.
+            Used for chunk page range calculation.
+        pages:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/PageInfo'
+          description: Detailed per-page metadata (optional, only when needed)
         total_count:
           type: integer
           format: int32
+          description: Total number of pages/slides/sheets
           minimum: 0
+        unit_type:
+          $ref: '#/components/schemas/PageUnitType'
+          description: Type of paginated unit
+    PageUnitType:
+      type: string
+      description: |-
+        Type of paginated unit in a document.
+
+        Distinguishes between different types of "pages" (PDF pages, presentation slides, spreadsheet sheets).
+      enum:
+        - page
+        - slide
+        - sheet
+    PdfAnnotation:
+      type: object
+      description: A PDF annotation extracted from a document page.
+      required:
+        - annotation_type
+        - page_number
+      properties:
+        annotation_type:
+          $ref: '#/components/schemas/PdfAnnotationType'
+          description: The type of annotation.
+        bounding_box:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/BoundingBox'
+              description: Bounding box of the annotation on the page.
+        content:
+          type:
+            - string
+            - "null"
+          description: Text content of the annotation (e.g., comment text, link URL).
+        page_number:
+          type: integer
+          format: int32
+          description: Page number where the annotation appears (1-indexed).
+          minimum: 0
+    PdfAnnotationType:
+      type: string
+      description: Type of PDF annotation.
+      enum:
+        - text
+        - highlight
+        - link
+        - stamp
+        - underline
+        - strike_out
+        - other
     PdfConfig:
       type: object
       description: PDF-specific extraction options.
@@ -1467,6 +4723,40 @@ components:
           items:
             type: string
           description: Whitelist of processors to enable (None = all)
+    PptxMetadata:
+      type: object
+      description: |-
+        PowerPoint presentation metadata.
+
+        Extracted from PPTX files containing slide counts and presentation details.
+      required:
+        - slide_count
+        - slide_names
+      properties:
+        image_count:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Number of embedded images
+          minimum: 0
+        slide_count:
+          type: integer
+          format: int32
+          description: Total number of slides in the presentation
+          minimum: 0
+        slide_names:
+          type: array
+          items:
+            type: string
+          description: Names of slides (if available)
+        table_count:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Number of tables
+          minimum: 0
     PresignDocumentInput:
       type: object
       description: Document metadata for presigned upload (no bytes)
@@ -1552,14 +4842,55 @@ components:
           description: Presigned URL to upload the document to
     ProcessingWarning:
       type: object
-      description: Non-fatal processing warning.
+      description: |-
+        A non-fatal warning from a processing pipeline stage.
+
+        Captures errors from optional features that don't prevent extraction
+        but may indicate degraded results.
+      required:
+        - source
+        - message
       properties:
         message:
           type: string
-          description: Warning message
+          description: Human-readable description of what went wrong.
         source:
           type: string
-          description: Warning source (e.g., "ocr", "pdf", "chunking")
+          description: |-
+            The pipeline stage or feature that produced this warning
+            (e.g., "embedding", "chunking", "language_detection", "output_format").
+    ProxyOverride:
+      type: object
+      description: |-
+        Per-request proxy override. When set on a crawl request, this proxy is
+        used instead of the worker's process-wide `CRAWL_PROXY_URLS` pool.
+        Maps 1:1 onto `kreuzcrawl::ProxyConfig`.
+      required:
+        - url
+      properties:
+        password:
+          type:
+            - string
+            - "null"
+          description: Optional password for proxy auth.
+        url:
+          type: string
+          description: Full proxy URL — `http://`, `https://`, `socks5://` or `socks5h://`.
+          example: http://proxy.example.com:8080
+        username:
+          type:
+            - string
+            - "null"
+          description: Optional username for proxy auth.
+    PstMetadata:
+      type: object
+      description: Outlook PST archive metadata.
+      required:
+        - message_count
+      properties:
+        message_count:
+          type: integer
+          minimum: 0
     ReadinessChecks:
       type: object
       description: Individual dependency check results
@@ -1589,41 +4920,319 @@ components:
           type: string
           description: Overall readiness status
           example: ready
-    Row:
+    RelationshipKind:
+      type: string
+      description: Semantic kind of a relationship between document elements.
+      enum:
+        - footnote_reference
+        - citation_reference
+        - internal_link
+        - caption
+        - label
+        - toc_entry
+        - cross_reference
+    RevisionAnchor:
+      oneOf:
+        - type: object
+          description: Body paragraph, identified by its zero-based index in the document flow.
+          required:
+            - index
+            - type
+          properties:
+            index:
+              type: integer
+              description: Zero-based index of the paragraph in document order.
+              minimum: 0
+            type:
+              type: string
+              enum:
+                - paragraph
+        - type: object
+          description: Cell inside a table.
+          required:
+            - row
+            - col
+            - table_index
+            - type
+          properties:
+            col:
+              type: integer
+              description: Zero-based column index within the table.
+              minimum: 0
+            row:
+              type: integer
+              description: Zero-based row index within the table.
+              minimum: 0
+            table_index:
+              type: integer
+              description: Zero-based index of the table in document order.
+              minimum: 0
+            type:
+              type: string
+              enum:
+                - table_cell
+        - type: object
+          description: Page, identified by its zero-based index.
+          required:
+            - index
+            - type
+          properties:
+            index:
+              type: integer
+              description: Zero-based page index.
+              minimum: 0
+            type:
+              type: string
+              enum:
+                - page
+        - type: object
+          description: Presentation slide, identified by its zero-based index.
+          required:
+            - index
+            - type
+          properties:
+            index:
+              type: integer
+              description: Zero-based slide index.
+              minimum: 0
+            type:
+              type: string
+              enum:
+                - slide
+        - type: object
+          description: Spreadsheet cell or range, identified by sheet index and optional name.
+          required:
+            - index
+            - type
+          properties:
+            index:
+              type: integer
+              description: Zero-based sheet index.
+              minimum: 0
+            name:
+              type:
+                - string
+                - "null"
+              description: Sheet display name when available.
+            type:
+              type: string
+              enum:
+                - sheet
+      description: Best-effort document location for a revision.
+    RevisionDelta:
       type: object
       description: |-
-        Table row — a list of cell string values.
+        The content changes that make up a single revision.
 
-        Kreuzberg serializes cells as a nested array (each row is `["A", "B"]`).
-        This type accepts both array and object formats via a custom deserializer.
+        For insertions and deletions the `content` field carries the added/removed
+        lines as `DiffLine::Added` / `DiffLine::Removed` entries. For format
+        changes, `content` is empty — the property diff is left as a TODO for a
+        later enrichment pass.
       required:
-        - values
+        - content
+        - table_changes
       properties:
-        values:
+        content:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DiffLine'
+          description: Line-level content changes for this revision.
+        table_changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CellChange'
+          description: Cell-level table changes for this revision.
+    RevisionKind:
+      type: string
+      description: Semantic classification of a tracked change.
+      enum:
+        - insertion
+        - deletion
+        - format_change
+        - comment
+    SandboxErrorResponse:
+      type: object
+      description: Error response for sandbox key endpoint
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: rate_limited
+        message:
+          type: string
+          description: Human-readable error message
+          example: 'Rate limit exceeded: max 10 keys per IP per 24 hours'
+    StructuredData:
+      type: object
+      description: Structured data (Schema.org, microdata, RDFa) block.
+      required:
+        - data_type
+        - raw_json
+      properties:
+        data_type:
+          $ref: '#/components/schemas/StructuredDataType'
+          description: Type of structured data
+        raw_json:
+          type: string
+          description: Raw JSON string representation
+        schema_type:
+          type:
+            - string
+            - "null"
+          description: Schema type if detectable (e.g., "Article", "Event", "Product")
+    StructuredDataType:
+      type: string
+      description: Structured data type classification.
+      enum:
+        - json-ld
+        - microdata
+        - rdfa
     Table:
       type: object
-      description: Extracted table.
+      description: |-
+        Extracted table structure.
+
+        Represents a table detected and extracted from a document (PDF, image, etc.).
+        Tables are converted to both structured cell data and Markdown format.
+      required:
+        - cells
+        - markdown
+        - page_number
       properties:
         bounding_box:
           oneOf:
             - type: "null"
             - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box on the page
+              description: |-
+                Bounding box of the table on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+                Only populated for PDF-extracted tables when position data is available.
         cells:
           type: array
           items:
-            $ref: '#/components/schemas/Row'
-          description: 2D grid of cells (rows of string values)
+            type: array
+            items:
+              type: string
+          description: Table cells as a 2D vector (rows × columns)
         markdown:
           type: string
           description: Markdown representation of the table
         page_number:
           type: integer
           format: int32
-          description: Page number (0-indexed)
+          description: Page number where the table was found (1-indexed)
+          minimum: 0
+    TableGrid:
+      type: object
+      description: |-
+        Structured table grid with cell-level metadata.
+
+        Stores row/column dimensions and a flat list of cells with position info.
+      required:
+        - rows
+        - cols
+        - cells
+      properties:
+        cells:
+          type: array
+          items:
+            $ref: '#/components/schemas/GridCell'
+          description: All cells in row-major order.
+        cols:
+          type: integer
+          format: int32
+          description: Number of columns in the table.
+          minimum: 0
+        rows:
+          type: integer
+          format: int32
+          description: Number of rows in the table.
+          minimum: 0
+    TextAnnotation:
+      type: object
+      description: |-
+        Inline text annotation — byte-range based formatting and links.
+
+        Annotations reference byte offsets into the node's text content,
+        enabling precise identification of formatted regions.
+      required:
+        - start
+        - end
+        - kind
+      properties:
+        end:
+          type: integer
+          format: int32
+          description: End byte offset in the node's text content (exclusive).
+          minimum: 0
+        kind:
+          $ref: '#/components/schemas/AnnotationKind'
+          description: Annotation type.
+        start:
+          type: integer
+          format: int32
+          description: Start byte offset in the node's text content (inclusive).
+          minimum: 0
+    TextDirection:
+      type: string
+      description: Text direction enumeration for HTML documents.
+      enum:
+        - ltr
+        - rtl
+        - auto
+    TextMetadata:
+      type: object
+      description: |-
+        Text/Markdown metadata.
+
+        Extracted from plain text and Markdown files. Includes word counts and,
+        for Markdown, structural elements like headers and links.
+      required:
+        - line_count
+        - word_count
+        - character_count
+      properties:
+        character_count:
+          type: integer
+          format: int32
+          description: Number of characters
+          minimum: 0
+        code_blocks:
+          type:
+            - array
+            - "null"
+          items:
+            type: array
+            items:
+              type: string
+          description: Code blocks as (language, code) tuples (for Markdown files)
+        headers:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+          description: Markdown headers (headings text only, for Markdown files)
+        line_count:
+          type: integer
+          format: int32
+          description: Number of lines in the document
+          minimum: 0
+        links:
+          type:
+            - array
+            - "null"
+          items:
+            type: array
+            items:
+              type: string
+          description: Markdown links as (text, url) tuples (for Markdown files)
+        word_count:
+          type: integer
+          format: int32
+          description: Number of words
           minimum: 0
     TokenReductionConfig:
       type: object
@@ -1639,6 +5248,30 @@ components:
             - boolean
             - "null"
           description: Preserve capitalized/technical terms
+    UriKind:
+      type: string
+      description: Semantic classification of an extracted URI.
+      enum:
+        - hyperlink
+        - image
+        - anchor
+        - citation
+        - reference
+        - email
+    UrlInput:
+      type: object
+      description: URL input for crawl-based extraction
+      required:
+        - url
+      properties:
+        crawl_config:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/CrawlConfig'
+              description: Per-URL crawl config override (merged with top-level crawl_config)
+        url:
+          type: string
+          description: URL to crawl and extract documents from
     UsageByMimeType:
       type: object
       description: Usage statistics broken down by MIME type.
@@ -1730,6 +5363,26 @@ components:
         url:
           type: string
           description: URL to deliver results to
+    XmlMetadata:
+      type: object
+      description: |-
+        XML metadata extracted during XML parsing.
+
+        Provides statistics about XML document structure.
+      required:
+        - element_count
+        - unique_elements
+      properties:
+        element_count:
+          type: integer
+          format: int32
+          description: Total number of XML elements processed
+          minimum: 0
+        unique_elements:
+          type: array
+          items:
+            type: string
+          description: List of unique element tag names (sorted)
   securitySchemes:
     bearer_auth:
       type: http
@@ -1741,6 +5394,8 @@ tags:
     description: Document extraction endpoints
   - name: jobs
     description: Job status endpoints
+  - name: sandbox
+    description: Anonymous sandbox API key endpoints
   - name: uploads
     description: Presigned upload endpoints
   - name: usage

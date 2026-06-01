@@ -32,9 +32,9 @@ export type JobResult = Job;
  * the documented response shape.
  */
 export interface SandboxKey {
-  api_key: string;
-  expires_at?: string;
-  project_id?: string;
+	api_key: string;
+	expires_at?: string;
+	project_id?: string;
 }
 
 /**
@@ -42,10 +42,10 @@ export interface SandboxKey {
  * returned (or thrown, for `failed`/`cancelled`).
  */
 export const TERMINAL_JOB_STATUSES: readonly JobStatus[] = [
-  "completed",
-  "partial_success",
-  "failed",
-  "cancelled",
+	"completed",
+	"partial_success",
+	"failed",
+	"cancelled",
 ] as const;
 
 /**

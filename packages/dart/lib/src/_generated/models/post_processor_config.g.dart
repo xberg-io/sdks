@@ -18,9 +18,9 @@ _PostProcessorConfig _$PostProcessorConfigFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PostProcessorConfigToJson(
-        _PostProcessorConfig instance) =>
-    <String, dynamic>{
-      'disabled_processors': instance.disabledProcessors,
-      'enabled': instance.enabled,
-      'enabled_processors': instance.enabledProcessors,
-    };
+  _PostProcessorConfig instance,
+) => <String, dynamic>{
+  'disabled_processors': instance.disabledProcessors,
+  'enabled': instance.enabled,
+  'enabled_processors': instance.enabledProcessors,
+};

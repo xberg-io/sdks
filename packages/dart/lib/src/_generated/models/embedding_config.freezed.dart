@@ -14,73 +14,51 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$EmbeddingConfig {
-  /// Batch size for embedding generation
-  @JsonKey(name: 'batch_size')
-  int? get batchSize;
 
-  /// Model configuration (flexible JSON: {"type":"preset","name":"balanced"})
-  dynamic get model;
-
-  /// Normalize embedding vectors
-  bool? get normalize;
-
-  /// Show model download progress
-  @JsonKey(name: 'show_download_progress')
-  bool? get showDownloadProgress;
-
-  /// Create a copy of EmbeddingConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $EmbeddingConfigCopyWith<EmbeddingConfig> get copyWith =>
-      _$EmbeddingConfigCopyWithImpl<EmbeddingConfig>(
-          this as EmbeddingConfig, _$identity);
+/// Batch size for embedding generation
+@JsonKey(name: 'batch_size') int? get batchSize;/// Model configuration (flexible JSON: {"type":"preset","name":"balanced"})
+ dynamic get model;/// Normalize embedding vectors
+ bool? get normalize;/// Show model download progress
+@JsonKey(name: 'show_download_progress') bool? get showDownloadProgress;
+/// Create a copy of EmbeddingConfig
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EmbeddingConfigCopyWith<EmbeddingConfig> get copyWith => _$EmbeddingConfigCopyWithImpl<EmbeddingConfig>(this as EmbeddingConfig, _$identity);
 
   /// Serializes this EmbeddingConfig to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is EmbeddingConfig &&
-            (identical(other.batchSize, batchSize) ||
-                other.batchSize == batchSize) &&
-            const DeepCollectionEquality().equals(other.model, model) &&
-            (identical(other.normalize, normalize) ||
-                other.normalize == normalize) &&
-            (identical(other.showDownloadProgress, showDownloadProgress) ||
-                other.showDownloadProgress == showDownloadProgress));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      batchSize,
-      const DeepCollectionEquality().hash(model),
-      normalize,
-      showDownloadProgress);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmbeddingConfig&&(identical(other.batchSize, batchSize) || other.batchSize == batchSize)&&const DeepCollectionEquality().equals(other.model, model)&&(identical(other.normalize, normalize) || other.normalize == normalize)&&(identical(other.showDownloadProgress, showDownloadProgress) || other.showDownloadProgress == showDownloadProgress));
+}
 
-  @override
-  String toString() {
-    return 'EmbeddingConfig(batchSize: $batchSize, model: $model, normalize: $normalize, showDownloadProgress: $showDownloadProgress)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,batchSize,const DeepCollectionEquality().hash(model),normalize,showDownloadProgress);
+
+@override
+String toString() {
+  return 'EmbeddingConfig(batchSize: $batchSize, model: $model, normalize: $normalize, showDownloadProgress: $showDownloadProgress)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $EmbeddingConfigCopyWith<$Res> {
-  factory $EmbeddingConfigCopyWith(
-          EmbeddingConfig value, $Res Function(EmbeddingConfig) _then) =
-      _$EmbeddingConfigCopyWithImpl;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'batch_size') int? batchSize,
-      dynamic model,
-      bool? normalize,
-      @JsonKey(name: 'show_download_progress') bool? showDownloadProgress});
-}
+abstract mixin class $EmbeddingConfigCopyWith<$Res>  {
+  factory $EmbeddingConfigCopyWith(EmbeddingConfig value, $Res Function(EmbeddingConfig) _then) = _$EmbeddingConfigCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'batch_size') int? batchSize, dynamic model, bool? normalize,@JsonKey(name: 'show_download_progress') bool? showDownloadProgress
+});
 
+
+
+
+}
 /// @nodoc
 class _$EmbeddingConfigCopyWithImpl<$Res>
     implements $EmbeddingConfigCopyWith<$Res> {
@@ -89,302 +67,207 @@ class _$EmbeddingConfigCopyWithImpl<$Res>
   final EmbeddingConfig _self;
   final $Res Function(EmbeddingConfig) _then;
 
-  /// Create a copy of EmbeddingConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? batchSize = freezed,
-    Object? model = freezed,
-    Object? normalize = freezed,
-    Object? showDownloadProgress = freezed,
-  }) {
-    return _then(_self.copyWith(
-      batchSize: freezed == batchSize
-          ? _self.batchSize
-          : batchSize // ignore: cast_nullable_to_non_nullable
-              as int?,
-      model: freezed == model
-          ? _self.model
-          : model // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      normalize: freezed == normalize
-          ? _self.normalize
-          : normalize // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      showDownloadProgress: freezed == showDownloadProgress
-          ? _self.showDownloadProgress
-          : showDownloadProgress // ignore: cast_nullable_to_non_nullable
-              as bool?,
-    ));
-  }
+/// Create a copy of EmbeddingConfig
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? batchSize = freezed,Object? model = freezed,Object? normalize = freezed,Object? showDownloadProgress = freezed,}) {
+  return _then(_self.copyWith(
+batchSize: freezed == batchSize ? _self.batchSize : batchSize // ignore: cast_nullable_to_non_nullable
+as int?,model: freezed == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
+as dynamic,normalize: freezed == normalize ? _self.normalize : normalize // ignore: cast_nullable_to_non_nullable
+as bool?,showDownloadProgress: freezed == showDownloadProgress ? _self.showDownloadProgress : showDownloadProgress // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
 }
+
+}
+
 
 /// Adds pattern-matching-related methods to [EmbeddingConfig].
 extension EmbeddingConfigPatterns on EmbeddingConfig {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_EmbeddingConfig value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EmbeddingConfig value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EmbeddingConfig() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_EmbeddingConfig value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EmbeddingConfig value)  $default,){
+final _that = this;
+switch (_that) {
+case _EmbeddingConfig():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_EmbeddingConfig value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EmbeddingConfig value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EmbeddingConfig() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            @JsonKey(name: 'batch_size') int? batchSize,
-            dynamic model,
-            bool? normalize,
-            @JsonKey(name: 'show_download_progress')
-            bool? showDownloadProgress)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig() when $default != null:
-        return $default(_that.batchSize, _that.model, _that.normalize,
-            _that.showDownloadProgress);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'batch_size')  int? batchSize,  dynamic model,  bool? normalize, @JsonKey(name: 'show_download_progress')  bool? showDownloadProgress)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EmbeddingConfig() when $default != null:
+return $default(_that.batchSize,_that.model,_that.normalize,_that.showDownloadProgress);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            @JsonKey(name: 'batch_size') int? batchSize,
-            dynamic model,
-            bool? normalize,
-            @JsonKey(name: 'show_download_progress') bool? showDownloadProgress)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig():
-        return $default(_that.batchSize, _that.model, _that.normalize,
-            _that.showDownloadProgress);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'batch_size')  int? batchSize,  dynamic model,  bool? normalize, @JsonKey(name: 'show_download_progress')  bool? showDownloadProgress)  $default,) {final _that = this;
+switch (_that) {
+case _EmbeddingConfig():
+return $default(_that.batchSize,_that.model,_that.normalize,_that.showDownloadProgress);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            @JsonKey(name: 'batch_size') int? batchSize,
-            dynamic model,
-            bool? normalize,
-            @JsonKey(name: 'show_download_progress')
-            bool? showDownloadProgress)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _EmbeddingConfig() when $default != null:
-        return $default(_that.batchSize, _that.model, _that.normalize,
-            _that.showDownloadProgress);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'batch_size')  int? batchSize,  dynamic model,  bool? normalize, @JsonKey(name: 'show_download_progress')  bool? showDownloadProgress)?  $default,) {final _that = this;
+switch (_that) {
+case _EmbeddingConfig() when $default != null:
+return $default(_that.batchSize,_that.model,_that.normalize,_that.showDownloadProgress);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _EmbeddingConfig implements EmbeddingConfig {
-  const _EmbeddingConfig(
-      {@JsonKey(name: 'batch_size') this.batchSize,
-      this.model,
-      this.normalize,
-      @JsonKey(name: 'show_download_progress') this.showDownloadProgress});
-  factory _EmbeddingConfig.fromJson(Map<String, dynamic> json) =>
-      _$EmbeddingConfigFromJson(json);
+  const _EmbeddingConfig({@JsonKey(name: 'batch_size') this.batchSize, this.model, this.normalize, @JsonKey(name: 'show_download_progress') this.showDownloadProgress});
+  factory _EmbeddingConfig.fromJson(Map<String, dynamic> json) => _$EmbeddingConfigFromJson(json);
 
-  /// Batch size for embedding generation
-  @override
-  @JsonKey(name: 'batch_size')
-  final int? batchSize;
+/// Batch size for embedding generation
+@override@JsonKey(name: 'batch_size') final  int? batchSize;
+/// Model configuration (flexible JSON: {"type":"preset","name":"balanced"})
+@override final  dynamic model;
+/// Normalize embedding vectors
+@override final  bool? normalize;
+/// Show model download progress
+@override@JsonKey(name: 'show_download_progress') final  bool? showDownloadProgress;
 
-  /// Model configuration (flexible JSON: {"type":"preset","name":"balanced"})
-  @override
-  final dynamic model;
+/// Create a copy of EmbeddingConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$EmbeddingConfigCopyWith<_EmbeddingConfig> get copyWith => __$EmbeddingConfigCopyWithImpl<_EmbeddingConfig>(this, _$identity);
 
-  /// Normalize embedding vectors
-  @override
-  final bool? normalize;
+@override
+Map<String, dynamic> toJson() {
+  return _$EmbeddingConfigToJson(this, );
+}
 
-  /// Show model download progress
-  @override
-  @JsonKey(name: 'show_download_progress')
-  final bool? showDownloadProgress;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmbeddingConfig&&(identical(other.batchSize, batchSize) || other.batchSize == batchSize)&&const DeepCollectionEquality().equals(other.model, model)&&(identical(other.normalize, normalize) || other.normalize == normalize)&&(identical(other.showDownloadProgress, showDownloadProgress) || other.showDownloadProgress == showDownloadProgress));
+}
 
-  /// Create a copy of EmbeddingConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$EmbeddingConfigCopyWith<_EmbeddingConfig> get copyWith =>
-      __$EmbeddingConfigCopyWithImpl<_EmbeddingConfig>(this, _$identity);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,batchSize,const DeepCollectionEquality().hash(model),normalize,showDownloadProgress);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$EmbeddingConfigToJson(
-      this,
-    );
-  }
+@override
+String toString() {
+  return 'EmbeddingConfig(batchSize: $batchSize, model: $model, normalize: $normalize, showDownloadProgress: $showDownloadProgress)';
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _EmbeddingConfig &&
-            (identical(other.batchSize, batchSize) ||
-                other.batchSize == batchSize) &&
-            const DeepCollectionEquality().equals(other.model, model) &&
-            (identical(other.normalize, normalize) ||
-                other.normalize == normalize) &&
-            (identical(other.showDownloadProgress, showDownloadProgress) ||
-                other.showDownloadProgress == showDownloadProgress));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      batchSize,
-      const DeepCollectionEquality().hash(model),
-      normalize,
-      showDownloadProgress);
-
-  @override
-  String toString() {
-    return 'EmbeddingConfig(batchSize: $batchSize, model: $model, normalize: $normalize, showDownloadProgress: $showDownloadProgress)';
-  }
 }
 
 /// @nodoc
-abstract mixin class _$EmbeddingConfigCopyWith<$Res>
-    implements $EmbeddingConfigCopyWith<$Res> {
-  factory _$EmbeddingConfigCopyWith(
-          _EmbeddingConfig value, $Res Function(_EmbeddingConfig) _then) =
-      __$EmbeddingConfigCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'batch_size') int? batchSize,
-      dynamic model,
-      bool? normalize,
-      @JsonKey(name: 'show_download_progress') bool? showDownloadProgress});
-}
+abstract mixin class _$EmbeddingConfigCopyWith<$Res> implements $EmbeddingConfigCopyWith<$Res> {
+  factory _$EmbeddingConfigCopyWith(_EmbeddingConfig value, $Res Function(_EmbeddingConfig) _then) = __$EmbeddingConfigCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'batch_size') int? batchSize, dynamic model, bool? normalize,@JsonKey(name: 'show_download_progress') bool? showDownloadProgress
+});
 
+
+
+
+}
 /// @nodoc
 class __$EmbeddingConfigCopyWithImpl<$Res>
     implements _$EmbeddingConfigCopyWith<$Res> {
@@ -393,35 +276,19 @@ class __$EmbeddingConfigCopyWithImpl<$Res>
   final _EmbeddingConfig _self;
   final $Res Function(_EmbeddingConfig) _then;
 
-  /// Create a copy of EmbeddingConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? batchSize = freezed,
-    Object? model = freezed,
-    Object? normalize = freezed,
-    Object? showDownloadProgress = freezed,
-  }) {
-    return _then(_EmbeddingConfig(
-      batchSize: freezed == batchSize
-          ? _self.batchSize
-          : batchSize // ignore: cast_nullable_to_non_nullable
-              as int?,
-      model: freezed == model
-          ? _self.model
-          : model // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      normalize: freezed == normalize
-          ? _self.normalize
-          : normalize // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      showDownloadProgress: freezed == showDownloadProgress
-          ? _self.showDownloadProgress
-          : showDownloadProgress // ignore: cast_nullable_to_non_nullable
-              as bool?,
-    ));
-  }
+/// Create a copy of EmbeddingConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? batchSize = freezed,Object? model = freezed,Object? normalize = freezed,Object? showDownloadProgress = freezed,}) {
+  return _then(_EmbeddingConfig(
+batchSize: freezed == batchSize ? _self.batchSize : batchSize // ignore: cast_nullable_to_non_nullable
+as int?,model: freezed == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
+as dynamic,normalize: freezed == normalize ? _self.normalize : normalize // ignore: cast_nullable_to_non_nullable
+as bool?,showDownloadProgress: freezed == showDownloadProgress ? _self.showDownloadProgress : showDownloadProgress // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+
 }
 
 // dart format on

@@ -13,7 +13,4 @@ _ReadinessResponse _$ReadinessResponseFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ReadinessResponseToJson(_ReadinessResponse instance) =>
-    <String, dynamic>{
-      'checks': instance.checks,
-      'status': instance.status,
-    };
+    <String, dynamic>{'checks': instance.checks, 'status': instance.status};

@@ -14,7 +14,7 @@ part 'extract_client.g.dart';
 abstract class ExtractClient {
   factory ExtractClient(Dio dio, {String? baseUrl}) = _ExtractClient;
 
-  /// Submit documents for extraction.
+  /// `POST /v1/extract` — Submit documents for extraction.
   ///
   /// Accepts `application/json` or `multipart/form-data`.
   ///

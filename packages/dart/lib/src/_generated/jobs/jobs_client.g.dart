@@ -20,12 +20,12 @@ class _JobsClient implements JobsClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<JobResponse> getJob({required String id}) async {
+  Future<JobLookupResponse> getJob({required String id}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<JobResponse>(
+    final _options = _setStreamType<JobLookupResponse>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -36,9 +36,9 @@ class _JobsClient implements JobsClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late JobResponse _value;
+    late JobLookupResponse _value;
     try {
-      _value = JobResponse.fromJson(_result.data!);
+      _value = JobLookupResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

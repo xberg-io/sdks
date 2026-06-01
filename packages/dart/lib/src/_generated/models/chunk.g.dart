@@ -7,17 +7,19 @@ part of 'chunk.dart';
 // **************************************************************************
 
 _Chunk _$ChunkFromJson(Map<String, dynamic> json) => _Chunk(
-      content: json['content'] as String?,
-      embedding: (json['embedding'] as List<dynamic>?)
-          ?.map((e) => (e as num).toDouble())
-          .toList(),
-      metadata: json['metadata'] == null
-          ? null
-          : ChunkMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
-    );
+  content: json['content'] as String,
+  metadata: ChunkMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+  chunkType: json['chunk_type'] == null
+      ? null
+      : ChunkType.fromJson(json['chunk_type'] as String),
+  embedding: (json['embedding'] as List<dynamic>?)
+      ?.map((e) => (e as num).toDouble())
+      .toList(),
+);
 
 Map<String, dynamic> _$ChunkToJson(_Chunk instance) => <String, dynamic>{
-      'content': instance.content,
-      'embedding': instance.embedding,
-      'metadata': instance.metadata,
-    };
+  'content': instance.content,
+  'metadata': instance.metadata,
+  'chunk_type': instance.chunkType,
+  'embedding': instance.embedding,
+};

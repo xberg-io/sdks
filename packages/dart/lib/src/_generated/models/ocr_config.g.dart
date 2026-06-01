@@ -7,26 +7,27 @@ part of 'ocr_config.dart';
 // **************************************************************************
 
 _OcrConfig _$OcrConfigFromJson(Map<String, dynamic> json) => _OcrConfig(
-      autoRotate: json['auto_rotate'] as bool?,
-      backend: json['backend'] as String?,
-      elementConfig: json['element_config'] == null
-          ? null
-          : OcrElementConfig.fromJson(
-              json['element_config'] as Map<String, dynamic>),
-      language: json['language'] as String?,
-      outputFormat: json['output_format'] as String?,
-      pipeline: json['pipeline'] == null
-          ? null
-          : OcrPipelineConfig.fromJson(
-              json['pipeline'] as Map<String, dynamic>),
-      qualityThresholds: json['quality_thresholds'] == null
-          ? null
-          : OcrQualityThresholds.fromJson(
-              json['quality_thresholds'] as Map<String, dynamic>),
-      tesseractConfig: json['tesseract_config'],
-      vlmConfig: json['vlm_config'],
-      vlmPrompt: json['vlm_prompt'] as String?,
-    );
+  autoRotate: json['auto_rotate'] as bool?,
+  backend: json['backend'] as String?,
+  elementConfig: json['element_config'] == null
+      ? null
+      : OcrElementConfig.fromJson(
+          json['element_config'] as Map<String, dynamic>,
+        ),
+  language: json['language'] as String?,
+  outputFormat: json['output_format'] as String?,
+  pipeline: json['pipeline'] == null
+      ? null
+      : OcrPipelineConfig.fromJson(json['pipeline'] as Map<String, dynamic>),
+  qualityThresholds: json['quality_thresholds'] == null
+      ? null
+      : OcrQualityThresholds.fromJson(
+          json['quality_thresholds'] as Map<String, dynamic>,
+        ),
+  tesseractConfig: json['tesseract_config'],
+  vlmConfig: json['vlm_config'],
+  vlmPrompt: json['vlm_prompt'] as String?,
+);
 
 Map<String, dynamic> _$OcrConfigToJson(_OcrConfig instance) =>
     <String, dynamic>{

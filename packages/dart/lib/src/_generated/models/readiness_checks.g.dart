@@ -13,7 +13,4 @@ _ReadinessChecks _$ReadinessChecksFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ReadinessChecksToJson(_ReadinessChecks instance) =>
-    <String, dynamic>{
-      'database': instance.database,
-      'nats': instance.nats,
-    };
+    <String, dynamic>{'database': instance.database, 'nats': instance.nats};

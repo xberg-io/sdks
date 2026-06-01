@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'health/health_client.dart';
 import 'extract/extract_client.dart';
 import 'jobs/jobs_client.dart';
+import 'super_sandbox/super_sandbox_client.dart';
 import 'uploads/uploads_client.dart';
 import 'usage/usage_client.dart';
 
@@ -28,6 +29,7 @@ class KreuzbergCloudApi {
   HealthClient? _health;
   ExtractClient? _extract;
   JobsClient? _jobs;
+  SuperSandboxClient? _superSandbox;
   UploadsClient? _uploads;
   UsageClient? _usage;
 
@@ -36,6 +38,8 @@ class KreuzbergCloudApi {
   ExtractClient get extract => _extract ??= ExtractClient(_dio, baseUrl: _baseUrl);
 
   JobsClient get jobs => _jobs ??= JobsClient(_dio, baseUrl: _baseUrl);
+
+  SuperSandboxClient get superSandbox => _superSandbox ??= SuperSandboxClient(_dio, baseUrl: _baseUrl);
 
   UploadsClient get uploads => _uploads ??= UploadsClient(_dio, baseUrl: _baseUrl);
 

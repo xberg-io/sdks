@@ -1,0 +1,55 @@
+{
+  "content": "Sheet1\tSheet2\tSheet3\nQ1 Revenue\t12000\t15000",
+  "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "metadata": {
+    "title": "Annual Budget 2024",
+    "format": {
+      "format_type": "excel",
+      "sheet_count": 3,
+      "sheet_names": ["Q1", "Q2", "Q3"]
+    }
+  },
+  "tables": [
+    {
+      "cells": [
+        ["Department", "Budget", "Actual"],
+        ["Engineering", "50000", "48500"],
+        ["Marketing", "30000", "31200"]
+      ],
+      "markdown": "| Department  | Budget | Actual |\n|-------------|--------|--------|\n| Engineering | 50000  | 48500  |\n| Marketing   | 30000  | 31200  |",
+      "page_number": 1
+    },
+    {
+      "cells": [
+        ["Product", "Units", "Revenue"],
+        ["Widget A", "1200", "24000"],
+        ["Widget B", "800", "16000"]
+      ],
+      "markdown": "| Product  | Units | Revenue |\n|----------|-------|---------|\n| Widget A | 1200  | 24000   |\n| Widget B | 800   | 16000   |",
+      "page_number": 2
+    },
+    {
+      "cells": [
+        ["Region", "Target", "Achieved"],
+        ["EMEA", "100000", "97500"]
+      ],
+      "markdown": "| Region | Target | Achieved |\n|--------|--------|----------|\n| EMEA   | 100000 | 97500    |",
+      "page_number": 3
+    }
+  ],
+  "children": [
+    {
+      "path": "xl/embeddings/Doc1.docx",
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "result": {
+        "content": "This embedded Word document contains the methodology notes for the budget spreadsheet.",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "metadata": {
+          "title": "Methodology Notes",
+          "authors": ["Alice Müller"]
+        },
+        "tables": []
+      }
+    }
+  ]
+}

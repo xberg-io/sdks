@@ -16,11 +16,11 @@ _PresignedUploadInfo _$PresignedUploadInfoFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PresignedUploadInfoToJson(
-        _PresignedUploadInfo instance) =>
-    <String, dynamic>{
-      'expires_in_secs': instance.expiresInSecs,
-      'job_id': instance.jobId,
-      'method': instance.method,
-      'object_key': instance.objectKey,
-      'upload_url': instance.uploadUrl,
-    };
+  _PresignedUploadInfo instance,
+) => <String, dynamic>{
+  'expires_in_secs': instance.expiresInSecs,
+  'job_id': instance.jobId,
+  'method': instance.method,
+  'object_key': instance.objectKey,
+  'upload_url': instance.uploadUrl,
+};

@@ -7,11 +7,7 @@ part of 'error_response.dart';
 // **************************************************************************
 
 _ErrorResponse _$ErrorResponseFromJson(Map<String, dynamic> json) =>
-    _ErrorResponse(
-      error: json['error'] as String,
-    );
+    _ErrorResponse(error: json['error'] as String);
 
 Map<String, dynamic> _$ErrorResponseToJson(_ErrorResponse instance) =>
-    <String, dynamic>{
-      'error': instance.error,
-    };
+    <String, dynamic>{'error': instance.error};

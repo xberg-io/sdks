@@ -11,8 +11,7 @@ part 'ocr_pipeline_stage.g.dart';
 @Freezed()
 abstract class OcrPipelineStage with _$OcrPipelineStage {
   const factory OcrPipelineStage({
-    /// Backend name. Only "tesseract" is supported; any other value is.
-    /// rejected at the API boundary.
+    /// Backend name: "tesseract", "easyocr", or custom
     required String backend,
 
     /// Language override for this stage

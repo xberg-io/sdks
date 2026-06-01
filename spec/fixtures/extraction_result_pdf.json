@@ -1,0 +1,49 @@
+{
+  "content": "This document outlines the quarterly financial results for the period ending March 2024. Revenue grew 12% year-over-year, driven by strong performance in the enterprise segment.",
+  "mime_type": "application/pdf",
+  "metadata": {
+    "title": "Q1 2024 Financial Report",
+    "authors": ["Alice Müller", "Bob Chen"],
+    "created_at": "2024-03-31T00:00:00Z",
+    "pages": {
+      "total_count": 3,
+      "unit_type": "page"
+    },
+    "format": {
+      "format_type": "ocr",
+      "language": "eng",
+      "output_format": "markdown",
+      "psm": 3,
+      "table_count": 1
+    }
+  },
+  "tables": [
+    {
+      "cells": [
+        ["Header A", "Header B"],
+        ["Row 1A", "Row 1B"]
+      ],
+      "markdown": "| Header A | Header B |\n|----------|----------|\n| Row 1A   | Row 1B   |",
+      "page_number": 1
+    }
+  ],
+  "pages": [
+    {
+      "content": "This document outlines the quarterly financial results",
+      "page_number": 1,
+      "tables": []
+    },
+    {
+      "content": "Revenue grew 12% year-over-year",
+      "page_number": 2,
+      "tables": []
+    },
+    {
+      "content": "Strong performance in the enterprise segment.",
+      "page_number": 3,
+      "tables": []
+    }
+  ],
+  "processing_warnings": [],
+  "quality_score": 0.91
+}

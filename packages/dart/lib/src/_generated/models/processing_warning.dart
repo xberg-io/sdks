@@ -7,15 +7,19 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'processing_warning.freezed.dart';
 part 'processing_warning.g.dart';
 
-/// Non-fatal processing warning.
+/// A non-fatal warning from a processing pipeline stage.
+///
+/// Captures errors from optional features that don't prevent extraction.
+/// but may indicate degraded results.
 @Freezed()
 abstract class ProcessingWarning with _$ProcessingWarning {
   const factory ProcessingWarning({
-    /// Warning message
-    String? message,
+    /// Human-readable description of what went wrong.
+    required String message,
 
-    /// Warning source (e.g., "ocr", "pdf", "chunking")
-    String? source,
+    /// The pipeline stage or feature that produced this warning.
+    /// (e.g., "embedding", "chunking", "language_detection", "output_format").
+    required String source,
   }) = _ProcessingWarning;
   
   factory ProcessingWarning.fromJson(Map<String, Object?> json) => _$ProcessingWarningFromJson(json);

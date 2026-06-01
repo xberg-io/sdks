@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-01
+
+### Changed (breaking)
+
+- **Response wire shape.** Aligned with the kreuzberg-cloud `1.0.0` API which now re-exports kreuzberg core's authoritative response types instead of a hand-maintained shadow.
+  - `Table.cells`: `Vec<{values: Vec<String>}>` → `Vec<Vec<String>>` (nested string arrays).
+  - `Metadata.authors` / `Metadata.keywords` / `Metadata.tags`: always-present `Vec<String>` → optional `Option<Vec<String>>`.
+  - `ExtractionResult.metadata`: now required (was optional).
+  - `ExtractionResult.detected_languages` / `chunks` / `pages`: now optional.
+  - New top-level response fields surface: `extracted_keywords` (YAKE/RAKE scored keywords), `children` (recursively-extracted embedded docs), `revisions` (tracked changes from DOCX/ODT/PDF/PPTX/XLSX), `uris` (hyperlinks/citations/email addresses discovered during extraction), `format` (discriminated `FormatMetadata` union with `format_type` discriminator: `pdf`/`office`/`excel`/`email`/`image`/`xml`/`text`/`archive`/`csv`/`epub`/`html`/`markdown`/`ocr`), `image_preprocessing`, `json_schema`, `ocr_used`, `error`, `quality_score`.
+
+### Added
+
+- **Dart sealed-union dispatch.** `FormatMetadata`, `NodeContent`, `RevisionAnchor`, `OcrBoundingGeometry`, `DiffLine`, `AnnotationKind` are hand-rolled freezed sealed unions with `unionKey` discriminator dispatch. New `JobLookupResponse` sealed union supports the discriminated job lookup endpoint.
+- **Fixture-driven response tests.** Five canonical JSON fixtures in `spec/fixtures/` (minimal, pdf, xlsx with children, docx with revisions, with uris) exercised by Python (32 new tests), TypeScript (37 new tests), Go (25 new tests), and Dart (44 new tests). Locks the cloud wire-shape contract across all four languages.
+
+### Fixed
+
+- **Python codegen.** Earlier upstream kreuzberg fixes (cloud bumped to `e1bfcf9371`) eliminated `prefixItems + items: false` tuple emissions and flattened `oneOf-of-allOf` discriminator wrappers, so `openapi-python-client 0.28.4` regenerates cleanly without preprocessing.
+- **Dart codegen.** Same upstream fixes unblocked `swagger_parser 1.43.1`. The 6 freezed sealed unions complete the discriminator dispatch that `json_serializable` cannot synthesize automatically.
+
 ## [0.1.1] - 2026-05-23
 
 ### Fixed
@@ -42,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/releases/tag/v0.0.1
