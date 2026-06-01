@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-06-01
+
+### Fixed
+
+- **TypeScript strict-mode regression on `extractBatch`.** The `body.job_ids` parameter is now guarded with `?? []` before indexing to resolve `error TS18048: 'body.job_ids' is possibly 'undefined'` under TypeScript strict mode in `packages/typescript/src/client.ts`.
+- **Go gofmt drift on `DiffResponse`.** Struct-field padding in `packages/go/v1/documents.go` has been re-aligned to match `gofmt` standards.
+
+### Changed
+
+- **Dart codegen hand-roll preservation.** The six hand-rolled freezed sealed-union files that `swagger_parser` cannot synthesize (`annotation_kind`, `diff_line`, `node_content`, `ocr_bounding_geometry`, `revision_anchor`, `job_lookup_response`) now live in `packages/dart/handrolled/models/` and are restored automatically by `task dart:generate` after `swagger_parser` and `build_runner` run.
+
 ## [0.3.0] - 2026-06-01
 
 ### Added

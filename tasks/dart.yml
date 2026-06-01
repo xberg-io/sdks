@@ -14,6 +14,11 @@ tasks:
       - rm -rf {{.GENERATED_DIR}}
       - cd {{.PKG_DIR}} && dart run swagger_parser
       - cd {{.PKG_DIR}} && dart run build_runner build --delete-conflicting-outputs
+      - |
+        for f in {{.PKG_DIR}}/handrolled/models/*.dart; do
+          cp "$f" "{{.GENERATED_DIR}}/models/$(basename "$f")"
+        done
+      - cd {{.PKG_DIR}} && dart run build_runner build --delete-conflicting-outputs
 
   install:
     desc: "Install Dart deps via dart pub"

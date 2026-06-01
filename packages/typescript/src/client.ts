@@ -165,14 +165,15 @@ export class KreuzbergCloud {
 
 		const response = await this.requestWithRetry("POST", "/v1/extract", { body: form });
 		const body = (await response.json()) as ExtractResponse;
+		const jobIds = body.job_ids ?? [];
 		const now = new Date().toISOString();
 		return params.files.map((file, index) => {
-			const id = body.job_ids[index];
+			const id = jobIds[index];
 			if (id === undefined) {
-				throw new KreuzbergError(
-					`Server returned ${body.job_ids.length} job IDs for ${params.files.length} files`,
-					{ status: 500, body },
-				);
+				throw new KreuzbergError(`Server returned ${jobIds.length} job IDs for ${params.files.length} files`, {
+					status: 500,
+					body,
+				});
 			}
 			const filename = describeFile(file);
 			return {

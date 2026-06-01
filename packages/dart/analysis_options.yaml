@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - 'lib/src/_generated/**'
+    - 'handrolled/**'
     - '**/*.freezed.dart'
     - '**/*.g.dart'
   language:

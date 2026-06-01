@@ -47,13 +47,13 @@ type LatestDocument struct {
 // and the wire shape is stable enough that decoding it against the
 // kreuzberg core types directly is the recommended path for richer typing.
 type DiffResponse struct {
-	FromJobID    string          `json:"from_job_id"`
-	ToJobID      string          `json:"to_job_id"`
-	FromVersion  int             `json:"from_version"`
-	ToVersion    int             `json:"to_version"`
-	DocumentID   string          `json:"document_id"`
-	Diff         json.RawMessage `json:"diff"`
-	ComputedAt   string          `json:"computed_at"`
+	FromJobID   string          `json:"from_job_id"`
+	ToJobID     string          `json:"to_job_id"`
+	FromVersion int             `json:"from_version"`
+	ToVersion   int             `json:"to_version"`
+	DocumentID  string          `json:"document_id"`
+	Diff        json.RawMessage `json:"diff"`
+	ComputedAt  string          `json:"computed_at"`
 }
 
 // DiffAsyncAccepted is the 202-fallback envelope when GET .../diff overruns
