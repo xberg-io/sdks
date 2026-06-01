@@ -17,22 +17,19 @@ part 'crawl_job_response.g.dart';
 abstract class CrawlJobResponse with _$CrawlJobResponse {
   const factory CrawlJobResponse({
     /// Creation timestamp (RFC3339)
-    @JsonKey(name: 'created_at')
-    required DateTime createdAt,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
 
     /// Crawl job ID
     required String id,
 
     /// Output mode this job was submitted with (scrape, crawl, or extract)
-    @JsonKey(name: 'output_mode')
-    required String outputMode,
+    @JsonKey(name: 'output_mode') required String outputMode,
 
     /// Crawl progress counters
     required CrawlProgress progress,
 
     /// Seed URLs that were submitted
-    @JsonKey(name: 'seed_urls')
-    required List<String> seedUrls,
+    @JsonKey(name: 'seed_urls') required List<String> seedUrls,
 
     /// Crawl job status
     required CrawlJobStatus status,
@@ -43,6 +40,7 @@ abstract class CrawlJobResponse with _$CrawlJobResponse {
     /// Crawled raw pages (populated when output_mode=scrape|crawl)
     List<CrawledPage>? pages,
   }) = _CrawlJobResponse;
-  
-  factory CrawlJobResponse.fromJson(Map<String, Object?> json) => _$CrawlJobResponseFromJson(json);
+
+  factory CrawlJobResponse.fromJson(Map<String, Object?> json) =>
+      _$CrawlJobResponseFromJson(json);
 }

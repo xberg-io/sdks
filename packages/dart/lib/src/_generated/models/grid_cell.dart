@@ -26,17 +26,15 @@ abstract class GridCell with _$GridCell {
     BoundingBox? bbox,
 
     /// Number of columns this cell spans.
-    @JsonKey(name: 'col_span')
-    int? colSpan,
+    @JsonKey(name: 'col_span') int? colSpan,
 
     /// Whether this is a header cell.
-    @JsonKey(name: 'is_header')
-    bool? isHeader,
+    @JsonKey(name: 'is_header') bool? isHeader,
 
     /// Number of rows this cell spans.
-    @JsonKey(name: 'row_span')
-    int? rowSpan,
+    @JsonKey(name: 'row_span') int? rowSpan,
   }) = _GridCell;
-  
-  factory GridCell.fromJson(Map<String, Object?> json) => _$GridCellFromJson(json);
+
+  factory GridCell.fromJson(Map<String, Object?> json) =>
+      _$GridCellFromJson(json);
 }

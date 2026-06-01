@@ -18,8 +18,7 @@ part 'extract_json_request.g.dart';
 abstract class ExtractJsonRequest with _$ExtractJsonRequest {
   const factory ExtractJsonRequest({
     /// Crawl configuration (applies to all URLs, can be overridden per-URL)
-    @JsonKey(name: 'crawl_config')
-    CrawlConfig? crawlConfig,
+    @JsonKey(name: 'crawl_config') CrawlConfig? crawlConfig,
 
     /// Documents to process
     List<DocumentInput>? documents,
@@ -33,6 +32,7 @@ abstract class ExtractJsonRequest with _$ExtractJsonRequest {
     /// Webhook configuration for async result delivery (optional)
     WebhookConfig? webhook,
   }) = _ExtractJsonRequest;
-  
-  factory ExtractJsonRequest.fromJson(Map<String, Object?> json) => _$ExtractJsonRequestFromJson(json);
+
+  factory ExtractJsonRequest.fromJson(Map<String, Object?> json) =>
+      _$ExtractJsonRequestFromJson(json);
 }

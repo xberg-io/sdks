@@ -19,12 +19,10 @@ part 'page_structure.g.dart';
 abstract class PageStructure with _$PageStructure {
   const factory PageStructure({
     /// Total number of pages/slides/sheets
-    @JsonKey(name: 'total_count')
-    required int totalCount,
+    @JsonKey(name: 'total_count') required int totalCount,
 
     /// Type of paginated unit
-    @JsonKey(name: 'unit_type')
-    required PageUnitType unitType,
+    @JsonKey(name: 'unit_type') required PageUnitType unitType,
 
     /// Character offset boundaries for each page.
     ///
@@ -35,6 +33,7 @@ abstract class PageStructure with _$PageStructure {
     /// Detailed per-page metadata (optional, only when needed)
     List<PageInfo>? pages,
   }) = _PageStructure;
-  
-  factory PageStructure.fromJson(Map<String, Object?> json) => _$PageStructureFromJson(json);
+
+  factory PageStructure.fromJson(Map<String, Object?> json) =>
+      _$PageStructureFromJson(json);
 }

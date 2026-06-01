@@ -17,9 +17,9 @@ abstract class UrlInput with _$UrlInput {
     required String url,
 
     /// Per-URL crawl config override (merged with top-level crawl_config)
-    @JsonKey(name: 'crawl_config')
-    CrawlConfig? crawlConfig,
+    @JsonKey(name: 'crawl_config') CrawlConfig? crawlConfig,
   }) = _UrlInput;
-  
-  factory UrlInput.fromJson(Map<String, Object?> json) => _$UrlInputFromJson(json);
+
+  factory UrlInput.fromJson(Map<String, Object?> json) =>
+      _$UrlInputFromJson(json);
 }

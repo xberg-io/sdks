@@ -12,16 +12,15 @@ part 'language_detection_config.g.dart';
 abstract class LanguageDetectionConfig with _$LanguageDetectionConfig {
   const factory LanguageDetectionConfig({
     /// Detect multiple languages in document
-    @JsonKey(name: 'detect_multiple')
-    bool? detectMultiple,
+    @JsonKey(name: 'detect_multiple') bool? detectMultiple,
 
     /// Enable language detection
     bool? enabled,
 
     /// Minimum confidence threshold (0.0-1.0)
-    @JsonKey(name: 'min_confidence')
-    double? minConfidence,
+    @JsonKey(name: 'min_confidence') double? minConfidence,
   }) = _LanguageDetectionConfig;
-  
-  factory LanguageDetectionConfig.fromJson(Map<String, Object?> json) => _$LanguageDetectionConfigFromJson(json);
+
+  factory LanguageDetectionConfig.fromJson(Map<String, Object?> json) =>
+      _$LanguageDetectionConfigFromJson(json);
 }

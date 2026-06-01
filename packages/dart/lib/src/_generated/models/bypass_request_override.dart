@@ -26,6 +26,7 @@ abstract class BypassRequestOverride with _$BypassRequestOverride {
     /// managed (cloud uses its own credentials from Secret Manager).
     dynamic credentials,
   }) = _BypassRequestOverride;
-  
-  factory BypassRequestOverride.fromJson(Map<String, Object?> json) => _$BypassRequestOverrideFromJson(json);
+
+  factory BypassRequestOverride.fromJson(Map<String, Object?> json) =>
+      _$BypassRequestOverrideFromJson(json);
 }

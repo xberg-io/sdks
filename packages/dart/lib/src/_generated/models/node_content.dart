@@ -17,9 +17,7 @@ part 'node_content.g.dart';
 @Freezed(unionKey: 'node_type')
 sealed class NodeContent with _$NodeContent {
   /// Document title.
-  const factory NodeContent.title({
-    required String text,
-  }) = NodeContentTitle;
+  const factory NodeContent.title({required String text}) = NodeContentTitle;
 
   /// Section heading with level (1-6).
   const factory NodeContent.heading({
@@ -28,25 +26,19 @@ sealed class NodeContent with _$NodeContent {
   }) = NodeContentHeading;
 
   /// Body text paragraph.
-  const factory NodeContent.paragraph({
-    required String text,
-  }) = NodeContentParagraph;
+  const factory NodeContent.paragraph({required String text}) =
+      NodeContentParagraph;
 
   /// List container — children are `ListItem` nodes.
-  const factory NodeContent.list({
-    required bool ordered,
-  }) = NodeContentList;
+  const factory NodeContent.list({required bool ordered}) = NodeContentList;
 
   /// Individual list item.
   @FreezedUnionValue('list_item')
-  const factory NodeContent.listItem({
-    required String text,
-  }) = NodeContentListItem;
+  const factory NodeContent.listItem({required String text}) =
+      NodeContentListItem;
 
   /// Table with structured cell grid.
-  const factory NodeContent.table({
-    required TableGrid grid,
-  }) = NodeContentTable;
+  const factory NodeContent.table({required TableGrid grid}) = NodeContentTable;
 
   /// Image reference.
   const factory NodeContent.image({
@@ -58,23 +50,19 @@ sealed class NodeContent with _$NodeContent {
   }) = NodeContentImage;
 
   /// Code block.
-  const factory NodeContent.code({
-    required String text,
-    String? language,
-  }) = NodeContentCode;
+  const factory NodeContent.code({required String text, String? language}) =
+      NodeContentCode;
 
   /// Block quote — container, children carry the quoted content.
   const factory NodeContent.quote() = NodeContentQuote;
 
   /// Mathematical formula / equation.
-  const factory NodeContent.formula({
-    required String text,
-  }) = NodeContentFormula;
+  const factory NodeContent.formula({required String text}) =
+      NodeContentFormula;
 
   /// Footnote reference content.
-  const factory NodeContent.footnote({
-    required String text,
-  }) = NodeContentFootnote;
+  const factory NodeContent.footnote({required String text}) =
+      NodeContentFootnote;
 
   /// Logical grouping container (section, key-value area).
   ///

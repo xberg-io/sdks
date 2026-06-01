@@ -19,12 +19,10 @@ part 'formatted_block.g.dart';
 abstract class FormattedBlock with _$FormattedBlock {
   const factory FormattedBlock({
     /// Type of block element
-    @JsonKey(name: 'block_type')
-    required BlockType blockType,
+    @JsonKey(name: 'block_type') required BlockType blockType,
 
     /// Inline content within the block
-    @JsonKey(name: 'inline_content')
-    required List<InlineElement> inlineContent,
+    @JsonKey(name: 'inline_content') required List<InlineElement> inlineContent,
 
     /// Element attributes (classes, IDs, key-value pairs)
     Attributes? attributes,
@@ -41,6 +39,7 @@ abstract class FormattedBlock with _$FormattedBlock {
     /// Heading level (1-6) for headings, or nesting level for lists
     int? level,
   }) = _FormattedBlock;
-  
-  factory FormattedBlock.fromJson(Map<String, Object?> json) => _$FormattedBlockFromJson(json);
+
+  factory FormattedBlock.fromJson(Map<String, Object?> json) =>
+      _$FormattedBlockFromJson(json);
 }

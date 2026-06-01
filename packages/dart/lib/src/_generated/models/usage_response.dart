@@ -18,33 +18,27 @@ abstract class UsageResponse with _$UsageResponse {
     required Map<String, UsageByMimeType> byMimeType,
 
     /// End of the reporting period (ISO 8601 date)
-    @JsonKey(name: 'period_end')
-    required String periodEnd,
+    @JsonKey(name: 'period_end') required String periodEnd,
 
     /// Start of the reporting period (ISO 8601 date)
-    @JsonKey(name: 'period_start')
-    required String periodStart,
+    @JsonKey(name: 'period_start') required String periodStart,
 
     /// Total documents processed in the period
-    @JsonKey(name: 'total_documents')
-    required int totalDocuments,
+    @JsonKey(name: 'total_documents') required int totalDocuments,
 
     /// Total failed extractions in the period
-    @JsonKey(name: 'total_failed')
-    required int totalFailed,
+    @JsonKey(name: 'total_failed') required int totalFailed,
 
     /// Total pages extracted in the period
-    @JsonKey(name: 'total_pages')
-    required int totalPages,
+    @JsonKey(name: 'total_pages') required int totalPages,
 
     /// Monthly page quota limit (null = unlimited)
-    @JsonKey(name: 'quota_limit')
-    int? quotaLimit,
+    @JsonKey(name: 'quota_limit') int? quotaLimit,
 
     /// Remaining pages in monthly quota (null = unlimited)
-    @JsonKey(name: 'quota_remaining')
-    int? quotaRemaining,
+    @JsonKey(name: 'quota_remaining') int? quotaRemaining,
   }) = _UsageResponse;
-  
-  factory UsageResponse.fromJson(Map<String, Object?> json) => _$UsageResponseFromJson(json);
+
+  factory UsageResponse.fromJson(Map<String, Object?> json) =>
+      _$UsageResponseFromJson(json);
 }

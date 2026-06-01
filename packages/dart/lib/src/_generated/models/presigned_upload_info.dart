@@ -12,24 +12,21 @@ part 'presigned_upload_info.g.dart';
 abstract class PresignedUploadInfo with _$PresignedUploadInfo {
   const factory PresignedUploadInfo({
     /// Seconds until the URL expires
-    @JsonKey(name: 'expires_in_secs')
-    required int expiresInSecs,
+    @JsonKey(name: 'expires_in_secs') required int expiresInSecs,
 
     /// Job ID for this document
-    @JsonKey(name: 'job_id')
-    required String jobId,
+    @JsonKey(name: 'job_id') required String jobId,
 
     /// HTTP method to use (PUT)
     required String method,
 
     /// Storage object key
-    @JsonKey(name: 'object_key')
-    required String objectKey,
+    @JsonKey(name: 'object_key') required String objectKey,
 
     /// Presigned URL to upload the document to
-    @JsonKey(name: 'upload_url')
-    required String uploadUrl,
+    @JsonKey(name: 'upload_url') required String uploadUrl,
   }) = _PresignedUploadInfo;
-  
-  factory PresignedUploadInfo.fromJson(Map<String, Object?> json) => _$PresignedUploadInfoFromJson(json);
+
+  factory PresignedUploadInfo.fromJson(Map<String, Object?> json) =>
+      _$PresignedUploadInfoFromJson(json);
 }

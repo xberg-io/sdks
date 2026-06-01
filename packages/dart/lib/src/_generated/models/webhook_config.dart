@@ -20,6 +20,7 @@ abstract class WebhookConfig with _$WebhookConfig {
     /// Optional HMAC secret for signing the webhook payload
     String? secret,
   }) = _WebhookConfig;
-  
-  factory WebhookConfig.fromJson(Map<String, Object?> json) => _$WebhookConfigFromJson(json);
+
+  factory WebhookConfig.fromJson(Map<String, Object?> json) =>
+      _$WebhookConfigFromJson(json);
 }

@@ -21,13 +21,12 @@ abstract class OcrPipelineStage with _$OcrPipelineStage {
     int? priority,
 
     /// Tesseract config override for this stage
-    @JsonKey(name: 'tesseract_config')
-    dynamic tesseractConfig,
+    @JsonKey(name: 'tesseract_config') dynamic tesseractConfig,
 
     /// VLM config override for this stage
-    @JsonKey(name: 'vlm_config')
-    dynamic vlmConfig,
+    @JsonKey(name: 'vlm_config') dynamic vlmConfig,
   }) = _OcrPipelineStage;
-  
-  factory OcrPipelineStage.fromJson(Map<String, Object?> json) => _$OcrPipelineStageFromJson(json);
+
+  factory OcrPipelineStage.fromJson(Map<String, Object?> json) =>
+      _$OcrPipelineStageFromJson(json);
 }

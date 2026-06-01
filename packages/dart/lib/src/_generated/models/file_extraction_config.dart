@@ -23,33 +23,24 @@ part 'file_extraction_config.g.dart';
 abstract class FileExtractionConfig with _$FileExtractionConfig {
   const factory FileExtractionConfig({
     ChunkingConfig? chunking,
-    @JsonKey(name: 'content_filter')
-    ContentFilterConfig? contentFilter,
-    @JsonKey(name: 'disable_ocr')
-    bool? disableOcr,
-    @JsonKey(name: 'enable_quality_processing')
-    bool? enableQualityProcessing,
-    @JsonKey(name: 'extraction_timeout_secs')
-    int? extractionTimeoutSecs,
-    @JsonKey(name: 'force_ocr')
-    bool? forceOcr,
-    @JsonKey(name: 'force_ocr_pages')
-    List<int>? forceOcrPages,
+    @JsonKey(name: 'content_filter') ContentFilterConfig? contentFilter,
+    @JsonKey(name: 'disable_ocr') bool? disableOcr,
+    @JsonKey(name: 'enable_quality_processing') bool? enableQualityProcessing,
+    @JsonKey(name: 'extraction_timeout_secs') int? extractionTimeoutSecs,
+    @JsonKey(name: 'force_ocr') bool? forceOcr,
+    @JsonKey(name: 'force_ocr_pages') List<int>? forceOcrPages,
     ImageExtractionConfig? images,
-    @JsonKey(name: 'include_document_structure')
-    bool? includeDocumentStructure,
+    @JsonKey(name: 'include_document_structure') bool? includeDocumentStructure,
     @JsonKey(name: 'language_detection')
     LanguageDetectionConfig? languageDetection,
     OcrConfig? ocr,
-    @JsonKey(name: 'output_format')
-    String? outputFormat,
+    @JsonKey(name: 'output_format') String? outputFormat,
     PageConfig? pages,
     PostProcessorConfig? postprocessor,
-    @JsonKey(name: 'result_format')
-    String? resultFormat,
-    @JsonKey(name: 'token_reduction')
-    TokenReductionConfig? tokenReduction,
+    @JsonKey(name: 'result_format') String? resultFormat,
+    @JsonKey(name: 'token_reduction') TokenReductionConfig? tokenReduction,
   }) = _FileExtractionConfig;
-  
-  factory FileExtractionConfig.fromJson(Map<String, Object?> json) => _$FileExtractionConfigFromJson(json);
+
+  factory FileExtractionConfig.fromJson(Map<String, Object?> json) =>
+      _$FileExtractionConfigFromJson(json);
 }

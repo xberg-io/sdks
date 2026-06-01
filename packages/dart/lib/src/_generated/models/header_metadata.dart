@@ -15,8 +15,7 @@ abstract class HeaderMetadata with _$HeaderMetadata {
     required int depth,
 
     /// Byte offset in original HTML document
-    @JsonKey(name: 'html_offset')
-    required int htmlOffset,
+    @JsonKey(name: 'html_offset') required int htmlOffset,
 
     /// Header level: 1 (h1) through 6 (h6)
     required int level,
@@ -27,6 +26,7 @@ abstract class HeaderMetadata with _$HeaderMetadata {
     /// HTML id attribute if present
     String? id,
   }) = _HeaderMetadata;
-  
-  factory HeaderMetadata.fromJson(Map<String, Object?> json) => _$HeaderMetadataFromJson(json);
+
+  factory HeaderMetadata.fromJson(Map<String, Object?> json) =>
+      _$HeaderMetadataFromJson(json);
 }

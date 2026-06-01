@@ -14,9 +14,9 @@ part 'extraction_options.g.dart';
 abstract class ExtractionOptions with _$ExtractionOptions {
   const factory ExtractionOptions({
     /// Kreuzberg extraction configuration (optional, null = defaults).
-    @JsonKey(name: 'extraction_config')
-    ExtractionConfig? extractionConfig,
+    @JsonKey(name: 'extraction_config') ExtractionConfig? extractionConfig,
   }) = _ExtractionOptions;
-  
-  factory ExtractionOptions.fromJson(Map<String, Object?> json) => _$ExtractionOptionsFromJson(json);
+
+  factory ExtractionOptions.fromJson(Map<String, Object?> json) =>
+      _$ExtractionOptionsFromJson(json);
 }

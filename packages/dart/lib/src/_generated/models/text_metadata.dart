@@ -17,20 +17,16 @@ part 'text_metadata.g.dart';
 abstract class TextMetadata with _$TextMetadata {
   const factory TextMetadata({
     /// Number of characters
-    @JsonKey(name: 'character_count')
-    required int characterCount,
+    @JsonKey(name: 'character_count') required int characterCount,
 
     /// Number of lines in the document
-    @JsonKey(name: 'line_count')
-    required int lineCount,
+    @JsonKey(name: 'line_count') required int lineCount,
 
     /// Number of words
-    @JsonKey(name: 'word_count')
-    required int wordCount,
+    @JsonKey(name: 'word_count') required int wordCount,
 
     /// Code blocks as (language, code) tuples (for Markdown files)
-    @JsonKey(name: 'code_blocks')
-    List<List<String>>? codeBlocks,
+    @JsonKey(name: 'code_blocks') List<List<String>>? codeBlocks,
 
     /// Markdown headers (headings text only, for Markdown files)
     List<String>? headers,
@@ -38,6 +34,7 @@ abstract class TextMetadata with _$TextMetadata {
     /// Markdown links as (text, url) tuples (for Markdown files)
     List<List<String>>? links,
   }) = _TextMetadata;
-  
-  factory TextMetadata.fromJson(Map<String, Object?> json) => _$TextMetadataFromJson(json);
+
+  factory TextMetadata.fromJson(Map<String, Object?> json) =>
+      _$TextMetadataFromJson(json);
 }

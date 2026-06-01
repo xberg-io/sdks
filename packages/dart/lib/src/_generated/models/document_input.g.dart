@@ -11,6 +11,7 @@ _DocumentInput _$DocumentInputFromJson(Map<String, dynamic> json) =>
       data: json['data'] as String,
       filename: json['filename'] as String,
       mimeType: json['mime_type'] as String,
+      documentId: json['document_id'] as String?,
     );
 
 Map<String, dynamic> _$DocumentInputToJson(_DocumentInput instance) =>
@@ -18,4 +19,5 @@ Map<String, dynamic> _$DocumentInputToJson(_DocumentInput instance) =>
       'data': instance.data,
       'filename': instance.filename,
       'mime_type': instance.mimeType,
+      'document_id': instance.documentId,
     };

@@ -20,8 +20,7 @@ part 'metadata.g.dart';
 abstract class Metadata with _$Metadata {
   const factory Metadata({
     /// Abstract or summary text (from frontmatter).
-    @JsonKey(name: 'abstract_text')
-    String? abstractText,
+    @JsonKey(name: 'abstract_text') String? abstractText,
 
     /// Additional custom fields from postprocessors.
     ///
@@ -36,16 +35,13 @@ abstract class Metadata with _$Metadata {
     String? category,
 
     /// Creation timestamp (ISO 8601 format)
-    @JsonKey(name: 'created_at')
-    String? createdAt,
+    @JsonKey(name: 'created_at') String? createdAt,
 
     /// User who created the document
-    @JsonKey(name: 'created_by')
-    String? createdBy,
+    @JsonKey(name: 'created_by') String? createdBy,
 
     /// Document version string (from frontmatter).
-    @JsonKey(name: 'document_version')
-    String? documentVersion,
+    @JsonKey(name: 'document_version') String? documentVersion,
 
     /// Error metadata (for batch operations)
     ErrorMetadata? error,
@@ -54,8 +50,7 @@ abstract class Metadata with _$Metadata {
     ///
     /// This field is populated by batch extraction to provide per-file timing.
     /// information. It's `None` for single-file extraction (which uses external timing).
-    @JsonKey(name: 'extraction_duration_ms')
-    int? extractionDurationMs,
+    @JsonKey(name: 'extraction_duration_ms') int? extractionDurationMs,
 
     /// Format-specific metadata (discriminated union).
     ///
@@ -68,8 +63,7 @@ abstract class Metadata with _$Metadata {
     ImagePreprocessingMetadata? imagePreprocessing,
 
     /// JSON schema (for structured data extraction)
-    @JsonKey(name: 'json_schema')
-    dynamic jsonSchema,
+    @JsonKey(name: 'json_schema') dynamic jsonSchema,
 
     /// Keywords/tags - always Vec for consistency
     List<String>? keywords,
@@ -78,27 +72,23 @@ abstract class Metadata with _$Metadata {
     String? language,
 
     /// Last modification timestamp (ISO 8601 format)
-    @JsonKey(name: 'modified_at')
-    String? modifiedAt,
+    @JsonKey(name: 'modified_at') String? modifiedAt,
 
     /// User who last modified the document
-    @JsonKey(name: 'modified_by')
-    String? modifiedBy,
+    @JsonKey(name: 'modified_by') String? modifiedBy,
 
     /// Whether OCR was used during extraction.
     ///
     /// Set to `true` whenever the extraction pipeline ran an OCR backend.
     /// (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary.
     /// or fallback text. `false` means native text extraction was used exclusively.
-    @JsonKey(name: 'ocr_used')
-    bool? ocrUsed,
+    @JsonKey(name: 'ocr_used') bool? ocrUsed,
 
     /// Output format identifier (e.g., "markdown", "html", "text").
     ///
     /// Set by the output format pipeline stage when format conversion is applied.
     /// Previously stored in `metadata.additional["output_format"]`.
-    @JsonKey(name: 'output_format')
-    String? outputFormat,
+    @JsonKey(name: 'output_format') String? outputFormat,
 
     /// Page/slide/sheet structure with boundaries
     PageStructure? pages,
@@ -112,6 +102,7 @@ abstract class Metadata with _$Metadata {
     /// Document title
     String? title,
   }) = _Metadata;
-  
-  factory Metadata.fromJson(Map<String, Object?> json) => _$MetadataFromJson(json);
+
+  factory Metadata.fromJson(Map<String, Object?> json) =>
+      _$MetadataFromJson(json);
 }

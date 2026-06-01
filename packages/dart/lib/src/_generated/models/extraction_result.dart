@@ -33,8 +33,7 @@ abstract class ExtractionResult with _$ExtractionResult {
   const factory ExtractionResult({
     required String content,
     required Metadata metadata,
-    @JsonKey(name: 'mime_type')
-    required String mimeType,
+    @JsonKey(name: 'mime_type') required String mimeType,
     required List<Table> tables,
 
     /// PDF annotations extracted from the document.
@@ -57,8 +56,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// overlapping chunks for efficient processing. Each chunk contains the text,.
     /// optional embeddings (if enabled), and metadata about its position.
     List<Chunk>? chunks,
-    @JsonKey(name: 'detected_languages')
-    List<String>? detectedLanguages,
+    @JsonKey(name: 'detected_languages') List<String>? detectedLanguages,
 
     /// Rich Djot content structure (when extracting Djot documents).
     ///
@@ -73,8 +71,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// The `content` field still contains plain text for backward compatibility.
     ///
     /// Always `None` for non-Djot documents.
-    @JsonKey(name: 'djot_content')
-    DjotContent? djotContent,
+    @JsonKey(name: 'djot_content') DjotContent? djotContent,
 
     /// Structured document tree (when document structure extraction is enabled).
     ///
@@ -101,15 +98,13 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// When keyword extraction (RAKE or YAKE) is configured, this field contains.
     /// the extracted keywords with scores, algorithm info, and position data.
     /// Previously stored in `metadata.additional["keywords"]`.
-    @JsonKey(name: 'extracted_keywords')
-    List<Keyword>? extractedKeywords,
+    @JsonKey(name: 'extracted_keywords') List<Keyword>? extractedKeywords,
 
     /// Extraction strategy used to produce the returned text.
     ///
     /// Populated when the extractor can reliably distinguish native text extraction,.
     /// OCR-only extraction, or mixed native/OCR output.
-    @JsonKey(name: 'extraction_method')
-    ExtractionMethod? extractionMethod,
+    @JsonKey(name: 'extraction_method') ExtractionMethod? extractionMethod,
 
     /// Extracted images from the document.
     ///
@@ -125,8 +120,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// the same extraction.
     ///
     /// `None` when no LLM was used.
-    @JsonKey(name: 'llm_usage')
-    List<LlmUsage>? llmUsage,
+    @JsonKey(name: 'llm_usage') List<LlmUsage>? llmUsage,
 
     /// OCR elements with full spatial and confidence metadata.
     ///
@@ -141,8 +135,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// converting to plain text or markdown output formats.
     ///
     /// Only populated when `OcrElementConfig.include_elements` is true.
-    @JsonKey(name: 'ocr_elements')
-    List<OcrElement>? ocrElements,
+    @JsonKey(name: 'ocr_elements') List<OcrElement>? ocrElements,
 
     /// Per-page content when page extraction is enabled.
     ///
@@ -163,8 +156,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     ///
     /// A value between 0.0 and 1.0 indicating the overall text quality.
     /// Previously stored in `metadata.additional["quality_score"]`.
-    @JsonKey(name: 'quality_score')
-    double? qualityScore,
+    @JsonKey(name: 'quality_score') double? qualityScore,
 
     /// Tracked changes embedded in the source document.
     ///
@@ -182,8 +174,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// When `structured_extraction` is configured in `ExtractionConfig`, the.
     /// extracted document content is sent to a VLM with the provided JSON schema.
     /// The response is parsed and stored here as a JSON value matching the schema.
-    @JsonKey(name: 'structured_output')
-    dynamic structuredOutput,
+    @JsonKey(name: 'structured_output') dynamic structuredOutput,
 
     /// URIs/links discovered during document extraction.
     ///
@@ -192,6 +183,7 @@ abstract class ExtractionResult with _$ExtractionResult {
     /// present in the source document.
     List<ExtractedUri>? uris,
   }) = _ExtractionResult;
-  
-  factory ExtractionResult.fromJson(Map<String, Object?> json) => _$ExtractionResultFromJson(json);
+
+  factory ExtractionResult.fromJson(Map<String, Object?> json) =>
+      _$ExtractionResultFromJson(json);
 }

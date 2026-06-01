@@ -14,15 +14,13 @@ part 'chunking_config.g.dart';
 abstract class ChunkingConfig with _$ChunkingConfig {
   const factory ChunkingConfig({
     /// Chunker type: "text", "markdown", "yaml"
-    @JsonKey(name: 'chunker_type')
-    String? chunkerType,
+    @JsonKey(name: 'chunker_type') String? chunkerType,
 
     /// Embedding generation configuration
     EmbeddingConfig? embedding,
 
     /// Maximum chunk size in characters
-    @JsonKey(name: 'max_characters')
-    int? maxCharacters,
+    @JsonKey(name: 'max_characters') int? maxCharacters,
 
     /// Overlap between adjacent chunks in characters
     int? overlap,
@@ -33,6 +31,7 @@ abstract class ChunkingConfig with _$ChunkingConfig {
     /// Trim whitespace from chunk boundaries
     bool? trim,
   }) = _ChunkingConfig;
-  
-  factory ChunkingConfig.fromJson(Map<String, Object?> json) => _$ChunkingConfigFromJson(json);
+
+  factory ChunkingConfig.fromJson(Map<String, Object?> json) =>
+      _$ChunkingConfigFromJson(json);
 }

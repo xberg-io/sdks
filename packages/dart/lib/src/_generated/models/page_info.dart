@@ -30,31 +30,28 @@ abstract class PageInfo with _$PageInfo {
     /// capture this content.
     ///
     /// Only populated for PDFs; `None` for other document types.
-    @JsonKey(name: 'has_vector_graphics')
-    bool? hasVectorGraphics,
+    @JsonKey(name: 'has_vector_graphics') bool? hasVectorGraphics,
 
     /// Whether this page is hidden (e.g., in presentations)
     bool? hidden,
 
     /// Number of images on this page
-    @JsonKey(name: 'image_count')
-    int? imageCount,
+    @JsonKey(name: 'image_count') int? imageCount,
 
     /// Whether this page is blank (no meaningful text, no images, no tables).
     ///
     /// A page is considered blank if it has fewer than 3 non-whitespace characters.
     /// and contains no tables or images. This is useful for filtering out empty pages.
     /// in scanned documents or PDFs with blank separator pages.
-    @JsonKey(name: 'is_blank')
-    bool? isBlank,
+    @JsonKey(name: 'is_blank') bool? isBlank,
 
     /// Number of tables on this page
-    @JsonKey(name: 'table_count')
-    int? tableCount,
+    @JsonKey(name: 'table_count') int? tableCount,
 
     /// Page title (usually for presentations)
     String? title,
   }) = _PageInfo;
-  
-  factory PageInfo.fromJson(Map<String, Object?> json) => _$PageInfoFromJson(json);
+
+  factory PageInfo.fromJson(Map<String, Object?> json) =>
+      _$PageInfoFromJson(json);
 }

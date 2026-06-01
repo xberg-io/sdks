@@ -22,7 +22,5 @@ abstract class JobsClient {
   ///
   /// [id] - Job ID or crawl job ID (UUID).
   @GET('/v1/jobs/{id}')
-  Future<JobLookupResponse> getJob({
-    @Path('id') required String id,
-  });
+  Future<JobLookupResponse> getJob({@Path('id') required String id});
 }

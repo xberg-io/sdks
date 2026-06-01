@@ -25,6 +25,7 @@ abstract class TextAnnotation with _$TextAnnotation {
     /// Start byte offset in the node's text content (inclusive).
     required int start,
   }) = _TextAnnotation;
-  
-  factory TextAnnotation.fromJson(Map<String, Object?> json) => _$TextAnnotationFromJson(json);
+
+  factory TextAnnotation.fromJson(Map<String, Object?> json) =>
+      _$TextAnnotationFromJson(json);
 }

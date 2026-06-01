@@ -19,12 +19,10 @@ part 'element.g.dart';
 abstract class Element with _$Element {
   const factory Element({
     /// Unique element identifier
-    @JsonKey(name: 'element_id')
-    required ElementId elementId,
+    @JsonKey(name: 'element_id') required ElementId elementId,
 
     /// Semantic type of this element
-    @JsonKey(name: 'element_type')
-    required ElementType elementType,
+    @JsonKey(name: 'element_type') required ElementType elementType,
 
     /// Metadata about the element
     required ElementMetadata metadata,
@@ -32,6 +30,7 @@ abstract class Element with _$Element {
     /// Text content of the element
     required String text,
   }) = _Element;
-  
-  factory Element.fromJson(Map<String, Object?> json) => _$ElementFromJson(json);
+
+  factory Element.fromJson(Map<String, Object?> json) =>
+      _$ElementFromJson(json);
 }

@@ -4,7 +4,7 @@ requires = [ "hatchling>=1.27" ]
 
 [project]
 name = "kreuzberg-cloud-sdk"
-version = "0.2.0"
+version = "0.3.0"
 description = "Official Python client for the Kreuzberg Cloud document-processing API."
 readme = "README.md"
 keywords = [ "client", "cloud", "document-extraction", "kreuzberg", "openapi", "sdk" ]

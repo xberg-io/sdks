@@ -18,20 +18,18 @@ part 'layout_region.g.dart';
 abstract class LayoutRegion with _$LayoutRegion {
   const factory LayoutRegion({
     /// Fraction of the page area covered by this region (0.0 to 1.0).
-    @JsonKey(name: 'area_fraction')
-    required double areaFraction,
+    @JsonKey(name: 'area_fraction') required double areaFraction,
 
     /// Bounding box in document coordinate space.
-    @JsonKey(name: 'bounding_box')
-    required BoundingBox boundingBox,
+    @JsonKey(name: 'bounding_box') required BoundingBox boundingBox,
 
     /// Layout class name (e.g. "picture", "table", "text", "section_header").
-    @JsonKey(name: 'class_name')
-    required String className,
+    @JsonKey(name: 'class_name') required String className,
 
     /// Confidence score from the layout detection model (0.0 to 1.0).
     required double confidence,
   }) = _LayoutRegion;
-  
-  factory LayoutRegion.fromJson(Map<String, Object?> json) => _$LayoutRegionFromJson(json);
+
+  factory LayoutRegion.fromJson(Map<String, Object?> json) =>
+      _$LayoutRegionFromJson(json);
 }

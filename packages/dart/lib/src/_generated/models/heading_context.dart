@@ -19,6 +19,7 @@ abstract class HeadingContext with _$HeadingContext {
     /// Index 0 is the outermost (h1), last element is the most specific.
     required List<HeadingLevel> headings,
   }) = _HeadingContext;
-  
-  factory HeadingContext.fromJson(Map<String, Object?> json) => _$HeadingContextFromJson(json);
+
+  factory HeadingContext.fromJson(Map<String, Object?> json) =>
+      _$HeadingContextFromJson(json);
 }

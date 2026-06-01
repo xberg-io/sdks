@@ -18,6 +18,14 @@ const (
 	retryBackoffFactor  = 2
 )
 
+// HTTP method constants. Extracted to satisfy goconst and keep the typed
+// helpers locally consistent — no method literal should appear inline in
+// a request body elsewhere in this package.
+const (
+	methodGet  = "GET"
+	methodPost = "POST"
+)
+
 // requestSpec describes a single HTTP request issued by the typed helpers
 // below. Body is nil for GET; bodyContentType is required when Body is set.
 type requestSpec struct {
@@ -49,6 +57,121 @@ func (c *Client) doJSON(ctx context.Context, spec requestSpec, out any) error {
 		return fmt.Errorf("kreuzberg-cloud: decoding response: %w", err)
 	}
 	return nil
+}
+
+// doRaw issues spec and returns the response body bytes plus the HTTP
+// status for 2xx responses. Use this when the caller needs to
+// distinguish between 200-class success codes (e.g. 200 vs 202).
+// Non-2xx responses are still converted into typed errors via
+// [classifyHTTPError], identical to [Client.do].
+func (c *Client) doRaw(
+	ctx context.Context,
+	spec requestSpec,
+) ([]byte, int, error) {
+	rc, status, err := c.doWithStatus(ctx, spec)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer closeQuietly(rc)
+	body, readErr := io.ReadAll(rc)
+	if readErr != nil {
+		return nil, status, fmt.Errorf(
+			"kreuzberg-cloud: reading response body: %w", readErr,
+		)
+	}
+	return body, status, nil
+}
+
+// doWithStatus mirrors [Client.do] but propagates the HTTP status
+// alongside the body reader. Status is only meaningful when err == nil.
+func (c *Client) doWithStatus(
+	ctx context.Context,
+	spec requestSpec,
+) (io.ReadCloser, int, error) {
+	attempt := 0
+	for {
+		body, status, err := c.doOnceWithStatus(ctx, spec)
+		if err == nil {
+			return body, status, nil
+		}
+		if attempt >= c.cfg.retries || !shouldRetry(err) || ctx.Err() != nil {
+			return nil, 0, err
+		}
+		delay := nextBackoff(attempt, retryAfter(err))
+		select {
+		case <-ctx.Done():
+			return nil, 0, ctx.Err()
+		case <-time.After(delay):
+		}
+		if spec.body != nil {
+			if spec.rewindBody == nil {
+				return nil, 0, err
+			}
+			rewound, rewindErr := spec.rewindBody()
+			if rewindErr != nil {
+				return nil, 0, fmt.Errorf(
+					"kreuzberg-cloud: rewinding body for retry: %w",
+					rewindErr,
+				)
+			}
+			spec.body = rewound
+		}
+		attempt++
+	}
+}
+
+// doOnceWithStatus is the per-attempt counterpart to [Client.doOnce]
+// that exposes the HTTP status code.
+func (c *Client) doOnceWithStatus(
+	ctx context.Context,
+	spec requestSpec,
+) (io.ReadCloser, int, error) {
+	cancel := func() {}
+	if c.cfg.timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, c.cfg.timeout)
+	}
+	rc, status, err := c.doOnceWithCancelStatus(ctx, spec, cancel)
+	return rc, status, err
+}
+
+// doOnceWithCancelStatus mirrors [Client.doOnceWithCancel] but returns
+// the HTTP status alongside the response body.
+func (c *Client) doOnceWithCancelStatus(
+	ctx context.Context,
+	spec requestSpec,
+	cancel context.CancelFunc,
+) (io.ReadCloser, int, error) {
+	url := c.urlFor(spec.path)
+	req, err := http.NewRequestWithContext(ctx, spec.method, url, spec.body)
+	if err != nil {
+		cancel()
+		return nil, 0, fmt.Errorf("kreuzberg-cloud: building request: %w", err)
+	}
+	if spec.bodyContentType != "" {
+		req.Header.Set("Content-Type", spec.bodyContentType)
+	}
+	req.Header.Set("Accept", contentTypeJSON)
+	if err := c.authorize(ctx, req); err != nil {
+		cancel()
+		return nil, 0, err
+	}
+	resp, err := c.cfg.httpClient.Do(req)
+	if err != nil {
+		cancel()
+		return nil, 0, fmt.Errorf(
+			"kreuzberg-cloud: %s %s: %w", spec.method, url, err,
+		)
+	}
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return &cancellingReadCloser{rc: resp.Body, cancel: cancel}, resp.StatusCode, nil
+	}
+	defer closeQuietly(resp.Body)
+	defer cancel()
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, 0, fmt.Errorf("kreuzberg-cloud: reading error response body: %w", readErr)
+	}
+	return nil, 0, classifyHTTPError(resp.StatusCode, body, resp.Header)
 }
 
 // do executes spec and returns the response body for 2xx responses. The

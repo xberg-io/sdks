@@ -12,17 +12,15 @@ part 'create_sandbox_key_response.g.dart';
 abstract class CreateSandboxKeyResponse with _$CreateSandboxKeyResponse {
   const factory CreateSandboxKeyResponse({
     /// The sandbox API key (use in Authorization: Bearer header)
-    @JsonKey(name: 'api_key')
-    required String apiKey,
+    @JsonKey(name: 'api_key') required String apiKey,
 
     /// When the key expires (RFC3339 format)
-    @JsonKey(name: 'expires_at')
-    required DateTime expiresAt,
+    @JsonKey(name: 'expires_at') required DateTime expiresAt,
 
     /// Page extraction quota for this key
-    @JsonKey(name: 'pages_remaining')
-    required int pagesRemaining,
+    @JsonKey(name: 'pages_remaining') required int pagesRemaining,
   }) = _CreateSandboxKeyResponse;
-  
-  factory CreateSandboxKeyResponse.fromJson(Map<String, Object?> json) => _$CreateSandboxKeyResponseFromJson(json);
+
+  factory CreateSandboxKeyResponse.fromJson(Map<String, Object?> json) =>
+      _$CreateSandboxKeyResponseFromJson(json);
 }

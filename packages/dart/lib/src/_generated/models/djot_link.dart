@@ -25,6 +25,7 @@ abstract class DjotLink with _$DjotLink {
     /// Optional title
     String? title,
   }) = _DjotLink;
-  
-  factory DjotLink.fromJson(Map<String, Object?> json) => _$DjotLinkFromJson(json);
+
+  factory DjotLink.fromJson(Map<String, Object?> json) =>
+      _$DjotLinkFromJson(json);
 }

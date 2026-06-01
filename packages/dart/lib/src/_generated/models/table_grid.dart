@@ -24,6 +24,7 @@ abstract class TableGrid with _$TableGrid {
     /// Number of rows in the table.
     required int rows,
   }) = _TableGrid;
-  
-  factory TableGrid.fromJson(Map<String, Object?> json) => _$TableGridFromJson(json);
+
+  factory TableGrid.fromJson(Map<String, Object?> json) =>
+      _$TableGridFromJson(json);
 }

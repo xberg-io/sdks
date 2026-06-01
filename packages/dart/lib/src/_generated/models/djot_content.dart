@@ -44,8 +44,7 @@ abstract class DjotContent with _$DjotContent {
     required Metadata metadata,
 
     /// Plain text representation for backwards compatibility
-    @JsonKey(name: 'plain_text')
-    required String plainText,
+    @JsonKey(name: 'plain_text') required String plainText,
 
     /// Extracted tables as structured data
     required List<Table> tables,
@@ -53,6 +52,7 @@ abstract class DjotContent with _$DjotContent {
     /// Attributes mapped by element identifier (if present)
     dynamic attributes,
   }) = _DjotContent;
-  
-  factory DjotContent.fromJson(Map<String, Object?> json) => _$DjotContentFromJson(json);
+
+  factory DjotContent.fromJson(Map<String, Object?> json) =>
+      _$DjotContentFromJson(json);
 }

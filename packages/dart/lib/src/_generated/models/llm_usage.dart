@@ -23,25 +23,21 @@ abstract class LlmUsage with _$LlmUsage {
     required String source,
 
     /// Estimated cost in USD based on the provider's published pricing.
-    @JsonKey(name: 'estimated_cost')
-    double? estimatedCost,
+    @JsonKey(name: 'estimated_cost') double? estimatedCost,
 
     /// Why the model stopped generating (e.g. "stop", "length", "content_filter").
-    @JsonKey(name: 'finish_reason')
-    String? finishReason,
+    @JsonKey(name: 'finish_reason') String? finishReason,
 
     /// Number of input/prompt tokens consumed.
-    @JsonKey(name: 'input_tokens')
-    int? inputTokens,
+    @JsonKey(name: 'input_tokens') int? inputTokens,
 
     /// Number of output/completion tokens generated.
-    @JsonKey(name: 'output_tokens')
-    int? outputTokens,
+    @JsonKey(name: 'output_tokens') int? outputTokens,
 
     /// Total tokens (input + output).
-    @JsonKey(name: 'total_tokens')
-    int? totalTokens,
+    @JsonKey(name: 'total_tokens') int? totalTokens,
   }) = _LlmUsage;
-  
-  factory LlmUsage.fromJson(Map<String, Object?> json) => _$LlmUsageFromJson(json);
+
+  factory LlmUsage.fromJson(Map<String, Object?> json) =>
+      _$LlmUsageFromJson(json);
 }

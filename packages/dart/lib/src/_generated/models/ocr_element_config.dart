@@ -12,21 +12,18 @@ part 'ocr_element_config.g.dart';
 abstract class OcrElementConfig with _$OcrElementConfig {
   const factory OcrElementConfig({
     /// Build parent-child relationships
-    @JsonKey(name: 'build_hierarchy')
-    bool? buildHierarchy,
+    @JsonKey(name: 'build_hierarchy') bool? buildHierarchy,
 
     /// Include OCR elements in result
-    @JsonKey(name: 'include_elements')
-    bool? includeElements,
+    @JsonKey(name: 'include_elements') bool? includeElements,
 
     /// Minimum recognition confidence (0.0-1.0)
-    @JsonKey(name: 'min_confidence')
-    double? minConfidence,
+    @JsonKey(name: 'min_confidence') double? minConfidence,
 
     /// Minimum hierarchical level: "word", "line", "block", "page"
-    @JsonKey(name: 'min_level')
-    String? minLevel,
+    @JsonKey(name: 'min_level') String? minLevel,
   }) = _OcrElementConfig;
-  
-  factory OcrElementConfig.fromJson(Map<String, Object?> json) => _$OcrElementConfigFromJson(json);
+
+  factory OcrElementConfig.fromJson(Map<String, Object?> json) =>
+      _$OcrElementConfigFromJson(json);
 }

@@ -31,8 +31,7 @@ abstract class DocumentRevision with _$DocumentRevision {
     /// For DOCX this is the `w:id` attribute value on the change element.
     /// (e.g. `"42"`). When the attribute is absent a synthetic fallback is.
     /// generated (`"docx-ins-0"`, `"docx-del-3"`, …).
-    @JsonKey(name: 'revision_id')
-    required String revisionId,
+    @JsonKey(name: 'revision_id') required String revisionId,
 
     /// Best-effort document location for this revision.
     ///
@@ -52,6 +51,7 @@ abstract class DocumentRevision with _$DocumentRevision {
     /// `"2024-03-15T10:30:00Z"`).
     String? timestamp,
   }) = _DocumentRevision;
-  
-  factory DocumentRevision.fromJson(Map<String, Object?> json) => _$DocumentRevisionFromJson(json);
+
+  factory DocumentRevision.fromJson(Map<String, Object?> json) =>
+      _$DocumentRevisionFromJson(json);
 }

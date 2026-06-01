@@ -25,6 +25,7 @@ abstract class DjotImage with _$DjotImage {
     /// Optional title
     String? title,
   }) = _DjotImage;
-  
-  factory DjotImage.fromJson(Map<String, Object?> json) => _$DjotImageFromJson(json);
+
+  factory DjotImage.fromJson(Map<String, Object?> json) =>
+      _$DjotImageFromJson(json);
 }

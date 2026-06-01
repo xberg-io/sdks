@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "kreuzberg-cloud-sdk"
-version = "0.1.1"
+version = "0.3.0"
 source = { editable = "packages/python" }
 dependencies = [
     { name = "attrs" },

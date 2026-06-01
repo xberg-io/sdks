@@ -54,6 +54,180 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadinessResponse'
+  /v1/documents/{document_id}:
+    get:
+      tags:
+        - documents
+      summary: Get the latest version of a document with its extraction result.
+      operationId: get_latest
+      parameters:
+        - name: document_id
+          in: path
+          description: Logical document ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Latest version with extraction result
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Invalid document ID
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: {}
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema: {}
+      security:
+        - bearer_auth: []
+  /v1/documents/{document_id}/diff:
+    get:
+      tags:
+        - documents
+      summary: Compute diff between two versions (sync with async fallback on budget exceeded).
+      operationId: get_diff
+      parameters:
+        - name: document_id
+          in: path
+          description: Logical document ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          description: Source version (sequence integer or job UUID)
+          required: true
+          schema:
+            type: string
+        - name: to
+          in: query
+          description: Target version (sequence integer or job UUID)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Diff computed inline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResponse'
+        "202":
+          description: Diff queued for async computation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffAsyncAccepted'
+        "400":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema: {}
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Async diff failed
+          content:
+            application/json:
+              schema: {}
+      security:
+        - bearer_auth: []
+  /v1/documents/{document_id}/diff/{diff_job_id}:
+    get:
+      tags:
+        - documents
+      summary: Poll the status of an async diff job.
+      operationId: poll_diff
+      parameters:
+        - name: document_id
+          in: path
+          description: Logical document ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: diff_job_id
+          in: path
+          description: Async diff job ID returned by the 202 fallback
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Diff result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResponse'
+        "202":
+          description: Diff still pending
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffAsyncAccepted'
+        "404":
+          description: Diff job not found
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Diff failed
+          content:
+            application/json:
+              schema: {}
+      security:
+        - bearer_auth: []
+  /v1/documents/{document_id}/versions:
+    get:
+      tags:
+        - documents
+      summary: List all versions of a document with pagination.
+      operationId: list_versions
+      parameters:
+        - name: document_id
+          in: path
+          description: Logical document ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Document versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentVersionEntry'
+        "400":
+          description: Invalid document ID
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: {}
+      security:
+        - bearer_auth: []
   /v1/extract:
     post:
       tags:
@@ -1357,6 +1531,27 @@ components:
           type: integer
           format: int32
           minimum: 0
+    DiffAsyncAccepted:
+      type: object
+      description: Response for a submitted async diff job.
+      required:
+        - diff_job_id
+        - status
+      properties:
+        diff_job_id:
+          type: string
+          format: uuid
+          description: The ID of the diff job for polling.
+        status:
+          $ref: '#/components/schemas/DiffJobStatus'
+          description: Current status of the job.
+    DiffJobStatus:
+      type: string
+      description: Status of an async diff job.
+      enum:
+        - pending
+        - succeeded
+        - failed
     DiffLine:
       oneOf:
         - type: object
@@ -1404,6 +1599,65 @@ components:
         Defined here (rather than only in `crate::diff`) so `RevisionDelta` can
         reference it unconditionally, without requiring the `diff` Cargo feature.
         `crate::diff` re-exports this type verbatim.
+    DiffQuery:
+      type: object
+      description: Query parameters for diff computation.
+      required:
+        - from
+        - to
+      properties:
+        from:
+          type: string
+          description: Version sequence or job ID for the "from" extraction.
+        to:
+          type: string
+          description: Version sequence or job ID for the "to" extraction.
+    DiffResponse:
+      type: object
+      description: Response envelope for a computed diff between two extraction results.
+      required:
+        - from_job_id
+        - to_job_id
+        - from_version
+        - to_version
+        - document_id
+        - diff
+        - computed_at
+      properties:
+        computed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the diff was computed.
+        diff:
+          description: |-
+            The computed diff between the two extraction results.
+
+            Serialized to the wire as the full `kreuzberg::diff::ExtractionDiff`
+            shape. The OpenAPI schema declares this as an opaque object because
+            the underlying type recurses through `EmbeddedDiff -> Box<ExtractionDiff>`
+            and utoipa's schema collector goes into a stack-overflow on inlined
+            recursion. SDKs that want a typed surface here should decode the
+            JSON manually against kreuzberg's published schema.
+        document_id:
+          type: string
+          format: uuid
+          description: Document ID being diffed.
+        from_job_id:
+          type: string
+          format: uuid
+          description: Job ID of the "from" (older) version.
+        from_version:
+          type: integer
+          format: int32
+          description: Version sequence number of the "from" version.
+        to_job_id:
+          type: string
+          format: uuid
+          description: Job ID of the "to" (newer) version.
+        to_version:
+          type: integer
+          format: int32
+          description: Version sequence number of the "to" version.
     DjotContent:
       type: object
       description: |-
@@ -1517,6 +1771,16 @@ components:
         data:
           type: string
           description: Base64-encoded document data
+        document_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: |-
+            Optional client-supplied document identifier. When provided, this
+            extraction is recorded as a version of that logical document and the
+            response carries `document_id` + `version_sequence`. Server mints a
+            new UUID when absent.
         filename:
           type: string
           description: Original filename
@@ -1716,6 +1980,82 @@ components:
 
             Allows renderers to apply format-aware heuristics when converting
             the document tree to output formats.
+    DocumentSubmission:
+      type: object
+      description: Per-document submission metadata
+      required:
+        - job_id
+      properties:
+        document_id:
+          type:
+            - string
+            - "null"
+          description: Optional document ID from lineage (None for non-lineage jobs)
+        job_id:
+          type: string
+          description: Job ID for the submitted document
+        version_sequence:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Optional version sequence for lineage (None for non-lineage jobs)
+    DocumentVersionEntry:
+      type: object
+      description: Entry in the document versions list.
+      required:
+        - job_id
+        - version_sequence
+        - content_hash
+        - status
+        - filename
+        - mime_type
+        - file_size_bytes
+        - pages_extracted
+        - billable_pages
+        - created_at
+      properties:
+        billable_pages:
+          type: integer
+          format: int32
+          description: Number of billable pages.
+        content_hash:
+          type: string
+          description: SHA-256 hash of the extracted content.
+        created_at:
+          type: string
+          description: When the job was created.
+        file_size_bytes:
+          type: integer
+          format: int64
+          description: File size in bytes.
+        filename:
+          type: string
+          description: Original filename.
+        job_id:
+          type: string
+          format: uuid
+          description: Job ID for this version.
+          example: 550e8400-e29b-41d4-a716-446655440000
+        mime_type:
+          type: string
+          description: MIME type of the uploaded file.
+        pages_extracted:
+          type: integer
+          format: int32
+          description: Number of pages extracted.
+        processing_completed_at:
+          type:
+            - string
+            - "null"
+          description: When processing completed (only set for completed/failed jobs).
+        status:
+          type: string
+          description: Job status.
+        version_sequence:
+          type: integer
+          format: int32
+          description: Version sequence number (incrementing per document).
     Element:
       type: object
       description: |-
@@ -1956,11 +2296,16 @@ components:
           items:
             type: string
           description: Crawl job IDs (one per URL group)
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSubmission'
+          description: Detailed document submissions (new, includes lineage when present)
         job_ids:
           type: array
           items:
             type: string
-          description: Job IDs for direct file extractions
+          description: Job IDs for direct file extractions (backward compat)
         status:
           type: string
           description: Job status
@@ -3414,6 +3759,18 @@ components:
         - email
         - phone
         - other
+    ListVersionsQuery:
+      type: object
+      description: Query parameters for document versions list.
+      properties:
+        limit:
+          type: integer
+          format: int32
+          description: Maximum number of versions to return (default 50, max 200).
+        offset:
+          type: integer
+          format: int32
+          description: Number of versions to skip.
     LlmUsage:
       type: object
       description: |-

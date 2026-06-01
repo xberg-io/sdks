@@ -12,12 +12,12 @@ part 'ocr_rotation.g.dart';
 abstract class OcrRotation with _$OcrRotation {
   const factory OcrRotation({
     /// Rotation angle in degrees (0, 90, 180, 270 for PaddleOCR).
-    @JsonKey(name: 'angle_degrees')
-    required double angleDegrees,
+    @JsonKey(name: 'angle_degrees') required double angleDegrees,
 
     /// Confidence score for the rotation detection.
     double? confidence,
   }) = _OcrRotation;
-  
-  factory OcrRotation.fromJson(Map<String, Object?> json) => _$OcrRotationFromJson(json);
+
+  factory OcrRotation.fromJson(Map<String, Object?> json) =>
+      _$OcrRotationFromJson(json);
 }

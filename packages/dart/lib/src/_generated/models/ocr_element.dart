@@ -29,25 +29,23 @@ abstract class OcrElement with _$OcrElement {
     required String text,
 
     /// Backend-specific metadata that doesn't fit the unified schema.
-    @JsonKey(name: 'backend_metadata')
-    Map<String, dynamic>? backendMetadata,
+    @JsonKey(name: 'backend_metadata') Map<String, dynamic>? backendMetadata,
 
     /// Hierarchical level (word, line, block, page).
     OcrElementLevel? level,
 
     /// Page number (1-indexed).
-    @JsonKey(name: 'page_number')
-    int? pageNumber,
+    @JsonKey(name: 'page_number') int? pageNumber,
 
     /// Parent element ID for hierarchical relationships.
     ///
     /// Only used for Tesseract output which has word -> line -> block hierarchy.
-    @JsonKey(name: 'parent_id')
-    String? parentId,
+    @JsonKey(name: 'parent_id') String? parentId,
 
     /// Rotation information (if detected).
     OcrRotation? rotation,
   }) = _OcrElement;
-  
-  factory OcrElement.fromJson(Map<String, Object?> json) => _$OcrElementFromJson(json);
+
+  factory OcrElement.fromJson(Map<String, Object?> json) =>
+      _$OcrElementFromJson(json);
 }

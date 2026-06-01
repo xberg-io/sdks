@@ -19,6 +19,7 @@ abstract class ReadinessResponse with _$ReadinessResponse {
     /// Overall readiness status
     required String status,
   }) = _ReadinessResponse;
-  
-  factory ReadinessResponse.fromJson(Map<String, Object?> json) => _$ReadinessResponseFromJson(json);
+
+  factory ReadinessResponse.fromJson(Map<String, Object?> json) =>
+      _$ReadinessResponseFromJson(json);
 }

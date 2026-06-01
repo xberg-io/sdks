@@ -11,15 +11,12 @@ part 'crawl_progress.g.dart';
 @Freezed()
 abstract class CrawlProgress with _$CrawlProgress {
   const factory CrawlProgress({
-    @JsonKey(name: 'documents_discovered')
-    required int documentsDiscovered,
-    @JsonKey(name: 'documents_extracted')
-    required int documentsExtracted,
-    @JsonKey(name: 'documents_failed')
-    required int documentsFailed,
-    @JsonKey(name: 'pages_crawled')
-    required int pagesCrawled,
+    @JsonKey(name: 'documents_discovered') required int documentsDiscovered,
+    @JsonKey(name: 'documents_extracted') required int documentsExtracted,
+    @JsonKey(name: 'documents_failed') required int documentsFailed,
+    @JsonKey(name: 'pages_crawled') required int pagesCrawled,
   }) = _CrawlProgress;
-  
-  factory CrawlProgress.fromJson(Map<String, Object?> json) => _$CrawlProgressFromJson(json);
+
+  factory CrawlProgress.fromJson(Map<String, Object?> json) =>
+      _$CrawlProgressFromJson(json);
 }

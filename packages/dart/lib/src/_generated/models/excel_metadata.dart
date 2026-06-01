@@ -17,13 +17,12 @@ part 'excel_metadata.g.dart';
 abstract class ExcelMetadata with _$ExcelMetadata {
   const factory ExcelMetadata({
     /// Number of sheets in the workbook.
-    @JsonKey(name: 'sheet_count')
-    int? sheetCount,
+    @JsonKey(name: 'sheet_count') int? sheetCount,
 
     /// Names of all sheets in the workbook.
-    @JsonKey(name: 'sheet_names')
-    List<String>? sheetNames,
+    @JsonKey(name: 'sheet_names') List<String>? sheetNames,
   }) = _ExcelMetadata;
-  
-  factory ExcelMetadata.fromJson(Map<String, Object?> json) => _$ExcelMetadataFromJson(json);
+
+  factory ExcelMetadata.fromJson(Map<String, Object?> json) =>
+      _$ExcelMetadataFromJson(json);
 }

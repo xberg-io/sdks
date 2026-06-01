@@ -20,9 +20,9 @@ abstract class Attributes with _$Attributes {
     String? id,
 
     /// Key-value pairs (key="value")
-    @JsonKey(name: 'key_values')
-    List<List<String>>? keyValues,
+    @JsonKey(name: 'key_values') List<List<String>>? keyValues,
   }) = _Attributes;
-  
-  factory Attributes.fromJson(Map<String, Object?> json) => _$AttributesFromJson(json);
+
+  factory Attributes.fromJson(Map<String, Object?> json) =>
+      _$AttributesFromJson(json);
 }

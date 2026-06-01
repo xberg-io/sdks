@@ -17,12 +17,12 @@ part 'page_hierarchy.g.dart';
 abstract class PageHierarchy with _$PageHierarchy {
   const factory PageHierarchy({
     /// Number of hierarchy blocks on this page
-    @JsonKey(name: 'block_count')
-    required int blockCount,
+    @JsonKey(name: 'block_count') required int blockCount,
 
     /// Hierarchical blocks with heading levels
     List<HierarchicalBlock>? blocks,
   }) = _PageHierarchy;
-  
-  factory PageHierarchy.fromJson(Map<String, Object?> json) => _$PageHierarchyFromJson(json);
+
+  factory PageHierarchy.fromJson(Map<String, Object?> json) =>
+      _$PageHierarchyFromJson(json);
 }

@@ -12,12 +12,12 @@ part 'confirm_upload_response.g.dart';
 abstract class ConfirmUploadResponse with _$ConfirmUploadResponse {
   const factory ConfirmUploadResponse({
     /// Job IDs that are now queued for processing
-    @JsonKey(name: 'job_ids')
-    required List<String> jobIds,
+    @JsonKey(name: 'job_ids') required List<String> jobIds,
 
     /// Status of the jobs
     required String status,
   }) = _ConfirmUploadResponse;
-  
-  factory ConfirmUploadResponse.fromJson(Map<String, Object?> json) => _$ConfirmUploadResponseFromJson(json);
+
+  factory ConfirmUploadResponse.fromJson(Map<String, Object?> json) =>
+      _$ConfirmUploadResponseFromJson(json);
 }

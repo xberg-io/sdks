@@ -12,8 +12,7 @@ part 'embedding_config.g.dart';
 abstract class EmbeddingConfig with _$EmbeddingConfig {
   const factory EmbeddingConfig({
     /// Batch size for embedding generation
-    @JsonKey(name: 'batch_size')
-    int? batchSize,
+    @JsonKey(name: 'batch_size') int? batchSize,
 
     /// Model configuration (flexible JSON: {"type":"preset","name":"balanced"})
     dynamic model,
@@ -22,9 +21,9 @@ abstract class EmbeddingConfig with _$EmbeddingConfig {
     bool? normalize,
 
     /// Show model download progress
-    @JsonKey(name: 'show_download_progress')
-    bool? showDownloadProgress,
+    @JsonKey(name: 'show_download_progress') bool? showDownloadProgress,
   }) = _EmbeddingConfig;
-  
-  factory EmbeddingConfig.fromJson(Map<String, Object?> json) => _$EmbeddingConfigFromJson(json);
+
+  factory EmbeddingConfig.fromJson(Map<String, Object?> json) =>
+      _$EmbeddingConfigFromJson(json);
 }

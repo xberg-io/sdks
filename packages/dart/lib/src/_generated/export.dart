@@ -4,6 +4,7 @@
 
 // Clients
 export 'health/health_client.dart';
+export 'documents/documents_client.dart';
 export 'extract/extract_client.dart';
 export 'jobs/jobs_client.dart';
 export 'super_sandbox/super_sandbox_client.dart';
@@ -37,7 +38,11 @@ export 'models/crawled_page.dart';
 export 'models/create_sandbox_key_request.dart';
 export 'models/create_sandbox_key_response.dart';
 export 'models/csv_metadata.dart';
+export 'models/diff_async_accepted.dart';
+export 'models/diff_job_status.dart';
 export 'models/diff_line.dart';
+export 'models/diff_query.dart';
+export 'models/diff_response.dart';
 export 'models/djot_content.dart';
 export 'models/djot_image.dart';
 export 'models/djot_link.dart';
@@ -46,6 +51,8 @@ export 'models/document_node.dart';
 export 'models/document_relationship.dart';
 export 'models/document_revision.dart';
 export 'models/document_structure.dart';
+export 'models/document_submission.dart';
+export 'models/document_version_entry.dart';
 export 'models/element.dart';
 export 'models/element_id.dart';
 export 'models/element_metadata.dart';
@@ -93,6 +100,7 @@ export 'models/layout_detection_config.dart';
 export 'models/layout_region.dart';
 export 'models/link_metadata.dart';
 export 'models/link_type.dart';
+export 'models/list_versions_query.dart';
 export 'models/llm_usage.dart';
 export 'models/metadata.dart';
 export 'models/node_content.dart';
@@ -151,4 +159,3 @@ export 'models/webhook_config.dart';
 export 'models/xml_metadata.dart';
 // Root client
 export 'kreuzberg_cloud_api.dart';
-

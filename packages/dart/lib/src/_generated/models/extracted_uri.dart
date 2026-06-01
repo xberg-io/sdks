@@ -29,6 +29,7 @@ abstract class ExtractedUri with _$ExtractedUri {
     /// Optional page number where the URI was found (1-indexed).
     int? page,
   }) = _ExtractedUri;
-  
-  factory ExtractedUri.fromJson(Map<String, Object?> json) => _$ExtractedUriFromJson(json);
+
+  factory ExtractedUri.fromJson(Map<String, Object?> json) =>
+      _$ExtractedUriFromJson(json);
 }

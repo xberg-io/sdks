@@ -12,17 +12,15 @@ part 'page_config.g.dart';
 abstract class PageConfig with _$PageConfig {
   const factory PageConfig({
     /// Extract pages as separate array in result
-    @JsonKey(name: 'extract_pages')
-    bool? extractPages,
+    @JsonKey(name: 'extract_pages') bool? extractPages,
 
     /// Insert page markers in content text
-    @JsonKey(name: 'insert_page_markers')
-    bool? insertPageMarkers,
+    @JsonKey(name: 'insert_page_markers') bool? insertPageMarkers,
 
     /// Page marker format template (e.g., "\n\n<!-- PAGE {page_num} -->\n\n")
-    @JsonKey(name: 'marker_format')
-    String? markerFormat,
+    @JsonKey(name: 'marker_format') String? markerFormat,
   }) = _PageConfig;
-  
-  factory PageConfig.fromJson(Map<String, Object?> json) => _$PageConfigFromJson(json);
+
+  factory PageConfig.fromJson(Map<String, Object?> json) =>
+      _$PageConfigFromJson(json);
 }

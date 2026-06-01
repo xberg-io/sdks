@@ -14,17 +14,15 @@ part 'structured_data.g.dart';
 abstract class StructuredData with _$StructuredData {
   const factory StructuredData({
     /// Type of structured data
-    @JsonKey(name: 'data_type')
-    required StructuredDataType dataType,
+    @JsonKey(name: 'data_type') required StructuredDataType dataType,
 
     /// Raw JSON string representation
-    @JsonKey(name: 'raw_json')
-    required String rawJson,
+    @JsonKey(name: 'raw_json') required String rawJson,
 
     /// Schema type if detectable (e.g., "Article", "Event", "Product")
-    @JsonKey(name: 'schema_type')
-    String? schemaType,
+    @JsonKey(name: 'schema_type') String? schemaType,
   }) = _StructuredData;
-  
-  factory StructuredData.fromJson(Map<String, Object?> json) => _$StructuredDataFromJson(json);
+
+  factory StructuredData.fromJson(Map<String, Object?> json) =>
+      _$StructuredDataFromJson(json);
 }

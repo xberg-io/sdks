@@ -27,6 +27,7 @@ abstract class ImageMetadata with _$ImageMetadata {
     /// Image width in pixels
     required int width,
   }) = _ImageMetadata;
-  
-  factory ImageMetadata.fromJson(Map<String, Object?> json) => _$ImageMetadataFromJson(json);
+
+  factory ImageMetadata.fromJson(Map<String, Object?> json) =>
+      _$ImageMetadataFromJson(json);
 }

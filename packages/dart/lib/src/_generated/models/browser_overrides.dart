@@ -21,6 +21,7 @@ abstract class BrowserOverrides with _$BrowserOverrides {
     /// Enable browser stealth mode (TLS fingerprint + UA spoof) — only honored by native backend
     bool? stealth,
   }) = _BrowserOverrides;
-  
-  factory BrowserOverrides.fromJson(Map<String, Object?> json) => _$BrowserOverridesFromJson(json);
+
+  factory BrowserOverrides.fromJson(Map<String, Object?> json) =>
+      _$BrowserOverridesFromJson(json);
 }

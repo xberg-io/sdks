@@ -22,6 +22,7 @@ abstract class ProxyOverride with _$ProxyOverride {
     /// Optional username for proxy auth.
     String? username,
   }) = _ProxyOverride;
-  
-  factory ProxyOverride.fromJson(Map<String, Object?> json) => _$ProxyOverrideFromJson(json);
+
+  factory ProxyOverride.fromJson(Map<String, Object?> json) =>
+      _$ProxyOverrideFromJson(json);
 }

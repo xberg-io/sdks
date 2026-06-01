@@ -16,13 +16,12 @@ part 'xml_metadata.g.dart';
 abstract class XmlMetadata with _$XmlMetadata {
   const factory XmlMetadata({
     /// Total number of XML elements processed
-    @JsonKey(name: 'element_count')
-    required int elementCount,
+    @JsonKey(name: 'element_count') required int elementCount,
 
     /// List of unique element tag names (sorted)
-    @JsonKey(name: 'unique_elements')
-    required List<String> uniqueElements,
+    @JsonKey(name: 'unique_elements') required List<String> uniqueElements,
   }) = _XmlMetadata;
-  
-  factory XmlMetadata.fromJson(Map<String, Object?> json) => _$XmlMetadataFromJson(json);
+
+  factory XmlMetadata.fromJson(Map<String, Object?> json) =>
+      _$XmlMetadataFromJson(json);
 }

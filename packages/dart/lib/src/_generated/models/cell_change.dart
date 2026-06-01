@@ -27,6 +27,7 @@ abstract class CellChange with _$CellChange {
     /// Value after the change.
     required String to,
   }) = _CellChange;
-  
-  factory CellChange.fromJson(Map<String, Object?> json) => _$CellChangeFromJson(json);
+
+  factory CellChange.fromJson(Map<String, Object?> json) =>
+      _$CellChangeFromJson(json);
 }

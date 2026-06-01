@@ -15,8 +15,7 @@ part 'hierarchical_block.g.dart';
 abstract class HierarchicalBlock with _$HierarchicalBlock {
   const factory HierarchicalBlock({
     /// The font size of the text in this block
-    @JsonKey(name: 'font_size')
-    required double fontSize,
+    @JsonKey(name: 'font_size') required double fontSize,
 
     /// The hierarchy level of this block (H1-H6 or Body).
     ///
@@ -38,6 +37,7 @@ abstract class HierarchicalBlock with _$HierarchicalBlock {
     /// Contains coordinates as (left, top, right, bottom) in PDF units.
     List<double>? bbox,
   }) = _HierarchicalBlock;
-  
-  factory HierarchicalBlock.fromJson(Map<String, Object?> json) => _$HierarchicalBlockFromJson(json);
+
+  factory HierarchicalBlock.fromJson(Map<String, Object?> json) =>
+      _$HierarchicalBlockFromJson(json);
 }

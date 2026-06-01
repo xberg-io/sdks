@@ -32,8 +32,7 @@ abstract class PageContent with _$PageContent {
     required String content,
 
     /// Page number (1-indexed)
-    @JsonKey(name: 'page_number')
-    required int pageNumber,
+    @JsonKey(name: 'page_number') required int pageNumber,
 
     /// Hierarchy information for the page (when hierarchy extraction is enabled).
     ///
@@ -44,46 +43,40 @@ abstract class PageContent with _$PageContent {
     ///
     /// Each value is a zero-based index into the top-level `images` collection.
     /// Only populated when `extract_images = true` in the extraction config.
-    @JsonKey(name: 'image_indices')
-    List<int>? imageIndices,
+    @JsonKey(name: 'image_indices') List<int>? imageIndices,
 
     /// Whether this page is blank (no meaningful text content).
     ///
     /// Determined during extraction based on text content analysis.
     /// A page is blank if it has fewer than 3 non-whitespace characters.
     /// and contains no tables or images.
-    @JsonKey(name: 'is_blank')
-    bool? isBlank,
+    @JsonKey(name: 'is_blank') bool? isBlank,
 
     /// Layout detection regions for this page (when layout detection is enabled).
     ///
     /// Contains detected layout regions with class, confidence, bounding box,.
     /// and area fraction. Only populated when layout detection is configured.
-    @JsonKey(name: 'layout_regions')
-    List<LayoutRegion>? layoutRegions,
+    @JsonKey(name: 'layout_regions') List<LayoutRegion>? layoutRegions,
 
     /// Section name this slide belongs to (PPTX only).
     ///
     /// PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in.
     /// `ppt/presentation.xml`). Only populated when the source is a PPTX file and.
     /// the slide belongs to a named section.
-    @JsonKey(name: 'section_name')
-    String? sectionName,
+    @JsonKey(name: 'section_name') String? sectionName,
 
     /// Sheet name for this page (XLSX/ODS only).
     ///
     /// Each spreadsheet sheet maps to one `PageContent` entry. This field carries the.
     /// sheet's display name as it appears in the workbook. `None` for all non-spreadsheet.
     /// formats and for sheets with an empty name.
-    @JsonKey(name: 'sheet_name')
-    String? sheetName,
+    @JsonKey(name: 'sheet_name') String? sheetName,
 
     /// Speaker notes for this slide (PPTX only).
     ///
     /// Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`).
     /// Only populated when the source is a PPTX file and notes are present.
-    @JsonKey(name: 'speaker_notes')
-    String? speakerNotes,
+    @JsonKey(name: 'speaker_notes') String? speakerNotes,
 
     /// Tables found on this page (uses Arc for memory efficiency).
     ///
@@ -91,6 +84,7 @@ abstract class PageContent with _$PageContent {
     /// Arc semantics in-memory for zero-copy sharing.
     List<Table>? tables,
   }) = _PageContent;
-  
-  factory PageContent.fromJson(Map<String, Object?> json) => _$PageContentFromJson(json);
+
+  factory PageContent.fromJson(Map<String, Object?> json) =>
+      _$PageContentFromJson(json);
 }

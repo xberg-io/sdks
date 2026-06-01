@@ -20,16 +20,15 @@ abstract class ElementMetadata with _$ElementMetadata {
     BoundingBox? coordinates,
 
     /// Position index in the element sequence
-    @JsonKey(name: 'element_index')
-    int? elementIndex,
+    @JsonKey(name: 'element_index') int? elementIndex,
 
     /// Source filename or document name
     String? filename,
 
     /// Page number (1-indexed)
-    @JsonKey(name: 'page_number')
-    int? pageNumber,
+    @JsonKey(name: 'page_number') int? pageNumber,
   }) = _ElementMetadata;
-  
-  factory ElementMetadata.fromJson(Map<String, Object?> json) => _$ElementMetadataFromJson(json);
+
+  factory ElementMetadata.fromJson(Map<String, Object?> json) =>
+      _$ElementMetadataFromJson(json);
 }

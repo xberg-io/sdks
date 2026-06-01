@@ -1,6 +1,6 @@
 {
   "name": "@kreuzberg/cloud",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API.",
   "license": "MIT",
   "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",

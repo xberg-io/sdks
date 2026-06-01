@@ -19,29 +19,24 @@ abstract class EmailMetadata with _$EmailMetadata {
     required List<String> attachments,
 
     /// BCC recipients
-    @JsonKey(name: 'bcc_emails')
-    required List<String> bccEmails,
+    @JsonKey(name: 'bcc_emails') required List<String> bccEmails,
 
     /// CC recipients
-    @JsonKey(name: 'cc_emails')
-    required List<String> ccEmails,
+    @JsonKey(name: 'cc_emails') required List<String> ccEmails,
 
     /// Primary recipients
-    @JsonKey(name: 'to_emails')
-    required List<String> toEmails,
+    @JsonKey(name: 'to_emails') required List<String> toEmails,
 
     /// Sender's email address
-    @JsonKey(name: 'from_email')
-    String? fromEmail,
+    @JsonKey(name: 'from_email') String? fromEmail,
 
     /// Sender's display name
-    @JsonKey(name: 'from_name')
-    String? fromName,
+    @JsonKey(name: 'from_name') String? fromName,
 
     /// Message-ID header value
-    @JsonKey(name: 'message_id')
-    String? messageId,
+    @JsonKey(name: 'message_id') String? messageId,
   }) = _EmailMetadata;
-  
-  factory EmailMetadata.fromJson(Map<String, Object?> json) => _$EmailMetadataFromJson(json);
+
+  factory EmailMetadata.fromJson(Map<String, Object?> json) =>
+      _$EmailMetadataFromJson(json);
 }

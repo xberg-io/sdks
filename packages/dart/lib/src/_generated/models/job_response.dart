@@ -15,8 +15,7 @@ part 'job_response.g.dart';
 abstract class JobResponse with _$JobResponse {
   const factory JobResponse({
     /// Job creation timestamp (RFC3339)
-    @JsonKey(name: 'created_at')
-    required DateTime createdAt,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
 
     /// Original filename
     required String filename,
@@ -28,12 +27,12 @@ abstract class JobResponse with _$JobResponse {
     required JobStatus status,
 
     /// Server-side processing duration in milliseconds (only present when completed)
-    @JsonKey(name: 'processing_time_ms')
-    int? processingTimeMs,
+    @JsonKey(name: 'processing_time_ms') int? processingTimeMs,
 
     /// Extraction result (only present when status is completed/partial_success)
     ExtractionResult? result,
   }) = _JobResponse;
-  
-  factory JobResponse.fromJson(Map<String, Object?> json) => _$JobResponseFromJson(json);
+
+  factory JobResponse.fromJson(Map<String, Object?> json) =>
+      _$JobResponseFromJson(json);
 }

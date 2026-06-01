@@ -20,8 +20,7 @@ abstract class InlineElement with _$InlineElement {
     required String content,
 
     /// Type of inline element
-    @JsonKey(name: 'element_type')
-    required InlineType elementType,
+    @JsonKey(name: 'element_type') required InlineType elementType,
 
     /// Element attributes
     Attributes? attributes,
@@ -29,6 +28,7 @@ abstract class InlineElement with _$InlineElement {
     /// Additional metadata (e.g., href for links, src/alt for images)
     Map<String, String>? metadata,
   }) = _InlineElement;
-  
-  factory InlineElement.fromJson(Map<String, Object?> json) => _$InlineElementFromJson(json);
+
+  factory InlineElement.fromJson(Map<String, Object?> json) =>
+      _$InlineElementFromJson(json);
 }

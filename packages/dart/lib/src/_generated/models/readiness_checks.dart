@@ -17,6 +17,7 @@ abstract class ReadinessChecks with _$ReadinessChecks {
     /// NATS connectivity
     required String nats,
   }) = _ReadinessChecks;
-  
-  factory ReadinessChecks.fromJson(Map<String, Object?> json) => _$ReadinessChecksFromJson(json);
+
+  factory ReadinessChecks.fromJson(Map<String, Object?> json) =>
+      _$ReadinessChecksFromJson(json);
 }

@@ -12,9 +12,9 @@ part 'confirm_upload_request.g.dart';
 abstract class ConfirmUploadRequest with _$ConfirmUploadRequest {
   const factory ConfirmUploadRequest({
     /// Batch ID from the presign response
-    @JsonKey(name: 'batch_id')
-    required String batchId,
+    @JsonKey(name: 'batch_id') required String batchId,
   }) = _ConfirmUploadRequest;
-  
-  factory ConfirmUploadRequest.fromJson(Map<String, Object?> json) => _$ConfirmUploadRequestFromJson(json);
+
+  factory ConfirmUploadRequest.fromJson(Map<String, Object?> json) =>
+      _$ConfirmUploadRequestFromJson(json);
 }

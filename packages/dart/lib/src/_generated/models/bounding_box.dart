@@ -23,6 +23,7 @@ abstract class BoundingBox with _$BoundingBox {
     /// Top y-coordinate
     required double y1,
   }) = _BoundingBox;
-  
-  factory BoundingBox.fromJson(Map<String, Object?> json) => _$BoundingBoxFromJson(json);
+
+  factory BoundingBox.fromJson(Map<String, Object?> json) =>
+      _$BoundingBoxFromJson(json);
 }

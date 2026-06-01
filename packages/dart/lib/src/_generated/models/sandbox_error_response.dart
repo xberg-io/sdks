@@ -17,6 +17,7 @@ abstract class SandboxErrorResponse with _$SandboxErrorResponse {
     /// Human-readable error message
     required String message,
   }) = _SandboxErrorResponse;
-  
-  factory SandboxErrorResponse.fromJson(Map<String, Object?> json) => _$SandboxErrorResponseFromJson(json);
+
+  factory SandboxErrorResponse.fromJson(Map<String, Object?> json) =>
+      _$SandboxErrorResponseFromJson(json);
 }

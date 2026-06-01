@@ -21,6 +21,7 @@ abstract class OcrPipelineConfig with _$OcrPipelineConfig {
     /// Ordered list of backends to try (sorted by priority descending)
     List<OcrPipelineStage>? stages,
   }) = _OcrPipelineConfig;
-  
-  factory OcrPipelineConfig.fromJson(Map<String, Object?> json) => _$OcrPipelineConfigFromJson(json);
+
+  factory OcrPipelineConfig.fromJson(Map<String, Object?> json) =>
+      _$OcrPipelineConfigFromJson(json);
 }

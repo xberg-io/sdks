@@ -17,6 +17,7 @@ abstract class HeadingLevel with _$HeadingLevel {
     /// The text content of the heading.
     required String text,
   }) = _HeadingLevel;
-  
-  factory HeadingLevel.fromJson(Map<String, Object?> json) => _$HeadingLevelFromJson(json);
+
+  factory HeadingLevel.fromJson(Map<String, Object?> json) =>
+      _$HeadingLevelFromJson(json);
 }

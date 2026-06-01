@@ -14,6 +14,7 @@ abstract class ErrorResponse with _$ErrorResponse {
     /// Error message
     required String error,
   }) = _ErrorResponse;
-  
-  factory ErrorResponse.fromJson(Map<String, Object?> json) => _$ErrorResponseFromJson(json);
+
+  factory ErrorResponse.fromJson(Map<String, Object?> json) =>
+      _$ErrorResponseFromJson(json);
 }

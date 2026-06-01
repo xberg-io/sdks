@@ -17,8 +17,7 @@ part 'archive_entry.g.dart';
 abstract class ArchiveEntry with _$ArchiveEntry {
   const factory ArchiveEntry({
     /// Detected MIME type of the file.
-    @JsonKey(name: 'mime_type')
-    required String mimeType,
+    @JsonKey(name: 'mime_type') required String mimeType,
 
     /// Archive-relative file path (e.g. "folder/document.pdf").
     required String path,
@@ -26,6 +25,7 @@ abstract class ArchiveEntry with _$ArchiveEntry {
     /// Full extraction result for this file.
     required ExtractionResult result,
   }) = _ArchiveEntry;
-  
-  factory ArchiveEntry.fromJson(Map<String, Object?> json) => _$ArchiveEntryFromJson(json);
+
+  factory ArchiveEntry.fromJson(Map<String, Object?> json) =>
+      _$ArchiveEntryFromJson(json);
 }

@@ -23,7 +23,7 @@ func (c *Client) GetJob(ctx context.Context, jobID string) (*Job, error) {
 		return nil, fmt.Errorf("kreuzberg-cloud: GetJob requires a non-empty jobID")
 	}
 	var job Job
-	spec := requestSpec{method: "GET", path: "/v1/jobs/" + jobID}
+	spec := requestSpec{method: methodGet, path: "/v1/jobs/" + jobID}
 	if err := c.doJSON(ctx, spec, &job); err != nil {
 		return nil, err
 	}

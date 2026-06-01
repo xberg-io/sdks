@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-01
+
+### Added
+
+- **Document lineage + diff surface.** Tracks the cloud's `1.1.0` API additions backing design-partner Asks #47/#48/#49/#51.
+  - `GET /v1/documents/{document_id}/versions` — paginated list of versions for a logical document, newest first.
+  - `GET /v1/documents/{document_id}` — latest version envelope with the stored `ExtractionResult` inline.
+  - `GET /v1/documents/{document_id}/diff?from=&to=` — pairwise structural diff. Sync default with a 2-second in-handler budget; on overflow returns `202 Accepted` + a `diff_job_id` for async fallback.
+  - `GET /v1/documents/{document_id}/diff/{diff_job_id}` — polling endpoint for the async diff result.
+- **Submission-side `document_id`.** `DocumentInput` carries an optional `document_id` (UUID) on the JSON body and per-file multipart fields. When provided the response envelope adds `documents[].document_id` + `documents[].version_sequence` (1-based, server-assigned via `MAX+1`). Re-upload of the same bytes under the same `document_id` is idempotent: the existing job is returned, no new row inserted. Backwards-compatible additive field; clients ignoring it see the same wire shape as v0.2.0.
+- **Go bindings.** Hand-written `Client.ListDocumentVersions`, `Client.GetLatestDocument`, `Client.GetDocumentDiff` (returns a union of `DiffResponse` / `DiffAsyncAccepted`), `Client.PollDocumentDiff`. New `doRaw` / `doWithStatus` helpers in `http.go` distinguish `200` and `202` on the diff endpoint.
+- **Python / TypeScript / Dart bindings.** Regenerated from the cloud's `v1.1` spec; the four new routes + envelopes (`DiffResponse`, `DiffAsyncAccepted`, `DiffJobStatus`, `DocumentVersionEntry`) appear on every client.
+
+### Changed
+
+- **Dependency churn.** Cloud bump to `kreuzberg e1bfcf9371` flows through every binding (no behavior change beyond what's listed above).
+
 ## [0.2.0] - 2026-06-01
 
 ### Changed (breaking)

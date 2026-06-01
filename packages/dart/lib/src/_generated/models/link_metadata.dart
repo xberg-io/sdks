@@ -20,8 +20,7 @@ abstract class LinkMetadata with _$LinkMetadata {
     required String href,
 
     /// Link type classification
-    @JsonKey(name: 'link_type')
-    required LinkType linkType,
+    @JsonKey(name: 'link_type') required LinkType linkType,
 
     /// Rel attribute values
     required List<String> rel,
@@ -32,6 +31,7 @@ abstract class LinkMetadata with _$LinkMetadata {
     /// Optional title attribute
     String? title,
   }) = _LinkMetadata;
-  
-  factory LinkMetadata.fromJson(Map<String, Object?> json) => _$LinkMetadataFromJson(json);
+
+  factory LinkMetadata.fromJson(Map<String, Object?> json) =>
+      _$LinkMetadataFromJson(json);
 }

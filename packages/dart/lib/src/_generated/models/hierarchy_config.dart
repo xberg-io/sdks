@@ -15,17 +15,15 @@ abstract class HierarchyConfig with _$HierarchyConfig {
     bool? enabled,
 
     /// Include bounding boxes
-    @JsonKey(name: 'include_bbox')
-    bool? includeBbox,
+    @JsonKey(name: 'include_bbox') bool? includeBbox,
 
     /// Number of font-size clusters for heading levels
-    @JsonKey(name: 'k_clusters')
-    int? kClusters,
+    @JsonKey(name: 'k_clusters') int? kClusters,
 
     /// OCR coverage threshold
-    @JsonKey(name: 'ocr_coverage_threshold')
-    double? ocrCoverageThreshold,
+    @JsonKey(name: 'ocr_coverage_threshold') double? ocrCoverageThreshold,
   }) = _HierarchyConfig;
-  
-  factory HierarchyConfig.fromJson(Map<String, Object?> json) => _$HierarchyConfigFromJson(json);
+
+  factory HierarchyConfig.fromJson(Map<String, Object?> json) =>
+      _$HierarchyConfigFromJson(json);
 }

@@ -13,9 +13,9 @@ part 'pst_metadata.g.dart';
 @Freezed()
 abstract class PstMetadata with _$PstMetadata {
   const factory PstMetadata({
-    @JsonKey(name: 'message_count')
-    required int messageCount,
+    @JsonKey(name: 'message_count') required int messageCount,
   }) = _PstMetadata;
-  
-  factory PstMetadata.fromJson(Map<String, Object?> json) => _$PstMetadataFromJson(json);
+
+  factory PstMetadata.fromJson(Map<String, Object?> json) =>
+      _$PstMetadataFromJson(json);
 }

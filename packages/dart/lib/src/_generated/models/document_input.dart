@@ -18,9 +18,15 @@ abstract class DocumentInput with _$DocumentInput {
     required String filename,
 
     /// MIME type of the document
-    @JsonKey(name: 'mime_type')
-    required String mimeType,
+    @JsonKey(name: 'mime_type') required String mimeType,
+
+    /// Optional client-supplied document identifier. When provided, this.
+    /// extraction is recorded as a version of that logical document and the.
+    /// response carries `document_id` + `version_sequence`. Server mints a.
+    /// new UUID when absent.
+    @JsonKey(name: 'document_id') String? documentId,
   }) = _DocumentInput;
-  
-  factory DocumentInput.fromJson(Map<String, Object?> json) => _$DocumentInputFromJson(json);
+
+  factory DocumentInput.fromJson(Map<String, Object?> json) =>
+      _$DocumentInputFromJson(json);
 }

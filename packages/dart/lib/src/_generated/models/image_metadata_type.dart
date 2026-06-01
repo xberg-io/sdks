@@ -17,8 +17,7 @@ abstract class ImageMetadataType with _$ImageMetadataType {
     required List<List<String>> attributes,
 
     /// Image type classification
-    @JsonKey(name: 'image_type')
-    required ImageType imageType,
+    @JsonKey(name: 'image_type') required ImageType imageType,
 
     /// Image source (URL, data URI, or SVG content)
     required String src,
@@ -32,6 +31,7 @@ abstract class ImageMetadataType with _$ImageMetadataType {
     /// Title attribute
     String? title,
   }) = _ImageMetadataType;
-  
-  factory ImageMetadataType.fromJson(Map<String, Object?> json) => _$ImageMetadataTypeFromJson(json);
+
+  factory ImageMetadataType.fromJson(Map<String, Object?> json) =>
+      _$ImageMetadataTypeFromJson(json);
 }

@@ -20,6 +20,7 @@ abstract class UsageByMimeType with _$UsageByMimeType {
     /// Total pages extracted from documents of this MIME type
     required int pages,
   }) = _UsageByMimeType;
-  
-  factory UsageByMimeType.fromJson(Map<String, Object?> json) => _$UsageByMimeTypeFromJson(json);
+
+  factory UsageByMimeType.fromJson(Map<String, Object?> json) =>
+      _$UsageByMimeTypeFromJson(json);
 }

@@ -4,6 +4,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'document_submission.dart';
+
 part 'extract_response.freezed.dart';
 part 'extract_response.g.dart';
 
@@ -15,13 +17,15 @@ abstract class ExtractResponse with _$ExtractResponse {
     required String status,
 
     /// Crawl job IDs (one per URL group)
-    @JsonKey(name: 'crawl_job_ids')
-    List<String>? crawlJobIds,
+    @JsonKey(name: 'crawl_job_ids') List<String>? crawlJobIds,
 
-    /// Job IDs for direct file extractions
-    @JsonKey(name: 'job_ids')
-    List<String>? jobIds,
+    /// Detailed document submissions (new, includes lineage when present)
+    List<DocumentSubmission>? documents,
+
+    /// Job IDs for direct file extractions (backward compat)
+    @JsonKey(name: 'job_ids') List<String>? jobIds,
   }) = _ExtractResponse;
-  
-  factory ExtractResponse.fromJson(Map<String, Object?> json) => _$ExtractResponseFromJson(json);
+
+  factory ExtractResponse.fromJson(Map<String, Object?> json) =>
+      _$ExtractResponseFromJson(json);
 }

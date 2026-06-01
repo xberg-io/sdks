@@ -34,8 +34,7 @@ abstract class DocumentStructure with _$DocumentStructure {
     /// Computed from [`nodes`] via [`DocumentStructure::finalize_node_types`].
     /// Empty until that method is called (internal construction paths call it.
     /// at the end of derivation).
-    @JsonKey(name: 'node_types')
-    List<String>? nodeTypes,
+    @JsonKey(name: 'node_types') List<String>? nodeTypes,
 
     /// Resolved relationships between nodes (footnote refs, citations, anchor links, etc.).
     ///
@@ -47,9 +46,9 @@ abstract class DocumentStructure with _$DocumentStructure {
     ///
     /// Allows renderers to apply format-aware heuristics when converting.
     /// the document tree to output formats.
-    @JsonKey(name: 'source_format')
-    String? sourceFormat,
+    @JsonKey(name: 'source_format') String? sourceFormat,
   }) = _DocumentStructure;
-  
-  factory DocumentStructure.fromJson(Map<String, Object?> json) => _$DocumentStructureFromJson(json);
+
+  factory DocumentStructure.fromJson(Map<String, Object?> json) =>
+      _$DocumentStructureFromJson(json);
 }

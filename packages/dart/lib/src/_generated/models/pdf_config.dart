@@ -14,20 +14,16 @@ part 'pdf_config.g.dart';
 abstract class PdfConfig with _$PdfConfig {
   const factory PdfConfig({
     /// Bottom margin fraction to skip (0.0-1.0)
-    @JsonKey(name: 'bottom_margin_fraction')
-    double? bottomMarginFraction,
+    @JsonKey(name: 'bottom_margin_fraction') double? bottomMarginFraction,
 
     /// Extract PDF annotations
-    @JsonKey(name: 'extract_annotations')
-    bool? extractAnnotations,
+    @JsonKey(name: 'extract_annotations') bool? extractAnnotations,
 
     /// Extract images from PDF
-    @JsonKey(name: 'extract_images')
-    bool? extractImages,
+    @JsonKey(name: 'extract_images') bool? extractImages,
 
     /// Extract PDF metadata
-    @JsonKey(name: 'extract_metadata')
-    bool? extractMetadata,
+    @JsonKey(name: 'extract_metadata') bool? extractMetadata,
 
     /// Heading hierarchy detection
     HierarchyConfig? hierarchy,
@@ -36,9 +32,9 @@ abstract class PdfConfig with _$PdfConfig {
     List<String>? passwords,
 
     /// Top margin fraction to skip (0.0-1.0)
-    @JsonKey(name: 'top_margin_fraction')
-    double? topMarginFraction,
+    @JsonKey(name: 'top_margin_fraction') double? topMarginFraction,
   }) = _PdfConfig;
-  
-  factory PdfConfig.fromJson(Map<String, Object?> json) => _$PdfConfigFromJson(json);
+
+  factory PdfConfig.fromJson(Map<String, Object?> json) =>
+      _$PdfConfigFromJson(json);
 }

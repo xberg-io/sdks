@@ -12,16 +12,15 @@ part 'layout_detection_config.g.dart';
 abstract class LayoutDetectionConfig with _$LayoutDetectionConfig {
   const factory LayoutDetectionConfig({
     /// Apply postprocessing heuristics
-    @JsonKey(name: 'apply_heuristics')
-    bool? applyHeuristics,
+    @JsonKey(name: 'apply_heuristics') bool? applyHeuristics,
 
     /// Confidence threshold override
-    @JsonKey(name: 'confidence_threshold')
-    double? confidenceThreshold,
+    @JsonKey(name: 'confidence_threshold') double? confidenceThreshold,
 
     /// Preset: "fast" or "accurate"
     String? preset,
   }) = _LayoutDetectionConfig;
-  
-  factory LayoutDetectionConfig.fromJson(Map<String, Object?> json) => _$LayoutDetectionConfigFromJson(json);
+
+  factory LayoutDetectionConfig.fromJson(Map<String, Object?> json) =>
+      _$LayoutDetectionConfigFromJson(json);
 }

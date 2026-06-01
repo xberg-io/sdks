@@ -14,6 +14,7 @@ abstract class HealthResponse with _$HealthResponse {
     /// Service status
     required String status,
   }) = _HealthResponse;
-  
-  factory HealthResponse.fromJson(Map<String, Object?> json) => _$HealthResponseFromJson(json);
+
+  factory HealthResponse.fromJson(Map<String, Object?> json) =>
+      _$HealthResponseFromJson(json);
 }

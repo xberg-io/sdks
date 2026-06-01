@@ -24,6 +24,7 @@ abstract class PresignUploadRequest with _$PresignUploadRequest {
     /// Webhook configuration for async result delivery
     WebhookConfig? webhook,
   }) = _PresignUploadRequest;
-  
-  factory PresignUploadRequest.fromJson(Map<String, Object?> json) => _$PresignUploadRequestFromJson(json);
+
+  factory PresignUploadRequest.fromJson(Map<String, Object?> json) =>
+      _$PresignUploadRequestFromJson(json);
 }

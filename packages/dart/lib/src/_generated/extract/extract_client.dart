@@ -24,7 +24,5 @@ abstract class ExtractClient {
   ///
   /// Returns 202 Accepted with job IDs. Results are delivered via the configured webhook.
   @POST('/v1/extract')
-  Future<ExtractResponse> extract({
-    @Body() required ExtractJsonRequest body,
-  });
+  Future<ExtractResponse> extract({@Body() required ExtractJsonRequest body});
 }

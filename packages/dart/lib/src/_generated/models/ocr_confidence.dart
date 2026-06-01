@@ -25,6 +25,7 @@ abstract class OcrConfidence with _$OcrConfidence {
     /// Range: 0.0 to 1.0 (or None if not available).
     double? detection,
   }) = _OcrConfidence;
-  
-  factory OcrConfidence.fromJson(Map<String, Object?> json) => _$OcrConfidenceFromJson(json);
+
+  factory OcrConfidence.fromJson(Map<String, Object?> json) =>
+      _$OcrConfidenceFromJson(json);
 }

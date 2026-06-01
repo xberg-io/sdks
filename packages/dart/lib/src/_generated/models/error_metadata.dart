@@ -11,10 +11,10 @@ part 'error_metadata.g.dart';
 @Freezed()
 abstract class ErrorMetadata with _$ErrorMetadata {
   const factory ErrorMetadata({
-    @JsonKey(name: 'error_type')
-    required String errorType,
+    @JsonKey(name: 'error_type') required String errorType,
     required String message,
   }) = _ErrorMetadata;
-  
-  factory ErrorMetadata.fromJson(Map<String, Object?> json) => _$ErrorMetadataFromJson(json);
+
+  factory ErrorMetadata.fromJson(Map<String, Object?> json) =>
+      _$ErrorMetadataFromJson(json);
 }

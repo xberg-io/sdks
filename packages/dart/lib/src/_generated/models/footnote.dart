@@ -19,6 +19,7 @@ abstract class Footnote with _$Footnote {
     /// Footnote label
     required String label,
   }) = _Footnote;
-  
-  factory Footnote.fromJson(Map<String, Object?> json) => _$FootnoteFromJson(json);
+
+  factory Footnote.fromJson(Map<String, Object?> json) =>
+      _$FootnoteFromJson(json);
 }

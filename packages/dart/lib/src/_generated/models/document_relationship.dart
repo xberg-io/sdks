@@ -23,6 +23,7 @@ abstract class DocumentRelationship with _$DocumentRelationship {
     /// Target node index (the referenced node).
     required NodeIndex target,
   }) = _DocumentRelationship;
-  
-  factory DocumentRelationship.fromJson(Map<String, Object?> json) => _$DocumentRelationshipFromJson(json);
+
+  factory DocumentRelationship.fromJson(Map<String, Object?> json) =>
+      _$DocumentRelationshipFromJson(json);
 }

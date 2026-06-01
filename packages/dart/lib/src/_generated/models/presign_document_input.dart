@@ -17,13 +17,13 @@ abstract class PresignDocumentInput with _$PresignDocumentInput {
     required String filename,
 
     /// MIME type of the document
-    @JsonKey(name: 'mime_type')
-    required String mimeType,
+    @JsonKey(name: 'mime_type') required String mimeType,
 
     /// Per-file extraction config override.
     /// Merged with batch-level `config` at confirm time. None = use batch default.
     FileExtractionConfig? config,
   }) = _PresignDocumentInput;
-  
-  factory PresignDocumentInput.fromJson(Map<String, Object?> json) => _$PresignDocumentInputFromJson(json);
+
+  factory PresignDocumentInput.fromJson(Map<String, Object?> json) =>
+      _$PresignDocumentInputFromJson(json);
 }

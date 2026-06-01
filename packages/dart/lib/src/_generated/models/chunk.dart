@@ -28,8 +28,7 @@ abstract class Chunk with _$Chunk {
     ///
     /// Assigned by the heuristic classifier based on content patterns and.
     /// heading context. Defaults to `ChunkType::Unknown` when no rule matches.
-    @JsonKey(name: 'chunk_type')
-    ChunkType? chunkType,
+    @JsonKey(name: 'chunk_type') ChunkType? chunkType,
 
     /// Optional embedding vector for this chunk.
     ///
@@ -37,6 +36,6 @@ abstract class Chunk with _$Chunk {
     /// The dimensionality depends on the chosen embedding model.
     List<double>? embedding,
   }) = _Chunk;
-  
+
   factory Chunk.fromJson(Map<String, Object?> json) => _$ChunkFromJson(json);
 }

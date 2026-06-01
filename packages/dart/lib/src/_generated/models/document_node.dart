@@ -45,19 +45,18 @@ abstract class DocumentNode with _$DocumentNode {
     List<NodeIndex>? children,
 
     /// Content layer classification.
-    @JsonKey(name: 'content_layer')
-    ContentLayer? contentLayer,
+    @JsonKey(name: 'content_layer') ContentLayer? contentLayer,
 
     /// Page number where this node starts (1-indexed).
     int? page,
 
     /// Page number where this node ends (for multi-page tables/sections).
-    @JsonKey(name: 'page_end')
-    int? pageEnd,
+    @JsonKey(name: 'page_end') int? pageEnd,
 
     /// Parent node index (`None` = root-level node).
     NodeIndex? parent,
   }) = _DocumentNode;
-  
-  factory DocumentNode.fromJson(Map<String, Object?> json) => _$DocumentNodeFromJson(json);
+
+  factory DocumentNode.fromJson(Map<String, Object?> json) =>
+      _$DocumentNodeFromJson(json);
 }

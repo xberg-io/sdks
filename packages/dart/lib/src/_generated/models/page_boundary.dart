@@ -16,17 +16,15 @@ part 'page_boundary.g.dart';
 abstract class PageBoundary with _$PageBoundary {
   const factory PageBoundary({
     /// Byte offset where this page ends in the content string (UTF-8 valid boundary, exclusive)
-    @JsonKey(name: 'byte_end')
-    required int byteEnd,
+    @JsonKey(name: 'byte_end') required int byteEnd,
 
     /// Byte offset where this page starts in the content string (UTF-8 valid boundary, inclusive)
-    @JsonKey(name: 'byte_start')
-    required int byteStart,
+    @JsonKey(name: 'byte_start') required int byteStart,
 
     /// Page number (1-indexed)
-    @JsonKey(name: 'page_number')
-    required int pageNumber,
+    @JsonKey(name: 'page_number') required int pageNumber,
   }) = _PageBoundary;
-  
-  factory PageBoundary.fromJson(Map<String, Object?> json) => _$PageBoundaryFromJson(json);
+
+  factory PageBoundary.fromJson(Map<String, Object?> json) =>
+      _$PageBoundaryFromJson(json);
 }

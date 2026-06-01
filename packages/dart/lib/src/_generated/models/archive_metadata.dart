@@ -16,24 +16,21 @@ part 'archive_metadata.g.dart';
 abstract class ArchiveMetadata with _$ArchiveMetadata {
   const factory ArchiveMetadata({
     /// Total number of files in the archive
-    @JsonKey(name: 'file_count')
-    required int fileCount,
+    @JsonKey(name: 'file_count') required int fileCount,
 
     /// List of file paths within the archive
-    @JsonKey(name: 'file_list')
-    required List<String> fileList,
+    @JsonKey(name: 'file_list') required List<String> fileList,
 
     /// Archive format ("ZIP", "TAR", "7Z", etc.)
     required String format,
 
     /// Total uncompressed size in bytes
-    @JsonKey(name: 'total_size')
-    required int totalSize,
+    @JsonKey(name: 'total_size') required int totalSize,
 
     /// Compressed size in bytes (if available)
-    @JsonKey(name: 'compressed_size')
-    int? compressedSize,
+    @JsonKey(name: 'compressed_size') int? compressedSize,
   }) = _ArchiveMetadata;
-  
-  factory ArchiveMetadata.fromJson(Map<String, Object?> json) => _$ArchiveMetadataFromJson(json);
+
+  factory ArchiveMetadata.fromJson(Map<String, Object?> json) =>
+      _$ArchiveMetadataFromJson(json);
 }

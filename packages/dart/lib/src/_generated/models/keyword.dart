@@ -25,6 +25,7 @@ abstract class Keyword with _$Keyword {
     /// Optional positions where keyword appears in text (character offsets).
     List<int>? positions,
   }) = _Keyword;
-  
-  factory Keyword.fromJson(Map<String, Object?> json) => _$KeywordFromJson(json);
+
+  factory Keyword.fromJson(Map<String, Object?> json) =>
+      _$KeywordFromJson(json);
 }

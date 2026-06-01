@@ -21,6 +21,7 @@ abstract class ProcessingWarning with _$ProcessingWarning {
     /// (e.g., "embedding", "chunking", "language_detection", "output_format").
     required String source,
   }) = _ProcessingWarning;
-  
-  factory ProcessingWarning.fromJson(Map<String, Object?> json) => _$ProcessingWarningFromJson(json);
+
+  factory ProcessingWarning.fromJson(Map<String, Object?> json) =>
+      _$ProcessingWarningFromJson(json);
 }

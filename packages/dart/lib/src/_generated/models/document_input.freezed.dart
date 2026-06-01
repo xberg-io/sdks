@@ -18,7 +18,11 @@ mixin _$DocumentInput {
 /// Base64-encoded document data
  String get data;/// Original filename
  String get filename;/// MIME type of the document
-@JsonKey(name: 'mime_type') String get mimeType;
+@JsonKey(name: 'mime_type') String get mimeType;/// Optional client-supplied document identifier. When provided, this.
+/// extraction is recorded as a version of that logical document and the.
+/// response carries `document_id` + `version_sequence`. Server mints a.
+/// new UUID when absent.
+@JsonKey(name: 'document_id') String? get documentId;
 /// Create a copy of DocumentInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +35,16 @@ $DocumentInputCopyWith<DocumentInput> get copyWith => _$DocumentInputCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentInput&&(identical(other.data, data) || other.data == data)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentInput&&(identical(other.data, data) || other.data == data)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.documentId, documentId) || other.documentId == documentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,data,filename,mimeType);
+int get hashCode => Object.hash(runtimeType,data,filename,mimeType,documentId);
 
 @override
 String toString() {
-  return 'DocumentInput(data: $data, filename: $filename, mimeType: $mimeType)';
+  return 'DocumentInput(data: $data, filename: $filename, mimeType: $mimeType, documentId: $documentId)';
 }
 
 
@@ -51,7 +55,7 @@ abstract mixin class $DocumentInputCopyWith<$Res>  {
   factory $DocumentInputCopyWith(DocumentInput value, $Res Function(DocumentInput) _then) = _$DocumentInputCopyWithImpl;
 @useResult
 $Res call({
- String data, String filename,@JsonKey(name: 'mime_type') String mimeType
+ String data, String filename,@JsonKey(name: 'mime_type') String mimeType,@JsonKey(name: 'document_id') String? documentId
 });
 
 
@@ -68,12 +72,13 @@ class _$DocumentInputCopyWithImpl<$Res>
 
 /// Create a copy of DocumentInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? data = null,Object? filename = null,Object? mimeType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = null,Object? filename = null,Object? mimeType = null,Object? documentId = freezed,}) {
   return _then(_self.copyWith(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as String,filename: null == filename ? _self.filename : filename // ignore: cast_nullable_to_non_nullable
 as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,documentId: freezed == documentId ? _self.documentId : documentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType, @JsonKey(name: 'document_id')  String? documentId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DocumentInput() when $default != null:
-return $default(_that.data,_that.filename,_that.mimeType);case _:
+return $default(_that.data,_that.filename,_that.mimeType,_that.documentId);case _:
   return orElse();
 
 }
@@ -179,10 +184,10 @@ return $default(_that.data,_that.filename,_that.mimeType);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType, @JsonKey(name: 'document_id')  String? documentId)  $default,) {final _that = this;
 switch (_that) {
 case _DocumentInput():
-return $default(_that.data,_that.filename,_that.mimeType);case _:
+return $default(_that.data,_that.filename,_that.mimeType,_that.documentId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +204,10 @@ return $default(_that.data,_that.filename,_that.mimeType);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String data,  String filename, @JsonKey(name: 'mime_type')  String mimeType, @JsonKey(name: 'document_id')  String? documentId)?  $default,) {final _that = this;
 switch (_that) {
 case _DocumentInput() when $default != null:
-return $default(_that.data,_that.filename,_that.mimeType);case _:
+return $default(_that.data,_that.filename,_that.mimeType,_that.documentId);case _:
   return null;
 
 }
@@ -214,7 +219,7 @@ return $default(_that.data,_that.filename,_that.mimeType);case _:
 @JsonSerializable()
 
 class _DocumentInput implements DocumentInput {
-  const _DocumentInput({required this.data, required this.filename, @JsonKey(name: 'mime_type') required this.mimeType});
+  const _DocumentInput({required this.data, required this.filename, @JsonKey(name: 'mime_type') required this.mimeType, @JsonKey(name: 'document_id') this.documentId});
   factory _DocumentInput.fromJson(Map<String, dynamic> json) => _$DocumentInputFromJson(json);
 
 /// Base64-encoded document data
@@ -223,6 +228,11 @@ class _DocumentInput implements DocumentInput {
 @override final  String filename;
 /// MIME type of the document
 @override@JsonKey(name: 'mime_type') final  String mimeType;
+/// Optional client-supplied document identifier. When provided, this.
+/// extraction is recorded as a version of that logical document and the.
+/// response carries `document_id` + `version_sequence`. Server mints a.
+/// new UUID when absent.
+@override@JsonKey(name: 'document_id') final  String? documentId;
 
 /// Create a copy of DocumentInput
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DocumentInput&&(identical(other.data, data) || other.data == data)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DocumentInput&&(identical(other.data, data) || other.data == data)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.documentId, documentId) || other.documentId == documentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,data,filename,mimeType);
+int get hashCode => Object.hash(runtimeType,data,filename,mimeType,documentId);
 
 @override
 String toString() {
-  return 'DocumentInput(data: $data, filename: $filename, mimeType: $mimeType)';
+  return 'DocumentInput(data: $data, filename: $filename, mimeType: $mimeType, documentId: $documentId)';
 }
 
 
@@ -257,7 +267,7 @@ abstract mixin class _$DocumentInputCopyWith<$Res> implements $DocumentInputCopy
   factory _$DocumentInputCopyWith(_DocumentInput value, $Res Function(_DocumentInput) _then) = __$DocumentInputCopyWithImpl;
 @override @useResult
 $Res call({
- String data, String filename,@JsonKey(name: 'mime_type') String mimeType
+ String data, String filename,@JsonKey(name: 'mime_type') String mimeType,@JsonKey(name: 'document_id') String? documentId
 });
 
 
@@ -274,12 +284,13 @@ class __$DocumentInputCopyWithImpl<$Res>
 
 /// Create a copy of DocumentInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? data = null,Object? filename = null,Object? mimeType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = null,Object? filename = null,Object? mimeType = null,Object? documentId = freezed,}) {
   return _then(_DocumentInput(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as String,filename: null == filename ? _self.filename : filename // ignore: cast_nullable_to_non_nullable
 as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,documentId: freezed == documentId ? _self.documentId : documentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

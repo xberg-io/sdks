@@ -12,21 +12,18 @@ part 'content_filter_config.g.dart';
 abstract class ContentFilterConfig with _$ContentFilterConfig {
   const factory ContentFilterConfig({
     /// Include running footers
-    @JsonKey(name: 'include_footers')
-    bool? includeFooters,
+    @JsonKey(name: 'include_footers') bool? includeFooters,
 
     /// Include running headers
-    @JsonKey(name: 'include_headers')
-    bool? includeHeaders,
+    @JsonKey(name: 'include_headers') bool? includeHeaders,
 
     /// Include watermarks
-    @JsonKey(name: 'include_watermarks')
-    bool? includeWatermarks,
+    @JsonKey(name: 'include_watermarks') bool? includeWatermarks,
 
     /// Strip cross-page repeating text
-    @JsonKey(name: 'strip_repeating_text')
-    bool? stripRepeatingText,
+    @JsonKey(name: 'strip_repeating_text') bool? stripRepeatingText,
   }) = _ContentFilterConfig;
-  
-  factory ContentFilterConfig.fromJson(Map<String, Object?> json) => _$ContentFilterConfigFromJson(json);
+
+  factory ContentFilterConfig.fromJson(Map<String, Object?> json) =>
+      _$ContentFilterConfigFromJson(json);
 }

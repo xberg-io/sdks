@@ -14,12 +14,12 @@ part 'presign_upload_response.g.dart';
 abstract class PresignUploadResponse with _$PresignUploadResponse {
   const factory PresignUploadResponse({
     /// Batch ID — pass this to the confirm endpoint
-    @JsonKey(name: 'batch_id')
-    required String batchId,
+    @JsonKey(name: 'batch_id') required String batchId,
 
     /// Per-document upload URLs
     required List<PresignedUploadInfo> uploads,
   }) = _PresignUploadResponse;
-  
-  factory PresignUploadResponse.fromJson(Map<String, Object?> json) => _$PresignUploadResponseFromJson(json);
+
+  factory PresignUploadResponse.fromJson(Map<String, Object?> json) =>
+      _$PresignUploadResponseFromJson(json);
 }

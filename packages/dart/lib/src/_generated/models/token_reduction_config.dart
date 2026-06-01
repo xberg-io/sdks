@@ -15,9 +15,9 @@ abstract class TokenReductionConfig with _$TokenReductionConfig {
     String? mode,
 
     /// Preserve capitalized/technical terms
-    @JsonKey(name: 'preserve_important_words')
-    bool? preserveImportantWords,
+    @JsonKey(name: 'preserve_important_words') bool? preserveImportantWords,
   }) = _TokenReductionConfig;
-  
-  factory TokenReductionConfig.fromJson(Map<String, Object?> json) => _$TokenReductionConfigFromJson(json);
+
+  factory TokenReductionConfig.fromJson(Map<String, Object?> json) =>
+      _$TokenReductionConfigFromJson(json);
 }

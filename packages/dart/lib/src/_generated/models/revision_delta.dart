@@ -23,9 +23,9 @@ abstract class RevisionDelta with _$RevisionDelta {
     required List<DiffLine> content,
 
     /// Cell-level table changes for this revision.
-    @JsonKey(name: 'table_changes')
-    required List<CellChange> tableChanges,
+    @JsonKey(name: 'table_changes') required List<CellChange> tableChanges,
   }) = _RevisionDelta;
-  
-  factory RevisionDelta.fromJson(Map<String, Object?> json) => _$RevisionDeltaFromJson(json);
+
+  factory RevisionDelta.fromJson(Map<String, Object?> json) =>
+      _$RevisionDeltaFromJson(json);
 }

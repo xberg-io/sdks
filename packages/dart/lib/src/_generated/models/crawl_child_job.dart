@@ -27,20 +27,18 @@ abstract class CrawlChildJob with _$CrawlChildJob {
     /// documents it is the downloaded file size. Lets callers detect.
     /// suspiciously small responses (e.g. WAF challenge pages captured.
     /// as the "document" — typically 5–30 KB).
-    @JsonKey(name: 'body_bytes')
-    int? bodyBytes,
+    @JsonKey(name: 'body_bytes') int? bodyBytes,
 
     /// Processing time in ms (when completed)
-    @JsonKey(name: 'processing_time_ms')
-    int? processingTimeMs,
+    @JsonKey(name: 'processing_time_ms') int? processingTimeMs,
 
     /// Extraction result (when completed)
     ExtractionResult? result,
 
     /// Source URL where this document was found
-    @JsonKey(name: 'source_url')
-    String? sourceUrl,
+    @JsonKey(name: 'source_url') String? sourceUrl,
   }) = _CrawlChildJob;
-  
-  factory CrawlChildJob.fromJson(Map<String, Object?> json) => _$CrawlChildJobFromJson(json);
+
+  factory CrawlChildJob.fromJson(Map<String, Object?> json) =>
+      _$CrawlChildJobFromJson(json);
 }

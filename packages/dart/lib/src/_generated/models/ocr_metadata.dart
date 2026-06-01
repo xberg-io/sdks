@@ -19,20 +19,17 @@ abstract class OcrMetadata with _$OcrMetadata {
     required String language,
 
     /// Output format (e.g., "text", "hocr")
-    @JsonKey(name: 'output_format')
-    required String outputFormat,
+    @JsonKey(name: 'output_format') required String outputFormat,
 
     /// Tesseract Page Segmentation Mode (PSM)
     required int psm,
 
     /// Number of tables detected
-    @JsonKey(name: 'table_count')
-    required int tableCount,
-    @JsonKey(name: 'table_cols')
-    int? tableCols,
-    @JsonKey(name: 'table_rows')
-    int? tableRows,
+    @JsonKey(name: 'table_count') required int tableCount,
+    @JsonKey(name: 'table_cols') int? tableCols,
+    @JsonKey(name: 'table_rows') int? tableRows,
   }) = _OcrMetadata;
-  
-  factory OcrMetadata.fromJson(Map<String, Object?> json) => _$OcrMetadataFromJson(json);
+
+  factory OcrMetadata.fromJson(Map<String, Object?> json) =>
+      _$OcrMetadataFromJson(json);
 }

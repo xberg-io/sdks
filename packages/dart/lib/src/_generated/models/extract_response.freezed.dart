@@ -17,7 +17,8 @@ mixin _$ExtractResponse {
 
 /// Job status
  String get status;/// Crawl job IDs (one per URL group)
-@JsonKey(name: 'crawl_job_ids') List<String>? get crawlJobIds;/// Job IDs for direct file extractions
+@JsonKey(name: 'crawl_job_ids') List<String>? get crawlJobIds;/// Detailed document submissions (new, includes lineage when present)
+ List<DocumentSubmission>? get documents;/// Job IDs for direct file extractions (backward compat)
 @JsonKey(name: 'job_ids') List<String>? get jobIds;
 /// Create a copy of ExtractResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -31,16 +32,16 @@ $ExtractResponseCopyWith<ExtractResponse> get copyWith => _$ExtractResponseCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExtractResponse&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.crawlJobIds, crawlJobIds)&&const DeepCollectionEquality().equals(other.jobIds, jobIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExtractResponse&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.crawlJobIds, crawlJobIds)&&const DeepCollectionEquality().equals(other.documents, documents)&&const DeepCollectionEquality().equals(other.jobIds, jobIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(crawlJobIds),const DeepCollectionEquality().hash(jobIds));
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(crawlJobIds),const DeepCollectionEquality().hash(documents),const DeepCollectionEquality().hash(jobIds));
 
 @override
 String toString() {
-  return 'ExtractResponse(status: $status, crawlJobIds: $crawlJobIds, jobIds: $jobIds)';
+  return 'ExtractResponse(status: $status, crawlJobIds: $crawlJobIds, documents: $documents, jobIds: $jobIds)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $ExtractResponseCopyWith<$Res>  {
   factory $ExtractResponseCopyWith(ExtractResponse value, $Res Function(ExtractResponse) _then) = _$ExtractResponseCopyWithImpl;
 @useResult
 $Res call({
- String status,@JsonKey(name: 'crawl_job_ids') List<String>? crawlJobIds,@JsonKey(name: 'job_ids') List<String>? jobIds
+ String status,@JsonKey(name: 'crawl_job_ids') List<String>? crawlJobIds, List<DocumentSubmission>? documents,@JsonKey(name: 'job_ids') List<String>? jobIds
 });
 
 
@@ -68,11 +69,12 @@ class _$ExtractResponseCopyWithImpl<$Res>
 
 /// Create a copy of ExtractResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? crawlJobIds = freezed,Object? jobIds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? crawlJobIds = freezed,Object? documents = freezed,Object? jobIds = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,crawlJobIds: freezed == crawlJobIds ? _self.crawlJobIds : crawlJobIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,jobIds: freezed == jobIds ? _self.jobIds : jobIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,documents: freezed == documents ? _self.documents : documents // ignore: cast_nullable_to_non_nullable
+as List<DocumentSubmission>?,jobIds: freezed == jobIds ? _self.jobIds : jobIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds, @JsonKey(name: 'job_ids')  List<String>? jobIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds,  List<DocumentSubmission>? documents, @JsonKey(name: 'job_ids')  List<String>? jobIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExtractResponse() when $default != null:
-return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
+return $default(_that.status,_that.crawlJobIds,_that.documents,_that.jobIds);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds, @JsonKey(name: 'job_ids')  List<String>? jobIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds,  List<DocumentSubmission>? documents, @JsonKey(name: 'job_ids')  List<String>? jobIds)  $default,) {final _that = this;
 switch (_that) {
 case _ExtractResponse():
-return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
+return $default(_that.status,_that.crawlJobIds,_that.documents,_that.jobIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds, @JsonKey(name: 'job_ids')  List<String>? jobIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status, @JsonKey(name: 'crawl_job_ids')  List<String>? crawlJobIds,  List<DocumentSubmission>? documents, @JsonKey(name: 'job_ids')  List<String>? jobIds)?  $default,) {final _that = this;
 switch (_that) {
 case _ExtractResponse() when $default != null:
-return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
+return $default(_that.status,_that.crawlJobIds,_that.documents,_that.jobIds);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.status,_that.crawlJobIds,_that.jobIds);case _:
 @JsonSerializable()
 
 class _ExtractResponse implements ExtractResponse {
-  const _ExtractResponse({required this.status, @JsonKey(name: 'crawl_job_ids') final  List<String>? crawlJobIds, @JsonKey(name: 'job_ids') final  List<String>? jobIds}): _crawlJobIds = crawlJobIds,_jobIds = jobIds;
+  const _ExtractResponse({required this.status, @JsonKey(name: 'crawl_job_ids') final  List<String>? crawlJobIds, final  List<DocumentSubmission>? documents, @JsonKey(name: 'job_ids') final  List<String>? jobIds}): _crawlJobIds = crawlJobIds,_documents = documents,_jobIds = jobIds;
   factory _ExtractResponse.fromJson(Map<String, dynamic> json) => _$ExtractResponseFromJson(json);
 
 /// Job status
@@ -230,9 +232,20 @@ class _ExtractResponse implements ExtractResponse {
   return EqualUnmodifiableListView(value);
 }
 
-/// Job IDs for direct file extractions
+/// Detailed document submissions (new, includes lineage when present)
+ final  List<DocumentSubmission>? _documents;
+/// Detailed document submissions (new, includes lineage when present)
+@override List<DocumentSubmission>? get documents {
+  final value = _documents;
+  if (value == null) return null;
+  if (_documents is EqualUnmodifiableListView) return _documents;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+/// Job IDs for direct file extractions (backward compat)
  final  List<String>? _jobIds;
-/// Job IDs for direct file extractions
+/// Job IDs for direct file extractions (backward compat)
 @override@JsonKey(name: 'job_ids') List<String>? get jobIds {
   final value = _jobIds;
   if (value == null) return null;
@@ -255,16 +268,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExtractResponse&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._crawlJobIds, _crawlJobIds)&&const DeepCollectionEquality().equals(other._jobIds, _jobIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExtractResponse&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._crawlJobIds, _crawlJobIds)&&const DeepCollectionEquality().equals(other._documents, _documents)&&const DeepCollectionEquality().equals(other._jobIds, _jobIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_crawlJobIds),const DeepCollectionEquality().hash(_jobIds));
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_crawlJobIds),const DeepCollectionEquality().hash(_documents),const DeepCollectionEquality().hash(_jobIds));
 
 @override
 String toString() {
-  return 'ExtractResponse(status: $status, crawlJobIds: $crawlJobIds, jobIds: $jobIds)';
+  return 'ExtractResponse(status: $status, crawlJobIds: $crawlJobIds, documents: $documents, jobIds: $jobIds)';
 }
 
 
@@ -275,7 +288,7 @@ abstract mixin class _$ExtractResponseCopyWith<$Res> implements $ExtractResponse
   factory _$ExtractResponseCopyWith(_ExtractResponse value, $Res Function(_ExtractResponse) _then) = __$ExtractResponseCopyWithImpl;
 @override @useResult
 $Res call({
- String status,@JsonKey(name: 'crawl_job_ids') List<String>? crawlJobIds,@JsonKey(name: 'job_ids') List<String>? jobIds
+ String status,@JsonKey(name: 'crawl_job_ids') List<String>? crawlJobIds, List<DocumentSubmission>? documents,@JsonKey(name: 'job_ids') List<String>? jobIds
 });
 
 
@@ -292,11 +305,12 @@ class __$ExtractResponseCopyWithImpl<$Res>
 
 /// Create a copy of ExtractResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? crawlJobIds = freezed,Object? jobIds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? crawlJobIds = freezed,Object? documents = freezed,Object? jobIds = freezed,}) {
   return _then(_ExtractResponse(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,crawlJobIds: freezed == crawlJobIds ? _self._crawlJobIds : crawlJobIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,jobIds: freezed == jobIds ? _self._jobIds : jobIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,documents: freezed == documents ? _self._documents : documents // ignore: cast_nullable_to_non_nullable
+as List<DocumentSubmission>?,jobIds: freezed == jobIds ? _self._jobIds : jobIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }

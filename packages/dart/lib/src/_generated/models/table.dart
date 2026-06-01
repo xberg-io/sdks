@@ -23,14 +23,12 @@ abstract class Table with _$Table {
     required String markdown,
 
     /// Page number where the table was found (1-indexed)
-    @JsonKey(name: 'page_number')
-    required int pageNumber,
+    @JsonKey(name: 'page_number') required int pageNumber,
 
     /// Bounding box of the table on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
     /// Only populated for PDF-extracted tables when position data is available.
-    @JsonKey(name: 'bounding_box')
-    BoundingBox? boundingBox,
+    @JsonKey(name: 'bounding_box') BoundingBox? boundingBox,
   }) = _Table;
-  
+
   factory Table.fromJson(Map<String, Object?> json) => _$TableFromJson(json);
 }

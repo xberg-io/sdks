@@ -5,6 +5,7 @@
 import 'package:dio/dio.dart';
 
 import 'health/health_client.dart';
+import 'documents/documents_client.dart';
 import 'extract/extract_client.dart';
 import 'jobs/jobs_client.dart';
 import 'super_sandbox/super_sandbox_client.dart';
@@ -15,11 +16,9 @@ import 'usage/usage_client.dart';
 ///
 /// Cloud document extraction API powered by Kreuzberg. Supports asynchronous extraction with webhook delivery.
 class KreuzbergCloudApi {
-  KreuzbergCloudApi(
-    Dio dio, {
-    String? baseUrl,
-  })  : _dio = dio,
-        _baseUrl = baseUrl;
+  KreuzbergCloudApi(Dio dio, {String? baseUrl})
+    : _dio = dio,
+      _baseUrl = baseUrl;
 
   final Dio _dio;
   final String? _baseUrl;
@@ -27,6 +26,7 @@ class KreuzbergCloudApi {
   static String get version => '1.0.0';
 
   HealthClient? _health;
+  DocumentsClient? _documents;
   ExtractClient? _extract;
   JobsClient? _jobs;
   SuperSandboxClient? _superSandbox;
@@ -35,13 +35,19 @@ class KreuzbergCloudApi {
 
   HealthClient get health => _health ??= HealthClient(_dio, baseUrl: _baseUrl);
 
-  ExtractClient get extract => _extract ??= ExtractClient(_dio, baseUrl: _baseUrl);
+  DocumentsClient get documents =>
+      _documents ??= DocumentsClient(_dio, baseUrl: _baseUrl);
+
+  ExtractClient get extract =>
+      _extract ??= ExtractClient(_dio, baseUrl: _baseUrl);
 
   JobsClient get jobs => _jobs ??= JobsClient(_dio, baseUrl: _baseUrl);
 
-  SuperSandboxClient get superSandbox => _superSandbox ??= SuperSandboxClient(_dio, baseUrl: _baseUrl);
+  SuperSandboxClient get superSandbox =>
+      _superSandbox ??= SuperSandboxClient(_dio, baseUrl: _baseUrl);
 
-  UploadsClient get uploads => _uploads ??= UploadsClient(_dio, baseUrl: _baseUrl);
+  UploadsClient get uploads =>
+      _uploads ??= UploadsClient(_dio, baseUrl: _baseUrl);
 
   UsageClient get usage => _usage ??= UsageClient(_dio, baseUrl: _baseUrl);
 }
