@@ -14,42 +14,63 @@ repos:
     stages:
     - commit-msg
 - repo: https://github.com/kreuzberg-dev/pre-commit-hooks
-  rev: v1.2.3
+  rev: v2.1.0
   hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-merge-conflict
-  - id: check-added-large-files
-  - id: detect-private-key
-  - id: check-json
-  - id: check-yaml
-    args:
-    - --allow-multiple-documents
-  - id: check-toml
-  - id: check-case-conflict
-  - id: pyproject-fmt
-  - id: ruff
-  - id: ruff-format
-  - id: mypy
-    files: ^packages/python/src/.*\.py$
-  - id: oxlint
-  - id: oxfmt
-  - id: go-fmt
-  - id: golangci-lint
-  - id: govulncheck
-  - id: shfmt
-    args:
-    - -w
-    - -i
-    - '2'
-  - id: shellcheck
-    args:
-    - -x
-  - id: dart-format
-  - id: dart-analyze
-  - id: rumdl-fmt
-  - id: actionlint
-  - id: gh-actions-updater
-  - id: typos
-    args:
-    - --force-exclude
+    # File safety
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-merge-conflict
+    - id: check-added-large-files
+    - id: detect-private-key
+    - id: check-case-conflict
+    - id: check-executables-have-shebangs
+    - id: check-shebang-scripts-are-executable
+    - id: mixed-line-ending
+    - id: typos
+      args: ["--force-exclude"]
+    - id: check-json
+    - id: check-yaml
+      args:
+      - --allow-multiple-documents
+    - id: check-toml
+
+    # GitHub Actions
+    - id: actionlint
+    - id: gh-actions-updater
+
+    # Shell
+    - id: shfmt
+      args: ["-w", "-i", "2"]
+    - id: shellcheck
+      args:
+      - -x
+
+    # Markdown
+    - id: rumdl-fmt
+    - id: markdownlint-rumdl-strict
+    - id: textlint
+
+    # Python
+    - id: pyproject-fmt
+    - id: ruff
+    - id: ruff-format
+    - id: mypy
+      files: ^packages/python/src/.*\.py$
+    - id: pydocstyle
+
+    # JS/TS
+    - id: oxlint
+    - id: oxfmt
+    - id: tsc-typecheck
+    - id: tsdoc-lint
+
+    # Go
+    - id: go-fmt
+    - id: golangci-lint
+    - id: govulncheck
+    - id: godoc-lint
+
+    # Dart
+    - id: dart-format
+    - id: dart-analyze
+    - id: dart-doc-lint
