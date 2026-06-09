@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CI: `spec-sync.yml` now authenticates via the `kreuzberg-dev-publisher` GitHub App (`actions/create-github-app-token@v2`) scoped to both `kreuzberg-cloud-sdk` and `kreuzberg-cloud`. PRs opened by the weekly sync now trigger downstream CI checks, which the default `GITHUB_TOKEN` suppresses.
+
 ## [0.3.1] - 2026-06-01
 
 ### Fixed

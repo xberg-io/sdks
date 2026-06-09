@@ -17,13 +17,27 @@ jobs:
     name: refresh vendored OpenAPI spec
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: kreuzberg-dev
+          repositories: |
+            kreuzberg-cloud-sdk
+            kreuzberg-cloud
+
       - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
       - name: Checkout sibling kreuzberg-cloud
         uses: actions/checkout@v6
         with:
           repository: kreuzberg-dev/kreuzberg-cloud
           path: _kreuzberg-cloud
           ref: main
+          token: ${{ steps.app-token.outputs.token }}
       - name: Install yq
         run: |
           sudo wget -qO /usr/local/bin/yq \
@@ -46,6 +60,7 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
           title: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
           body: |
