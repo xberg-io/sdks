@@ -21,6 +21,7 @@ tasks:
       - mv {{.GENERATED_DIR}}/_pkg/* {{.GENERATED_DIR}}/
       - rmdir {{.GENERATED_DIR}}/_pkg
       - touch {{.GENERATED_DIR}}/__init__.py
+      - uv run python {{.PKG_DIR}}/scripts/postprocess_generated.py {{.GENERATED_DIR}}
 
   install:
     desc: "Install Python package and dev deps via uv"
