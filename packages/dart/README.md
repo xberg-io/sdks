@@ -169,4 +169,4 @@ MIT — see `LICENSE`.
 Built and maintained by [Kreuzberg, Inc.](https://kreuzberg.dev) — `contact@kreuzberg.dev`.
 Cross-language SDKs available in [Python](https://pypi.org/project/kreuzberg-cloud-sdk/),
 [TypeScript](https://www.npmjs.com/package/@kreuzberg/cloud), and
-[Go](https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/tree/main/packages/go/v1).
+[Go](https://github.com/xberg-io/kreuzberg-cloud-sdk/tree/main/packages/go/v1).

@@ -10,10 +10,10 @@
 
 <a href="https://pypi.org/project/kreuzberg-cloud-sdk/"><img src="https://img.shields.io/pypi/v/kreuzberg-cloud-sdk?label=PyPI&color=007ec6" alt="PyPI"></a>
 <a href="https://www.npmjs.com/package/@kreuzberg/cloud"><img src="https://img.shields.io/npm/v/%40kreuzberg%2Fcloud?label=npm&color=007ec6" alt="npm"></a>
-<a href="https://pkg.go.dev/github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
-<a href="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+<a href="https://pkg.go.dev/github.com/xberg-io/kreuzberg-cloud-sdk/go"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
+<a href="https://github.com/xberg-io/kreuzberg-cloud-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 <a href="https://docs.kreuzberg.cloud"><img src="https://img.shields.io/badge/docs-kreuzberg.cloud-007ec6" alt="Documentation"></a>
-<a href="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/actions/workflows/validate.yml"><img src="https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
+<a href="https://github.com/xberg-io/kreuzberg-cloud-sdk/actions/workflows/validate.yml"><img src="https://github.com/xberg-io/kreuzberg-cloud-sdk/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
 
 </div>
 
@@ -27,7 +27,7 @@ Official Go client for the [Kreuzberg Cloud](https://kreuzberg.cloud)
 document-processing API.
 
 ```sh
-go get github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go
+go get github.com/xberg-io/kreuzberg-cloud-sdk/go
 ```
 
 Requires Go 1.26+.
@@ -50,7 +50,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"
+    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
 )
 
 func main() {
@@ -90,7 +90,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"
+    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
 )
 
 func main() {
@@ -146,7 +146,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"
+    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
 )
 
 func main() {

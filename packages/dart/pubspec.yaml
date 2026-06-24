@@ -4,9 +4,9 @@ description: >-
   Asynchronous extraction with webhook delivery, presigned uploads, and job polling.
 version: 0.3.1
 homepage: https://kreuzberg.dev
-repository: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk
-issue_tracker: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues
-documentation: https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/tree/main/packages/dart#readme
+repository: https://github.com/xberg-io/kreuzberg-cloud-sdk
+issue_tracker: https://github.com/xberg-io/kreuzberg-cloud-sdk/issues
+documentation: https://github.com/xberg-io/kreuzberg-cloud-sdk/tree/main/packages/dart#readme
 
 environment:
   sdk: '>=3.8.0 <4.0.0'

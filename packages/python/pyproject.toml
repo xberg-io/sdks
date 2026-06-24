@@ -33,11 +33,11 @@ dependencies = [
   "python-dateutil>=2.9",
   "typing-extensions>=4.12; python_version<'3.11'",
 ]
-urls.Changelog = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/blob/main/CHANGELOG.md"
+urls.Changelog = "https://github.com/xberg-io/kreuzberg-cloud-sdk/blob/main/CHANGELOG.md"
 urls.Documentation = "https://docs.kreuzberg.cloud"
 urls.Homepage = "https://kreuzberg.cloud"
-urls.Issues = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
-urls.Repository = "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk"
+urls.Issues = "https://github.com/xberg-io/kreuzberg-cloud-sdk/issues"
+urls.Repository = "https://github.com/xberg-io/kreuzberg-cloud-sdk"
 
 [tool.hatch]
 build.targets.sdist.include = [

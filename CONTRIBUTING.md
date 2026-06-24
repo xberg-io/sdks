@@ -21,7 +21,7 @@ VERSION           # Single source of truth for the SDK version across all three 
 
 ## Development
 
-This repo is part of the [`kreuzberg-dev`](https://github.com/kreuzberg-dev) polyrepo.
+This repo is part of the [`kreuzberg-dev`](https://github.com/xberg-io) polyrepo.
 
 ```sh
 task setup       # install pnpm + uv + Go deps, install pre-commit hooks
@@ -68,7 +68,7 @@ Releases use a single unified `vX.Y.Z` tag that drives all three publishes from 
    - Validates every manifest matches the tag's version.
    - Pre-checks PyPI + npm registries; skips already-published versions.
    - Builds + publishes Python (PyPI, OIDC trusted publisher) and TypeScript (npm, `--provenance`, org `NPM_TOKEN`).
-   - Creates the Go module subtag `packages/go/v1/vX.Y.Z` via `kreuzberg-dev/actions/finalize-release@v1`.
+   - Creates the Go module subtag `packages/go/v1/vX.Y.Z` via `xberg-io/actions/finalize-release@v1`.
    - Auto-generates a GitHub Release with notes.
 6. `workflow_dispatch` supports `dry_run=true` and `force_republish=true` for staged verification before tagging.
 
@@ -78,6 +78,6 @@ Run `prek run --all-files` to validate formatting, linting, and type checking ac
 
 ## Contact
 
-- Issues: <https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues>
+- Issues: <https://github.com/xberg-io/kreuzberg-cloud-sdk/issues>
 - Email: <contact@kreuzberg.dev>
 - Discord: <https://discord.gg/xt9WY3GnKR>

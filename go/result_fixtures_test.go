@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"
+	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
 )
 
 // loadFixture reads a JSON file from spec/fixtures/ relative to the go/ module

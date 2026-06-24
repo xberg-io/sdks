@@ -13,7 +13,7 @@ repos:
     - --write
     stages:
     - commit-msg
-- repo: https://github.com/kreuzberg-dev/pre-commit-hooks
+- repo: https://github.com/xberg-io/pre-commit-hooks
   rev: v2.1.0
   hooks:
     # File safety

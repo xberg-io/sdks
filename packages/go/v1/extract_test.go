@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go/v1"
+	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"
 )
 
 func TestExtract_SubmitsSingleFileAndReturnsJob(t *testing.T) {

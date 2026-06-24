@@ -7,11 +7,11 @@
   "homepage": "https://kreuzberg.cloud",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk.git",
+    "url": "git+https://github.com/xberg-io/kreuzberg-cloud-sdk.git",
     "directory": "packages/typescript"
   },
   "bugs": {
-    "url": "https://github.com/kreuzberg-dev/kreuzberg-cloud-sdk/issues"
+    "url": "https://github.com/xberg-io/kreuzberg-cloud-sdk/issues"
   },
   "keywords": [
     "kreuzberg",

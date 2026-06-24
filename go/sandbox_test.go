@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	kreuzbergcloud "github.com/kreuzberg-dev/kreuzberg-cloud-sdk/go"
+	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
 )
 
 func TestCreateSandboxKey_ReturnsParsedKey(t *testing.T) {

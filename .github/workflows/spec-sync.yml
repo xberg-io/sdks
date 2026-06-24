@@ -34,7 +34,7 @@ jobs:
       - name: Checkout sibling kreuzberg-cloud
         uses: actions/checkout@v6
         with:
-          repository: kreuzberg-dev/kreuzberg-cloud
+          repository: xberg-io/kreuzberg-cloud
           path: _kreuzberg-cloud
           ref: main
           token: ${{ steps.app-token.outputs.token }}
@@ -65,7 +65,7 @@ jobs:
           title: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
           body: |
             Automated sync of `spec/openapi.yaml` from
-            `kreuzberg-dev/kreuzberg-cloud@main:services/api/spec/openapi.json`
+            `xberg-io/kreuzberg-cloud@main:services/api/spec/openapi.json`
             (the canonical public extraction API spec).
 
             Run `task generate` and review per-language diffs before merging.
