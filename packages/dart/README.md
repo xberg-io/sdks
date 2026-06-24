@@ -6,7 +6,7 @@ Official Dart client SDK for the [Kreuzberg Cloud][cloud] document extraction AP
 - Generated from the Kreuzberg Cloud OpenAPI 3.1 spec via `swagger_parser` (Retrofit + Dio, Freezed 3 sealed models)
 - Hand-written facade adds bearer auth, retry-with-backoff, typed exception hierarchy, multipart helpers, and `waitForJob` polling
 
-[cloud]: https://kreuzberg.dev
+[cloud]: https://xberg.io
 
 ## Install
 
@@ -166,7 +166,7 @@ MIT — see `LICENSE`.
 
 ---
 
-Built and maintained by [Kreuzberg, Inc.](https://kreuzberg.dev) — `contact@kreuzberg.dev`.
+Built and maintained by [Kreuzberg, Inc.](https://xberg.io) — `contact@kreuzberg.dev`.
 Cross-language SDKs available in [Python](https://pypi.org/project/kreuzberg-cloud-sdk/),
 [TypeScript](https://www.npmjs.com/package/@kreuzberg/cloud), and
 [Go](https://github.com/xberg-io/kreuzberg-cloud-sdk/tree/main/packages/go/v1).

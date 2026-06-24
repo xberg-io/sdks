@@ -13,7 +13,7 @@ import { KreuzbergError, RateLimitError, TimeoutError, raiseForStatus } from "./
 import type { ExtractResponse, ExtractionOptions, Job, JobResult, SandboxKey, WebhookConfig } from "./types.js";
 import { SUCCESS_JOB_STATUSES, TERMINAL_JOB_STATUSES } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://api.kreuzberg.dev";
+const DEFAULT_BASE_URL = "https://api.xberg.io";
 const USER_AGENT = "kreuzberg-cloud-typescript/0.0.1";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_POLL_INTERVAL_MS = 1_000;

@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
     from types import TracebackType
 
-DEFAULT_BASE_URL = "https://api.kreuzberg.dev"
+DEFAULT_BASE_URL = "https://api.xberg.io"
 DEFAULT_TIMEOUT_SECONDS = 30.0
 _USER_AGENT = "kreuzberg-cloud-python/0.0.1"
 

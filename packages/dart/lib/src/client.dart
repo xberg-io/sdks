@@ -24,7 +24,7 @@ import 'jobs_wait.dart';
 import 'retry.dart';
 import 'version.dart';
 
-const _defaultBaseUrl = 'https://api.kreuzberg.dev';
+const _defaultBaseUrl = 'https://api.xberg.io';
 const _defaultTimeout = Duration(seconds: 30);
 
 /// High-level Dart client for the Kreuzberg Cloud API.
@@ -43,7 +43,7 @@ class KreuzbergCloudClient {
   ///
   /// [apiKey] is sent as `Authorization: Bearer <apiKey>` on every request.
   ///
-  /// [baseUrl] defaults to `https://api.kreuzberg.dev`.
+  /// [baseUrl] defaults to `https://api.xberg.io`.
   ///
   /// [timeout] is applied as connect/send/receive timeout on the underlying
   /// Dio client (default 30s).

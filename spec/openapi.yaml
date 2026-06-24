@@ -10,7 +10,7 @@ info:
     name: BUSL-1.1
   version: 1.0.0
 servers:
-  - url: https://api.kreuzberg.dev
+  - url: https://api.xberg.io
     description: Production API
   - url: https://api.staging.kreuzberg.cloud
     description: Staging API

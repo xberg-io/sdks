@@ -76,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Default SDK API endpoint is now `https://api.kreuzberg.dev` across Python, TypeScript, Go, and Dart.
+- Default SDK API endpoint is now `https://api.xberg.io` across Python, TypeScript, Go, and Dart.
 - Dependency update tooling now exposes `task upgrade`, refreshes Dart dependencies, updates pre-commit hooks, and runs GitHub Actions pin maintenance through `uvx`.
 
 ### Fixed

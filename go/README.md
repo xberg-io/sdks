@@ -194,7 +194,7 @@ The full hierarchy is `APIError` (base) plus `AuthError`, `ValidationError`,
 ## Documentation
 
 - API reference: <https://docs.kreuzberg.cloud>
-- OpenAPI spec: <https://api.kreuzberg.dev/api-doc/openapi.json>
+- OpenAPI spec: <https://api.xberg.io/api-doc/openapi.json>
 
 ## License
 

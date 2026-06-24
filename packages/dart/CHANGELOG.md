@@ -4,7 +4,7 @@
 
 ## 0.1.0
 
-- Default API endpoint is now `https://api.kreuzberg.dev`.
+- Default API endpoint is now `https://api.xberg.io`.
 - Updated generated package metadata and dependency pins for the SDK release.
 
 ## 0.0.1
