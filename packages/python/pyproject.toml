@@ -10,8 +10,8 @@ readme = "README.md"
 keywords = [ "client", "cloud", "document-extraction", "kreuzberg", "openapi", "sdk" ]
 license = "MIT"
 license-files = [ "LICENSE" ]
-maintainers = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
-authors = [ { name = "Kreuzberg, Inc.", email = "contact@kreuzberg.dev" } ]
+maintainers = [ { name = "Kreuzberg, Inc.", email = "contact@xberg.io" } ]
+authors = [ { name = "Kreuzberg, Inc.", email = "contact@xberg.io" } ]
 requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",

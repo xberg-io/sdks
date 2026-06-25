@@ -3,7 +3,7 @@
   "version": "0.3.1",
   "description": "Official TypeScript client for the Xberg Enterprise document-processing API.",
   "license": "MIT",
-  "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",
+  "author": "Kreuzberg, Inc. <contact@xberg.io>",
   "homepage": "https://enterprise.xberg.io",
   "repository": {
     "type": "git",

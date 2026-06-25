@@ -79,5 +79,5 @@ Run `prek run --all-files` to validate formatting, linting, and type checking ac
 ## Contact
 
 - Issues: <https://github.com/xberg-io/sdks/issues>
-- Email: <contact@kreuzberg.dev>
+- Email: <contact@xberg.io>
 - Discord: <https://discord.gg/xt9WY3GnKR>
