@@ -74,7 +74,7 @@ func (c *Client) ListDocumentVersions(
 	offset int,
 ) ([]DocumentVersion, error) {
 	if documentID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: ListDocumentVersions requires a non-empty documentID")
+		return nil, fmt.Errorf("xberg-enterprise: ListDocumentVersions requires a non-empty documentID")
 	}
 	path := "/v1/documents/" + url.PathEscape(documentID) + "/versions"
 	q := url.Values{}
@@ -102,7 +102,7 @@ func (c *Client) GetLatestDocument(
 	documentID string,
 ) (*LatestDocument, error) {
 	if documentID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: GetLatestDocument requires a non-empty documentID")
+		return nil, fmt.Errorf("xberg-enterprise: GetLatestDocument requires a non-empty documentID")
 	}
 	var doc LatestDocument
 	spec := requestSpec{method: methodGet, path: "/v1/documents/" + url.PathEscape(documentID)}
@@ -134,10 +134,10 @@ func (c *Client) GetDocumentDiff(
 	to string,
 ) (*DocumentDiffResult, error) {
 	if documentID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: GetDocumentDiff requires a non-empty documentID")
+		return nil, fmt.Errorf("xberg-enterprise: GetDocumentDiff requires a non-empty documentID")
 	}
 	if from == "" || to == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: GetDocumentDiff requires non-empty from and to")
+		return nil, fmt.Errorf("xberg-enterprise: GetDocumentDiff requires non-empty from and to")
 	}
 	q := url.Values{}
 	q.Set("from", from)
@@ -151,17 +151,17 @@ func (c *Client) GetDocumentDiff(
 	case 200:
 		var d DiffResponse
 		if err := json.Unmarshal(body, &d); err != nil {
-			return nil, fmt.Errorf("kreuzberg-cloud: GetDocumentDiff decode 200: %w", err)
+			return nil, fmt.Errorf("xberg-enterprise: GetDocumentDiff decode 200: %w", err)
 		}
 		return &DocumentDiffResult{Diff: &d}, nil
 	case 202:
 		var a DiffAsyncAccepted
 		if err := json.Unmarshal(body, &a); err != nil {
-			return nil, fmt.Errorf("kreuzberg-cloud: GetDocumentDiff decode 202: %w", err)
+			return nil, fmt.Errorf("xberg-enterprise: GetDocumentDiff decode 202: %w", err)
 		}
 		return &DocumentDiffResult{Async: &a}, nil
 	default:
-		return nil, fmt.Errorf("kreuzberg-cloud: GetDocumentDiff unexpected status %d", status)
+		return nil, fmt.Errorf("xberg-enterprise: GetDocumentDiff unexpected status %d", status)
 	}
 }
 
@@ -175,10 +175,10 @@ func (c *Client) PollDocumentDiff(
 	opts *WaitOptions,
 ) (*DiffResponse, error) {
 	if documentID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: PollDocumentDiff requires a non-empty documentID")
+		return nil, fmt.Errorf("xberg-enterprise: PollDocumentDiff requires a non-empty documentID")
 	}
 	if diffJobID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: PollDocumentDiff requires a non-empty diffJobID")
+		return nil, fmt.Errorf("xberg-enterprise: PollDocumentDiff requires a non-empty diffJobID")
 	}
 	options := normaliseWaitOptions(opts)
 	start := time.Now()
@@ -195,15 +195,15 @@ func (c *Client) PollDocumentDiff(
 		case 200:
 			var d DiffResponse
 			if err := json.Unmarshal(body, &d); err != nil {
-				return nil, fmt.Errorf("kreuzberg-cloud: PollDocumentDiff decode 200: %w", err)
+				return nil, fmt.Errorf("xberg-enterprise: PollDocumentDiff decode 200: %w", err)
 			}
 			return &d, nil
 		case 202:
 			// still pending — fall through to backoff
 		case 422:
-			return nil, fmt.Errorf("kreuzberg-cloud: PollDocumentDiff failed: %s", string(body))
+			return nil, fmt.Errorf("xberg-enterprise: PollDocumentDiff failed: %s", string(body))
 		default:
-			return nil, fmt.Errorf("kreuzberg-cloud: PollDocumentDiff unexpected status %d", status)
+			return nil, fmt.Errorf("xberg-enterprise: PollDocumentDiff unexpected status %d", status)
 		}
 		if !time.Now().Before(deadline) {
 			return nil, &TimeoutError{JobID: diffJobID, Elapsed: time.Since(start)}

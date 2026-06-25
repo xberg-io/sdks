@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
-import '_generated/kreuzberg_cloud_api.dart';
+import '_generated/xberg_enterprise_api.dart';
 import '_generated/models/confirm_upload_request.dart';
 import '_generated/models/confirm_upload_response.dart';
 import '_generated/models/extract_json_request.dart';
@@ -27,7 +27,7 @@ import 'version.dart';
 const _defaultBaseUrl = 'https://api.xberg.io';
 const _defaultTimeout = Duration(seconds: 30);
 
-/// High-level Dart client for the Kreuzberg Cloud API.
+/// High-level Dart client for the Xberg Enterprise API.
 ///
 /// Wraps the generated Retrofit clients with:
 /// * bearer-token authentication

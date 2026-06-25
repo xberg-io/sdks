@@ -1,5 +1,5 @@
 /**
- * Error class hierarchy for Kreuzberg Cloud client failures.
+ * Error class hierarchy for Xberg Enterprise client failures.
  *
  * Every non-2xx HTTP response is mapped to a subclass of {@link KreuzbergError}.
  * `TimeoutError` is also raised when {@link KreuzbergCloud.waitForJob} exceeds

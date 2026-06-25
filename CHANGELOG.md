@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- CI: `spec-sync.yml` now authenticates via the `kreuzberg-dev-publisher` GitHub App (`actions/create-github-app-token@v2`) scoped to both `kreuzberg-cloud-sdk` and `kreuzberg-cloud`. PRs opened by the weekly sync now trigger downstream CI checks, which the default `GITHUB_TOKEN` suppresses.
+- CI: `spec-sync.yml` now authenticates via the `kreuzberg-dev-publisher` GitHub App (`actions/create-github-app-token@v2`) scoped to both `kreuzberg-cloud-sdk` and `xberg-enterprise`. PRs opened by the weekly sync now trigger downstream CI checks, which the default `GITHUB_TOKEN` suppresses.
 
 ## [0.3.1] - 2026-06-01
 
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed (breaking)
 
-- **Response wire shape.** Aligned with the kreuzberg-cloud `1.0.0` API which now re-exports kreuzberg core's authoritative response types instead of a hand-maintained shadow.
+- **Response wire shape.** Aligned with the xberg-enterprise `1.0.0` API which now re-exports kreuzberg core's authoritative response types instead of a hand-maintained shadow.
   - `Table.cells`: `Vec<{values: Vec<String>}>` → `Vec<Vec<String>>` (nested string arrays).
   - `Metadata.authors` / `Metadata.keywords` / `Metadata.tags`: always-present `Vec<String>` → optional `Option<Vec<String>>`.
   - `ExtractionResult.metadata`: now required (was optional).
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Dart client `kreuzberg_cloud_sdk` on pub.dev with async extraction, webhook delivery fields, presigned uploads, job polling, retry policy, and typed exceptions.
+- Dart client `xberg_enterprise_sdk` on pub.dev with async extraction, webhook delivery fields, presigned uploads, job polling, retry policy, and typed exceptions.
 
 ### Changed
 
@@ -90,13 +90,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Python client `kreuzberg-cloud-sdk` on PyPI: ergonomic `KreuzbergCloud` and `AsyncKreuzbergCloud` clients with `extract`, `extract_batch`, `get_job`, `wait_for_job`, `extract_and_wait`, plus typed error hierarchy (`AuthError`, `RateLimitError`, `ValidationError`, `NotFoundError`, `ServerError`, `TimeoutError`).
 - TypeScript client `@kreuzberg/cloud` on npm: ESM-only client with the same method surface as Python (`extract`, `extractBatch`, `getJob`, `waitForJob`, `extractAndWait`), error hierarchy, retry/backoff config, and full type declarations.
-- Go client `github.com/xberg-io/kreuzberg-cloud-sdk/go/v1`: hand-written interim client with `Extract`, `ExtractBatch`, `GetJob`, `WaitForJob`, `WaitForJobs`, `ExtractAndWait`, `FromSandbox`; idiomatic error hierarchy via `errors.As`.
+- Go client `github.com/xberg-io/sdks/go/v1`: hand-written interim client with `Extract`, `ExtractBatch`, `GetJob`, `WaitForJob`, `WaitForJobs`, `ExtractAndWait`, `FromSandbox`; idiomatic error hierarchy via `errors.As`.
 - Zero-friction sandbox onboarding: `client.create_sandbox_key()` (Py), `KreuzbergCloud.fromSandbox()` (TS), `client.FromSandbox(ctx)` (Go) — fetch an anonymous sandbox key (50 pages, 24h) and start extracting without signup.
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/xberg-io/kreuzberg-cloud-sdk/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/xberg-io/kreuzberg-cloud-sdk/compare/v0.1.1...v0.2.0
-[0.1.1]: https://github.com/xberg-io/kreuzberg-cloud-sdk/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/xberg-io/kreuzberg-cloud-sdk/compare/v0.0.1...v0.1.0
-[0.0.1]: https://github.com/xberg-io/kreuzberg-cloud-sdk/releases/tag/v0.0.1
+[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/xberg-io/sdks/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/xberg-io/sdks/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/xberg-io/sdks/compare/v0.0.1...v0.1.0
+[0.0.1]: https://github.com/xberg-io/sdks/releases/tag/v0.0.1

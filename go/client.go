@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-// DefaultBaseURL is the production endpoint of the Kreuzberg Cloud API.
+// DefaultBaseURL is the production endpoint of the Xberg Enterprise API.
 const DefaultBaseURL = "https://api.xberg.io"
 
-const userAgent = "kreuzberg-cloud-go/" + Version
+const userAgent = "xberg-enterprise-go/" + Version
 
 // Option configures a Client constructed via New.
 type Option func(*clientConfig)
@@ -78,7 +78,7 @@ func New(opts ...Option) (*Client, error) {
 		opt(&cfg)
 	}
 	if cfg.baseURL == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: base URL must not be empty")
+		return nil, fmt.Errorf("xberg-enterprise: base URL must not be empty")
 	}
 	return &Client{cfg: cfg}, nil
 }

@@ -20,7 +20,7 @@ const (
 // GetJob fetches the current status of a single job by ID.
 func (c *Client) GetJob(ctx context.Context, jobID string) (*Job, error) {
 	if jobID == "" {
-		return nil, fmt.Errorf("kreuzberg-cloud: GetJob requires a non-empty jobID")
+		return nil, fmt.Errorf("xberg-enterprise: GetJob requires a non-empty jobID")
 	}
 	var job Job
 	spec := requestSpec{method: "GET", path: "/v1/jobs/" + jobID}
@@ -166,7 +166,7 @@ func jobResultFromTerminal(job *Job) (*JobResult, error) {
 	case JobStatusCompleted, JobStatusPartialSuccess:
 		if job.Result == nil {
 			return nil, fmt.Errorf(
-				"kreuzberg-cloud: job %s reported %s but no result body",
+				"xberg-enterprise: job %s reported %s but no result body",
 				job.ID, job.Status,
 			)
 		}
@@ -176,12 +176,12 @@ func jobResultFromTerminal(job *Job) (*JobResult, error) {
 		if job.Result != nil && job.Result.Content != "" {
 			message = job.Result.Content
 		}
-		return nil, fmt.Errorf("kreuzberg-cloud: job %s failed: %s", job.ID, message)
+		return nil, fmt.Errorf("xberg-enterprise: job %s failed: %s", job.ID, message)
 	case JobStatusCancelled:
-		return nil, fmt.Errorf("kreuzberg-cloud: job %s was canceled", job.ID)
+		return nil, fmt.Errorf("xberg-enterprise: job %s was canceled", job.ID)
 	default:
 		return nil, fmt.Errorf(
-			"kreuzberg-cloud: job %s reached unrecognized terminal status %q",
+			"xberg-enterprise: job %s reached unrecognized terminal status %q",
 			job.ID, job.Status,
 		)
 	}

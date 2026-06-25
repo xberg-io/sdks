@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for the kreuzberg-cloud test suite."""
+"""Shared pytest fixtures for the xberg-enterprise test suite."""
 
 from __future__ import annotations
 

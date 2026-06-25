@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img width="3384" height="573" alt="Kreuzberg Cloud" src="https://github.com/user-attachments/assets/1b6c6ad7-3b6d-4171-b1c9-f2026cc9deb8">
+<img width="3384" height="573" alt="Xberg Enterprise" src="https://github.com/user-attachments/assets/1b6c6ad7-3b6d-4171-b1c9-f2026cc9deb8">
 
 </div>
 
@@ -10,10 +10,10 @@
 
 <a href="https://pypi.org/project/kreuzberg-cloud-sdk/"><img src="https://img.shields.io/pypi/v/kreuzberg-cloud-sdk?label=PyPI&color=007ec6" alt="PyPI"></a>
 <a href="https://www.npmjs.com/package/@kreuzberg/cloud"><img src="https://img.shields.io/npm/v/%40kreuzberg%2Fcloud?label=npm&color=007ec6" alt="npm"></a>
-<a href="https://pkg.go.dev/github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
-<a href="https://github.com/xberg-io/kreuzberg-cloud-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
-<a href="https://docs.kreuzberg.cloud"><img src="https://img.shields.io/badge/docs-kreuzberg.cloud-007ec6" alt="Documentation"></a>
-<a href="https://github.com/xberg-io/kreuzberg-cloud-sdk/actions/workflows/validate.yml"><img src="https://github.com/xberg-io/kreuzberg-cloud-sdk/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
+<a href="https://pkg.go.dev/github.com/xberg-io/sdks/go/v1"><img src="https://img.shields.io/badge/Go-pkg.go.dev-007ec6?logo=go&logoColor=white" alt="Go Reference"></a>
+<a href="https://github.com/xberg-io/sdks/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+<a href="https://enterprise.xberg.io"><img src="https://img.shields.io/badge/docs-enterprise.xberg.io-007ec6" alt="Documentation"></a>
+<a href="https://github.com/xberg-io/sdks/actions/workflows/validate.yml"><img src="https://github.com/xberg-io/sdks/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
 
 </div>
 
@@ -23,11 +23,11 @@
 
 </div>
 
-Official Go client for the [Kreuzberg Cloud](https://kreuzberg.cloud)
+Official Go client for the [Xberg Enterprise](https://enterprise.xberg.io)
 document-processing API.
 
 ```sh
-go get github.com/xberg-io/kreuzberg-cloud-sdk/go/v1
+go get github.com/xberg-io/sdks/go/v1
 ```
 
 Requires Go 1.26+.
@@ -50,7 +50,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"
+    kreuzbergcloud "github.com/xberg-io/sdks/go/v1"
 )
 
 func main() {
@@ -90,7 +90,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"
+    kreuzbergcloud "github.com/xberg-io/sdks/go/v1"
 )
 
 func main() {
@@ -146,7 +146,7 @@ import (
     "log"
     "os"
 
-    kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"
+    kreuzbergcloud "github.com/xberg-io/sdks/go/v1"
 )
 
 func main() {
@@ -193,7 +193,7 @@ The full hierarchy is `APIError` (base) plus `AuthError`, `ValidationError`,
 
 ## Documentation
 
-- API reference: <https://docs.kreuzberg.cloud>
+- API reference: <https://enterprise.xberg.io>
 - OpenAPI spec: <https://api.xberg.io/api-doc/openapi.json>
 
 ## License

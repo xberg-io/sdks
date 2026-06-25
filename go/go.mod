@@ -1,4 +1,4 @@
-module github.com/xberg-io/kreuzberg-cloud-sdk/go
+module github.com/xberg-io/sdks/go
 
 go 1.26
 

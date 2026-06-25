@@ -1,17 +1,17 @@
 {
   "name": "@kreuzberg/cloud",
   "version": "0.3.1",
-  "description": "Official TypeScript client for the Kreuzberg Cloud document-processing API.",
+  "description": "Official TypeScript client for the Xberg Enterprise document-processing API.",
   "license": "MIT",
   "author": "Kreuzberg, Inc. <contact@kreuzberg.dev>",
-  "homepage": "https://kreuzberg.cloud",
+  "homepage": "https://enterprise.xberg.io",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xberg-io/kreuzberg-cloud-sdk.git",
+    "url": "git+https://github.com/xberg-io/sdks.git",
     "directory": "packages/typescript"
   },
   "bugs": {
-    "url": "https://github.com/xberg-io/kreuzberg-cloud-sdk/issues"
+    "url": "https://github.com/xberg-io/sdks/issues"
   },
   "keywords": [
     "kreuzberg",

@@ -6,8 +6,8 @@ import httpx
 import pytest
 import respx
 
-from kreuzberg_cloud import AsyncKreuzbergCloud, KreuzbergCloud
-from kreuzberg_cloud import TimeoutError as ClientTimeoutError
+from xberg_enterprise import AsyncKreuzbergCloud, KreuzbergCloud
+from xberg_enterprise import TimeoutError as ClientTimeoutError
 from tests.conftest import make_extract_response, make_extraction_result, make_job_payload
 
 

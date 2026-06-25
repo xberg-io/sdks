@@ -1,4 +1,4 @@
-"""Public exception hierarchy for the kreuzberg-cloud client."""
+"""Public exception hierarchy for the xberg-enterprise client."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class KreuzbergCloudError(Exception):
-    """Base exception raised for any kreuzberg-cloud client error."""
+    """Base exception raised for any xberg-enterprise client error."""
 
     def __init__(self, message: str, *, status_code: int | None = None, payload: Any | None = None) -> None:
         super().__init__(message)

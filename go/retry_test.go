@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
+	kreuzbergcloud "github.com/xberg-io/sdks/go"
 )
 
 func TestRetry_RetriesOn503(t *testing.T) {

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from kreuzberg_cloud import AsyncKreuzbergCloud, KreuzbergCloud, KreuzbergCloudError
+from xberg_enterprise import AsyncKreuzbergCloud, KreuzbergCloud, KreuzbergCloudError
 
 
 def test_sync_client_constructs_with_api_key() -> None:

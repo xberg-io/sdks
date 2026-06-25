@@ -2,7 +2,7 @@
 
 [← Back to README](README.md)
 
-Official client SDKs for the Kreuzberg Cloud public extraction API, generated from the upstream OpenAPI 3.1 specification.
+Official client SDKs for the Xberg Enterprise public extraction API, generated from the upstream OpenAPI 3.1 specification.
 
 ## Layout
 
@@ -31,10 +31,10 @@ task lint        # prek run --all-files
 task build       # build all language packages
 ```
 
-The OpenAPI spec is vendored from `kreuzberg-cloud`. The source of truth is the public extraction API spec emitted by `services/api` (utoipa-generated) and committed at `kreuzberg-cloud/services/api/spec/openapi.json`. To refresh:
+The OpenAPI spec is vendored from `xberg-enterprise`. The source of truth is the public extraction API spec emitted by `services/api` (utoipa-generated) and committed at `xberg-enterprise/services/api/spec/openapi.json`. To refresh:
 
 ```sh
-task spec:fetch  # copy + JSON→YAML from ../kreuzberg-cloud/services/api/spec/openapi.json
+task spec:fetch  # copy + JSON→YAML from ../xberg-enterprise/services/api/spec/openapi.json
 ```
 
 CI also runs a weekly `spec-sync` workflow that opens an automated PR with the latest snapshot.
@@ -44,7 +44,7 @@ CI also runs a weekly `spec-sync` workflow that opens an automated PR with the l
 The single source of truth is the root `VERSION` file. `scripts/sync-versions.py` (run via `task version:sync`) propagates that value into every per-package manifest:
 
 - `packages/python/pyproject.toml` (`project.version`)
-- `packages/python/src/kreuzberg_cloud/__init__.py` (`__version__`)
+- `packages/python/src/xberg_enterprise/__init__.py` (`__version__`)
 - `packages/typescript/package.json` (`version`)
 - `packages/go/v1/version.go` (`const Version`)
 
@@ -78,6 +78,6 @@ Run `prek run --all-files` to validate formatting, linting, and type checking ac
 
 ## Contact
 
-- Issues: <https://github.com/xberg-io/kreuzberg-cloud-sdk/issues>
+- Issues: <https://github.com/xberg-io/sdks/issues>
 - Email: <contact@kreuzberg.dev>
 - Discord: <https://discord.gg/xt9WY3GnKR>

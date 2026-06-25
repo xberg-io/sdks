@@ -118,7 +118,7 @@ tasks:
   clean:
     desc: "Remove generated clients and build artifacts"
     cmds:
-      - rm -rf packages/python/src/kreuzberg_cloud/_generated
+      - rm -rf packages/python/src/xberg_enterprise/_generated
       - rm -rf packages/typescript/src/_generated
       - rm -f packages/go/v1/generated.go
       - rm -rf packages/dart/lib/src/_generated

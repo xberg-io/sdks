@@ -2,7 +2,7 @@ name: spec-sync
 
 on:
   # Weekly sweep on Monday 06:00 UTC. Source of truth is
-  # kreuzberg-cloud/services/api/spec/openapi.json — the canonical OpenAPI
+  # xberg-enterprise/services/api/spec/openapi.json — the canonical OpenAPI
   # spec emitted by the public extraction API (utoipa-generated).
   schedule:
     - cron: "0 6 * * 1"
@@ -24,18 +24,18 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: kreuzberg-dev
           repositories: |
-            kreuzberg-cloud-sdk
-            kreuzberg-cloud
+            sdks
+            xberg-enterprise
 
       - uses: actions/checkout@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
-      - name: Checkout sibling kreuzberg-cloud
+      - name: Checkout sibling xberg-enterprise
         uses: actions/checkout@v6
         with:
-          repository: xberg-io/kreuzberg-cloud
-          path: _kreuzberg-cloud
+          repository: xberg-io/xberg-enterprise
+          path: _xberg-enterprise
           ref: main
           token: ${{ steps.app-token.outputs.token }}
       - name: Install yq
@@ -46,7 +46,7 @@ jobs:
       - name: Convert JSON spec to YAML
         run: |
           yq -P -oy '.' \
-            _kreuzberg-cloud/services/api/spec/openapi.json \
+            _xberg-enterprise/services/api/spec/openapi.json \
             > spec/openapi.yaml
       - name: Detect drift
         id: diff
@@ -61,11 +61,11 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
-          commit-message: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
-          title: "chore(spec): sync openapi.yaml from kreuzberg-cloud"
+          commit-message: "chore(spec): sync openapi.yaml from xberg-enterprise"
+          title: "chore(spec): sync openapi.yaml from xberg-enterprise"
           body: |
             Automated sync of `spec/openapi.yaml` from
-            `xberg-io/kreuzberg-cloud@main:services/api/spec/openapi.json`
+            `xberg-io/xberg-enterprise@main:services/api/spec/openapi.json`
             (the canonical public extraction API spec).
 
             Run `task generate` and review per-language diffs before merging.

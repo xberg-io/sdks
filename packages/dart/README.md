@@ -1,9 +1,9 @@
-# kreuzberg_cloud_sdk
+# xberg_enterprise_sdk
 
-Official Dart client SDK for the [Kreuzberg Cloud][cloud] document extraction API.
+Official Dart client SDK for the [Xberg Enterprise][cloud] document extraction API.
 
 - Asynchronous extraction with webhook delivery, presigned uploads, and job polling
-- Generated from the Kreuzberg Cloud OpenAPI 3.1 spec via `swagger_parser` (Retrofit + Dio, Freezed 3 sealed models)
+- Generated from the Xberg Enterprise OpenAPI 3.1 spec via `swagger_parser` (Retrofit + Dio, Freezed 3 sealed models)
 - Hand-written facade adds bearer auth, retry-with-backoff, typed exception hierarchy, multipart helpers, and `waitForJob` polling
 
 [cloud]: https://xberg.io
@@ -11,7 +11,7 @@ Official Dart client SDK for the [Kreuzberg Cloud][cloud] document extraction AP
 ## Install
 
 ```sh
-dart pub add kreuzberg_cloud_sdk
+dart pub add xberg_enterprise_sdk
 ```
 
 Flutter projects: works out of the box (pure Dart, no plugin code).
@@ -19,7 +19,7 @@ Flutter projects: works out of the box (pure Dart, no plugin code).
 ## Usage
 
 ```dart
-import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
+import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
 
 Future<void> main() async {
   final client = KreuzbergCloudClient(
@@ -145,7 +145,7 @@ ceiling.
 ```dart
 KreuzbergCloudClient(
   apiKey: 'kc_...',
-  baseUrl: 'https://api.staging.kreuzberg.cloud', // optional
+  baseUrl: 'https://api.staging.enterprise.xberg.io', // optional
   timeout: const Duration(seconds: 30),           // optional
   retryPolicy: const RetryPolicy(maxRetries: 3),  // optional
   userAgent: 'my-app/1.0',                        // optional
@@ -157,7 +157,7 @@ KreuzbergCloudClient(
 
 All request/response schemas (66 in total) are generated as `freezed`
 sealed/data classes with `fromJson` / `toJson`. They are re-exported from
-this package, so `import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';`
+this package, so `import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';`
 gives you everything.
 
 ## License
@@ -169,4 +169,4 @@ MIT — see `LICENSE`.
 Built and maintained by [Kreuzberg, Inc.](https://xberg.io) — `contact@kreuzberg.dev`.
 Cross-language SDKs available in [Python](https://pypi.org/project/kreuzberg-cloud-sdk/),
 [TypeScript](https://www.npmjs.com/package/@kreuzberg/cloud), and
-[Go](https://github.com/xberg-io/kreuzberg-cloud-sdk/tree/main/packages/go/v1).
+[Go](https://github.com/xberg-io/sdks/tree/main/packages/go/v1).

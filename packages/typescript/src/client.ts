@@ -1,5 +1,5 @@
 /**
- * High-level Kreuzberg Cloud client.
+ * High-level Xberg Enterprise client.
  *
  * Wraps the generated `openapi-fetch` low-level client with ergonomic methods
  * that mirror the Python SDK shape (`extract`, `getJob`, `waitForJob`,
@@ -14,7 +14,7 @@ import type { ExtractResponse, ExtractionOptions, Job, JobResult, SandboxKey, We
 import { SUCCESS_JOB_STATUSES, TERMINAL_JOB_STATUSES } from "./types.js";
 
 const DEFAULT_BASE_URL = "https://api.xberg.io";
-const USER_AGENT = "kreuzberg-cloud-typescript/0.0.1";
+const USER_AGENT = "xberg-enterprise-typescript/0.0.1";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_POLL_INTERVAL_MS = 1_000;
 const DEFAULT_WAIT_TIMEOUT_MS = 5 * 60_000;

@@ -8,8 +8,8 @@ import httpx
 import pytest
 import respx
 
-from kreuzberg_cloud import AsyncKreuzbergCloud, KreuzbergCloud
-from kreuzberg_cloud import TimeoutError as ClientTimeoutError
+from xberg_enterprise import AsyncKreuzbergCloud, KreuzbergCloud
+from xberg_enterprise import TimeoutError as ClientTimeoutError
 from tests.conftest import make_extraction_result, make_job_payload
 
 
@@ -147,7 +147,7 @@ def test_wait_for_job_exponential_backoff_increases_interval(
         sleeps.append(seconds)
 
     # Patch the time.sleep used by the sync client (imported as a module symbol).
-    from kreuzberg_cloud import client as client_module
+    from xberg_enterprise import client as client_module
 
     monkeypatch.setattr(client_module.time, "sleep", _record_sleep)
 
@@ -175,7 +175,7 @@ def test_wait_for_job_constant_backoff_keeps_interval_steady(
     )
 
     sleeps: list[float] = []
-    from kreuzberg_cloud import client as client_module
+    from xberg_enterprise import client as client_module
 
     monkeypatch.setattr(client_module.time, "sleep", sleeps.append)
 

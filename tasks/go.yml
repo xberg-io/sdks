@@ -10,7 +10,7 @@ tasks:
     desc: "Regenerate Go client from spec/openapi.yaml (BLOCKED: oapi-codegen 3.1 support — see Workstream E-go)"
     cmds:
       # STATUS: Go codegen is blocked on upstream oapi-codegen support for
-      # OpenAPI 3.1 (oapi-codegen/oapi-codegen#373). The kreuzberg-cloud
+      # OpenAPI 3.1 (oapi-codegen/oapi-codegen#373). The xberg-enterprise
       # public API spec is 3.1 (utoipa default) and uses 3.1 nullable
       # unions inside oneOfs (`oneOf: [{type: null}, $ref]`) which the
       # downconverter strips lossy-ly and oapi-codegen v2.7 still chokes
@@ -20,9 +20,9 @@ tasks:
       # When unblocking, replace this block with the previous downconvert+
       # codegen flow:
       #   npx --yes @apiture/openapi-down-convert -i spec/openapi.yaml \
-      #       -o /tmp/kreuzberg-cloud-openapi-3.0.yaml
+      #       -o /tmp/xberg-enterprise-openapi-3.0.yaml
       #   cd {{.PKG_DIR}} && go tool oapi-codegen -config oapi-codegen.yaml \
-      #       /tmp/kreuzberg-cloud-openapi-3.0.yaml
+      #       /tmp/xberg-enterprise-openapi-3.0.yaml
       #   cd {{.PKG_DIR}} && go mod tidy
       - echo "Go codegen is blocked on oapi-codegen 3.1 support (Workstream E-go); skipping."
 

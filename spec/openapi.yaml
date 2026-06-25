@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Kreuzberg Cloud API
+  title: Xberg Enterprise API
   description: Cloud document extraction API powered by Kreuzberg. Supports asynchronous extraction with webhook delivery.
   contact:
-    name: Kreuzberg Cloud
-    url: https://docs.kreuzberg.cloud
+    name: Xberg Enterprise
+    url: https://enterprise.xberg.io
     email: support@kreuzberg.cloud
   license:
     name: BUSL-1.1
@@ -12,7 +12,7 @@ info:
 servers:
   - url: https://api.xberg.io
     description: Production API
-  - url: https://api.staging.kreuzberg.cloud
+  - url: https://api.staging.enterprise.xberg.io
     description: Staging API
 paths:
   /healthz:
@@ -5760,5 +5760,5 @@ tags:
   - name: health
     description: Health check endpoints
 externalDocs:
-  url: https://docs.kreuzberg.cloud
+  url: https://enterprise.xberg.io
   description: API reference and documentation

@@ -1,13 +1,13 @@
-"""Official Python client for the Kreuzberg Cloud API."""
+"""Official Python client for the Xberg Enterprise API."""
 
 from __future__ import annotations
 
-from kreuzberg_cloud._generated.models.extraction_options import ExtractionOptions
-from kreuzberg_cloud._generated.models.extraction_result import ExtractionResult
-from kreuzberg_cloud._generated.models.job_response import JobResponse
-from kreuzberg_cloud._generated.models.job_status import JobStatus
-from kreuzberg_cloud.client import AsyncKreuzbergCloud, KreuzbergCloud
-from kreuzberg_cloud.errors import (
+from xberg_enterprise._generated.models.extraction_options import ExtractionOptions
+from xberg_enterprise._generated.models.extraction_result import ExtractionResult
+from xberg_enterprise._generated.models.job_response import JobResponse
+from xberg_enterprise._generated.models.job_status import JobStatus
+from xberg_enterprise.client import AsyncKreuzbergCloud, KreuzbergCloud
+from xberg_enterprise.errors import (
     AuthError,
     KreuzbergCloudError,
     NotFoundError,
@@ -16,7 +16,7 @@ from kreuzberg_cloud.errors import (
     TimeoutError,  # noqa: A004 — domain-specific timeout, intentionally shadows builtin in this namespace
     ValidationError,
 )
-from kreuzberg_cloud.models import SandboxKey
+from xberg_enterprise.models import SandboxKey
 
 # Friendly aliases over the generated types: the API talks about "jobs" and
 # "extraction results", so expose the typed models under those names.

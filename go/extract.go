@@ -24,7 +24,7 @@ func (c *Client) Extract(
 		return nil, err
 	}
 	if len(jobs) == 0 {
-		return nil, fmt.Errorf("kreuzberg-cloud: server accepted extract request but returned no job IDs")
+		return nil, fmt.Errorf("xberg-enterprise: server accepted extract request but returned no job IDs")
 	}
 	return jobs[0], nil
 }
@@ -37,14 +37,14 @@ func (c *Client) ExtractBatch(
 	opts *ExtractionOptions,
 ) ([]*Job, error) {
 	if len(files) == 0 {
-		return nil, fmt.Errorf("kreuzberg-cloud: ExtractBatch requires at least one file")
+		return nil, fmt.Errorf("xberg-enterprise: ExtractBatch requires at least one file")
 	}
 	for i, f := range files {
 		if f.Name == "" {
-			return nil, fmt.Errorf("kreuzberg-cloud: file %d: Name must not be empty", i)
+			return nil, fmt.Errorf("xberg-enterprise: file %d: Name must not be empty", i)
 		}
 		if f.Reader == nil {
-			return nil, fmt.Errorf("kreuzberg-cloud: file %d (%s): Reader must not be nil", i, f.Name)
+			return nil, fmt.Errorf("xberg-enterprise: file %d (%s): Reader must not be nil", i, f.Name)
 		}
 	}
 	body, contentType, err := buildMultipartBody(files, opts)
@@ -66,7 +66,7 @@ func (c *Client) ExtractBatch(
 	}
 	if len(resp.JobIDs) != len(files) {
 		return nil, fmt.Errorf(
-			"kreuzberg-cloud: expected %d job IDs, got %d",
+			"xberg-enterprise: expected %d job IDs, got %d",
 			len(files), len(resp.JobIDs),
 		)
 	}
@@ -103,11 +103,11 @@ func buildMultipartBody(
 		header.Set("Content-Type", sniffContentType(file.Name))
 		part, err := writer.CreatePart(header)
 		if err != nil {
-			return nil, "", fmt.Errorf("kreuzberg-cloud: creating multipart part: %w", err)
+			return nil, "", fmt.Errorf("xberg-enterprise: creating multipart part: %w", err)
 		}
 		if _, err := io.Copy(part, file.Reader); err != nil {
 			return nil, "", fmt.Errorf(
-				"kreuzberg-cloud: copying file %q into multipart body: %w",
+				"xberg-enterprise: copying file %q into multipart body: %w",
 				file.Name, err,
 			)
 		}
@@ -115,17 +115,17 @@ func buildMultipartBody(
 	if opts != nil {
 		encoded, err := json.Marshal(opts)
 		if err != nil {
-			return nil, "", fmt.Errorf("kreuzberg-cloud: encoding options: %w", err)
+			return nil, "", fmt.Errorf("xberg-enterprise: encoding options: %w", err)
 		}
 		if err := writer.WriteField("options", string(encoded)); err != nil {
-			return nil, "", fmt.Errorf("kreuzberg-cloud: writing options field: %w", err)
+			return nil, "", fmt.Errorf("xberg-enterprise: writing options field: %w", err)
 		}
 	}
 	if err := writer.WriteField("webhook", `{"url":""}`); err != nil {
-		return nil, "", fmt.Errorf("kreuzberg-cloud: writing webhook field: %w", err)
+		return nil, "", fmt.Errorf("xberg-enterprise: writing webhook field: %w", err)
 	}
 	if err := writer.Close(); err != nil {
-		return nil, "", fmt.Errorf("kreuzberg-cloud: closing multipart writer: %w", err)
+		return nil, "", fmt.Errorf("xberg-enterprise: closing multipart writer: %w", err)
 	}
 	return buf.Bytes(), writer.FormDataContentType(), nil
 }

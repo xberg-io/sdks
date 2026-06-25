@@ -49,12 +49,12 @@ func (c *Client) doJSON(ctx context.Context, spec requestSpec, out any) error {
 	defer closeQuietly(body)
 	if out == nil {
 		if _, copyErr := io.Copy(io.Discard, body); copyErr != nil {
-			return fmt.Errorf("kreuzberg-cloud: discarding response body: %w", copyErr)
+			return fmt.Errorf("xberg-enterprise: discarding response body: %w", copyErr)
 		}
 		return nil
 	}
 	if err := json.NewDecoder(body).Decode(out); err != nil {
-		return fmt.Errorf("kreuzberg-cloud: decoding response: %w", err)
+		return fmt.Errorf("xberg-enterprise: decoding response: %w", err)
 	}
 	return nil
 }
@@ -76,7 +76,7 @@ func (c *Client) doRaw(
 	body, readErr := io.ReadAll(rc)
 	if readErr != nil {
 		return nil, status, fmt.Errorf(
-			"kreuzberg-cloud: reading response body: %w", readErr,
+			"xberg-enterprise: reading response body: %w", readErr,
 		)
 	}
 	return body, status, nil
@@ -110,7 +110,7 @@ func (c *Client) doWithStatus(
 			rewound, rewindErr := spec.rewindBody()
 			if rewindErr != nil {
 				return nil, 0, fmt.Errorf(
-					"kreuzberg-cloud: rewinding body for retry: %w",
+					"xberg-enterprise: rewinding body for retry: %w",
 					rewindErr,
 				)
 			}
@@ -145,7 +145,7 @@ func (c *Client) doOnceWithCancelStatus(
 	req, err := http.NewRequestWithContext(ctx, spec.method, url, spec.body)
 	if err != nil {
 		cancel()
-		return nil, 0, fmt.Errorf("kreuzberg-cloud: building request: %w", err)
+		return nil, 0, fmt.Errorf("xberg-enterprise: building request: %w", err)
 	}
 	if spec.bodyContentType != "" {
 		req.Header.Set("Content-Type", spec.bodyContentType)
@@ -159,7 +159,7 @@ func (c *Client) doOnceWithCancelStatus(
 	if err != nil {
 		cancel()
 		return nil, 0, fmt.Errorf(
-			"kreuzberg-cloud: %s %s: %w", spec.method, url, err,
+			"xberg-enterprise: %s %s: %w", spec.method, url, err,
 		)
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
@@ -169,7 +169,7 @@ func (c *Client) doOnceWithCancelStatus(
 	defer cancel()
 	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
-		return nil, 0, fmt.Errorf("kreuzberg-cloud: reading error response body: %w", readErr)
+		return nil, 0, fmt.Errorf("xberg-enterprise: reading error response body: %w", readErr)
 	}
 	return nil, 0, classifyHTTPError(resp.StatusCode, body, resp.Header)
 }
@@ -198,7 +198,7 @@ func (c *Client) do(ctx context.Context, spec requestSpec) (io.ReadCloser, error
 			}
 			rewound, rewindErr := spec.rewindBody()
 			if rewindErr != nil {
-				return nil, fmt.Errorf("kreuzberg-cloud: rewinding body for retry: %w", rewindErr)
+				return nil, fmt.Errorf("xberg-enterprise: rewinding body for retry: %w", rewindErr)
 			}
 			spec.body = rewound
 		}
@@ -229,7 +229,7 @@ func (c *Client) doOnceWithCancel(
 	req, err := http.NewRequestWithContext(ctx, spec.method, url, spec.body)
 	if err != nil {
 		cancel()
-		return nil, fmt.Errorf("kreuzberg-cloud: building request: %w", err)
+		return nil, fmt.Errorf("xberg-enterprise: building request: %w", err)
 	}
 	if spec.bodyContentType != "" {
 		req.Header.Set("Content-Type", spec.bodyContentType)
@@ -242,7 +242,7 @@ func (c *Client) doOnceWithCancel(
 	resp, err := c.cfg.httpClient.Do(req)
 	if err != nil {
 		cancel()
-		return nil, fmt.Errorf("kreuzberg-cloud: %s %s: %w", spec.method, url, err)
+		return nil, fmt.Errorf("xberg-enterprise: %s %s: %w", spec.method, url, err)
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return &cancellingReadCloser{rc: resp.Body, cancel: cancel}, nil
@@ -251,7 +251,7 @@ func (c *Client) doOnceWithCancel(
 	defer cancel()
 	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
-		return nil, fmt.Errorf("kreuzberg-cloud: reading error response body: %w", readErr)
+		return nil, fmt.Errorf("xberg-enterprise: reading error response body: %w", readErr)
 	}
 	return nil, classifyHTTPError(resp.StatusCode, body, resp.Header)
 }

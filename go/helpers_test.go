@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go"
+	kreuzbergcloud "github.com/xberg-io/sdks/go"
 )
 
 // mustClient builds a Client with the given options, failing the test on

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	kreuzbergcloud "github.com/xberg-io/kreuzberg-cloud-sdk/go/v1"
+	kreuzbergcloud "github.com/xberg-io/sdks/go/v1"
 )
 
 func TestError_AuthErrorOn401(t *testing.T) {

@@ -1,4 +1,4 @@
-// Minimal end-to-end example of the Kreuzberg Cloud Dart SDK.
+// Minimal end-to-end example of the Xberg Enterprise Dart SDK.
 //
 // Run with:
 //
@@ -10,7 +10,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
+import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
 
 Future<void> main() async {
   final apiKey = Platform.environment['KREUZBERG_API_KEY'];
@@ -31,7 +31,7 @@ Future<void> main() async {
           DocumentInput(
             filename: 'hello.txt',
             mimeType: 'text/plain',
-            data: base64Encode(utf8.encode('Hello, Kreuzberg Cloud!')),
+            data: base64Encode(utf8.encode('Hello, Xberg Enterprise!')),
           ),
         ],
         options: const ExtractionOptions(

@@ -5,7 +5,7 @@ requires = [ "hatchling>=1.27" ]
 [project]
 name = "kreuzberg-cloud-sdk"
 version = "0.3.1"
-description = "Official Python client for the Kreuzberg Cloud document-processing API."
+description = "Official Python client for the Xberg Enterprise document-processing API."
 readme = "README.md"
 keywords = [ "client", "cloud", "document-extraction", "kreuzberg", "openapi", "sdk" ]
 license = "MIT"
@@ -33,17 +33,17 @@ dependencies = [
   "python-dateutil>=2.9",
   "typing-extensions>=4.12; python_version<'3.11'",
 ]
-urls.Changelog = "https://github.com/xberg-io/kreuzberg-cloud-sdk/blob/main/CHANGELOG.md"
-urls.Documentation = "https://docs.kreuzberg.cloud"
-urls.Homepage = "https://kreuzberg.cloud"
-urls.Issues = "https://github.com/xberg-io/kreuzberg-cloud-sdk/issues"
-urls.Repository = "https://github.com/xberg-io/kreuzberg-cloud-sdk"
+urls.Changelog = "https://github.com/xberg-io/sdks/blob/main/CHANGELOG.md"
+urls.Documentation = "https://enterprise.xberg.io"
+urls.Homepage = "https://enterprise.xberg.io"
+urls.Issues = "https://github.com/xberg-io/sdks/issues"
+urls.Repository = "https://github.com/xberg-io/sdks"
 
 [tool.hatch]
 build.targets.sdist.include = [
-  "src/kreuzberg_cloud/**",
+  "src/xberg_enterprise/**",
   "README.md",
   "LICENSE",
   "pyproject.toml",
 ]
-build.targets.wheel.packages = [ "src/kreuzberg_cloud" ]
+build.targets.wheel.packages = [ "src/xberg_enterprise" ]

@@ -3,30 +3,30 @@ version: "3"
 # Tasks for managing the vendored OpenAPI specification.
 #
 # Source of truth is the public extraction API spec emitted by
-# kreuzberg-cloud/services/api (utoipa-generated). The sibling cloud repo
+# xberg-enterprise/services/api (utoipa-generated). The sibling cloud repo
 # commits the JSON snapshot at services/api/spec/openapi.json; we vendor
 # it here as YAML to match the codegen toolchain's preferred input format.
 
 vars:
   SPEC_PATH: spec/openapi.yaml
-  UPSTREAM_LOCAL: ../kreuzberg-cloud/services/api/spec/openapi.json
-  UPSTREAM_URL: '{{.KREUZBERG_CLOUD_URL | default "https://api.xberg.io"}}/api-doc/openapi.json'
+  UPSTREAM_LOCAL: ../xberg-enterprise/services/api/spec/openapi.json
+  UPSTREAM_URL: '{{.XBERG_ENTERPRISE_URL | default "https://api.xberg.io"}}/api-doc/openapi.json'
 
 tasks:
   fetch:
-    desc: "Refresh spec/openapi.yaml from sibling kreuzberg-cloud repo (JSON → YAML)"
+    desc: "Refresh spec/openapi.yaml from sibling xberg-enterprise repo (JSON → YAML)"
     cmds:
       - yq -P -oy '.' {{.UPSTREAM_LOCAL}} > {{.SPEC_PATH}}
       - git diff --stat {{.SPEC_PATH}} || true
 
   fetch:remote:
-    desc: "Refresh spec/openapi.yaml from a running kreuzberg-cloud API server"
+    desc: "Refresh spec/openapi.yaml from a running xberg-enterprise API server"
     cmds:
       - curl -fsSL {{.UPSTREAM_URL}} | yq -P -oy '.' > {{.SPEC_PATH}}
       - git diff --stat {{.SPEC_PATH}} || true
 
   check:
-    desc: "Fail if vendored spec drifted from sibling kreuzberg-cloud copy"
+    desc: "Fail if vendored spec drifted from sibling xberg-enterprise copy"
     cmds:
       - diff -q <(yq -P -oy '.' {{.UPSTREAM_LOCAL}}) {{.SPEC_PATH}}
 

@@ -12,7 +12,7 @@ import 'super_sandbox/super_sandbox_client.dart';
 import 'uploads/uploads_client.dart';
 import 'usage/usage_client.dart';
 
-/// Kreuzberg Cloud API `v1.0.0`.
+/// Xberg Enterprise API `v1.0.0`.
 ///
 /// Cloud document extraction API powered by Kreuzberg. Supports asynchronous extraction with webhook delivery.
 class KreuzbergCloudApi {

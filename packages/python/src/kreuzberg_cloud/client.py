@@ -1,4 +1,4 @@
-"""High-level wrappers around the kreuzberg-cloud HTTP API.
+"""High-level wrappers around the xberg-enterprise HTTP API.
 
 The classes in this module wrap the underlying transport in an idiomatic,
 ergonomic shape — handling authentication, base URL configuration, resource
@@ -18,11 +18,11 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Literal
 
 import httpx
 
-from kreuzberg_cloud._generated.models.extraction_options import ExtractionOptions
-from kreuzberg_cloud._generated.models.job_response import JobResponse
-from kreuzberg_cloud.errors import TimeoutError as ClientTimeoutError
-from kreuzberg_cloud.errors import raise_for_status
-from kreuzberg_cloud.models import SandboxKey
+from xberg_enterprise._generated.models.extraction_options import ExtractionOptions
+from xberg_enterprise._generated.models.job_response import JobResponse
+from xberg_enterprise.errors import TimeoutError as ClientTimeoutError
+from xberg_enterprise.errors import raise_for_status
+from xberg_enterprise.models import SandboxKey
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 DEFAULT_BASE_URL = "https://api.xberg.io"
 DEFAULT_TIMEOUT_SECONDS = 30.0
-_USER_AGENT = "kreuzberg-cloud-python/0.0.1"
+_USER_AGENT = "xberg-enterprise-python/0.0.1"
 
 _TERMINAL_STATUSES: frozenset[str] = frozenset({"completed", "failed", "cancelled", "partial_success"})
 _FAILED_STATUSES: frozenset[str] = frozenset({"failed", "cancelled"})
@@ -148,7 +148,7 @@ class _BaseClient:
 
 
 class KreuzbergCloud(_BaseClient):
-    """Synchronous client for the Kreuzberg Cloud API.
+    """Synchronous client for the Xberg Enterprise API.
 
     Use as a context manager to ensure the underlying HTTP connection pool is
     closed:
@@ -231,7 +231,7 @@ class KreuzbergCloud(_BaseClient):
     ) -> JobResponse:
         """Poll ``GET /v1/jobs/{id}`` until the job reaches a terminal status or ``timeout`` elapses.
 
-        Raises :class:`kreuzberg_cloud.errors.TimeoutError` if the deadline is
+        Raises :class:`xberg_enterprise.errors.TimeoutError` if the deadline is
         hit before the job reaches a terminal status. Failed/cancelled jobs are
         returned to the caller (not raised) — inspect ``job.status`` to branch.
         """
@@ -310,7 +310,7 @@ class KreuzbergCloud(_BaseClient):
 
 
 class AsyncKreuzbergCloud(_BaseClient):
-    """Asynchronous client for the Kreuzberg Cloud API.
+    """Asynchronous client for the Xberg Enterprise API.
 
     Mirrors :class:`KreuzbergCloud` method-for-method; everything is awaitable.
 

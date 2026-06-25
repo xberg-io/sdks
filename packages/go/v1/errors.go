@@ -22,9 +22,9 @@ type APIError struct {
 // Error implements the error interface.
 func (e *APIError) Error() string {
 	if e.Message != "" {
-		return fmt.Sprintf("kreuzberg-cloud: HTTP %d: %s", e.Status, e.Message)
+		return fmt.Sprintf("xberg-enterprise: HTTP %d: %s", e.Status, e.Message)
 	}
-	return fmt.Sprintf("kreuzberg-cloud: HTTP %d", e.Status)
+	return fmt.Sprintf("xberg-enterprise: HTTP %d", e.Status)
 }
 
 // AuthError wraps 401 Unauthorized responses.
@@ -32,7 +32,7 @@ type AuthError struct{ APIError }
 
 // Error overrides the embedded APIError.Error to surface the error type.
 func (e *AuthError) Error() string {
-	return "kreuzberg-cloud: authentication failed: " + e.APIError.Error()
+	return "xberg-enterprise: authentication failed: " + e.APIError.Error()
 }
 
 // Unwrap exposes the embedded APIError so errors.As(err, &apiErr) works.
@@ -43,7 +43,7 @@ type ValidationError struct{ APIError }
 
 // Error overrides APIError.Error for type clarity in stack traces.
 func (e *ValidationError) Error() string {
-	return "kreuzberg-cloud: validation failed: " + e.APIError.Error()
+	return "xberg-enterprise: validation failed: " + e.APIError.Error()
 }
 
 // Unwrap exposes the embedded APIError.
@@ -54,7 +54,7 @@ type NotFoundError struct{ APIError }
 
 // Error overrides APIError.Error.
 func (e *NotFoundError) Error() string {
-	return "kreuzberg-cloud: not found: " + e.APIError.Error()
+	return "xberg-enterprise: not found: " + e.APIError.Error()
 }
 
 // Unwrap exposes the embedded APIError.
@@ -70,10 +70,10 @@ type RateLimitError struct {
 // Error overrides APIError.Error.
 func (e *RateLimitError) Error() string {
 	if e.RetryAfter > 0 {
-		return fmt.Sprintf("kreuzberg-cloud: rate limited (retry after %s): %s",
+		return fmt.Sprintf("xberg-enterprise: rate limited (retry after %s): %s",
 			e.RetryAfter, e.APIError.Error())
 	}
-	return "kreuzberg-cloud: rate limited: " + e.APIError.Error()
+	return "xberg-enterprise: rate limited: " + e.APIError.Error()
 }
 
 // Unwrap exposes the embedded APIError.
@@ -84,7 +84,7 @@ type ServerError struct{ APIError }
 
 // Error overrides APIError.Error.
 func (e *ServerError) Error() string {
-	return "kreuzberg-cloud: server error: " + e.APIError.Error()
+	return "xberg-enterprise: server error: " + e.APIError.Error()
 }
 
 // Unwrap exposes the embedded APIError.
@@ -102,7 +102,7 @@ type TimeoutError struct {
 // Error implements error.
 func (e *TimeoutError) Error() string {
 	return fmt.Sprintf(
-		"kreuzberg-cloud: timed out waiting for job %s after %s",
+		"xberg-enterprise: timed out waiting for job %s after %s",
 		e.JobID, e.Elapsed,
 	)
 }
