@@ -1,7 +1,7 @@
 """Public models that augment the auto-generated OpenAPI types.
 
-The auto-generated types under :mod:`xberg_enterprise._generated.models` are
-re-exported from :mod:`xberg_enterprise` under friendlier names. Anything in
+The auto-generated types under :mod:`kreuzberg_cloud._generated.models` are
+re-exported from :mod:`kreuzberg_cloud` under friendlier names. Anything in
 this module is hand-written — typically because the relevant endpoint is
 not part of the published OpenAPI spec yet.
 """

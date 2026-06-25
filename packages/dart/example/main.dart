@@ -10,7 +10,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
+import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 
 Future<void> main() async {
   final apiKey = Platform.environment['KREUZBERG_API_KEY'];

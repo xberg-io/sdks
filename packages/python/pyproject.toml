@@ -41,9 +41,9 @@ urls.Repository = "https://github.com/xberg-io/sdks"
 
 [tool.hatch]
 build.targets.sdist.include = [
-  "src/xberg_enterprise/**",
+  "src/kreuzberg_cloud/**",
   "README.md",
   "LICENSE",
   "pyproject.toml",
 ]
-build.targets.wheel.packages = [ "src/xberg_enterprise" ]
+build.targets.wheel.packages = [ "src/kreuzberg_cloud" ]

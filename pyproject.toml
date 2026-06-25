@@ -42,7 +42,7 @@ cache-keys = [
 target-version = "py310"
 line-length = 120
 src = [ "packages/python/src" ]
-extend-exclude = [ "packages/python/src/xberg_enterprise/_generated", "spec" ]
+extend-exclude = [ "packages/python/src/kreuzberg_cloud/_generated", "spec" ]
 format.docstring-code-line-length = 120
 format.docstring-code-format = true
 lint.select = [ "ALL" ]
@@ -95,7 +95,7 @@ lint.per-file-ignores."**/tests/**/*.*" = [
   "SIM117",
   "SLF001",
 ]
-lint.isort.known-first-party = [ "xberg_enterprise" ]
+lint.isort.known-first-party = [ "kreuzberg_cloud" ]
 lint.mccabe.max-complexity = 15
 lint.pydocstyle.convention = "google"
 lint.pylint.max-args = 10
@@ -107,8 +107,8 @@ keep_full_version = true
 max_supported_python = "3.14"
 
 [tool.mypy]
-packages = [ "xberg_enterprise" ]
-exclude = [ "packages/python/src/xberg_enterprise/_generated", "packages/python/tests" ]
+packages = [ "kreuzberg_cloud" ]
+exclude = [ "packages/python/src/kreuzberg_cloud/_generated", "packages/python/tests" ]
 python_version = "3.10"
 disable_error_code = [ "import-untyped", "untyped-decorator" ]
 implicit_reexport = false
@@ -126,11 +126,11 @@ ini_options.asyncio_default_fixture_loop_scope = "function"
 [tool.coverage]
 run.branch = true
 run.omit = [
-  "packages/python/src/xberg_enterprise/_generated/*",
+  "packages/python/src/kreuzberg_cloud/_generated/*",
   "packages/python/tests/*",
 ]
 run.plugins = [ "covdefaults" ]
-run.source = [ "packages/python/src/xberg_enterprise" ]
+run.source = [ "packages/python/src/kreuzberg_cloud" ]
 report.exclude_lines = [
   "@(abc\\.)?abstractmethod",
   "class .*\\bProtocol\\):",

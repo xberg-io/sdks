@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
-import '_generated/xberg_enterprise_api.dart';
+import '_generated/kreuzberg_cloud_api.dart';
 import '_generated/models/confirm_upload_request.dart';
 import '_generated/models/confirm_upload_response.dart';
 import '_generated/models/extract_json_request.dart';

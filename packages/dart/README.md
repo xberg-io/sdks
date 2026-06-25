@@ -1,4 +1,4 @@
-# xberg_enterprise_sdk
+# kreuzberg_cloud_sdk
 
 Official Dart client SDK for the [Xberg Enterprise][cloud] document extraction API.
 
@@ -11,7 +11,7 @@ Official Dart client SDK for the [Xberg Enterprise][cloud] document extraction A
 ## Install
 
 ```sh
-dart pub add xberg_enterprise_sdk
+dart pub add kreuzberg_cloud_sdk
 ```
 
 Flutter projects: works out of the box (pure Dart, no plugin code).
@@ -19,7 +19,7 @@ Flutter projects: works out of the box (pure Dart, no plugin code).
 ## Usage
 
 ```dart
-import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
+import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 
 Future<void> main() async {
   final client = KreuzbergCloudClient(
@@ -157,7 +157,7 @@ KreuzbergCloudClient(
 
 All request/response schemas (66 in total) are generated as `freezed`
 sealed/data classes with `fromJson` / `toJson`. They are re-exported from
-this package, so `import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';`
+this package, so `import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';`
 gives you everything.
 
 ## License

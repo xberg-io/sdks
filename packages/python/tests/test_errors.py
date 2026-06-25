@@ -6,7 +6,7 @@ import httpx
 import pytest
 import respx
 
-from xberg_enterprise import (
+from kreuzberg_cloud import (
     AsyncKreuzbergCloud,
     AuthError,
     KreuzbergCloud,

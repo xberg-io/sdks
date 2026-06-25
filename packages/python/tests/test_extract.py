@@ -9,7 +9,7 @@ import httpx
 import pytest
 import respx
 
-from xberg_enterprise import AsyncKreuzbergCloud, ExtractionOptions, KreuzbergCloud
+from kreuzberg_cloud import AsyncKreuzbergCloud, ExtractionOptions, KreuzbergCloud
 from tests.conftest import TEST_API_KEY, make_extract_response, make_job_payload
 
 

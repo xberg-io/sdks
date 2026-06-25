@@ -1,4 +1,4 @@
-name: xberg_enterprise_sdk
+name: kreuzberg_cloud_sdk
 description: >-
   Official Dart client SDK for the Xberg Enterprise document extraction API.
   Asynchronous extraction with webhook delivery, presigned uploads, and job polling.

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from xberg_enterprise._generated.models.extraction_result import ExtractionResult
+from kreuzberg_cloud._generated.models.extraction_result import ExtractionResult
 
 FIXTURES = Path(__file__).resolve().parents[3] / "spec" / "fixtures"
 
@@ -96,7 +96,7 @@ def test_pdf_format_metadata_is_deserialized() -> None:
     # The Python generator tries ExcelMetadata first (all-optional fields);
     # it wins over OcrMetadata. The important thing is that format_ is not None
     # and not UNSET — the discriminator value is preserved in additional_properties.
-    from xberg_enterprise._generated.types import UNSET
+    from kreuzberg_cloud._generated.types import UNSET
 
     raw = load("extraction_result_pdf.json")
     result = ExtractionResult.from_dict(raw)
@@ -153,7 +153,7 @@ def test_xlsx_format_metadata_sheet_count() -> None:
 
     raw = load("extraction_result_xlsx_with_children.json")
     result = ExtractionResult.from_dict(raw)
-    from xberg_enterprise._generated.models.excel_metadata import ExcelMetadata
+    from kreuzberg_cloud._generated.models.excel_metadata import ExcelMetadata
 
     assert isinstance(result.metadata.format_, ExcelMetadata)
     assert result.metadata.format_.sheet_count == 3

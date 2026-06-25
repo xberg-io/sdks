@@ -5,7 +5,7 @@
 /// `_generated` subtree and are re-exported here for convenience.
 ///
 /// ```dart
-/// import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
+/// import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 ///
 /// final client = KreuzbergCloudClient(apiKey: 'kc_...');
 /// final health = await client.healthz();

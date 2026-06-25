@@ -44,7 +44,7 @@ CI also runs a weekly `spec-sync` workflow that opens an automated PR with the l
 The single source of truth is the root `VERSION` file. `scripts/sync-versions.py` (run via `task version:sync`) propagates that value into every per-package manifest:
 
 - `packages/python/pyproject.toml` (`project.version`)
-- `packages/python/src/xberg_enterprise/__init__.py` (`__version__`)
+- `packages/python/src/kreuzberg_cloud/__init__.py` (`__version__`)
 - `packages/typescript/package.json` (`version`)
 - `packages/go/v1/version.go` (`const Version`)
 

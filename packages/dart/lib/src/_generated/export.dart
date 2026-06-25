@@ -158,4 +158,4 @@ export 'models/usage_response.dart';
 export 'models/webhook_config.dart';
 export 'models/xml_metadata.dart';
 // Root client
-export 'xberg_enterprise_api.dart';
+export 'kreuzberg_cloud_api.dart';

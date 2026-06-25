@@ -1,8 +1,8 @@
 # Configuration for openapi-python-client.
 # See https://github.com/openapi-generators/openapi-python-client#configuration
 
-project_name_override: xberg_enterprise_generated
-package_name_override: xberg_enterprise_generated
+project_name_override: kreuzberg_cloud_generated
+package_name_override: kreuzberg_cloud_generated
 use_path_prefixes_for_title_model_names: true
 field_constraints: true
 http_timeout: 30

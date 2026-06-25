@@ -47,7 +47,7 @@ Requires Python 3.10+.
 
 ```python
 from pathlib import Path
-from xberg_enterprise import KreuzbergCloud
+from kreuzberg_cloud import KreuzbergCloud
 
 with KreuzbergCloud(api_key="sk_live_...") as client:
     job = client.extract_and_wait(file=Path("invoice.pdf"))
@@ -60,7 +60,7 @@ with KreuzbergCloud(api_key="sk_live_...") as client:
 ```python
 import asyncio
 from pathlib import Path
-from xberg_enterprise import AsyncKreuzbergCloud
+from kreuzberg_cloud import AsyncKreuzbergCloud
 
 async def main() -> None:
     async with AsyncKreuzbergCloud(api_key="sk_live_...") as client:
@@ -76,7 +76,7 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from xberg_enterprise import AsyncKreuzbergCloud
+from kreuzberg_cloud import AsyncKreuzbergCloud
 
 async def main() -> None:
     async with await AsyncKreuzbergCloud.from_sandbox() as client:

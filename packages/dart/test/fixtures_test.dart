@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
+import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 
 ExtractionResult _loadFixture(String name) {
   // spec/fixtures lives at the repo root; from packages/dart/ the path is ../../spec/fixtures/

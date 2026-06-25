@@ -4,7 +4,7 @@ version: "3"
 
 vars:
   PKG_DIR: packages/python
-  GENERATED_DIR: packages/python/src/xberg_enterprise/_generated
+  GENERATED_DIR: packages/python/src/kreuzberg_cloud/_generated
 
 tasks:
   generate:
@@ -41,7 +41,7 @@ tasks:
   test:cov:
     desc: "Run Python tests with coverage"
     cmds:
-      - uv run pytest {{.PKG_DIR}}/tests --cov=xberg_enterprise --cov-report=term --cov-report=html
+      - uv run pytest {{.PKG_DIR}}/tests --cov=kreuzberg_cloud --cov-report=term --cov-report=html
 
   lint:
     desc: "Lint Python sources (ruff + mypy)"

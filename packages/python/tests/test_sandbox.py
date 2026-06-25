@@ -8,7 +8,7 @@ import httpx
 import pytest
 import respx
 
-from xberg_enterprise import AsyncKreuzbergCloud, KreuzbergCloud, RateLimitError, SandboxKey
+from kreuzberg_cloud import AsyncKreuzbergCloud, KreuzbergCloud, RateLimitError, SandboxKey
 
 SANDBOX_KEY_PAYLOAD = {
     "api_key": "sk_sandbox_01ABCDEFGHIJKLMNOPQRSTUVWX",

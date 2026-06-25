@@ -18,11 +18,11 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Literal
 
 import httpx
 
-from xberg_enterprise._generated.models.extraction_options import ExtractionOptions
-from xberg_enterprise._generated.models.job_response import JobResponse
-from xberg_enterprise.errors import TimeoutError as ClientTimeoutError
-from xberg_enterprise.errors import raise_for_status
-from xberg_enterprise.models import SandboxKey
+from kreuzberg_cloud._generated.models.extraction_options import ExtractionOptions
+from kreuzberg_cloud._generated.models.job_response import JobResponse
+from kreuzberg_cloud.errors import TimeoutError as ClientTimeoutError
+from kreuzberg_cloud.errors import raise_for_status
+from kreuzberg_cloud.models import SandboxKey
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -231,7 +231,7 @@ class KreuzbergCloud(_BaseClient):
     ) -> JobResponse:
         """Poll ``GET /v1/jobs/{id}`` until the job reaches a terminal status or ``timeout`` elapses.
 
-        Raises :class:`xberg_enterprise.errors.TimeoutError` if the deadline is
+        Raises :class:`kreuzberg_cloud.errors.TimeoutError` if the deadline is
         hit before the job reaches a terminal status. Failed/cancelled jobs are
         returned to the caller (not raised) — inspect ``job.status`` to branch.
         """

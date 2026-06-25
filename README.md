@@ -30,7 +30,7 @@ Official client SDKs for the [Xberg Enterprise](https://enterprise.xberg.io) pub
 | Python | `kreuzberg-cloud-sdk` | [PyPI](https://pypi.org/project/kreuzberg-cloud-sdk/) | generated (httpx) |
 | TypeScript / Node.js | `@kreuzberg/cloud` | [npm](https://www.npmjs.com/package/@kreuzberg/cloud) | generated (openapi-fetch) |
 | Go | `github.com/xberg-io/sdks/go/v1` | [pkg.go.dev](https://pkg.go.dev/github.com/xberg-io/sdks/go/v1) | hand-written interim — codegen blocked on [oapi-codegen 3.1 support](https://github.com/oapi-codegen/oapi-codegen/issues/373) |
-| Dart | `xberg_enterprise_sdk` | [pub.dev](https://pub.dev/packages/xberg_enterprise_sdk) | generated (Retrofit + Dio) |
+| Dart | `kreuzberg_cloud_sdk` | [pub.dev](https://pub.dev/packages/kreuzberg_cloud_sdk) | generated (Retrofit + Dio) |
 
 ## Install
 
@@ -57,7 +57,7 @@ go get github.com/xberg-io/sdks/go/v1
 **Dart:**
 
 ```sh
-dart pub add xberg_enterprise_sdk
+dart pub add kreuzberg_cloud_sdk
 ```
 
 For language-specific quickstarts, examples, and API documentation, see the per-language READMEs in `packages/{python,typescript,go/v1,dart}/`.

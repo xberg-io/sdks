@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:xberg_enterprise_sdk/xberg_enterprise_sdk.dart';
+import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 import 'package:test/test.dart';
 
 import '_mock_adapter.dart';

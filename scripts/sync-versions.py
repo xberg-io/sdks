@@ -7,7 +7,7 @@ Single source of truth: ``VERSION`` at the repo root. Run this script (or
 Affected files:
   - packages/python/pyproject.toml                          (``project.version``)
   - packages/typescript/package.json                        (``version``)
-  - packages/python/src/xberg_enterprise/__init__.py         (``__version__``)
+  - packages/python/src/kreuzberg_cloud/__init__.py         (``__version__``)
   - packages/go/v1/version.go                               (``const Version``)
   - packages/dart/pubspec.yaml                              (``version``)
   - packages/dart/lib/src/version.dart                      (``packageVersion``)
@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 VERSION_FILE = REPO_ROOT / "VERSION"
 PYTHON_PYPROJECT = REPO_ROOT / "packages" / "python" / "pyproject.toml"
 TYPESCRIPT_PACKAGE = REPO_ROOT / "packages" / "typescript" / "package.json"
-PYTHON_INIT = REPO_ROOT / "packages" / "python" / "src" / "xberg_enterprise" / "__init__.py"
+PYTHON_INIT = REPO_ROOT / "packages" / "python" / "src" / "kreuzberg_cloud" / "__init__.py"
 GO_VERSION = REPO_ROOT / "packages" / "go" / "v1" / "version.go"
 DART_PUBSPEC = REPO_ROOT / "packages" / "dart" / "pubspec.yaml"
 DART_VERSION = REPO_ROOT / "packages" / "dart" / "lib" / "src" / "version.dart"
