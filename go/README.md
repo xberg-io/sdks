@@ -56,7 +56,7 @@ import (
 func main() {
     ctx := context.Background()
     client, err := kreuzbergcloud.New(
-        kreuzbergcloud.WithAPIKey(os.Getenv("KREUZBERG_API_KEY")),
+        kreuzbergcloud.WithAPIKey(os.Getenv("XBERG_API_KEY")),
     )
     if err != nil {
         log.Fatal(err)
@@ -96,7 +96,7 @@ import (
 func main() {
     ctx := context.Background()
     client, err := kreuzbergcloud.New(
-        kreuzbergcloud.WithAPIKey(os.Getenv("KREUZBERG_API_KEY")),
+        kreuzbergcloud.WithAPIKey(os.Getenv("XBERG_API_KEY")),
     )
     if err != nil {
         log.Fatal(err)

@@ -2,7 +2,7 @@
 //
 // Run with:
 //
-//   KREUZBERG_API_KEY=kc_... dart run example/main.dart
+//   XBERG_API_KEY=kc_... dart run example/main.dart
 //
 // Submits a small inline document, polls the resulting job to completion, and
 // prints the extracted Markdown.
@@ -13,9 +13,9 @@ import 'dart:io';
 import 'package:kreuzberg_cloud_sdk/kreuzberg_cloud_sdk.dart';
 
 Future<void> main() async {
-  final apiKey = Platform.environment['KREUZBERG_API_KEY'];
+  final apiKey = Platform.environment['XBERG_API_KEY'];
   if (apiKey == null || apiKey.isEmpty) {
-    stderr.writeln('Set KREUZBERG_API_KEY in the environment.');
+    stderr.writeln('Set XBERG_API_KEY in the environment.');
     exit(2);
   }
 

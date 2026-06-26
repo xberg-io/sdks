@@ -49,7 +49,7 @@ pnpm add @kreuzberg/cloud
 import { KreuzbergCloud } from "@kreuzberg/cloud";
 import { readFile } from "node:fs/promises";
 
-const client = new KreuzbergCloud({ apiKey: process.env.KREUZBERG_API_KEY! });
+const client = new KreuzbergCloud({ apiKey: process.env.XBERG_API_KEY! });
 
 const data = await readFile("invoice.pdf");
 const result = await client.extractAndWait({
@@ -64,7 +64,7 @@ console.log(result.result?.content);
 import { KreuzbergCloud } from "@kreuzberg/cloud";
 import { readFile } from "node:fs/promises";
 
-const client = new KreuzbergCloud({ apiKey: process.env.KREUZBERG_API_KEY! });
+const client = new KreuzbergCloud({ apiKey: process.env.XBERG_API_KEY! });
 
 const files = await Promise.all(
   ["a.pdf", "b.pdf", "c.pdf"].map(async (name) => ({
