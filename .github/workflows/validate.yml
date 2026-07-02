@@ -15,36 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  poly:
-    name: poly lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
-        with:
-          node-version: "24"
-          cache: pnpm
-      - uses: actions/setup-go@v6
-        with:
-          go-version: "1.26"
-      - name: Install workspace deps
-        run: |
-          uv sync
-          pnpm install
-          (cd packages/go/v1 && go mod download)
-      - name: Install task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-      - name: Generate SDK bindings
-        run: |
-          task python:generate
-          task typescript:generate
-      - name: Install poly
-        uses: Goldziher/polylint@v0
-      - name: Lint
-        run: poly lint .
+  validate:
+    uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
+    with:
+      setup-python: true
