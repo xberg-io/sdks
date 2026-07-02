@@ -9,7 +9,7 @@ issue_tracker: https://github.com/xberg-io/sdks/issues
 documentation: https://github.com/xberg-io/sdks/tree/main/packages/dart#readme
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   dio: ^5.9.0

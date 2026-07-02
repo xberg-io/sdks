@@ -23,5 +23,5 @@ sealed class DiffLine with _$DiffLine {
   const factory DiffLine.removed({required String text}) = DiffLineRemoved;
 
   factory DiffLine.fromJson(Map<String, Object?> json) =>
-      _$DiffLineFromJson(json);
+  _$DiffLineFromJson(json);
 }

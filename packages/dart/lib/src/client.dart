@@ -66,23 +66,23 @@ class KreuzbergCloudClient {
     String? userAgent,
     Dio? dio,
   }) : _userAgent = userAgent ?? 'kreuzberg-cloud-sdk-dart/$packageVersion',
-       _dio = dio ?? _buildDio(baseUrl: baseUrl, timeout: timeout) {
+  _dio = dio ?? _buildDio(baseUrl: baseUrl, timeout: timeout) {
     _dio.interceptors
-      ..add(
-        InterceptorsWrapper(
-          onRequest: (options, handler) {
-            options.headers.putIfAbsent(
-              'Authorization',
-              () => 'Bearer $apiKey',
-            );
-            options.headers.putIfAbsent('User-Agent', () => _userAgent);
-            options.headers.putIfAbsent('Accept', () => 'application/json');
-            handler.next(options);
-          },
-        ),
-      )
-      ..add(const ErrorInterceptor())
-      ..add(RetryInterceptor(dio: _dio, policy: retryPolicy));
+    ..add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers.putIfAbsent(
+            'Authorization',
+            () => 'Bearer $apiKey',
+          );
+          options.headers.putIfAbsent('User-Agent', () => _userAgent);
+          options.headers.putIfAbsent('Accept', () => 'application/json');
+          handler.next(options);
+        },
+      ),
+    )
+    ..add(const ErrorInterceptor())
+    ..add(RetryInterceptor(dio: _dio, policy: retryPolicy));
     _api = KreuzbergCloudApi(_dio, baseUrl: baseUrl);
   }
 
@@ -137,7 +137,7 @@ class KreuzbergCloudClient {
   /// [extractMultipart] or the presign-upload flow ([presignUpload] +
   /// [confirmUpload]).
   Future<ExtractResponse> extract(ExtractJsonRequest request) =>
-      _api.extract.extract(body: request);
+  _api.extract.extract(body: request);
 
   /// Submits one or more files via `multipart/form-data` on `/v1/extract`.
   ///
@@ -199,16 +199,16 @@ class KreuzbergCloudClient {
   /// Fetches the discriminated lookup response for a job ID, preserving the
   /// extraction-vs-crawl distinction.
   Future<JobLookupResponse> getJobLookup(String jobId) =>
-      _api.jobs.getJob(id: jobId);
+  _api.jobs.getJob(id: jobId);
 
   /// Polls [getJob] until the job reaches a terminal status, or `timeout`
   /// elapses. Throws [JobWaitTimeoutException] on timeout, or [ApiException]
   /// on a transport failure.
   Future<JobResponse> waitForJob(
     String jobId, {
-    Duration timeout = const Duration(minutes: 5),
-    Duration pollInterval = const Duration(seconds: 1),
-    BackoffKind backoff = BackoffKind.exponential,
+      Duration timeout = const Duration(minutes: 5),
+      Duration pollInterval = const Duration(seconds: 1),
+      BackoffKind backoff = BackoffKind.exponential,
   }) {
     return pollUntilTerminal(
       jobId: jobId,
@@ -224,9 +224,9 @@ class KreuzbergCloudClient {
   /// the rest (matches Go SDK semantics).
   Future<List<JobResponse>> waitForJobs(
     List<String> jobIds, {
-    Duration timeout = const Duration(minutes: 5),
-    Duration pollInterval = const Duration(seconds: 1),
-    BackoffKind backoff = BackoffKind.exponential,
+      Duration timeout = const Duration(minutes: 5),
+      Duration pollInterval = const Duration(seconds: 1),
+      BackoffKind backoff = BackoffKind.exponential,
   }) {
     return pollManyUntilTerminal(
       jobIds: jobIds,
@@ -243,12 +243,12 @@ class KreuzbergCloudClient {
   /// then PUTs each file to the returned URL out-of-band, and calls
   /// [confirmUpload] with the `batch_id` to start processing.
   Future<PresignUploadResponse> presignUpload(PresignUploadRequest request) =>
-      _api.uploads.presignUpload(body: request);
+  _api.uploads.presignUpload(body: request);
 
   /// Confirms uploads against a `batch_id` returned by [presignUpload]; the
   /// server verifies all files exist in storage and dispatches jobs.
   Future<ConfirmUploadResponse> confirmUpload(ConfirmUploadRequest request) =>
-      _api.uploads.confirmUpload(body: request);
+  _api.uploads.confirmUpload(body: request);
 
   // ---- Usage ------------------------------------------------------------
 
@@ -257,5 +257,5 @@ class KreuzbergCloudClient {
   /// Both [start] and [end] are ISO 8601 dates (e.g. `2026-03-01`). When
   /// omitted, the server defaults to the current calendar month.
   Future<UsageResponse> getUsage({String? start, String? end}) =>
-      _api.usage.getUsage(start: start, end: end);
+  _api.usage.getUsage(start: start, end: end);
 }

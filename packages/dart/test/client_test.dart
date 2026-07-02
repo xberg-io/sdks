@@ -19,7 +19,7 @@ void main() {
   group('auth + headers', () {
     test('Authorization header is set to Bearer <apiKey>', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(adapter);
       await client.healthz();
       expect(
@@ -30,7 +30,7 @@ void main() {
 
     test('User-Agent header carries package version', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(adapter);
       await client.healthz();
       expect(
@@ -41,7 +41,7 @@ void main() {
 
     test('Accept header defaults to application/json', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(adapter);
       await client.healthz();
       expect(adapter.captured.single.headers['Accept'], 'application/json');
@@ -51,7 +51,7 @@ void main() {
   group('healthz / readyz', () {
     test('healthz returns parsed HealthResponse', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(adapter);
       final res = await client.healthz();
       expect(res.status, 'ok');
@@ -61,13 +61,13 @@ void main() {
 
     test('readyz returns parsed ReadinessResponse with checks', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'status': 'ready',
-            'checks': {'database': 'ok', 'nats': 'ok'},
-          },
-        );
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'status': 'ready',
+          'checks': {'database': 'ok', 'nats': 'ok'},
+        },
+      );
       final client = _newClient(adapter);
       final res = await client.readyz();
       expect(res.status, 'ready');
@@ -79,15 +79,15 @@ void main() {
   group('jobs', () {
     test('getJob fetches /v1/jobs/{id}', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'id': '550e8400-e29b-41d4-a716-446655440000',
-            'filename': 'foo.pdf',
-            'status': 'pending',
-            'created_at': '2026-05-11T12:00:00Z',
-          },
-        );
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'id': '550e8400-e29b-41d4-a716-446655440000',
+          'filename': 'foo.pdf',
+          'status': 'pending',
+          'created_at': '2026-05-11T12:00:00Z',
+        },
+      );
       final client = _newClient(adapter);
       final job = await client.getJob('550e8400-e29b-41d4-a716-446655440000');
       expect(job.id, '550e8400-e29b-41d4-a716-446655440000');
@@ -109,17 +109,17 @@ void main() {
   group('usage', () {
     test('getUsage forwards query parameters', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'period_start': '2026-05-01',
-            'period_end': '2026-06-01',
-            'total_pages': 0,
-            'total_documents': 0,
-            'total_failed': 0,
-            'by_mime_type': <String, dynamic>{},
-          },
-        );
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'period_start': '2026-05-01',
+          'period_end': '2026-06-01',
+          'total_pages': 0,
+          'total_documents': 0,
+          'total_failed': 0,
+          'by_mime_type': <String, dynamic>{},
+        },
+      );
       final client = _newClient(adapter);
       await client.getUsage(start: '2026-05-01', end: '2026-06-01');
       expect(adapter.captured.single.queryParameters['start'], '2026-05-01');
@@ -134,7 +134,7 @@ void main() {
       required Matcher matcher,
     }) async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: status, body: body);
+      ..enqueueJson(statusCode: status, body: body);
       final client = _newClient(adapter);
       try {
         await client.healthz();
@@ -218,16 +218,16 @@ void main() {
 
     test('429 parses Retry-After delta-seconds', () async {
       final adapter = MockAdapter()
-        ..enqueue(
-          const MockResponse(
-            statusCode: 429,
-            body: {'error': 'slow down'},
-            headers: {
-              'content-type': ['application/json'],
-              'retry-after': ['7'],
-            },
-          ),
-        );
+      ..enqueue(
+        const MockResponse(
+          statusCode: 429,
+          body: {'error': 'slow down'},
+          headers: {
+            'content-type': ['application/json'],
+            'retry-after': ['7'],
+          },
+        ),
+      );
       final client = _newClient(adapter);
       try {
         await client.healthz();
@@ -242,8 +242,8 @@ void main() {
   group('retry', () {
     test('retries on 503 then succeeds', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 503, body: {'error': 'down'})
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueueJson(statusCode: 503, body: {'error': 'down'})
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(
         adapter,
         policy: const RetryPolicy(
@@ -258,9 +258,9 @@ void main() {
 
     test('gives up after maxRetries on persistent 504', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 504, body: {'error': 'tmout'})
-        ..enqueueJson(statusCode: 504, body: {'error': 'tmout'})
-        ..enqueueJson(statusCode: 504, body: {'error': 'tmout'});
+      ..enqueueJson(statusCode: 504, body: {'error': 'tmout'})
+      ..enqueueJson(statusCode: 504, body: {'error': 'tmout'})
+      ..enqueueJson(statusCode: 504, body: {'error': 'tmout'});
       final client = _newClient(
         adapter,
         policy: const RetryPolicy(
@@ -279,7 +279,7 @@ void main() {
 
     test('does not retry on 400', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(statusCode: 400, body: {'error': 'no'});
+      ..enqueueJson(statusCode: 400, body: {'error': 'no'});
       final client = _newClient(
         adapter,
         policy: const RetryPolicy(
@@ -298,17 +298,17 @@ void main() {
 
     test('honors Retry-After header on 429', () async {
       final adapter = MockAdapter()
-        ..enqueue(
-          const MockResponse(
-            statusCode: 429,
-            body: {'error': 'slow'},
-            headers: {
-              'content-type': ['application/json'],
-              'retry-after': ['0'],
-            },
-          ),
-        )
-        ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
+      ..enqueue(
+        const MockResponse(
+          statusCode: 429,
+          body: {'error': 'slow'},
+          headers: {
+            'content-type': ['application/json'],
+            'retry-after': ['0'],
+          },
+        ),
+      )
+      ..enqueueJson(statusCode: 200, body: {'status': 'ok'});
       final client = _newClient(
         adapter,
         policy: const RetryPolicy(maxRetries: 1),
@@ -322,33 +322,33 @@ void main() {
   group('waitForJob', () {
     test('polls until terminal status', () async {
       final adapter = MockAdapter()
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'id': 'job-1',
-            'filename': 'f.pdf',
-            'status': 'pending',
-            'created_at': '2026-05-11T12:00:00Z',
-          },
-        )
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'id': 'job-1',
-            'filename': 'f.pdf',
-            'status': 'processing',
-            'created_at': '2026-05-11T12:00:00Z',
-          },
-        )
-        ..enqueueJson(
-          statusCode: 200,
-          body: {
-            'id': 'job-1',
-            'filename': 'f.pdf',
-            'status': 'completed',
-            'created_at': '2026-05-11T12:00:00Z',
-          },
-        );
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'id': 'job-1',
+          'filename': 'f.pdf',
+          'status': 'pending',
+          'created_at': '2026-05-11T12:00:00Z',
+        },
+      )
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'id': 'job-1',
+          'filename': 'f.pdf',
+          'status': 'processing',
+          'created_at': '2026-05-11T12:00:00Z',
+        },
+      )
+      ..enqueueJson(
+        statusCode: 200,
+        body: {
+          'id': 'job-1',
+          'filename': 'f.pdf',
+          'status': 'completed',
+          'created_at': '2026-05-11T12:00:00Z',
+        },
+      );
       final client = _newClient(adapter);
       final job = await client.waitForJob(
         'job-1',

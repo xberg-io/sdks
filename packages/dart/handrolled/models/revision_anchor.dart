@@ -54,5 +54,5 @@ sealed class RevisionAnchor with _$RevisionAnchor {
   }) = RevisionAnchorSheet;
 
   factory RevisionAnchor.fromJson(Map<String, Object?> json) =>
-      _$RevisionAnchorFromJson(json);
+  _$RevisionAnchorFromJson(json);
 }

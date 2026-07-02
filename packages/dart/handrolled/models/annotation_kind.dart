@@ -30,24 +30,24 @@ sealed class AnnotationKind with _$AnnotationKind {
   const factory AnnotationKind.superscript() = AnnotationKindSuperscript;
 
   const factory AnnotationKind.link({required String url, String? title}) =
-      AnnotationKindLink;
+  AnnotationKindLink;
 
   /// Highlighted text (PDF highlights, HTML `<mark>`).
   const factory AnnotationKind.highlight() = AnnotationKindHighlight;
 
   /// Text color (CSS-compatible value, e.g. "#ff0000", "red").
   const factory AnnotationKind.color({required String value}) =
-      AnnotationKindColor;
+  AnnotationKindColor;
 
   /// Font size with units (e.g. "12pt", "1.2em", "16px").
   @FreezedUnionValue('font_size')
   const factory AnnotationKind.fontSize({required String value}) =
-      AnnotationKindFontSize;
+  AnnotationKindFontSize;
 
   /// Extensible annotation for format-specific styling.
   const factory AnnotationKind.custom({required String name, String? value}) =
-      AnnotationKindCustom;
+  AnnotationKindCustom;
 
   factory AnnotationKind.fromJson(Map<String, Object?> json) =>
-      _$AnnotationKindFromJson(json);
+  _$AnnotationKindFromJson(json);
 }

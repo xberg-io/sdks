@@ -24,11 +24,11 @@ sealed class JobLookupResponse with _$JobLookupResponse {
 
   /// Extraction job details.
   const factory JobLookupResponse.extraction(JobResponse value) =
-      JobLookupResponseExtraction;
+  JobLookupResponseExtraction;
 
   /// Crawl job details.
   const factory JobLookupResponse.crawl(CrawlJobResponse value) =
-      JobLookupResponseCrawl;
+  JobLookupResponseCrawl;
 
   /// Probes the JSON body to determine which variant to construct.
   ///

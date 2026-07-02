@@ -41,5 +41,5 @@ sealed class OcrBoundingGeometry with _$OcrBoundingGeometry {
   }) = OcrBoundingGeometryQuadrilateral;
 
   factory OcrBoundingGeometry.fromJson(Map<String, Object?> json) =>
-      _$OcrBoundingGeometryFromJson(json);
+  _$OcrBoundingGeometryFromJson(json);
 }

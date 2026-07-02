@@ -4,9 +4,9 @@ import type { SetupServer } from "msw/node";
 export const TEST_BASE_URL = "https://api.test.enterprise.xberg.io";
 
 export function createTestServer(): SetupServer {
-	return setupServer();
+  return setupServer();
 }
 
 export function url(path: string): string {
-	return `${TEST_BASE_URL}${path}`;
+  return `${TEST_BASE_URL}${path}`;
 }

@@ -51,7 +51,7 @@ class ValidationException extends ApiException {
 /// 404 — requested resource does not exist.
 class NotFoundException extends ApiException {
   const NotFoundException({required super.message, super.body})
-    : super(status: 404);
+  : super(status: 404);
 
   @override
   String toString() => 'NotFoundException: $message';
@@ -73,7 +73,7 @@ class RateLimitException extends ApiException {
 
   @override
   String toString() =>
-      'RateLimitException: $message${retryAfter != null ? ' (retry after ${retryAfter!.inSeconds}s)' : ''}';
+  'RateLimitException: $message${retryAfter != null ? ' (retry after ${retryAfter!.inSeconds}s)' : ''}';
 }
 
 /// 5xx — upstream server error.
@@ -105,5 +105,5 @@ class JobWaitTimeoutException implements Exception {
 
   @override
   String toString() =>
-      'JobWaitTimeoutException: job $jobId did not finish within ${elapsed.inSeconds}s';
+  'JobWaitTimeoutException: job $jobId did not finish within ${elapsed.inSeconds}s';
 }

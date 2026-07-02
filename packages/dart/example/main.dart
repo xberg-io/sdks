@@ -49,7 +49,7 @@ Future<void> main() async {
     );
 
     if (finished.status == JobStatus.completed ||
-        finished.status == JobStatus.partialSuccess) {
+      finished.status == JobStatus.partialSuccess) {
       stdout.writeln(finished.result?.content ?? '<no content>');
     } else {
       stderr.writeln('job ended with status ${finished.status}');

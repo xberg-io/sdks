@@ -15,14 +15,14 @@ library;
 
 export 'src/client.dart' show KreuzbergCloudClient;
 export 'src/exceptions.dart'
-    show
-        ApiException,
-        AuthException,
-        JobWaitTimeoutException,
-        NotFoundException,
-        RateLimitException,
-        ServerException,
-        ValidationException;
+show
+ApiException,
+AuthException,
+JobWaitTimeoutException,
+NotFoundException,
+RateLimitException,
+ServerException,
+ValidationException;
 export 'src/jobs_wait.dart' show BackoffKind, JobStatusTerminal;
 export 'src/retry.dart' show RetryPolicy;
 export 'src/version.dart' show packageVersion;

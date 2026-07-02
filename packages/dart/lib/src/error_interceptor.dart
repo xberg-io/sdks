@@ -25,7 +25,7 @@ class ErrorInterceptor extends Interceptor {
     final status = response.statusCode ?? 0;
     final body = response.data;
     final message =
-        _extractMessage(body) ?? response.statusMessage ?? 'HTTP $status';
+    _extractMessage(body) ?? response.statusMessage ?? 'HTTP $status';
 
     final apiException = _classify(status, message, body, response);
     handler.next(

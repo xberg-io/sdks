@@ -2,19 +2,19 @@
 
 [default]
 extend-ignore-re = [
-  # Go module pseudo-versions (hex commit hashes embedded in go.mod / go.sum)
-  # frequently contain digit-letter substrings that trigger false positives.
-  "v0\\.0\\.0-[0-9]+-[0-9a-f]+",
+    # Go module pseudo-versions (hex commit hashes embedded in go.mod / go.sum)
+    # frequently contain digit-letter substrings that trigger false positives.
+    "v0\\.0\\.0-[0-9]+-[0-9a-f]+",
 ]
 
 [files]
 extend-exclude = [
-  "go.work.sum",
-  "**/go.sum",
-  "**/_generated/**",
-  "**/dist/**",
-  "**/node_modules/**",
-  "**/.venv/**",
-  "pnpm-lock.yaml",
-  "uv.lock",
+    "go.work.sum",
+    "**/go.sum",
+    "**/_generated/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.venv/**",
+    "pnpm-lock.yaml",
+    "uv.lock",
 ]

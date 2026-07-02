@@ -27,7 +27,7 @@ sealed class NodeContent with _$NodeContent {
 
   /// Body text paragraph.
   const factory NodeContent.paragraph({required String text}) =
-      NodeContentParagraph;
+  NodeContentParagraph;
 
   /// List container — children are `ListItem` nodes.
   const factory NodeContent.list({required bool ordered}) = NodeContentList;
@@ -35,7 +35,7 @@ sealed class NodeContent with _$NodeContent {
   /// Individual list item.
   @FreezedUnionValue('list_item')
   const factory NodeContent.listItem({required String text}) =
-      NodeContentListItem;
+  NodeContentListItem;
 
   /// Table with structured cell grid.
   const factory NodeContent.table({required TableGrid grid}) = NodeContentTable;
@@ -51,18 +51,18 @@ sealed class NodeContent with _$NodeContent {
 
   /// Code block.
   const factory NodeContent.code({required String text, String? language}) =
-      NodeContentCode;
+  NodeContentCode;
 
   /// Block quote — container, children carry the quoted content.
   const factory NodeContent.quote() = NodeContentQuote;
 
   /// Mathematical formula / equation.
   const factory NodeContent.formula({required String text}) =
-      NodeContentFormula;
+  NodeContentFormula;
 
   /// Footnote reference content.
   const factory NodeContent.footnote({required String text}) =
-      NodeContentFootnote;
+  NodeContentFootnote;
 
   /// Logical grouping container (section, key-value area).
   ///
@@ -129,5 +129,5 @@ sealed class NodeContent with _$NodeContent {
   }) = NodeContentMetadataBlock;
 
   factory NodeContent.fromJson(Map<String, Object?> json) =>
-      _$NodeContentFromJson(json);
+  _$NodeContentFromJson(json);
 }
