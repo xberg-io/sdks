@@ -29,14 +29,12 @@ tasks:
       - task --list
 
   setup:
-    desc: "Install all language toolchains and pre-commit hooks"
+    desc: "Install all language toolchains"
     cmds:
       - uv sync
       - pnpm install
       - cd packages/go/v1 && go mod download
       - cd packages/dart && dart pub get
-      - prek install
-      - prek install --hook-type commit-msg
 
   generate:
     desc: "Regenerate all language clients from spec/openapi.yaml"
@@ -63,17 +61,24 @@ tasks:
       - task: dart:test
 
   lint:
-    desc: "Lint all code via prek (pre-commit framework)"
+    desc: "Lint all code via poly"
     cmds:
-      - prek run --all-files
+      - poly lint .
+
+  lint:check:
+    desc: "Lint all code via poly (check only)"
+    cmds:
+      - poly lint .
 
   format:
-    desc: "Format all code"
+    desc: "Format all code via poly"
     cmds:
-      - task: python:format
-      - task: typescript:format
-      - task: go:format
-      - task: dart:format
+      - poly fmt --fix .
+
+  format:check:
+    desc: "Check formatting via poly (no writes)"
+    cmds:
+      - poly fmt --check .
 
   fmt:
     desc: "Alias for format"
@@ -143,5 +148,4 @@ tasks:
       - pnpm update -r
       - cd packages/go/v1 && go get -u ./... && go mod tidy
       - cd packages/dart && dart pub upgrade
-      - prek autoupdate
       - uvx --from gh-actions-updater gau --update .

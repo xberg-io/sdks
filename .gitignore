@@ -62,3 +62,6 @@ Thumbs.db
 *.log
 .env
 .env.local
+
+# polylint cache
+.polylint/

@@ -15,8 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  prek:
-    name: prek run --all-files
+  poly:
+    name: poly lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,8 +31,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26"
-      - name: Install prek
-        run: uv tool install prek
       - name: Install workspace deps
         run: |
           uv sync
@@ -46,5 +44,7 @@ jobs:
         run: |
           task python:generate
           task typescript:generate
-      - name: Run prek
-        run: prek run --all-files --show-diff-on-failure
+      - name: Install poly
+        uses: Goldziher/polylint@v0
+      - name: Lint
+        run: poly lint .
