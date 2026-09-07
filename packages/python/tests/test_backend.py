@@ -273,3 +273,27 @@ async def test_backend_methods_respect_a_previously_discovered_pro_tier(base_url
             sync_client.auth_config()
             with pytest.raises(XbergError, match="requires the 'enterprise' tier"):
                 sync_client.backend_list_projects()
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@respx.mock
+async def test_explicit_empty_control_token_disables_api_key_fallback(
+    base_url: str, api_key: str, asynchronous: bool
+) -> None:
+    route = respx.get(CONTROL_URL + "/v1/projects").respond(
+        200, json={"projects": [], "total": 0, "limit": 1, "offset": 0}
+    )
+    options = {
+        "base_url": base_url,
+        "api_key": api_key,
+        "control_plane_base_url": CONTROL_URL,
+        "control_plane_token": "",
+        "target": "enterprise",
+    }
+    if asynchronous:
+        async with AsyncXbergClient(**options) as client:
+            await client.backend_list_projects()
+    else:
+        with XbergClient(**options) as sync_client:
+            sync_client.backend_list_projects()
+    assert "Authorization" not in route.calls.last.request.headers
