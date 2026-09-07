@@ -158,6 +158,61 @@ Pro-only projects, keys and integrations.
 | `listIntegrationDocuments` |  |
 | `fetchIntegrationDocument` | Pro only: download one document from an integration |
 
+## Enterprise control plane
+
+All backend operations use the configured control-plane origin and credential.
+
+| Method | Description |
+| --- | --- |
+| `deleteAccount` |  |
+| `getAuthConfig` |  |
+| `backendLogin` |  |
+| `healthz` |  |
+| `readyz` |  |
+| `acceptInvitation` |  |
+| `oauthCallback` |  |
+| `backendListProjects` |  |
+| `backendCreateProject` |  |
+| `getProject` |  |
+| `deleteProject` |  |
+| `updateProject` |  |
+| `getAnalytics` |  |
+| `backendListApiKeys` |  |
+| `backendCreateApiKey` |  |
+| `backendRevokeApiKey` |  |
+| `regenerateApiKey` |  |
+| `listProjectAudit` |  |
+| `getBilling` |  |
+| `createCheckout` |  |
+| `createPortal` |  |
+| `backendListIntegrations` |  |
+| `backendCreateIntegration` |  |
+| `backendGetIntegration` |  |
+| `backendDeleteIntegration` |  |
+| `oauthConnect` |  |
+| `backendDisconnectIntegration` |  |
+| `backendListIntegrationDocuments` |  |
+| `backendFetchIntegrationDocument` |  |
+| `listInvitations` |  |
+| `inviteUser` |  |
+| `revokeInvitation` |  |
+| `leaveProject` |  |
+| `listMembers` |  |
+| `removeMember` |  |
+| `updateMemberRole` |  |
+| `backendGetRagConfig` |  |
+| `backendSetRagConfig` |  |
+| `sandboxExtract` |  |
+| `getUsage` |  |
+| `listWebhooks` |  |
+| `createWebhook` |  |
+| `deleteWebhook` |  |
+| `updateWebhook` |  |
+| `listWebhookDeliveries` |  |
+| `retryWebhookDelivery` |  |
+| `testWebhook` |  |
+| `publicSandboxExtract` |  |
+
 ## Auth
 
 Pro-only session and configuration reads.

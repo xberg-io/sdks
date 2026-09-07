@@ -23,7 +23,7 @@ tasks:
   coverage:
     desc: "Fail if a spec operation is in no client and not deliberately excluded"
     cmds:
-      - python3 scripts/spec-coverage.py
+      - uv run python scripts/spec-coverage.py
 
   fetch:
     desc: "Refresh all three vendored specs from the sibling xberg-enterprise repo"

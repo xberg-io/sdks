@@ -57,7 +57,8 @@ pnpm add @xberg-io/sdk
 go get github.com/xberg-io/sdks/packages/go
 ```
 
-For language-specific quickstarts, examples, and API documentation, see the per-language READMEs in `packages/{python,typescript,go}/`.
+Read the [documentation](https://docs.sdks.xberg.io) or the package guides for
+[Python](packages/python/README.md), [TypeScript](packages/typescript/README.md), and [Go](packages/go/README.md).
 
 ## Documentation
 

@@ -6,6 +6,7 @@ trim_trailing_whitespace = true
 
 [discovery]
 exclude = [
+  "docs-site/src/snippets/**",
   "docs-site/dist/**",
   "docs-site/.astro/**",
   "docs-site/src/content/docs/reference/**",
@@ -220,6 +221,7 @@ stages = ["pre-commit"]
 
 [hooks.builtin]
 lint = { exclude = [
+  "docs-site/src/snippets/**",
   "docs-site/dist/**",
   "docs-site/.astro/**",
   "docs-site/src/content/docs/reference/**",
@@ -248,6 +250,7 @@ lint = { exclude = [
   "packages/go/include/*.h",
 ] }
 fmt = { exclude = [
+  "docs-site/src/snippets/**",
   "docs-site/dist/**",
   "docs-site/.astro/**",
   "docs-site/src/content/docs/reference/**",
@@ -277,6 +280,7 @@ fmt = { exclude = [
 ] }
 commit = { stages = ["commit-msg"] }
 file_safety = { exclude = [
+  "docs-site/src/snippets/**",
   "docs-site/dist/**",
   "docs-site/.astro/**",
   "docs-site/src/content/docs/reference/**",

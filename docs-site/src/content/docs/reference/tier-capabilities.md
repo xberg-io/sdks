@@ -1,87 +1,54 @@
 ---
 title: Tier capabilities
-description: What Xberg Enterprise and Xberg Pro each serve, why they differ, and what is simply not built yet.
+description: Which client methods use Pro, the Enterprise data plane, or the Enterprise control plane.
 ---
 
-Enterprise is a strict superset of Pro (ADR-0067), enforced in CI by
-`scripts/tests/spec-parity.test.sh`: everything Pro serves, Enterprise also serves, plus an
-Enterprise-only surface Pro has no equivalent for. Where the two differ, the difference is recorded
-here — an absence should read as a decision, not an oversight.
+Pro serves its API from one origin. Enterprise serves its data plane at `base_url` and its
+control plane at `control_plane_base_url`. Configure both Enterprise origins explicitly when they differ.
+The control-plane origin defaults to the data-plane origin.
 
-Enterprise splits into two origins: a **data plane** (extraction, jobs, RAG, presets, auto-tune —
-everything `base_url` addresses) and a separate **control plane** (projects, API keys,
-integrations, RAG config, members, invitations, managed webhooks, usage, analytics, billing) on its
-own origin. Pro serves both planes from one binary, so its control plane lives at the same
-`base_url`.
+## Client surfaces
 
-## Shared by both tiers
+| Surface | Pro | Enterprise | Client behavior |
+| --- | --- | --- | --- |
+| Extraction, batches, job polling/results/cancellation | Yes | Yes | Shared methods use `base_url`. |
+| Curated and saved presets | Yes | Yes | Saved-preset methods select the route spelling for the connected tier. |
+| RAG, auto-tune, tuning profiles | Licence dependent | Licence dependent | Shared methods; the server checks entitlements. |
+| Inline extraction webhooks | Yes | Yes | Supplied on the extraction request. |
+| Projects, API keys, integrations, project RAG configuration | Yes | Yes | Existing Pro methods use `base_url`; Enterprise uses dedicated backend methods. |
+| Members, invitations, managed webhook subscriptions, billing, analytics | No | Yes | Dedicated Enterprise backend methods use `control_plane_base_url`. |
+| Document lineage, enrichment, upload staging, extraction telemetry | No | Yes | Enterprise data-plane methods use `base_url`. |
+| Crawl event stream | No | Yes | Enterprise data-plane stream; supply caller cancellation. |
 
-Extraction (single document and batch, JSON or multipart, up to 10 documents per request),
-the jobs surface (submit, poll, result, pages, cancel), curated and saved presets, auto-tune and
-tuning profiles, the RAG API, and inline per-request webhooks.
+These SDKs expose all **48 operations** in the vendored Enterprise backend specification,
+including backend health/readiness, account deletion, and OAuth callback handling.
+See the [method references](/reference/api-python/) and [OpenAPI reference](/reference/openapi/)
+for request and response schemas.
 
-**RAG and auto-tune are licence-gated, not tier-gated.** Whether a call succeeds depends on the
-connected instance's licence entitlement, independent of whether it is Enterprise or Pro. A licence
-without the entitlement gets a normal authorization error, not a tier error.
+## Method names and compatibility
 
-## Enterprise only (by design)
+A backend operation keeps its operation-derived name unless that name already belongs to a Pro method.
+Collisions use `backend_` in Python, `backend` in TypeScript, and `Backend` in Go.
+For example, Pro uses `list_projects` / `listProjects` / `ListProjects`;
+Enterprise uses `backend_list_projects` / `backendListProjects` / `BackendListProjects`.
+Existing Pro signatures remain unchanged. Backend schemas can differ even when the route is identical.
 
-| Capability | Why |
-| --- | --- |
-| `/v1/documents/**` — versions, diff, latest | Document lineage tracks a logical document across re-submissions and needs a version store Pro does not have. Pro rejects `document_id` explicitly. |
-| `split_documents` (multi-document PDF boundary detection) | Pro's `ExtractionOptions.split_documents` is accepted but ignored. |
-| Managed webhook *subscriptions* | A standing, control-plane-registered webhook independent of any single extract call — distinct from the shared inline `webhook`, which both tiers deliver. |
-| Team management (members, invitations) | Control-plane concept; no Pro equivalent. |
-| Document versions | See lineage, above. |
-| Billing | Control-plane concept; no Pro equivalent. |
+## Tier checks
 
-## Pro only
+Existing tier-specific methods use an explicit target or lazily discover the tier through `/healthz`.
+Dedicated backend methods reject an explicit or already detected Pro target. They do not contact the
+data plane merely to discover the tier: they call the configured backend directly.
 
-| Capability | Why |
-| --- | --- |
-| `/v1/projects`, api-keys, integrations, `rag-config` | Pro carries its control plane on the data-plane port. Enterprise's control plane is a separate service on another port, outside the surface these SDKs call today (see below). |
-| `/auth/login`, `/v1/oauth/callback`, `DELETE /auth/account` | Browser session and OAuth redirect flows belonging to Pro's own dashboard. |
+The Pro readiness probe, browser OAuth callback, and account-erasure route remain outside the
+high-level Pro client. Backend methods with those routes do not provide Pro aliases.
 
-## Enterprise only today, intended for both tiers
+## Credentials
 
-These are implemented and working on Enterprise. Pro's spec does not declare them at all, so the
-clients gate them to Enterprise — and that gate is currently correct, not a bug. They are listed
-separately from the table above because the intent is different: the capabilities above have no Pro
-implementation coming, while these are planned for Pro and simply are not there yet.
+`api_key` / `apiKey` / `WithAPIKey` authenticates data-plane calls.
+Use `control_plane_token` / `controlPlaneToken` / `WithControlPlaneToken` for a separate backend bearer.
+Omitting it falls back to the API key; setting it to an empty string sends no bearer.
+Backend requests omit inherited cookies and do not follow redirects.
 
-| Capability | State |
-| --- | --- |
-| Enrichment — `POST /v1/enrich`, `GET /v1/enrich/{job_id}` | Enterprise only |
-| Usage analytics — `GET /v1/usage` | Enterprise only |
-| Presigned uploads — `POST /v1/uploads/presign`, `POST /v1/uploads/confirm` | Enterprise only |
-| Extraction telemetry — `GET /v1/extractions` | Enterprise only |
-| Crawling — `urls`/`crawl_config` on `ExtractRequest`, and `GET /v1/crawl-jobs/{id}/events` | Enterprise only. Pro's obstacle is real rather than a matter of declaring it: Enterprise fans crawl events in over NATS, which Pro does not run, so Pro needs a different transport first. |
-
-When they reach Pro they will be declared in its spec before they are implemented, answering `501`
-with a stable error code until the implementation lands. At that point a Pro-targeted client will
-stop raising a tier error and start returning a typed not-implemented error instead — so treat
-"the tier gate refused it" and "the server has not built it" as two different answers, and read the
-response rather than inferring one from the other.
-
-## Enterprise's control plane: not reachable from these SDKs yet
-
-The Pro-only table above is accurate for what the clients call today, but it undersells the
-picture: Enterprise's control plane exists as a separate service
-(`control_plane_base_url`/`controlPlaneBaseUrl`/`ControlPlaneBaseURL()`), and none of the SDKs'
-control-plane methods (`list_projects`, `create_api_key`, `create_integration`, …) call it — every
-one is gated to the `pro` tier only. Calling them against an Enterprise-targeted client raises a
-tier error today, not because Enterprise lacks a control plane, but because these methods have not
-been wired to call it yet. See [The control plane guide](/guides/control-plane/).
-
-## Not exposed by any client, on purpose
-
-- **`GET /readyz`** — an infrastructure readiness probe. `/healthz` is the tier probe and the
-  clients do use it.
-- **Pro's redirect and cookie login flows** — they depend on a browser round-trip an SDK cannot
-  meaningfully drive.
-
-## How the client enforces this
-
-Pass `target` explicitly, or let the client read the tier once from `GET /healthz`. A method the
-connected tier does not serve raises a tier error before any request is sent, so you get a clear
-message instead of a 404 from a route that was never there.
+Public backend health, authentication configuration, login, and OAuth callback calls omit the client's
+bearer credentials. Public sandbox extraction accepts its own explicit sandbox token.
+See [the control-plane guide](/guides/control-plane/) for the token exchange.

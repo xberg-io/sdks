@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "docs-site/**"
+      - "spec/**"
+      - "tasks/docs.yml"
+      - "scripts/generate-reference.py"
+      - "pnpm-lock.yaml"
       - ".textlintrc.json"
       - ".textlintignore"
       - "package.json"
@@ -13,6 +17,10 @@ on:
     branches: [main]
     paths:
       - "docs-site/**"
+      - "spec/**"
+      - "tasks/docs.yml"
+      - "scripts/generate-reference.py"
+      - "pnpm-lock.yaml"
       - ".textlintrc.json"
       - ".textlintignore"
       - "package.json"

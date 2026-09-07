@@ -158,6 +158,61 @@ Pro-only projects, keys and integrations.
 | `list_integration_documents` | Pro only: list documents visible through an integration (``GET .../documents``). |
 | `fetch_integration_document` | Pro only: download one document through an integration (``GET .../documents/{document_id}``). |
 
+## Enterprise control plane
+
+All backend operations use the configured control-plane origin and credential.
+
+| Method | Description |
+| --- | --- |
+| `delete_account` | Enterprise backend: Delete the authenticated user's account and all associated data (``DELETE /auth/account``). |
+| `get_auth_config` | Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``). |
+| `backend_login` | Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``). |
+| `healthz` | Enterprise backend: Liveness probe - returns 200 if the process is running (``GET /healthz``). |
+| `readyz` | Enterprise backend: Readiness probe - returns 200 if the service can handle traffic (``GET /readyz``). |
+| `accept_invitation` | Enterprise backend: Accept an invitation using a token (``POST /v1/invitations/accept``). |
+| `oauth_callback` | Enterprise backend: OAuth callback handler (``GET /v1/oauth/callback``). |
+| `backend_list_projects` | Enterprise backend: List all projects for the authenticated user (``GET /v1/projects``). |
+| `backend_create_project` | Enterprise backend: Create a new project (``POST /v1/projects``). |
+| `get_project` | Enterprise backend: Get project details by ID (``GET /v1/projects/{id}``). |
+| `delete_project` | Enterprise backend: Delete a project (``DELETE /v1/projects/{id}``). |
+| `update_project` | Enterprise backend: Update project details (``PATCH /v1/projects/{id}``). |
+| `get_analytics` | Enterprise backend: Get analytics data for a project within a date range (``GET /v1/projects/{id}/analytics``). |
+| `backend_list_api_keys` | Enterprise backend: List all API keys for a project (``GET /v1/projects/{id}/api-keys``). |
+| `backend_create_api_key` | Enterprise backend: Create a new API key for a project (``POST /v1/projects/{id}/api-keys``). |
+| `backend_revoke_api_key` | Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``). |
+| `regenerate_api_key` | Enterprise backend: Regenerate an API key (``POST /v1/projects/{id}/api-keys/{key_id}/regenerate``). |
+| `list_project_audit` | Enterprise backend: List a project's audit events, most recent first. (``GET /v1/projects/{id}/audit``). |
+| `get_billing` | Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``). |
+| `create_checkout` | Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``). |
+| `create_portal` | Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``). |
+| `backend_list_integrations` | Enterprise backend: List all integrations for a project (``GET /v1/projects/{id}/integrations``). |
+| `backend_create_integration` | Enterprise backend: Create a new integration (``POST /v1/projects/{id}/integrations``). |
+| `backend_get_integration` | Enterprise backend: Get a specific integration (``GET /v1/projects/{id}/integrations/{iid}``). |
+| `backend_delete_integration` | Enterprise backend: Delete an integration (``DELETE /v1/projects/{id}/integrations/{iid}``). |
+| `oauth_connect` | Enterprise backend: Begin an OAuth authorization flow for an integration (owner-gated). (``POST /v1/projects/{id}/integrations/{iid}/connect``). |
+| `backend_disconnect_integration` | Enterprise backend: Disconnect an integration (revoke OAuth connection) (``POST /v1/projects/{id}/integrations/{iid}/disconnect``). |
+| `backend_list_integration_documents` | Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``). |
+| `backend_fetch_integration_document` | Enterprise backend: Fetch a single document from a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}``). |
+| `list_invitations` | Enterprise backend: List pending invitations for a project (``GET /v1/projects/{id}/invitations``). |
+| `invite_user` | Enterprise backend: Create a project invitation (sends token for email delivery by frontend) (``POST /v1/projects/{id}/invitations``). |
+| `revoke_invitation` | Enterprise backend: Revoke a pending invitation (``DELETE /v1/projects/{id}/invitations/{inv_id}``). |
+| `leave_project` | Enterprise backend: Self-service: caller leaves a project they belong to (``POST /v1/projects/{id}/leave``). |
+| `list_members` | Enterprise backend: List all members of a project (``GET /v1/projects/{id}/members``). |
+| `remove_member` | Enterprise backend: Remove a member from a project (``DELETE /v1/projects/{id}/members/{user_id}``). |
+| `update_member_role` | Enterprise backend: Update a member's role in a project (``PATCH /v1/projects/{id}/members/{user_id}``). |
+| `backend_get_rag_config` | Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``). |
+| `backend_set_rag_config` | Enterprise backend: Set a project's RAG configuration. (``PUT /v1/projects/{id}/rag-config``). |
+| `sandbox_extract` | Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``). |
+| `get_usage` | Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``). |
+| `list_webhooks` | Enterprise backend: List all webhooks for a project (``GET /v1/projects/{id}/webhooks``). |
+| `create_webhook` | Enterprise backend: Create a new webhook for a project (``POST /v1/projects/{id}/webhooks``). |
+| `delete_webhook` | Enterprise backend: Delete a webhook (``DELETE /v1/projects/{id}/webhooks/{wh_id}``). |
+| `update_webhook` | Enterprise backend: Update a webhook's configuration (``PATCH /v1/projects/{id}/webhooks/{wh_id}``). |
+| `list_webhook_deliveries` | Enterprise backend: List delivery attempts recorded for a webhook. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries``). |
+| `retry_webhook_delivery` | Enterprise backend: Manually retry one past delivery attempt. (``POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry``). |
+| `test_webhook` | Enterprise backend: Send a test delivery to a webhook endpoint (``POST /v1/projects/{id}/webhooks/{wh_id}/test``). |
+| `public_sandbox_extract` | Extract in the public sandbox; pass its optional OIDC bearer as ``sandbox_token``. |
+
 ## Auth
 
 Pro-only session and configuration reads.

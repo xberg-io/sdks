@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xberg SDKs OpenAPI reference</title>
+  </head>
+  <body>
+    <div id="xberg-openapi"></div>
+    <script
+      is:inline
+      src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.68.0/dist/browser/standalone.js"
+      integrity="sha384-PhSzhE9ihf7z/cKeRSKAeP+oJMMzotyFv0EjvNYgL798a2ODBQVuJLTP4Klle6IB"
+      crossorigin="anonymous"
+    ></script>
+    <script is:inline>
+    Scalar.createApiReference("#xberg-openapi", {
+      sources: [
+        { title: "Enterprise data plane", url: "/openapi/api.yaml" },
+        { title: "Enterprise control plane", url: "/openapi/backend.yaml" },
+        { title: "Pro", url: "/openapi/pro.yaml" },
+      ],
+      agent: { disabled: true },
+      hideClientButton: true,
+      hideTestRequestButton: true,
+      showOperationId: true,
+    });
+    </script>
+  </body>
+</html>

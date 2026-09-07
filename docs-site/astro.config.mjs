@@ -76,6 +76,7 @@ export default defineConfig({
             items: [
               { label: "API", items: API_LANGUAGES },
               { label: "Tier capabilities", slug: "reference/tier-capabilities" },
+              { label: "OpenAPI", slug: "reference/openapi" },
             ],
           },
           {

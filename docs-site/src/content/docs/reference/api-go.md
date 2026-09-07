@@ -158,6 +158,61 @@ Pro-only projects, keys and integrations.
 | `ListIntegrationDocuments` | ListIntegrationDocuments lists the documents a connected integration exposes (GET /v1/projects/{projectID}/integrations/{integrationID}/documents) |
 | `FetchIntegrationDocument` | FetchIntegrationDocument downloads one document's bytes from a connected integration (GET /v1/projects/{projectID}/integrations/{integrationID}/documents/{documentID}) |
 
+## Enterprise control plane
+
+All backend operations use the configured control-plane origin and credential.
+
+| Method | Description |
+| --- | --- |
+| `DeleteAccount` | DeleteAccount calls DELETE /auth/account on the Enterprise control plane. |
+| `GetAuthConfig` | GetAuthConfig calls GET /auth/config on the Enterprise control plane. |
+| `BackendLogin` | BackendLogin calls POST /auth/login on the Enterprise control plane. |
+| `Healthz` | Healthz calls GET /healthz on the Enterprise control plane. |
+| `Readyz` | Readyz calls GET /readyz on the Enterprise control plane. |
+| `AcceptInvitation` | AcceptInvitation calls POST /v1/invitations/accept on the Enterprise control plane. |
+| `OAuthCallback` | OAuthCallback exchanges an OAuth code and returns the redirect location without following it |
+| `BackendListProjects` | BackendListProjects calls GET /v1/projects on the Enterprise control plane. |
+| `BackendCreateProject` | BackendCreateProject calls POST /v1/projects on the Enterprise control plane. |
+| `GetProject` | GetProject calls GET /v1/projects/{id} on the Enterprise control plane. |
+| `DeleteProject` | DeleteProject calls DELETE /v1/projects/{id} on the Enterprise control plane. |
+| `UpdateProject` | UpdateProject calls PATCH /v1/projects/{id} on the Enterprise control plane. |
+| `GetAnalytics` | GetAnalytics calls GET /v1/projects/{id}/analytics on the Enterprise control plane. |
+| `BackendListAPIKeys` | BackendListAPIKeys calls GET /v1/projects/{id}/api-keys on the Enterprise control plane. |
+| `BackendCreateAPIKey` | BackendCreateAPIKey calls POST /v1/projects/{id}/api-keys on the Enterprise control plane. |
+| `BackendRevokeAPIKey` | BackendRevokeAPIKey calls DELETE /v1/projects/{id}/api-keys/{key_id} on the Enterprise control plane. |
+| `RegenerateAPIKey` | RegenerateAPIKey calls POST /v1/projects/{id}/api-keys/{key_id}/regenerate on the Enterprise control plane. |
+| `ListProjectAudit` | ListProjectAudit calls GET /v1/projects/{id}/audit on the Enterprise control plane. |
+| `GetBilling` | GetBilling calls GET /v1/projects/{id}/billing on the Enterprise control plane. |
+| `CreateCheckout` | CreateCheckout calls POST /v1/projects/{id}/billing/checkout on the Enterprise control plane. |
+| `CreatePortal` | CreatePortal calls POST /v1/projects/{id}/billing/portal on the Enterprise control plane. |
+| `BackendListIntegrations` | BackendListIntegrations calls GET /v1/projects/{id}/integrations on the Enterprise control plane. |
+| `BackendCreateIntegration` | BackendCreateIntegration calls POST /v1/projects/{id}/integrations on the Enterprise control plane. |
+| `BackendGetIntegration` | BackendGetIntegration calls GET /v1/projects/{id}/integrations/{iid} on the Enterprise control plane. |
+| `BackendDeleteIntegration` | BackendDeleteIntegration calls DELETE /v1/projects/{id}/integrations/{iid} on the Enterprise control plane. |
+| `OAuthConnect` | OAuthConnect calls POST /v1/projects/{id}/integrations/{iid}/connect on the Enterprise control plane. |
+| `BackendDisconnectIntegration` | BackendDisconnectIntegration calls POST /v1/projects/{id}/integrations/{iid}/disconnect on the Enterprise control plane. |
+| `BackendListIntegrationDocuments` | BackendListIntegrationDocuments calls GET /v1/projects/{id}/integrations/{iid}/documents on the Enterprise control plane. |
+| `BackendFetchIntegrationDocument` | BackendFetchIntegrationDocument downloads original document bytes from the Enterprise control plane. |
+| `ListInvitations` | ListInvitations calls GET /v1/projects/{id}/invitations on the Enterprise control plane. |
+| `InviteUser` | InviteUser calls POST /v1/projects/{id}/invitations on the Enterprise control plane. |
+| `RevokeInvitation` | RevokeInvitation calls DELETE /v1/projects/{id}/invitations/{inv_id} on the Enterprise control plane. |
+| `LeaveProject` | LeaveProject calls POST /v1/projects/{id}/leave on the Enterprise control plane. |
+| `ListMembers` | ListMembers calls GET /v1/projects/{id}/members on the Enterprise control plane. |
+| `RemoveMember` | RemoveMember calls DELETE /v1/projects/{id}/members/{user_id} on the Enterprise control plane. |
+| `UpdateMemberRole` | UpdateMemberRole calls PATCH /v1/projects/{id}/members/{user_id} on the Enterprise control plane. |
+| `BackendGetRAGConfig` | BackendGetRAGConfig calls GET /v1/projects/{id}/rag-config on the Enterprise control plane. |
+| `BackendSetRAGConfig` | BackendSetRAGConfig calls PUT /v1/projects/{id}/rag-config on the Enterprise control plane. |
+| `SandboxExtract` | SandboxExtract extracts a single file using a project's Enterprise sandbox. |
+| `GetUsage` | GetUsage calls GET /v1/projects/{id}/usage on the Enterprise control plane. |
+| `ListWebhooks` | ListWebhooks calls GET /v1/projects/{id}/webhooks on the Enterprise control plane. |
+| `CreateWebhook` | CreateWebhook calls POST /v1/projects/{id}/webhooks on the Enterprise control plane. |
+| `DeleteWebhook` | DeleteWebhook calls DELETE /v1/projects/{id}/webhooks/{wh_id} on the Enterprise control plane. |
+| `UpdateWebhook` | UpdateWebhook calls PATCH /v1/projects/{id}/webhooks/{wh_id} on the Enterprise control plane. |
+| `ListWebhookDeliveries` | ListWebhookDeliveries calls GET /v1/projects/{id}/webhooks/{wh_id}/deliveries on the Enterprise control plane. |
+| `RetryWebhookDelivery` | RetryWebhookDelivery calls POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry on the Enterprise control plane. |
+| `TestWebhook` | TestWebhook calls POST /v1/projects/{id}/webhooks/{wh_id}/test on the Enterprise control plane. |
+| `PublicSandboxExtract` | PublicSandboxExtract submits a file, or a URL in web mode, to the Enterprise public sandbox |
+
 ## Auth
 
 Pro-only session and configuration reads.
@@ -174,6 +229,6 @@ Read back what the client was configured with. Go only; the other two expose the
 | Method | Description |
 | --- | --- |
 | `BaseURL` | BaseURL returns the configured base URL. |
-| `ControlPlaneBaseURL` | ControlPlaneBaseURL returns the origin the control-plane surface will be addressed at once it exists — no request is routed there yet, see [WithControlPlaneBaseURL] |
+| `ControlPlaneBaseURL` | ControlPlaneBaseURL returns the origin of Enterprise control-plane requests |
 | `HTTPClient` | HTTPClient returns the underlying *http.Client |
 | `Target` | Target returns the explicitly configured target, or the empty [Target] when the tier is discovered lazily from GET /healthz. |

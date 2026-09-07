@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Expose all 48 Enterprise control-plane operations in Python (sync and async), TypeScript, and Go, with independently
+  typed backend schemas, a separate control-plane origin and bearer, public sandbox support, and OAuth redirect handling.
+  Existing Pro method names and signatures remain unchanged; colliding backend names carry a backend prefix.
+
 ### Fixed
 
+- Preserve path identifiers without allowing dot-segment navigation to retarget destructive requests. TypeScript rejects
+  exact dot identifiers because WHATWG URLs normalize even escaped dots; Python and Go encode them.
+- Isolate backend cookies and bearer credentials, omit explicit empty credentials, reject known Pro targets, and avoid
+  requiring an unrelated data-plane health request before a backend call.
 - Ship the generated Go sources in tagged modules and preserve them during cleanup; verify a consumer of the committed
   module before publishing any packages, and prevent GitHub releases after failed validation or builds.
 - Bound Python SSE lines and frames by UTF-8 bytes, reject oversized unterminated lines early, and preserve split Unicode

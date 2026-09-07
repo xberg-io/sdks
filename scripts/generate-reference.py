@@ -11,6 +11,7 @@ Run via `task docs:reference`.
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -113,6 +114,60 @@ GROUPS: list[tuple[str, str, list[str]]] = [
             "fetch_integration_document",
         ],
     ),
+    (
+        "Enterprise control plane",
+        "All backend operations use the configured control-plane origin and credential.",
+        [
+            "delete_account",
+            "get_auth_config",
+            "backend_login",
+            "healthz",
+            "readyz",
+            "accept_invitation",
+            "oauth_callback",
+            "backend_list_projects",
+            "backend_create_project",
+            "get_project",
+            "delete_project",
+            "update_project",
+            "get_analytics",
+            "backend_list_api_keys",
+            "backend_create_api_key",
+            "backend_revoke_api_key",
+            "regenerate_api_key",
+            "list_project_audit",
+            "get_billing",
+            "create_checkout",
+            "create_portal",
+            "backend_list_integrations",
+            "backend_create_integration",
+            "backend_get_integration",
+            "backend_delete_integration",
+            "oauth_connect",
+            "backend_disconnect_integration",
+            "backend_list_integration_documents",
+            "backend_fetch_integration_document",
+            "list_invitations",
+            "invite_user",
+            "revoke_invitation",
+            "leave_project",
+            "list_members",
+            "remove_member",
+            "update_member_role",
+            "backend_get_rag_config",
+            "backend_set_rag_config",
+            "sandbox_extract",
+            "get_usage",
+            "list_webhooks",
+            "create_webhook",
+            "delete_webhook",
+            "update_webhook",
+            "list_webhook_deliveries",
+            "retry_webhook_delivery",
+            "test_webhook",
+            "public_sandbox_extract",
+        ],
+    ),
     ("Auth", "Pro-only session and configuration reads.", ["auth_config", "login"]),
     (
         "Client accessors",
@@ -198,7 +253,9 @@ def snake_to_camel(name: str) -> str:
 
 def snake_to_pascal(name: str) -> str:
     """`get_job_result` -> `GetJobResult`, the Go spelling, honouring Go initialisms."""
-    special = {"api": "API", "id": "ID", "json": "JSON", "rag": "Rag", "url": "URL", "http": "HTTP"}
+    special = {"oauth": "OAuth", "api": "API", "id": "ID", "json": "JSON", "rag": "Rag", "url": "URL", "http": "HTTP"}
+    if name.startswith("backend_"):
+        special["rag"] = "RAG"
     parts = [special.get(p, p.title()) for p in name.split("_")]
     return "".join(parts)
 
@@ -288,17 +345,32 @@ def render(lang: str) -> str:
 
 def main() -> None:
     """Write every language's reference page."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Check reference content without writing")
+    args = parser.parse_args()
     failures = parity_failures()
     if failures:
         sys.stderr.write("cross-language method sets diverge:\n")
         for line in failures:
             sys.stderr.write(f"  {line}\n")
         sys.exit(1)
+    rendered = {OUT / f"api-{lang}.md": render(lang) for lang in LANGS}
+    changelog = (ROOT / "CHANGELOG.md").read_text().removeprefix("# Changelog\n")
+    rendered[OUT.parent / "changelog.md"] = (
+        "---\ntitle: Changelog\ndescription: Changes to the Python, TypeScript and Go SDKs.\n---\n" + changelog
+    )
+    if args.check:
+        stale = [path for path, content in rendered.items() if not path.exists() or path.read_text() != content]
+        for path in stale:
+            print(f"stale reference: {path}", file=sys.stderr)
+        if stale:
+            sys.exit(1)
+        print(f"reference: {len(rendered)} files checked")
+        return
     OUT.mkdir(parents=True, exist_ok=True)
-    for lang in LANGS:
-        target = OUT / f"api-{lang}.md"
-        target.write_text(render(lang))
-        count = render(lang).count("| `")
+    for target, content in rendered.items():
+        target.write_text(content)
+        count = content.count("| `")
         print(f"  {target.relative_to(ROOT)}: {count} methods")
 
 

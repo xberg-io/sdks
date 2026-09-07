@@ -1,125 +1,56 @@
 ---
 title: The control plane
-description: Projects, API keys, and integrations — available on Pro today.
+description: Manage projects, keys, integrations, and teams on Pro or Enterprise.
 ---
 
-The control plane — projects, API keys, integrations, and per-project RAG configuration — is
-capability-gated to **Pro only** in all three clients today. Enterprise's control plane is a
-separate service on its own origin (`control_plane_base_url`/`controlPlaneBaseUrl`/
-`ControlPlaneBaseURL()`, which defaults to the data-plane `base_url`); none of these SDK methods
-call it yet, so invoking them against an Enterprise-targeted client raises a tier error before any
-request goes out. See [Tier capabilities](/reference/tier-capabilities/) for what is Enterprise-only
-by design versus what simply has not landed for Enterprise here yet.
+Pro uses one origin for extraction and administration. Enterprise uses a separate backend origin.
+Configure `control_plane_base_url` (Python), `controlPlaneBaseUrl` (TypeScript), or
+`WithControlPlaneBaseURL` (Go) for Enterprise. Set the target to `enterprise` when it is known.
 
-## Projects
+## Choose the method for your deployment
 
-```python title="Python"
-projects = client.list_projects()
-project = client.create_project({"name": "acme-invoices"})
-```
+| Operation | Pro Python / TypeScript / Go | Enterprise Python / TypeScript / Go |
+| --- | --- | --- |
+| List projects | `list_projects` / `listProjects` / `ListProjects` | `backend_list_projects` / `backendListProjects` / `BackendListProjects` |
+| Create project | `create_project` / `createProject` / `CreateProject` | `backend_create_project` / `backendCreateProject` / `BackendCreateProject` |
+| Create key | `create_api_key` / `createApiKey` / `CreateAPIKey` | `backend_create_api_key` / `backendCreateApiKey` / `BackendCreateAPIKey` |
+| Create integration | `create_integration` / `createIntegration` / `CreateIntegration` | `backend_create_integration` / `backendCreateIntegration` / `BackendCreateIntegration` |
+| Read project RAG configuration | `get_rag_config` / `getRagConfig` / `GetRagConfig` | `backend_get_rag_config` / `backendGetRagConfig` / `BackendGetRAGConfig` |
 
-```ts title="TypeScript"
-const projects = await client.listProjects();
-const project = await client.createProject({ name: "acme-invoices" });
-```
+Backend methods preserve the backend's generated request and response types. Pro and backend schemas
+are not interchangeable merely because their paths match. Use the per-language
+[Python](/reference/api-python/), [TypeScript](/reference/api-typescript/), and
+[Go](/reference/api-go/) references for the complete method list.
 
-```go title="Go"
-projects, err := client.ListProjects(ctx, 0, 0)
-project, err := client.CreateProject(ctx, xberg.CreateProjectRequest{Name: "acme-invoices"})
-projectID := project.Id.String()
-```
+## Authenticate
 
-## API keys
+Set a backend bearer with `control_plane_token`, `controlPlaneToken`, or `WithControlPlaneToken`.
+The default is the configured API key. A separate token lets the data plane keep a project key while
+the backend uses a session token. An explicit empty token disables the fallback.
 
-The plaintext key is returned exactly once, in the create response — store it then, not by
-fetching it again later.
+`backend_login` / `backendLogin` / `BackendLogin` exchanges an external OIDC ID token for a backend
+session token. Its response uses the backend login schema. Use the resulting backend token for later
+control-plane calls; an external OIDC ID token is not itself a backend session token.
 
-```python title="Python"
-keys = client.list_api_keys(project.id)
-created = client.create_api_key(project.id, {"name": "ci-runner"})
-print(created.key)  # only ever shown here
-client.revoke_api_key(project.id, created.id)
-```
+Public sandbox extraction takes a separate explicit token. No project key or backend session token
+is forwarded implicitly to that endpoint. Fileless extraction requires web mode and a URL.
 
-```ts title="TypeScript"
-const created = await client.createApiKey(project.id, { name: "ci-runner" });
-console.log(created.key);
-await client.revokeApiKey(project.id, created.id);
-```
+Backend requests omit inherited cookies and do not follow redirects. The OAuth callback method returns
+the server's `Location` from a 303 response without navigating to it. Let your application decide
+whether and how to open that destination.
 
-```go title="Go"
-name := "ci-runner"
-created, err := client.CreateAPIKey(ctx, projectID, xberg.CreateApiKeyRequest{Name: &name})
-fmt.Println(created.Key)
-err = client.RevokeAPIKey(ctx, projectID, created.Id.String())
-```
+## Manage resources
 
-## Integrations
+Create a project before creating its API keys. The create-key response contains the plaintext key;
+store it in your secret manager and avoid logging it. Key listing does not recover the original secret.
 
-An integration connects a project to an external document source (for example, a shared drive) via
-BYO OAuth2/OIDC client credentials. Creating one registers it; `connect_integration`/
-`connectIntegration`/`ConnectIntegration` then begins the OAuth flow and returns the provider's
-`authorize_url` for the end user to visit — the SDK cannot drive that browser round-trip for you.
+Create an integration to register a document source, then call its connect method to obtain an
+authorization URL. The provider's browser consent flow remains an application concern. After connection,
+list documents and fetch their original bytes before submitting them for extraction.
 
-```python title="Python"
-integration = client.create_integration(
-    project.id,
-    {
-        "kind": "google_drive",
-        "name": "Shared Drive",
-        "auth_type": "oauth2",
-        "credentials": {"client_id": "...", "client_secret": "..."},
-    },
-)
-begin = client.connect_integration(project.id, integration.id)
-print(begin.authorize_url)
+Enterprise also exposes project membership, invitations, managed webhooks, analytics, usage, and billing.
+These use the dedicated backend origin. Project RAG configuration sets project defaults; individual
+RAG collection configuration remains a separate data-plane surface.
 
-# once connected:
-docs = client.list_integration_documents(project.id, integration.id, max_results=50)
-data = client.fetch_integration_document(project.id, integration.id, docs.documents[0].id)
-job = client.extract(file=data)
-```
-
-```ts title="TypeScript"
-const integration = await client.createIntegration(project.id, {
-  kind: "google_drive",
-  name: "Shared Drive",
-  auth_type: "oauth2",
-  credentials: { client_id: "...", client_secret: "..." },
-});
-const begin = await client.connectIntegration(project.id, integration.id);
-console.log(begin.authorize_url);
-```
-
-```go title="Go"
-integration, err := client.CreateIntegration(ctx, projectID, xberg.CreateIntegrationRequest{
-    Kind:        "google_drive",
-    Name:        "Shared Drive",
-    AuthType:    "oauth2",
-    Credentials: map[string]interface{}{"client_id": "...", "client_secret": "..."},
-})
-begin, err := client.ConnectIntegration(ctx, projectID, integration.Id.String())
-fmt.Println(begin.AuthorizeUrl)
-```
-
-A document fetched through `fetch_integration_document`/`fetchIntegrationDocument`/
-`FetchIntegrationDocument` comes back as raw bytes in the source's own media type — feed it
-straight into `extract`/`extractBatch`/`Extract` the same way you would a file read from disk.
-
-## Per-project RAG configuration
-
-Distinct from a RAG collection's own settings: this is the project-wide default that new
-collections and retrievals fall back to.
-
-```python title="Python"
-config = client.get_rag_config(project.id)
-client.set_rag_config(project.id, {"default_embedding_source": "managed_local"})
-```
-
-## What is not here
-
-Auth session/OAuth-redirect flows (`auth_config`, `login`) live on Pro's own dashboard and are not
-meant to be driven headlessly — they exist on the client mainly so a server-side integration can
-complete the exchange. Managed webhook *subscriptions*, team management, document versions, and
-billing are Enterprise-only concepts that are not part of this control-plane surface at all — see
-[Tier capabilities](/reference/tier-capabilities/).
+The [tier matrix](/reference/tier-capabilities/) distinguishes shared functionality from Enterprise-only
+operations. The [OpenAPI reference](/reference/openapi/) shows each deployment's exact schema.

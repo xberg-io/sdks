@@ -15,14 +15,7 @@ tasks:
   reference:check:
     desc: "Fail if the generated API reference is stale"
     cmds:
-      - |
-        python3 scripts/generate-reference.py
-        if [ -n "$(git status --porcelain docs-site/src/content/docs/reference)" ]; then
-          echo "generated API reference is stale — run 'task docs:reference' and commit" >&2
-          git --no-pager diff --stat docs-site/src/content/docs/reference >&2
-          exit 1
-        fi
-        echo "generated API reference is up to date"
+      - python3 scripts/generate-reference.py --check
 
   install:
     desc: "Install docs-site dependencies"
