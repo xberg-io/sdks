@@ -1,0 +1,2 @@
+Xberg SDK snippet fixture.
+This local document verifies extraction through the SDK.

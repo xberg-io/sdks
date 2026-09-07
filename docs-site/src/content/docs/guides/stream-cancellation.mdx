@@ -1,0 +1,47 @@
+---
+title: Cancel a crawl subscription
+description: Bound an Enterprise crawl event subscription, including while no events arrive.
+---
+
+import { Content as PythonCancellation } from '../../../snippets/python/stream_cancellation.md';
+import { Content as TypeScriptCancellation } from '../../../snippets/typescript/stream_cancellation.md';
+import { Content as GoCancellation } from '../../../snippets/go/stream_cancellation.md';
+
+A crawl event subscription has **no built-in maximum duration**. An idle subscription may remain open indefinitely.
+The ordinary request timeout does not bound the stream: Python disables its read timeout, Go removes the HTTP client
+and per-request timeout, and TypeScript relies on the caller's abort signal. Set a caller deadline when your application
+needs a bounded subscription.
+
+The examples below subscribe to an existing Enterprise crawl job. Set `XBERG_BASE_URL`, `XBERG_API_KEY`, and
+`XBERG_CRAWL_JOB_ID`. They default to a 30-second caller deadline; `XBERG_STREAM_TIMEOUT_SECONDS` overrides it.
+Their ordinary request timeout is deliberately shorter, demonstrating that it does not limit an idle stream.
+
+## Python
+
+Use the async client to cancel even while the next event is blocked on network I/O. `asyncio.wait_for` cancels the
+consumer task when its deadline expires, and `aclosing` closes the generator when consumption ends. This works on
+Python 3.10 and later.
+
+<PythonCancellation />
+
+For synchronous consumption, wrap the generator in `contextlib.closing` when breaking early. Closing it after an event
+releases the response, but a deadline checked inside the loop cannot interrupt an idle read. Use the async pattern above
+when cancellation must work during idle periods.
+
+## TypeScript
+
+Pass an `AbortSignal` to `streamCrawlEvents`. Aborting it interrupts an idle read and releases the response body.
+Breaking out of the loop also closes the response. Check the signal when handling cancellation so unrelated connection
+or protocol errors still propagate.
+
+<TypeScriptCancellation />
+
+## Go
+
+Pass a context with a deadline and defer its cancellation. The context interrupts the subscription while idle;
+breaking out of the iterator also closes the response body. Preserve errors that are unrelated to the caller deadline.
+
+<GoCancellation />
+
+Stopping a subscription closes that client's connection. It does not cancel the crawl job itself. Other subscribers
+can continue to receive events, and a later subscription is a new connection.
