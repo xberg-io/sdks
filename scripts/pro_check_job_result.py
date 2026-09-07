@@ -24,10 +24,10 @@ def main() -> int:
     undeclared = sorted(set(body) - set(schema["properties"]))
 
     if missing:
-        print(f"    required by the schema, absent on the wire: {missing}")
+        print(f"    required by the schema, absent on the wire: {missing}")  # noqa: T201 - CLI check output.
     if undeclared:
-        print(f"    on the wire, undeclared by the schema: {undeclared}")
-    print(f"    keys on the wire: {sorted(body)}")
+        print(f"    on the wire, undeclared by the schema: {undeclared}")  # noqa: T201 - CLI check output.
+    print(f"    keys on the wire: {sorted(body)}")  # noqa: T201 - CLI check output.
     return 1 if missing or undeclared else 0
 
 

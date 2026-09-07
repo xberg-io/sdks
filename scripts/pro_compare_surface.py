@@ -31,10 +31,10 @@ def main() -> int:
 
     missing = sorted(vendored - live)
     for method, path in missing:
-        print(f"    vendored but not served: {method} {path}")
+        print(f"    vendored but not served: {method} {path}")  # noqa: T201 - CLI check output.
     for method, path in sorted(live - vendored):
-        print(f"    served but not vendored: {method} {path}")
-    print(f"    vendored={len(vendored)} live={len(live)}")
+        print(f"    served but not vendored: {method} {path}")  # noqa: T201 - CLI check output.
+    print(f"    vendored={len(vendored)} live={len(live)}")  # noqa: T201 - CLI check output.
     return 1 if missing else 0
 
 

@@ -362,16 +362,16 @@ def main() -> None:
     if args.check:
         stale = [path for path, content in rendered.items() if not path.exists() or path.read_text() != content]
         for path in stale:
-            print(f"stale reference: {path}", file=sys.stderr)
+            print(f"stale reference: {path}", file=sys.stderr)  # noqa: T201 - CLI check output.
         if stale:
             sys.exit(1)
-        print(f"reference: {len(rendered)} files checked")
+        print(f"reference: {len(rendered)} files checked")  # noqa: T201 - CLI check output.
         return
     OUT.mkdir(parents=True, exist_ok=True)
     for target, content in rendered.items():
         target.write_text(content)
         count = content.count("| `")
-        print(f"  {target.relative_to(ROOT)}: {count} methods")
+        print(f"  {target.relative_to(ROOT)}: {count} methods")  # noqa: T201 - CLI check output.
 
 
 if __name__ == "__main__":
