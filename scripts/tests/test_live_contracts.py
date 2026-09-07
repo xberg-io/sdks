@@ -89,3 +89,16 @@ def test_upload_container_keeps_signed_url_out_of_process_arguments(tmp_path: Pa
     assert "--rm" in arguments
     assert "--read-only" in arguments
     assert url in payload.read_text()
+
+
+@pytest.mark.parametrize("payload", [{"code": "wrong.code"}, {"error": {"code": "wrong.code"}}, {}])
+def test_page_error_check_rejects_wrong_server_code(payload: dict) -> None:
+    spec = importlib.util.spec_from_file_location("live_page_check", ROOT / "scripts/live-sdk-contracts.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    def fail() -> None:
+        raise module.XbergError("page missing", status_code=404, payload=payload)
+
+    with pytest.raises(ValueError, match="expected error code page.not_found"):
+        module.expect_status(fail, 404, expected_code="page.not_found")

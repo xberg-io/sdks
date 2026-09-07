@@ -104,6 +104,17 @@ def verify_single(client: XbergClient, directory: Path) -> None:
     require(str(job.id) in {str(item["id"]) for item in listed["jobs"]}, "submitted job missing from jobs list")
 
 
+def verify_job_page(client: XbergClient, directory: Path) -> None:
+    """Require the page route's typed absence response for a real completed text job."""
+    marker = f"SDK page retrieval fixture {uuid.uuid4().hex}"
+    file = directory / "page-source.txt"
+    file.write_text(marker)
+    job = client.extract(file=file)
+    verify_result(client, str(job.id), marker)
+    # ~keep Page PNGs require structured vision and a configured LLM; plain text has no raster.
+    expect_status(lambda: client.get_job_page(str(job.id), 1), 404, expected_code="page.not_found")
+
+
 def verify_batch(client: XbergClient, directory: Path) -> None:
     """Require both independently submitted documents to complete with their own markers."""
     markers = [f"SDK batch document {index} {uuid.uuid4().hex}" for index in range(2)]
@@ -135,12 +146,16 @@ def verify_saved_presets(client: XbergClient) -> None:
     expect_status(lambda: client.get_saved_preset(preset_id), 404)
 
 
-def expect_status(operation: Callable[[], Any], expected: int) -> None:
+def expect_status(operation: Callable[[], Any], expected: int, *, expected_code: str | None = None) -> None:
     """Require a typed SDK error with the expected server status."""
     try:
         operation()
     except XbergError as exc:
         require(exc.status_code == expected, f"expected HTTP {expected}, got {exc.status_code}")
+        if expected_code is not None:
+            error = exc.payload.get("error", {}) if isinstance(exc.payload, dict) else {}
+            code = error.get("code") if isinstance(error, dict) else None
+            require(code == expected_code, f"expected error code {expected_code}, got {code}")
     else:
         raise ValueError(f"expected HTTP {expected}, request succeeded")
 
@@ -299,6 +314,10 @@ def verify(args: argparse.Namespace) -> int:
             checks.run("missing job typed error", lambda: expect_status(lambda: client.get_job(str(uuid.uuid4())), 404))
             if args.tier == "enterprise":
                 checks.run(
+                    "Enterprise page retrieval typed absence (text has no raster)",
+                    lambda: verify_job_page(client, Path(directory)),
+                )
+                checks.run(
                     "Enterprise usage", lambda: require(isinstance(client.usage(), dict), "usage is not an object")
                 )
                 checks.run(
@@ -313,7 +332,7 @@ def verify(args: argparse.Namespace) -> int:
                 checks.run(
                     "Enterprise SDK presign/confirm and real upload transport", lambda: verify_presigned_upload(client)
                 )
-        return checks.finish(12 if args.tier == "enterprise" else 7)
+        return checks.finish(13 if args.tier == "enterprise" else 7)
     finally:
         if minted is not None:
             with XbergClient(
