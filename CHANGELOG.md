@@ -31,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Isolate backend cookies and bearer credentials, omit explicit empty credentials, reject known Pro targets, and avoid
   requiring an unrelated data-plane health request before a backend call.
 - Ship the generated Go sources in tagged modules and preserve them during cleanup; verify a consumer of the committed
-  module before publishing any packages, and prevent GitHub releases after failed validation or builds.
+  module before publishing any packages. Build the requested release tag, require both language coverage suites, and
+  stop publication when registry probes fail.
 - Bound Python SSE lines and frames by UTF-8 bytes, reject oversized unterminated lines early, and preserve split Unicode
   and CR/LF framing without treating Unicode paragraph separators as line endings.
 
