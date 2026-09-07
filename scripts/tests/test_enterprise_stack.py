@@ -43,6 +43,7 @@ def test_state_is_private_and_unique_to_each_instance(tmp_path: Path) -> None:
     second = stack.initialize_state(tmp_path / "second", "enterprise")
     assert first["project"] != second["project"]
     assert first["jwt_secret"] != second["jwt_secret"]
+    assert all(value.startswith("sdk_") for value in first["nats_passwords"].values())
     assert first["ports"]["api"] != first["ports"]["postgres"]
     for name in ("first", "second"):
         state = tmp_path / name / "state.json"

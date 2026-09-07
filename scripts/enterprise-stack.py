@@ -124,7 +124,8 @@ def initialize_state(directory: Path, tier: str) -> dict[str, Any]:
         "admin_key": "kz_admin_" + secrets.token_hex(32),
         "passwords": {name: secrets.token_urlsafe(32) for name in ROLE_NAMES},
         "nats_passwords": {
-            name: secrets.token_urlsafe(32) for name in ("api", "worker", "backend", "billing", "rag", "webhook")
+            name: "sdk_" + secrets.token_urlsafe(32)
+            for name in ("api", "worker", "backend", "billing", "rag", "webhook")
         },
     }
     write_private(directory / "state.json", state)
@@ -398,11 +399,15 @@ def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environm
         "filesystem",
         "-filesystem-root",
         "/storage",
+        "-public-host",
+        "gcs-emulator:4443",
         "-external-url",
         f"http://127.0.0.1:{ports['gcs']}",
     ]
     services.update(runtime_services(state, environment, binary_directory, image))
     config.setdefault("volumes", {})["sdk-broker"] = {}
+    state["upload_runtime_image"] = image
+    state["upload_network"] = config["networks"]["default"]["name"]
 
 
 def wait_ready(url: str) -> None:
@@ -525,6 +530,9 @@ def execute(state: dict[str, Any], command: list[str]) -> int:
         "XBERG_CONTROL_PLANE_TOKEN": state["control_plane_token"],
         "XBERG_ADMIN_KEY": state["admin_key"],
     }
+    if state["tier"] == "enterprise" and state.get("upload_network"):
+        environment["XBERG_UPLOAD_NETWORK"] = state["upload_network"]
+        environment["XBERG_UPLOAD_RUNTIME_IMAGE"] = state["upload_runtime_image"]
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode  # noqa: S603
 
 

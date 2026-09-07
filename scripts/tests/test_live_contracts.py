@@ -65,3 +65,27 @@ def test_live_checks_reject_missing_work_and_preserve_failed_status() -> None:
     assert checks.results == [
         {"name": "deliberate negative control", "status": "failed", "detail": "ValueError: planted failure"}
     ]
+
+
+def test_upload_container_keeps_signed_url_out_of_process_arguments(tmp_path: Path, monkeypatch) -> None:
+    spec = importlib.util.spec_from_file_location("live_contract_upload", ROOT / "scripts/live-sdk-contracts.py")
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    marker = tmp_path / "arguments"
+    payload = tmp_path / "payload"
+    docker = tmp_path / "docker"
+    docker.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{marker}"\ncat > "{payload}"\n')
+    docker.chmod(0o700)
+    monkeypatch.setenv("PATH", f"{tmp_path}:{os.environ['PATH']}")
+    monkeypatch.setenv("XBERG_UPLOAD_NETWORK", "owned-test-network")
+    monkeypatch.setenv("XBERG_UPLOAD_RUNTIME_IMAGE", "local-runtime:test")
+    url = "http://storage.test/object?signature=private-signature"
+    module.upload_presigned(url, b"fixture")
+    arguments = marker.read_text()
+    assert url not in arguments
+    assert "owned-test-network" in arguments
+    assert "--rm" in arguments
+    assert "--read-only" in arguments
+    assert url in payload.read_text()

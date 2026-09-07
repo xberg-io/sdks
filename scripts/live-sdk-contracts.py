@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -157,6 +159,56 @@ def verify_enrichment(client: XbergClient) -> None:
     raise ValueError("enrichment did not complete before its deadline")
 
 
+def upload_presigned(url: str, content: bytes) -> None:
+    """PUT the unmodified signed URL from its network, outside the SDK's presign/confirm calls."""
+    network = os.environ.get("XBERG_UPLOAD_NETWORK")
+    if not network:
+        with httpx.Client(timeout=30, follow_redirects=False, trust_env=False) as uploader:
+            uploaded = uploader.put(url, content=content, headers={"Content-Type": "text/plain"})
+            uploaded.raise_for_status()
+        return
+    image = required_environment("XBERG_UPLOAD_RUNTIME_IMAGE")
+    configuration = (
+        f"url = {json.dumps(url, ensure_ascii=False)}\n"
+        f"data-binary = {json.dumps(content.decode('utf-8'), ensure_ascii=False)}\n"
+        'header = "Content-Type: text/plain"\nrequest = "PUT"\nfail\nsilent\nshow-error\nmax-time = 30\nwrite-out = "%{http_code}"\n'
+    )
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "--network",
+        network,
+        "--read-only",
+        "--user",
+        "65532:65532",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges:true",
+        "--entrypoint",
+        "/usr/bin/curl",
+        image,
+        "--noproxy",
+        "*",
+        "--config",
+        "-",
+    ]
+    result = subprocess.run(
+        command,
+        input=configuration,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )  # noqa: S603
+    require(
+        result.returncode == 0,
+        f"container upload transport failed (exit {result.returncode}, status {result.stdout[-3:]}); SDK presign succeeded",
+    )
+
+
 def verify_presigned_upload(client: XbergClient) -> None:
     """Exercise the SDK presign and confirm calls around an actual object upload."""
     marker = f"SDK presigned upload {uuid.uuid4().hex}"
@@ -164,9 +216,7 @@ def verify_presigned_upload(client: XbergClient) -> None:
     require(len(response["uploads"]) == 1, "presign must return one upload")
     upload = response["uploads"][0]
     require(upload["method"] == "PUT", "presigned upload method must be PUT")
-    with httpx.Client(timeout=30, follow_redirects=False, trust_env=False) as uploader:
-        uploaded = uploader.put(upload["upload_url"], content=marker.encode(), headers={"Content-Type": "text/plain"})
-        uploaded.raise_for_status()
+    upload_presigned(upload["upload_url"], marker.encode())
     confirmed = client.confirm_upload({"batch_id": response["batch_id"]})
     require(confirmed["job_ids"] == [upload["job_id"]], "confirm must retain the presigned job ID")
     verify_result(client, upload["job_id"], marker)
@@ -260,7 +310,9 @@ def verify(args: argparse.Namespace) -> int:
                     lambda: verify_document_lineage(client, Path(directory)),
                 )
                 checks.run("Enterprise enrichment submit/poll", lambda: verify_enrichment(client))
-                checks.run("Enterprise presign/upload/confirm", lambda: verify_presigned_upload(client))
+                checks.run(
+                    "Enterprise SDK presign/confirm and real upload transport", lambda: verify_presigned_upload(client)
+                )
         return checks.finish(12 if args.tier == "enterprise" else 7)
     finally:
         if minted is not None:
