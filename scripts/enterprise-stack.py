@@ -474,6 +474,75 @@ def mint_fixture(directory: Path, state: dict[str, Any]) -> None:
     write_private(directory / "state.json", state)
 
 
+def crawl_fixture_sql(project_id: str, crawl_id: str) -> str:
+    """Seed only a terminal row for real idle SSE tests; no crawl work is queued."""
+    project_id, crawl_id = str(uuid.UUID(project_id)), str(uuid.UUID(crawl_id))
+    # ~keep Both SQL values are canonical UUIDs, validated above before interpolation.
+    return f"""BEGIN;
+SET LOCAL app.current_project_id = '{project_id}';
+INSERT INTO crawl_jobs (id, project_id, seed_urls, status, crawl_config, metadata, started_at, completed_at)
+VALUES ('{crawl_id}', '{project_id}', ARRAY[]::text[], 'COMPLETED', '{{}}',
+        '{{"fixture":"sdk-idle-cancellation"}}', now(), now());
+SELECT id FROM crawl_jobs WHERE id = '{crawl_id}' AND project_id = '{project_id}' AND status = 'COMPLETED';
+COMMIT;
+"""  # noqa: S608
+
+
+def prepare_idle_crawl(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
+    """Create a project-scoped terminal fixture and verify the real authenticated SSE endpoint."""
+    if state["tier"] != "enterprise" or not state.get("api_key"):
+        raise ValueError("idle crawl fixture requires a ready Enterprise stack")
+    if not state.get("crawl_job_id"):
+        environment = base_environment(directory, state)
+        environment["COMPOSE_FILE"] = str(directory / "compose.json")
+        credentials = parse_exports(
+            run([str(enterprise / "scripts/local-db-env.sh")], enterprise, environment, capture=True)
+        )
+        container = run(
+            compose_command(directory, state, "ps", "-q", "postgres"), enterprise, environment, capture=True
+        ).strip()
+        if not container:
+            raise ValueError("owned PostgreSQL container is not running")
+        crawl_id = str(uuid.uuid4())
+        command = [
+            "docker",
+            "exec",
+            "-i",
+            container,
+            "sh",
+            "-c",
+            (
+                "IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -X -qAt -v ON_ERROR_STOP=1 "
+                "-h 127.0.0.1 -U xberg_app -d xberg_enterprise"
+            ),
+        ]
+        result = subprocess.run(
+            command,
+            input=credentials["LOCAL_POSTGRES_APPLICATION_PASSWORD"]
+            + "\n"
+            + crawl_fixture_sql(state["project_id"], crawl_id),
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )  # noqa: S603
+        if result.returncode != 0 or result.stdout.strip() != crawl_id:
+            raise RuntimeError("terminal crawl fixture insertion failed or returned the wrong row count")
+        state["crawl_job_id"] = crawl_id
+        write_private(directory / "state.json", state)
+    with (
+        httpx.Client(timeout=10, trust_env=False) as client,
+        client.stream(
+            "GET",
+            state["api_url"] + "/v1/crawl-jobs/" + state["crawl_job_id"] + "/events",
+            headers={"Authorization": "Bearer " + state["api_key"]},
+        ) as response,
+    ):
+        if response.status_code != 200 or "text/event-stream" not in response.headers.get("content-type", ""):
+            raise RuntimeError("real authenticated idle SSE subscription was not accepted")
+    print("Terminal crawl fixture ready for real idle SSE cancellation")  # noqa: T201
+
+
 def up(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
     """Start and verify the scoped stack before minting SDK fixture credentials."""
     environment = configure(directory, state, enterprise)
@@ -530,6 +599,8 @@ def execute(state: dict[str, Any], command: list[str]) -> int:
         "XBERG_CONTROL_PLANE_TOKEN": state["control_plane_token"],
         "XBERG_ADMIN_KEY": state["admin_key"],
     }
+    if state.get("crawl_job_id"):
+        environment["XBERG_CRAWL_JOB_ID"] = state["crawl_job_id"]
     if state["tier"] == "enterprise" and state.get("upload_network"):
         environment["XBERG_UPLOAD_NETWORK"] = state["upload_network"]
         environment["XBERG_UPLOAD_RUNTIME_IMAGE"] = state["upload_runtime_image"]
@@ -539,7 +610,9 @@ def execute(state: dict[str, Any], command: list[str]) -> int:
 def main() -> int:
     """Dispatch an operation against the selected private stack state."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["up", "down", "reset", "key", "verify", "status", "exec"])
+    parser.add_argument(
+        "command", choices=["up", "down", "reset", "key", "verify", "status", "exec", "prepare-idle-crawl"]
+    )
     parser.add_argument("--tier", choices=["enterprise", "pro"], default="enterprise")
     parser.add_argument("--state-directory", type=Path)
     parser.add_argument("arguments", nargs=argparse.REMAINDER)
@@ -555,6 +628,8 @@ def main() -> int:
     )
     if args.command == "up":
         up(directory, state, enterprise.resolve())
+    elif args.command == "prepare-idle-crawl":
+        prepare_idle_crawl(directory, state, enterprise.resolve())
     elif args.command in {"down", "reset"}:
         arguments = ["down", "--timeout", "20"] + (["--volumes"] if args.command == "reset" else [])
         environment = base_environment(directory, state)
@@ -570,7 +645,7 @@ def main() -> int:
                 run([str(enterprise / "scripts/local-vector-index-claims.sh"), "disable"], enterprise, environment)
         run(compose_command(directory, state, *arguments), enterprise, environment)
         if args.command == "reset":
-            for name in ("api_key", "key_id", "project_id", "control_plane_token"):
+            for name in ("api_key", "key_id", "project_id", "control_plane_token", "crawl_job_id"):
                 state.pop(name, None)
             write_private(directory / "state.json", state)
     elif args.command == "key":

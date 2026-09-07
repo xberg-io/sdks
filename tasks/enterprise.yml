@@ -21,3 +21,8 @@ tasks:
     desc: "Exercise real Enterprise extraction, jobs, presets and exclusive SDK calls"
     cmds:
       - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" verify'
+
+  prepare-idle-crawl:
+    desc: Seed a terminal project-scoped crawl fixture for real idle SSE cancellation tests
+    cmds:
+      - scripts/enterprise-stack.sh prepare-idle-crawl

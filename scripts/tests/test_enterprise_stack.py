@@ -81,3 +81,17 @@ def test_scope_mismatch_cannot_run_docker(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="scope"):
         stack.validate_state(state, "enterprise")
     assert os.getuid() == state["uid"]
+
+
+def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
+    stack = load_stack()
+    project = "11111111-1111-1111-1111-111111111111"
+    crawl = "22222222-2222-2222-2222-222222222222"
+    sql = stack.crawl_fixture_sql(project, crawl)
+    assert "'COMPLETED'" in sql
+    assert "ARRAY[]::text[]" in sql
+    assert project in sql
+    assert crawl in sql
+    assert "app.current_project_id" in sql
+    with pytest.raises(ValueError, match="badly formed hexadecimal UUID"):
+        stack.crawl_fixture_sql("invalid'project", crawl)
