@@ -127,7 +127,7 @@ export function toBlob(file: FileLike): { blob: Blob; filename: string } {
   }
   if (file instanceof Uint8Array) {
     return {
-      blob: new Blob([new Uint8Array(file)], { type: "application/octet-stream" }),
+      blob: new Blob([blobBytes(file)], { type: "application/octet-stream" }),
       filename: "upload.bin",
     };
   }
@@ -138,9 +138,16 @@ export function toBlob(file: FileLike): { blob: Blob; filename: string } {
     return { blob: wrapper.data, filename: name };
   }
   return {
-    blob: new Blob([new Uint8Array(wrapper.data)], { type: mimeType }),
+    blob: new Blob([blobBytes(wrapper.data)], { type: mimeType }),
     filename: name,
   };
+}
+
+function blobBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  // ~keep Blob snapshots its input. A view avoids a second payload copy; shared backing requires an ordinary buffer.
+  return bytes.buffer instanceof ArrayBuffer
+    ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+    : new Uint8Array(bytes);
 }
 
 function guessMimeType(filename: string): string {
