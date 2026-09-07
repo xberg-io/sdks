@@ -119,7 +119,12 @@ async def test_control_credentials_do_not_leak_between_origins_or_public_routes(
         "api_key": api_key,
         "control_plane_base_url": CONTROL_URL,
         "control_plane_token": "backend-session",
-        "headers": {"authorization": "Bearer stale"},
+        "headers": {
+            "authorization": "Bearer stale",
+            "Cookie": "session=private",
+            "Proxy-Authorization": "Basic private",
+            "X-Api-Key": "private",
+        },
         "target": "enterprise",
     }
     if asynchronous:
@@ -132,6 +137,10 @@ async def test_control_credentials_do_not_leak_between_origins_or_public_routes(
             sync_client.backend_list_projects()
             sync_client.healthz()
             assert sync_client.usage() == {"pages": 7}
+    for name in ("Cookie", "Proxy-Authorization", "X-Api-Key"):
+        assert name not in projects.calls.last.request.headers
+        assert name not in health.calls.last.request.headers
+        assert name in usage.calls.last.request.headers
     assert projects.calls.last.request.headers.get_list("Authorization") == ["Bearer backend-session"]
     assert "Authorization" not in health.calls.last.request.headers
     assert usage.calls.last.request.headers.get_list("Authorization") == [f"Bearer {api_key}"]

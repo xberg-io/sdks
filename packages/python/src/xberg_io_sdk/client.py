@@ -827,7 +827,8 @@ class XbergClient(_BaseClient):
                         json=json_body,
                         params=params,
                     )
-                    request.headers.pop("Authorization", None)
+                    for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
+                        request.headers.pop(name, None)
                     credential = token if public else self._control_plane_token
                     if credential is not None:
                         request.headers["Authorization"] = f"Bearer {credential}"
@@ -1903,7 +1904,8 @@ class AsyncXbergClient(_BaseClient):
                         json=json_body,
                         params=params,
                     )
-                    request.headers.pop("Authorization", None)
+                    for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
+                        request.headers.pop(name, None)
                     credential = token if public else self._control_plane_token
                     if credential is not None:
                         request.headers["Authorization"] = f"Bearer {credential}"
