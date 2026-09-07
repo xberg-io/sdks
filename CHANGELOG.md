@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Generate all three Python schema sets before packaging from a clean checkout and publish from the actual distribution directory.
 - Refresh generated contracts for nullable enrichment entities, latest-document results, document-diff conflicts, and
   the current processing status vocabulary.
 - Accept nonempty opaque JSON objects in generated TypeScript schemas, including preset configuration and integration
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Execute all documentation examples against locally built packages and both live tiers during validation; require
   live deployment contracts before release, with strict fixture, execution-count and idle-cancellation checks.
+  Mint a temporary Pro key for each run and revoke it after success or failure without altering reusable fixture credentials.
 
 - Validate every version target before changing manifests, preventing malformed later targets from leaving a partial bump.
   Keep the local release version check read-only and clarify the lint alias and local-only release tag task.
