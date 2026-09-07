@@ -23,6 +23,19 @@ export default defineConfig({
         githubUrl: "https://github.com/xberg-io/sdks",
         editBaseUrl: "https://github.com/xberg-io/sdks/edit/main/docs-site/",
         plugins: [
+          {
+            name: "theme-favicon",
+            hooks: {
+              "config:setup": ({ config, updateConfig }) => {
+                // ~keep Starlight adds a missing local fallback; use the theme's existing branded SVG instead.
+                const icon = config.head.find(
+                  (entry) =>
+                    entry.tag === "link" && entry.attrs?.rel === "icon" && entry.attrs?.type === "image/svg+xml",
+                );
+                if (typeof icon?.attrs?.href === "string") updateConfig({ favicon: icon.attrs.href });
+              },
+            },
+          },
           starlightLlmsTxt({
             customSets: [
               {

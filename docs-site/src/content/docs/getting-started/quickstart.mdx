@@ -12,6 +12,11 @@ Extraction is asynchronous on both tiers. Submitting returns job ids and a `pend
 result arrives once the job reaches a terminal state. The clients wrap that loop for you, so
 nothing rides on a single long-lived HTTP request and a large file cannot trip a request timeout.
 
+Set `XBERG_BASE_URL` to your deployment origin, `XBERG_API_KEY` to a project key, and
+`XBERG_TARGET` to `pro` or `enterprise`. Set `XBERG_DOCUMENT` to the path of a text document
+containing `Xberg SDK snippet fixture`, or replace the example's content assertion with your own
+expected text. The repository provides this document as `test_documents/snippet.txt`.
+
 ## Extract one document and wait
 
 <Tabs syncKey="lang">
@@ -34,7 +39,7 @@ nothing rides on a single long-lived HTTP request and a large file cannot trip a
 
 ## What `extract_and_wait` actually does
 
-It is a convenience over two calls you can make yourself:
+The helper submits and polls; the example then reads the result:
 
 1. **Submit** — `POST /v1/extract` returns `job_ids` and `status: "pending"`, with **202**.
 2. **Poll** — `GET /v1/jobs/{id}` until the status is terminal (`completed`, `partial_success`,

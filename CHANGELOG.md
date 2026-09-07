@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add the SDK documentation site with per-language references, all three OpenAPI schemas, tier and authentication guides,
+  and runnable extraction, project lifecycle and idle-stream cancellation examples.
+- Support Enterprise document lineage IDs for single and batch extraction in all three SDKs, validating UUIDs and
+  duplicate filenames before reading uploads and preserving IDs through extract-and-wait helpers.
+- Add isolated Pro and Enterprise stacks and SDK-driven live contract checks for extraction, jobs and saved presets.
 - Expose all 48 Enterprise control-plane operations in Python (sync and async), TypeScript, and Go, with independently
   typed backend schemas, a separate control-plane origin and bearer, public sandbox support, and OAuth redirect handling.
   Existing Pro method names and signatures remain unchanged; colliding backend names carry a backend prefix.
@@ -32,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduce Go crawl-stream allocations by transferring ownership of validated frame bytes while retaining prior events.
 
 ### Tooling
+
+- Execute all documentation examples against locally built packages and both live tiers during validation; require
+  live deployment contracts before release, with strict fixture, execution-count and idle-cancellation checks.
 
 - Validate every version target before changing manifests, preventing malformed later targets from leaving a partial bump.
   Keep the local release version check read-only and clarify the lint alias and local-only release tag task.

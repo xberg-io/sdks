@@ -12,11 +12,12 @@ vars:
   API_SPEC: spec/api/openapi.yaml
   PRO_SPEC: spec/pro/openapi.yaml
   BACKEND_SPEC: spec/backend/openapi.yaml
-  UPSTREAM_API_LOCAL: ../xberg-enterprise/services/api/spec/openapi.json
-  UPSTREAM_PRO_LOCAL: ../xberg-enterprise/services/pro/spec/openapi.json
+  UPSTREAM_ROOT: '{{.XBERG_ENTERPRISE_DIR | default "../xberg-enterprise"}}'
+  UPSTREAM_API_LOCAL: '{{.UPSTREAM_ROOT}}/services/api/spec/openapi.json'
+  UPSTREAM_PRO_LOCAL: '{{.UPSTREAM_ROOT}}/services/pro/spec/openapi.json'
   # Already YAML upstream; still piped through yq so all three vendored copies
   # carry the same key ordering and quoting and drift diffs stay readable.
-  UPSTREAM_BACKEND_LOCAL: ../xberg-enterprise/frontend/openapi-backend.yaml
+  UPSTREAM_BACKEND_LOCAL: '{{.UPSTREAM_ROOT}}/frontend/openapi-backend.yaml'
   UPSTREAM_API_URL: '{{.XBERG_ENTERPRISE_URL | default "https://api.xberg.io"}}/api-doc/openapi.json'
 
 tasks:

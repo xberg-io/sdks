@@ -18,6 +18,8 @@ includes:
     taskfile: ./tasks/version.yml
   pro:
     taskfile: ./tasks/pro.yml
+  enterprise:
+    taskfile: ./tasks/enterprise.yml
   docs:
     taskfile: ./tasks/docs.yml
 
@@ -101,6 +103,7 @@ tasks:
       # clean pages and no error.
       - task: spec:coverage
       - task: docs:reference:check
+      - task: docs:snippets:test
 
   release:check:
     desc: "Pre-flight: version consistency, spec + reference drift, lint, test, build"
@@ -114,11 +117,15 @@ tasks:
       # validate-versions. Check every manifest agrees before anything else runs.
       - python3 scripts/sync-versions.py --check
       - task: spec:check
+      - task: spec:coverage
       - task: docs:reference:check
       - task: lint
       - task: test
       - task: build
       - task: go:test:package
+      - task: enterprise:verify
+      - task: pro:verify
+      - task: docs:snippets:test
       - echo "ready to tag v$(cat VERSION)"
 
   release:tag:

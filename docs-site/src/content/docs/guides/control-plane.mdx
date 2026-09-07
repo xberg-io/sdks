@@ -3,6 +3,11 @@ title: The control plane
 description: Manage projects, keys, integrations, and teams on Pro or Enterprise.
 ---
 
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Content as PythonLifecycle } from "../../../snippets/python/project_lifecycle.md";
+import { Content as TypeScriptLifecycle } from "../../../snippets/typescript/project_lifecycle.md";
+import { Content as GoLifecycle } from "../../../snippets/go/project_lifecycle.md";
+
 Pro uses one origin for extraction and administration. Enterprise uses a separate backend origin.
 Configure `control_plane_base_url` (Python), `controlPlaneBaseUrl` (TypeScript), or
 `WithControlPlaneBaseURL` (Go) for Enterprise. Set the target to `enterprise` when it is known.
@@ -54,3 +59,27 @@ RAG collection configuration remains a separate data-plane surface.
 
 The [tier matrix](/reference/tier-capabilities/) distinguishes shared functionality from Enterprise-only
 operations. The [OpenAPI reference](/reference/openapi/) shows each deployment's exact schema.
+
+## Enterprise project lifecycle
+
+These examples create a scratch project and key, revoke the key, then delete the project.
+Set `XBERG_CONTROL_PLANE_URL` to the backend origin and `XBERG_CONTROL_PLANE_TOKEN` to an owner
+session token, alongside the deployment environment described in the [quickstart](/getting-started/quickstart/).
+
+<Tabs syncKey="lang">
+<TabItem label="Python">
+
+<PythonLifecycle />
+
+</TabItem>
+<TabItem label="TypeScript">
+
+<TypeScriptLifecycle />
+
+</TabItem>
+<TabItem label="Go">
+
+<GoLifecycle />
+
+</TabItem>
+</Tabs>
