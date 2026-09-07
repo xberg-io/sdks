@@ -12,9 +12,13 @@ import stat
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterator
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from xberg_io_sdk import XbergClient, XbergError
 
 
 @dataclass(frozen=True)
@@ -259,6 +263,29 @@ def state_environment(path: Path | None, target: str, root: Path) -> dict[str, s
     return values
 
 
+@contextmanager
+def temporary_pro_key(path: Path | None, values: dict[str, str]) -> Iterator[dict[str, str]]:
+    """Lease a run-only key without changing the reusable fixture or forwarding its admin credential."""
+    state = read_private_state(path) if path else {}
+    admin_key = state.get("admin_key") if path else os.environ.get("XBERG_ADMIN_KEY")
+    if not isinstance(admin_key, str) or not admin_key:
+        raise ValueError("Pro snippets require the fixture admin credential to mint a temporary key")
+    with XbergClient(base_url=values["XBERG_BASE_URL"], api_key=admin_key, target="pro") as client:
+        try:
+            key = client.create_api_key(values["XBERG_PROJECT_ID"], {"name": "SDK documentation run", "scope": "write"})
+        except XbergError as error:
+            raise ValueError(f"Pro snippet key creation failed ({type(error).__name__})") from None
+        try:
+            if not key.key:
+                raise ValueError("Pro snippet key creation returned an empty credential")
+            yield {**values, "XBERG_API_KEY": key.key, "XBERG_CONTROL_PLANE_TOKEN": ""}
+        finally:
+            try:
+                client.revoke_api_key(values["XBERG_PROJECT_ID"], str(key.id))
+            except XbergError as error:
+                raise ValueError(f"Pro snippet key revocation failed ({type(error).__name__})") from None
+
+
 def artifact(path: Path | None, root: Path, pattern: str) -> Path:
     """Require one explicit built package rather than select stale artifacts silently."""
     candidates = [path] if path else list((root / "dist").glob(pattern))
@@ -405,12 +432,14 @@ def main() -> int:
             return 0
         states = {target: state_environment(getattr(arguments, f"{target}_state"), target, root) for target in targets}
         completed = 0
-        with tempfile.TemporaryDirectory(prefix="xberg-snippets-") as temporary:
+        with ExitStack() as resources, tempfile.TemporaryDirectory(prefix="xberg-snippets-") as temporary:
             prepared = {}
             for language in sorted({snippet.language for snippet, _ in plan}):
                 directory = Path(temporary) / language
                 directory.mkdir()
                 prepared[language] = (directory, prepare_language(language, directory, arguments, root))
+            if "pro" in states:
+                states["pro"] = resources.enter_context(temporary_pro_key(arguments.pro_state, states["pro"]))
             for snippet, target in plan:
                 directory, command = prepared[snippet.language]
                 execute_snippet(snippet, target, directory, command, states[target])

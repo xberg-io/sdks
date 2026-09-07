@@ -257,3 +257,86 @@ def test_nonregular_state_is_rejected_without_blocking_on_a_named_pipe(tmp_path:
     )
     assert result.returncode == 1
     assert "regular file" in result.stderr
+
+
+@pytest.mark.parametrize("failed", [False, True])
+def test_pro_run_mints_fresh_keys_and_always_revokes(tmp_path: Path, failed: bool) -> None:
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from threading import Thread
+
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            return
+
+        def do_POST(self):
+            body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            calls.append(("POST", self.path, self.headers["Authorization"], body))
+            number = sum(item[0] == "POST" for item in calls)
+            payload = json.dumps(
+                {
+                    "id": f"00000000-0000-0000-0000-{number:012d}",
+                    "created_at": "2026-09-07T00:00:00Z",
+                    "key_prefix": "temporary",
+                    "key": f"temporary-{number}",
+                    "name": body["name"],
+                    "scope": "write",
+                }
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def do_DELETE(self):
+            calls.append(("DELETE", self.path, self.headers["Authorization"], None))
+            self.send_response(204)
+            self.end_headers()
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    state = tmp_path / "state.json"
+    state.write_text(json.dumps({"admin_key": "fixture-admin"}))
+    state.chmod(0o600)
+    original = state.read_bytes()
+    values = {
+        "XBERG_BASE_URL": f"http://127.0.0.1:{server.server_port}",
+        "XBERG_PROJECT_ID": "fixture-project",
+        "XBERG_API_KEY": "fixture-key",
+        "XBERG_CONTROL_PLANE_TOKEN": "fixture-admin",
+    }
+    try:
+        for number in (1, 2):
+            try:
+                with runner().temporary_pro_key(state, values) as scoped:
+                    assert scoped["XBERG_API_KEY"] == f"temporary-{number}"
+                    assert "XBERG_ADMIN_KEY" not in scoped
+                    assert scoped["XBERG_CONTROL_PLANE_TOKEN"] == ""
+                    if failed:
+                        raise ValueError("failed snippet")
+            except ValueError as error:  # noqa: PERF203
+                assert failed
+                assert str(error) == "failed snippet"
+        assert [item[:3] for item in calls] == [
+            ("POST", "/v1/projects/fixture-project/api-keys", "Bearer fixture-admin"),
+            (
+                "DELETE",
+                "/v1/projects/fixture-project/api-keys/00000000-0000-0000-0000-000000000001",
+                "Bearer fixture-admin",
+            ),
+            ("POST", "/v1/projects/fixture-project/api-keys", "Bearer fixture-admin"),
+            (
+                "DELETE",
+                "/v1/projects/fixture-project/api-keys/00000000-0000-0000-0000-000000000002",
+                "Bearer fixture-admin",
+            ),
+        ]
+        assert state.read_bytes() == original
+        assert values["XBERG_API_KEY"] == "fixture-key"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
