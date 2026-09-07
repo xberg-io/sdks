@@ -95,3 +95,23 @@ def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
     assert "app.current_project_id" in sql
     with pytest.raises(ValueError, match="badly formed hexadecimal UUID"):
         stack.crawl_fixture_sql("invalid'project", crawl)
+
+
+def test_gcs_fixture_uses_distinct_ephemeral_signing_keys() -> None:
+    import base64
+    import subprocess
+
+    stack = load_stack()
+    first = json.loads(base64.b64decode(stack.gcs_signing_credential()))
+    second = json.loads(base64.b64decode(stack.gcs_signing_credential()))
+    assert first["type"] == "service_account"
+    assert first["client_email"] == "sdk-live@fixture.invalid"
+    assert first["private_key"] != second["private_key"]
+    checked = subprocess.run(  # noqa: S603
+        ["openssl", "pkey", "-check", "-noout"],
+        input=first["private_key"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert checked.returncode == 0

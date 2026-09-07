@@ -12,6 +12,7 @@ import os
 import re
 import secrets
 import shlex
+import shutil
 import socket
 import stat
 import subprocess
@@ -368,6 +369,27 @@ def configure(directory: Path, state: dict[str, Any], enterprise: Path) -> dict[
     return environment
 
 
+def gcs_signing_credential() -> str:
+    """Generate an ephemeral signing identity for the owned GCS emulator."""
+    executable = shutil.which("openssl")
+    if executable is None:
+        raise RuntimeError("openssl is required for ephemeral GCS signing")
+    generated = subprocess.run(  # noqa: S603
+        [executable, "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048"],
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+    if generated.returncode:
+        raise RuntimeError("ephemeral GCS signing key generation failed")
+    credential = {
+        "type": "service_account",
+        "client_email": "sdk-live@fixture.invalid",
+        "private_key": generated.stdout.decode(),
+    }
+    return base64.b64encode(json.dumps(credential).encode()).decode()
+
+
 def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environment: dict[str, str]) -> None:
     """Add built Enterprise services and isolated host ports to the sibling infrastructure."""
     binary_directory = Path(os.environ.get("XBERG_ENTERPRISE_BINARY_DIR", "")).resolve()
@@ -405,6 +427,9 @@ def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environm
         f"http://127.0.0.1:{ports['gcs']}",
     ]
     services.update(runtime_services(state, environment, binary_directory, image))
+    if not state.get("gcs_credential"):
+        state["gcs_credential"] = gcs_signing_credential()
+    services["sdk-api"]["environment"]["GCS_CREDENTIAL"] = state["gcs_credential"]
     config.setdefault("volumes", {})["sdk-broker"] = {}
     state["upload_runtime_image"] = image
     state["upload_network"] = config["networks"]["default"]["name"]
