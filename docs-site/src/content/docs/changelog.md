@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Accept nonempty opaque JSON objects in generated TypeScript schemas, including preset configuration and integration
+  credentials, while retaining validation for explicitly typed fields.
 - Preserve path identifiers without allowing dot-segment navigation to retarget destructive requests. TypeScript rejects
   exact dot identifiers because WHATWG URLs normalize even escaped dots; Python and Go encode them.
 - Isolate backend cookies and bearer credentials, omit explicit empty credentials, reject known Pro targets, and avoid
