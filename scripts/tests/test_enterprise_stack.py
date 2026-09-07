@@ -115,3 +115,46 @@ def test_gcs_fixture_uses_distinct_ephemeral_signing_keys() -> None:
         check=False,
     )
     assert checked.returncode == 0
+
+
+@pytest.mark.parametrize("operation", ["mint", "execute"])
+def test_cached_fixture_refreshes_expired_control_token_without_recreating_project(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, operation: str
+) -> None:
+    import base64
+    import sys
+
+    stack = load_stack()
+    directory = tmp_path / "state"
+    state = stack.initialize_state(directory, "enterprise")
+    monkeypatch.setattr(stack.time, "time", lambda: 1)
+    expired = stack.session_token(state)
+    state.update(
+        api_key="fixture-key",
+        project_id="fixture-project",
+        key_id="fixture-key-id",
+        control_plane_token=expired,
+        api_url="http://127.0.0.1:1",
+        control_plane_url="http://127.0.0.1:1",
+    )
+    stack.write_private(directory / "state.json", state)
+    monkeypatch.setattr(stack.time, "time", lambda: 100000)
+    if operation == "mint":
+        stack.mint_fixture(directory, state)
+    else:
+        command = [
+            sys.executable,
+            "-c",
+            "import os; assert os.environ['XBERG_CONTROL_PLANE_TOKEN'] != os.environ['EXPIRED_FIXTURE_TOKEN']",
+        ]
+        monkeypatch.setenv("EXPIRED_FIXTURE_TOKEN", expired)
+        assert stack.execute(directory, state, command) == 0
+    persisted = json.loads((directory / "state.json").read_text())
+    assert persisted["api_key"] == "fixture-key"
+    assert persisted["project_id"] == "fixture-project"
+    assert persisted["key_id"] == "fixture-key-id"
+    assert persisted["control_plane_token"] == state["control_plane_token"]
+    claims = state["control_plane_token"].split(".")[1]
+    decoded = json.loads(base64.urlsafe_b64decode(claims + "=" * (-len(claims) % 4)))
+    assert decoded["iat"] == 100000
+    assert decoded["exp"] == 186400

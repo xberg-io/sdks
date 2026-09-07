@@ -475,9 +475,17 @@ def session_token(state: dict[str, Any]) -> str:
     return body + "." + base64.urlsafe_b64encode(signature).rstrip(b"=").decode()
 
 
+def refresh_control_plane_token(directory: Path, state: dict[str, Any]) -> None:
+    """Renew the owned fixture identity without replacing its project or API key."""
+    if state["tier"] == "enterprise":
+        state["control_plane_token"] = session_token(state)
+        write_private(directory / "state.json", state)
+
+
 def mint_fixture(directory: Path, state: dict[str, Any]) -> None:
     """Create a real project and write-scoped API key through the SDK."""
     if state.get("api_key"):
+        refresh_control_plane_token(directory, state)
         return
     token = state["admin_key"] if state["tier"] == "pro" else session_token(state)
     with XbergClient(
@@ -613,10 +621,11 @@ def up(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
     print(f"{state['tier']} ready: {state['api_url']} (private state: {directory})")  # noqa: T201
 
 
-def execute(state: dict[str, Any], command: list[str]) -> int:
+def execute(directory: Path, state: dict[str, Any], command: list[str]) -> int:
     """Run a caller command with this stack's private connection environment."""
     if not state.get("api_key"):
         raise ValueError("stack has no SDK fixture key; run up first")
+    refresh_control_plane_token(directory, state)
     environment = {
         **os.environ,
         "XBERG_API_KEY": state["api_key"],
@@ -699,7 +708,7 @@ def main() -> int:
             ]
         if not command:
             raise ValueError("exec requires a command after --")
-        return execute(state, command)
+        return execute(directory, state, command)
     return 0
 
 
