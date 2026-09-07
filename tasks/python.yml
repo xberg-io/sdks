@@ -104,9 +104,10 @@ tasks:
       - uv sync
 
   build:
-    desc: "Build Python distribution (wheel + sdist) via uv build"
+    desc: "Generate schema sets and build Python distributions (wheel + sdist)"
     dir: "{{.PKG_DIR}}"
     cmds:
+      - task: generate
       - uv build
 
   test:
@@ -135,5 +136,5 @@ tasks:
     desc: "Publish wheel + sdist to PyPI (uses UV_PUBLISH_TOKEN or trusted publishing)"
     dir: "{{.PKG_DIR}}"
     cmds:
-      - uv build
-      - uv publish
+      - task: build
+      - uv publish "{{.ROOT_DIR}}/dist/*"

@@ -9,7 +9,10 @@ on:
       - "spec/pro/**"
       - "spec/backend/**"
       - "tasks/python.yml"
+      - "scripts/**"
+      - "Taskfile.yml"
       - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/ci-python.yml"
   push:
     branches: [main]
@@ -19,7 +22,11 @@ on:
       - "spec/pro/**"
       - "spec/backend/**"
       - "tasks/python.yml"
+      - "scripts/**"
+      - "Taskfile.yml"
       - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/ci-python.yml"
 
 concurrency:
   group: ci-python-${{ github.ref }}
@@ -50,6 +57,10 @@ jobs:
         run: task python:generate
       - name: Lint
         run: task python:lint
+      - name: Test packaging and repository tooling
+        run: task scripts:test
+        env:
+          UV_PYTHON: "3.10"
       - name: Test (with coverage)
         run: task python:test:cov
       - name: Build wheel + sdist
