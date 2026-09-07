@@ -583,6 +583,8 @@ def up(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
     wait_ready(state["api_url"] + "/readyz")
     wait_ready(state["control_plane_url"] + "/readyz")
     mint_fixture(directory, state)
+    if state["tier"] == "enterprise":
+        prepare_idle_crawl(directory, state, enterprise)
     print(f"{state['tier']} ready: {state['api_url']} (private state: {directory})")  # noqa: T201
 
 
