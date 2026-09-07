@@ -16,23 +16,20 @@ is local to the document while the URL a caller builds is not.
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 from pathlib import Path
 
-import yaml
+from ruamel.yaml import YAML
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CLIENT = REPO_ROOT / "packages" / "python" / "src" / "xberg_io_sdk" / "client.py"
 
-# `spec/backend/openapi.yaml` -- the Enterprise control plane -- is deliberately
-# absent. It is vendored and generates types in all three languages, but no
-# client method reaches any of its 48 operations yet, so listing it here would
-# fail the build on every one of them. Add it in the same change that lands the
-# control-plane methods, not before.
 SPECS = {
     "enterprise": REPO_ROOT / "spec" / "api" / "openapi.yaml",
     "pro": REPO_ROOT / "spec" / "pro" / "openapi.yaml",
+    "backend": REPO_ROOT / "spec" / "backend" / "openapi.yaml",
 }
 
 VERBS = ("get", "put", "post", "delete", "patch", "head", "options")
@@ -41,9 +38,10 @@ VERBS = ("get", "put", "post", "delete", "patch", "head", "options")
 # entry here is the difference between a decision and an oversight -- which is
 # exactly the distinction that went missing when this list lived only in prose.
 DELIBERATE_EXCLUSIONS = {
-    ("GET", "/readyz"): "infrastructure probe; /healthz is the tier probe and is used",
-    ("GET", "/v1/oauth/callback"): "browser redirect target in Pro's login flow, not a client call",
-    ("DELETE", "/auth/account"): "Pro account erasure, deliberately console-only",
+    ("enterprise", "GET", "/readyz"): "infrastructure probe; /healthz is the tier probe",
+    ("pro", "GET", "/readyz"): "infrastructure probe; /healthz is the tier probe",
+    ("pro", "GET", "/v1/oauth/callback"): "browser redirect target in Pro's login flow",
+    ("pro", "DELETE", "/auth/account"): "Pro account erasure, deliberately console-only",
 }
 
 # Operations a client will expose but does not yet, each with the issue that
@@ -71,53 +69,54 @@ HELPER_BUILT = {
     ("DELETE", "/v1/saved-presets/{}"),
 }
 
-# `stream` is in the alternation because a streaming response cannot go through
-# `_request_*` -- that is the retry engine, and retrying a partly-consumed
-# stream replays events -- so `stream_crawl_events` opens its own connection via
-# `_request_stream`. It still spells the route as a literal at the call site,
-# which is the only thing this check needs to keep reading the source rather
-# than a hand-maintained list.
-_REQUEST = re.compile(
-    r"""_request_(?:json|bytes|none|stream)"""
-    r"""\(\s*["'](GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)["']\s*,\s*f?["']([^"']+)["']""",
-)
-
-# Several routes are built from a module-level constant rather than a literal
-# -- `self._request_json("GET", _AUTO_TUNE_PATH)` and the f-strings that
-# interpolate it. Reading the constants and substituting them is what makes the
-# regex see those calls; without it fourteen implemented operations report as
-# missing. The same constant-prefixed shape hid sites from an earlier
-# path-escaping sweep, so it is worth handling rather than special-casing.
-_CONSTANT = re.compile(r'^(_[A-Z][A-Z0-9_]*)\s*=\s*"(/[^"]*)"', re.MULTILINE)
-_CONSTANT_REQUEST = re.compile(
-    r"""_request_(?:json|bytes|none|stream)"""
-    r"""\(\s*["'](GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)["']\s*,\s*"""
-    r"""(?:(_[A-Z][A-Z0-9_]*)|f"\{(_[A-Z][A-Z0-9_]*)\}([^"]*)")""",
-)
-
 
 def erase_parameters(path: str) -> str:
     """Reduce every path template parameter to `{}` so the two sides compare on wire shape."""
     return re.sub(r"\{[^}]*\}", "{}", path)
 
 
-def client_requests() -> set[tuple[str, str]]:
-    """Every `(verb, path)` the hand-written client issues."""
-    source = CLIENT.read_text(encoding="utf-8")
-    constants = dict(_CONSTANT.findall(source))
-    found = {(verb, erase_parameters(path)) for verb, path in _REQUEST.findall(source)}
-    for verb, bare, prefixed, suffix in _CONSTANT_REQUEST.findall(source):
-        name = bare or prefixed
-        route = constants.get(name)
-        if route is None:
+def request_path(node: ast.expr, constants: dict[str, str]) -> str | None:
+    """Resolve literal routes and constant-prefixed f-strings without reading comments."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.Name):
+        return constants.get(node.id)
+    if isinstance(node, ast.JoinedStr):
+        return "".join(
+            part.value if isinstance(part, ast.Constant) else request_path(part.value, constants) or "{}"
+            for part in node.values
+        )
+    return None
+
+
+def client_requests(*, control_plane: bool = False) -> set[tuple[str, str]]:
+    """Requests issued by the sync reference client, isolated by destination plane."""
+    tree = ast.parse(CLIENT.read_text(encoding="utf-8"))
+    constants = {
+        target.id: node.value.value
+        for node in tree.body
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str)
+        for target in node.targets
+        if isinstance(target, ast.Name)
+    }
+    client = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "XbergClient")
+    prefix = "_request_control_" if control_plane else "_request_"
+    names = {prefix + suffix for suffix in ("json", "bytes", "none", "stream", "redirect")}
+    found: set[tuple[str, str]] = set()
+    for node in ast.walk(client):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute) or node.func.attr not in names:
             continue
-        found.add((verb, erase_parameters(route + suffix)))
-    return found | HELPER_BUILT
+        if len(node.args) < 2 or not isinstance(node.args[0], ast.Constant):
+            continue
+        path = request_path(node.args[1], constants)
+        if path is not None and node.args[0].value.lower() in VERBS:
+            found.add((node.args[0].value, erase_parameters(path)))
+    return found if control_plane else found | HELPER_BUILT
 
 
 def spec_operations(path: Path) -> set[tuple[str, str]]:
     """Every `(verb, path)` a spec declares."""
-    document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    document = YAML(typ="safe").load(path.read_text(encoding="utf-8"))
     return {
         (verb.upper(), erase_parameters(route))
         for route, item in document["paths"].items()
@@ -128,12 +127,14 @@ def spec_operations(path: Path) -> set[tuple[str, str]]:
 
 def main() -> int:
     """Print per-tier coverage and fail on any operation that is neither covered nor excluded."""
-    covered = client_requests()
-    excluded = {(verb, erase_parameters(route)) for verb, route in DELIBERATE_EXCLUSIONS}
+    data_plane = client_requests()
+    control_plane = client_requests(control_plane=True)
     tracked = {(verb, erase_parameters(route)) for verb, route in TRACKED_GAPS}
     failures: list[str] = []
 
     for tier, spec_path in SPECS.items():
+        covered = control_plane if tier == "backend" else data_plane
+        excluded = {(verb, erase_parameters(route)) for scope, verb, route in DELIBERATE_EXCLUSIONS if scope == tier}
         operations = spec_operations(spec_path)
         reached = operations & covered
         gaps = sorted(operations - covered - excluded - tracked)
@@ -146,10 +147,10 @@ def main() -> int:
         for verb, route in gaps:
             failures.append(f"{tier}: {verb} {route} is in the spec, in no client, and not excluded")
 
-    declared = set().union(*(spec_operations(p) for p in SPECS.values()))
-    for verb, route in sorted(excluded - declared):
-        failures.append(f"exclusion for {verb} {route} names an operation no spec declares")
-    for verb, route in sorted(tracked & covered):
+    for tier, verb, route in DELIBERATE_EXCLUSIONS:
+        if (verb, erase_parameters(route)) not in spec_operations(SPECS[tier]):
+            failures.append(f"exclusion for {tier}: {verb} {route} names an operation no spec declares")
+    for verb, route in sorted(tracked & (data_plane | control_plane)):
         failures.append(f"{verb} {route} is now implemented -- remove it from TRACKED_GAPS")
 
     if failures:

@@ -16,8 +16,9 @@ has no default (its spec ships no servers block) and requires an explicit one.
 Enterprise splits into two binaries — the data plane ``base_url`` addresses and
 a control plane (projects, API keys, integrations) on its own origin — while Pro
 serves both from one. ``control_plane_base_url`` records the origin of the
-second and defaults to ``base_url``; no method routes there yet, so today it is
-configuration held for the control-plane operations that have not landed.
+second and defaults to ``base_url``. Backend operations use ``control_plane_token``
+when supplied, otherwise the API key; public sandbox OIDC tokens are passed
+separately as ``sandbox_token``.
 """
 
 from __future__ import annotations
@@ -62,6 +63,67 @@ from xberg_io_sdk._generated_api.models.preset_summary import PresetSummary
 from xberg_io_sdk._generated_api.models.saved_preset_detail import SavedPresetDetail
 from xberg_io_sdk._generated_api.models.tuning_profile_detail import TuningProfileDetail
 from xberg_io_sdk._generated_api.models.update_saved_preset_response import UpdateSavedPresetResponse
+from xberg_io_sdk._generated_backend.models.analytics_response import AnalyticsResponse as BackendAnalyticsResponse
+from xberg_io_sdk._generated_backend.models.auth_config_response import AuthConfigResponse as BackendAuthConfigResponse
+from xberg_io_sdk._generated_backend.models.begin_connect_response import (
+    BeginConnectResponse as BackendBeginConnectResponse,
+)
+from xberg_io_sdk._generated_backend.models.billing_response import BillingResponse as BackendBillingResponse
+from xberg_io_sdk._generated_backend.models.checkout_response import CheckoutResponse as BackendCheckoutResponse
+from xberg_io_sdk._generated_backend.models.create_api_key_response import (
+    CreateApiKeyResponse as BackendCreateApiKeyResponse,
+)
+from xberg_io_sdk._generated_backend.models.create_invitation_response import (
+    CreateInvitationResponse as BackendCreateInvitationResponse,
+)
+from xberg_io_sdk._generated_backend.models.health_response import HealthResponse as BackendHealthResponse
+from xberg_io_sdk._generated_backend.models.integration_response import (
+    IntegrationResponse as BackendIntegrationResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_api_keys_response import (
+    ListApiKeysResponse as BackendListApiKeysResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_audit_entries_response import (
+    ListAuditEntriesResponse as BackendListAuditEntriesResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_documents_response import (
+    ListDocumentsResponse as BackendListDocumentsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_integrations_response import (
+    ListIntegrationsResponse as BackendListIntegrationsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_invitations_response import (
+    ListInvitationsResponse as BackendListInvitationsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_members_response import (
+    ListMembersResponse as BackendListMembersResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_projects_response import (
+    ListProjectsResponse as BackendListProjectsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_webhook_deliveries_response import (
+    ListWebhookDeliveriesResponse as BackendListWebhookDeliveriesResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_webhooks_response import (
+    ListWebhooksResponse as BackendListWebhooksResponse,
+)
+from xberg_io_sdk._generated_backend.models.login_response import LoginResponse as BackendLoginResponse
+from xberg_io_sdk._generated_backend.models.member_response import MemberResponse as BackendMemberResponse
+from xberg_io_sdk._generated_backend.models.portal_response import PortalResponse as BackendPortalResponse
+from xberg_io_sdk._generated_backend.models.project_response import ProjectResponse as BackendProjectResponse
+from xberg_io_sdk._generated_backend.models.rag_config_response import RagConfigResponse as BackendRagConfigResponse
+from xberg_io_sdk._generated_backend.models.readiness_response import ReadinessResponse as BackendReadinessResponse
+from xberg_io_sdk._generated_backend.models.retry_webhook_delivery_response import (
+    RetryWebhookDeliveryResponse as BackendRetryWebhookDeliveryResponse,
+)
+from xberg_io_sdk._generated_backend.models.sandbox_extract_response import (
+    SandboxExtractResponse as BackendSandboxExtractResponse,
+)
+from xberg_io_sdk._generated_backend.models.usage_response import UsageResponse as BackendUsageResponse
+from xberg_io_sdk._generated_backend.models.webhook_response import WebhookResponse as BackendWebhookResponse
+from xberg_io_sdk._generated_backend.models.webhook_test_response import (
+    WebhookTestResponse as BackendWebhookTestResponse,
+)
 from xberg_io_sdk._generated_pro.models.begin_o_auth_response import BeginOAuthResponse
 from xberg_io_sdk._generated_pro.models.create_api_key_response import CreateApiKeyResponse
 from xberg_io_sdk._generated_pro.models.integration_response import IntegrationResponse
@@ -83,6 +145,37 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_api.models.enrich_text_request import EnrichTextRequest
     from xberg_io_sdk._generated_api.models.promote_profile_request import PromoteProfileRequest
     from xberg_io_sdk._generated_api.models.update_saved_preset_request import UpdateSavedPresetRequest
+    from xberg_io_sdk._generated_backend.models.accept_invitation_request import (
+        AcceptInvitationRequest as BackendAcceptInvitationRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_api_key_request import (
+        CreateApiKeyRequest as BackendCreateApiKeyRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_integration_request import (
+        CreateIntegrationRequest as BackendCreateIntegrationRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_invitation_request import (
+        CreateInvitationRequest as BackendCreateInvitationRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_project_request import (
+        CreateProjectRequest as BackendCreateProjectRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_webhook_request import (
+        CreateWebhookRequest as BackendCreateWebhookRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.login_request import LoginRequest as BackendLoginRequest
+    from xberg_io_sdk._generated_backend.models.set_rag_config_request import (
+        SetRagConfigRequest as BackendSetRagConfigRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.update_member_role_request import (
+        UpdateMemberRoleRequest as BackendUpdateMemberRoleRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.update_project_request import (
+        UpdateProjectRequest as BackendUpdateProjectRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.update_webhook_request import (
+        UpdateWebhookRequest as BackendUpdateWebhookRequest,
+    )
     from xberg_io_sdk._generated_pro.models.create_api_key_request import CreateApiKeyRequest
     from xberg_io_sdk._generated_pro.models.create_integration_request import CreateIntegrationRequest
     from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
@@ -106,7 +199,10 @@ def _q(value: object) -> str:
     or truncated at the query or fragment marker. `safe=""` because nothing is
     safe in a single path segment, `/` least of all.
     """
-    return quote(str(value), safe="")
+    segment = str(value)
+    if segment in {".", ".."}:
+        return segment.replace(".", "%2E")
+    return quote(segment, safe="")
 
 
 _SAVED_PRESETS_PATH_ENTERPRISE = "/v1/saved_presets"
@@ -225,6 +321,25 @@ def _prepare_file_part(file: FileInput) -> tuple[str, bytes | BinaryIO, str]:
 def _multipart_files(files: Iterable[FileInput]) -> list[tuple[str, tuple[str, bytes | BinaryIO, str]]]:
     """Build the ``files=`` argument for a single multipart request carrying every document."""
     return [("file", _prepare_file_part(file)) for file in files]
+
+
+def _backend_json(response: httpx.Response) -> Any:
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise XbergError("backend response was not valid JSON", status_code=response.status_code) from exc
+
+
+def _public_sandbox_files(file: FileInput | None, *, mode: str | None, preset: str | None, url: str | None) -> Any:
+    if file is None and (mode != "web" or not url):
+        raise XbergError("public sandbox requires a file, or web mode with a URL", status_code=None)
+    parts: list[Any] = _multipart_files([file]) if file is not None else []
+    parts.extend(
+        (key, (None, value, "text/plain"))
+        for key, value in {"mode": mode, "preset": preset, "url": url}.items()
+        if value is not None
+    )
+    return parts
 
 
 def _reject_unretryable_files(files: Any) -> None:
@@ -579,6 +694,7 @@ class _BaseClient:
         api_key: str | None = None,
         base_url: str | None = None,
         control_plane_base_url: str | None = None,
+        control_plane_token: str | None = None,
         target: Target | None = None,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         headers: Mapping[str, str] | None = None,
@@ -586,6 +702,7 @@ class _BaseClient:
         retry_on: Iterable[int] | None = None,
         retry_backoff: BackoffStrategy = "exponential",
     ) -> None:
+        self._control_plane_token = control_plane_token if control_plane_token is not None else api_key
         self._api_key = api_key
         self._target: Target | None = target
         self._base_url = _resolve_base_url(base_url, target)
@@ -601,7 +718,7 @@ class _BaseClient:
         self._retry_on: frozenset[int] = frozenset(retry_on) if retry_on is not None else _DEFAULT_RETRY_STATUSES
         self._retry_backoff: BackoffStrategy = retry_backoff
         self._probed_tier: str | None = None
-        self._headers: dict[str, str] = {"User-Agent": _user_agent()}
+        self._headers = httpx.Headers({"User-Agent": _user_agent()})
         if headers:
             self._headers.update(headers)
         if api_key is not None:
@@ -623,11 +740,6 @@ class _BaseClient:
         was passed: Enterprise runs the control plane as a second binary on its
         own origin, while Pro serves both planes from one.
 
-        No method routes there yet. The control-plane operations are vendored
-        but unimplemented (xberg-io/sdks#22), and every control-plane method
-        this client does have is Pro-only and tier-gated, so today the argument
-        only records an origin this property reads back. It ships ahead of those
-        methods so the constructor does not change shape when they land.
         """
         return self._control_plane_base_url
 
@@ -646,6 +758,7 @@ class XbergClient(_BaseClient):
         api_key: str | None = None,
         base_url: str | None = None,
         control_plane_base_url: str | None = None,
+        control_plane_token: str | None = None,
         target: Target | None = None,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         headers: Mapping[str, str] | None = None,
@@ -657,6 +770,7 @@ class XbergClient(_BaseClient):
             api_key=api_key,
             base_url=base_url,
             control_plane_base_url=control_plane_base_url,
+            control_plane_token=control_plane_token,
             target=target,
             timeout=timeout,
             headers=headers,
@@ -693,6 +807,9 @@ class XbergClient(_BaseClient):
         data: Any | None = None,
         json_body: Any | None = None,
         params: Mapping[str, Any] | None = None,
+        control_plane: bool = False,
+        public: bool = False,
+        token: str | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -701,7 +818,22 @@ class XbergClient(_BaseClient):
             _reject_unretryable_files(files)
         while True:
             try:
-                response = self._http.request(method, path, files=files, data=data, json=json_body, params=params)
+                if control_plane:
+                    request = self._http.build_request(
+                        method,
+                        self._control_plane_base_url + path,
+                        files=files,
+                        data=data,
+                        json=json_body,
+                        params=params,
+                    )
+                    request.headers.pop("Authorization", None)
+                    credential = token if public else self._control_plane_token
+                    if credential is not None:
+                        request.headers["Authorization"] = f"Bearer {credential}"
+                    response = self._http.send(request, follow_redirects=False)
+                else:
+                    response = self._http.request(method, path, files=files, data=data, json=json_body, params=params)
             except httpx.TransportError as exc:
                 if attempt < self._retries:
                     attempt += 1
@@ -1225,6 +1357,374 @@ class XbergClient(_BaseClient):
 
     # -- Enterprise-only surface ------------------------------------------
 
+    def _request_control(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        known_tier = self._target or self._probed_tier
+        if known_tier is not None:
+            self._require_tier_or_raise(known_tier, "enterprise", "backend operation")
+        return self._request(method, path, control_plane=True, **kwargs)
+
+    def _request_control_json(self, method: str, path: str, **kwargs: Any) -> Any:
+        response = self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+        return _backend_json(response)
+
+    def _request_control_bytes(self, method: str, path: str, **kwargs: Any) -> bytes:
+        response = self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+        return response.content
+
+    def _request_control_none(self, method: str, path: str, **kwargs: Any) -> None:
+        response = self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+
+    def _request_control_redirect(self, method: str, path: str, **kwargs: Any) -> str:
+        response = self._request_control(method, path, **kwargs)
+        if response.status_code != 303 or not response.headers.get("Location"):
+            raise_for_status(response)
+            raise XbergError("OAuth callback did not return a redirect location", status_code=response.status_code)
+        return response.headers["Location"]
+
+    def delete_account(self) -> None:
+        """Enterprise backend: Delete the authenticated user's account and all associated data (``DELETE /auth/account``)."""
+        self._request_control_none("DELETE", "/auth/account")
+
+    def get_auth_config(self) -> BackendAuthConfigResponse:
+        """Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``)."""
+        payload = self._request_control_json("GET", "/auth/config", public=True)
+        return BackendAuthConfigResponse.from_dict(_expect_object(payload, "get_auth_config"))
+
+    def backend_login(self, body: BackendLoginRequest | Mapping[str, Any]) -> BackendLoginResponse:
+        """Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``)."""
+        payload = self._request_control_json("POST", "/auth/login", json_body=_coerce_body(body), public=True)
+        return BackendLoginResponse.from_dict(_expect_object(payload, "login"))
+
+    def healthz(self) -> BackendHealthResponse:
+        """Enterprise backend: Liveness probe - returns 200 if the process is running (``GET /healthz``)."""
+        payload = self._request_control_json("GET", "/healthz", public=True)
+        return BackendHealthResponse.from_dict(_expect_object(payload, "healthz"))
+
+    def readyz(self) -> BackendReadinessResponse:
+        """Enterprise backend: Readiness probe - returns 200 if the service can handle traffic (``GET /readyz``)."""
+        payload = self._request_control_json("GET", "/readyz", public=True)
+        return BackendReadinessResponse.from_dict(_expect_object(payload, "readyz"))
+
+    def accept_invitation(self, body: BackendAcceptInvitationRequest | Mapping[str, Any]) -> BackendMemberResponse:
+        """Enterprise backend: Accept an invitation using a token (``POST /v1/invitations/accept``)."""
+        payload = self._request_control_json("POST", "/v1/invitations/accept", json_body=_coerce_body(body))
+        return BackendMemberResponse.from_dict(_expect_object(payload, "accept_invitation"))
+
+    def oauth_callback(self, *, code: str, state: str) -> str:
+        """Enterprise backend: OAuth callback handler (``GET /v1/oauth/callback``)."""
+        return self._request_control_redirect(
+            "GET", "/v1/oauth/callback", params=_query_params(code=code, state=state), public=True
+        )
+
+    def backend_list_projects(
+        self, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListProjectsResponse:
+        """Enterprise backend: List all projects for the authenticated user (``GET /v1/projects``)."""
+        payload = self._request_control_json("GET", "/v1/projects", params=_query_params(limit=limit, offset=offset))
+        return BackendListProjectsResponse.from_dict(_expect_object(payload, "list_projects"))
+
+    def backend_create_project(self, body: BackendCreateProjectRequest | Mapping[str, Any]) -> BackendProjectResponse:
+        """Enterprise backend: Create a new project (``POST /v1/projects``)."""
+        payload = self._request_control_json("POST", "/v1/projects", json_body=_coerce_body(body))
+        return BackendProjectResponse.from_dict(_expect_object(payload, "create_project"))
+
+    def get_project(self, project_id: str) -> BackendProjectResponse:
+        """Enterprise backend: Get project details by ID (``GET /v1/projects/{id}``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}")
+        return BackendProjectResponse.from_dict(_expect_object(payload, "get_project"))
+
+    def delete_project(self, project_id: str, *, erase: bool | None = None) -> None:
+        """Enterprise backend: Delete a project (``DELETE /v1/projects/{id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}", params=_query_params(erase=erase))
+
+    def update_project(
+        self, project_id: str, body: BackendUpdateProjectRequest | Mapping[str, Any]
+    ) -> BackendProjectResponse:
+        """Enterprise backend: Update project details (``PATCH /v1/projects/{id}``)."""
+        payload = self._request_control_json("PATCH", f"/v1/projects/{_q(project_id)}", json_body=_coerce_body(body))
+        return BackendProjectResponse.from_dict(_expect_object(payload, "update_project"))
+
+    def get_analytics(self, project_id: str, *, start_date: str, end_date: str) -> BackendAnalyticsResponse:
+        """Enterprise backend: Get analytics data for a project within a date range (``GET /v1/projects/{id}/analytics``)."""
+        payload = self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/analytics",
+            params=_query_params(start_date=start_date, end_date=end_date),
+        )
+        return BackendAnalyticsResponse.from_dict(_expect_object(payload, "get_analytics"))
+
+    def backend_list_api_keys(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListApiKeysResponse:
+        """Enterprise backend: List all API keys for a project (``GET /v1/projects/{id}/api-keys``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/api-keys", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListApiKeysResponse.from_dict(_expect_object(payload, "list_api_keys"))
+
+    def backend_create_api_key(
+        self, project_id: str, body: BackendCreateApiKeyRequest | Mapping[str, Any]
+    ) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: Create a new API key for a project (``POST /v1/projects/{id}/api-keys``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/api-keys", json_body=_coerce_body(body)
+        )
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "create_api_key"))
+
+    def backend_revoke_api_key(self, project_id: str, key_id: str) -> None:
+        """Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/api-keys/{_q(key_id)}")
+
+    def regenerate_api_key(self, project_id: str, key_id: str) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: Regenerate an API key (``POST /v1/projects/{id}/api-keys/{key_id}/regenerate``)."""
+        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/api-keys/{_q(key_id)}/regenerate")
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "regenerate_api_key"))
+
+    def list_project_audit(
+        self, project_id: str, *, action: str | None = None, limit: int | None = None, offset: int | None = None
+    ) -> BackendListAuditEntriesResponse:
+        """Enterprise backend: List a project's audit events, most recent first. (``GET /v1/projects/{id}/audit``)."""
+        payload = self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/audit",
+            params=_query_params(action=action, limit=limit, offset=offset),
+        )
+        return BackendListAuditEntriesResponse.from_dict(_expect_object(payload, "list_project_audit"))
+
+    def get_billing(self, project_id: str) -> BackendBillingResponse:
+        """Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/billing")
+        return BackendBillingResponse.from_dict(_expect_object(payload, "get_billing"))
+
+    def create_checkout(self, project_id: str) -> BackendCheckoutResponse:
+        """Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``)."""
+        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/checkout")
+        return BackendCheckoutResponse.from_dict(_expect_object(payload, "create_checkout"))
+
+    def create_portal(self, project_id: str) -> BackendPortalResponse:
+        """Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``)."""
+        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/portal")
+        return BackendPortalResponse.from_dict(_expect_object(payload, "create_portal"))
+
+    def backend_list_integrations(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListIntegrationsResponse:
+        """Enterprise backend: List all integrations for a project (``GET /v1/projects/{id}/integrations``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListIntegrationsResponse.from_dict(_expect_object(payload, "list_integrations"))
+
+    def backend_create_integration(
+        self, project_id: str, body: BackendCreateIntegrationRequest | Mapping[str, Any]
+    ) -> BackendIntegrationResponse:
+        """Enterprise backend: Create a new integration (``POST /v1/projects/{id}/integrations``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations", json_body=_coerce_body(body)
+        )
+        return BackendIntegrationResponse.from_dict(_expect_object(payload, "create_integration"))
+
+    def backend_get_integration(self, project_id: str, integration_id: str) -> BackendIntegrationResponse:
+        """Enterprise backend: Get a specific integration (``GET /v1/projects/{id}/integrations/{iid}``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}")
+        return BackendIntegrationResponse.from_dict(_expect_object(payload, "get_integration"))
+
+    def backend_delete_integration(self, project_id: str, integration_id: str) -> None:
+        """Enterprise backend: Delete an integration (``DELETE /v1/projects/{id}/integrations/{iid}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}")
+
+    def oauth_connect(self, project_id: str, integration_id: str) -> BackendBeginConnectResponse:
+        """Enterprise backend: Begin an OAuth authorization flow for an integration (owner-gated). (``POST /v1/projects/{id}/integrations/{iid}/connect``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/connect"
+        )
+        return BackendBeginConnectResponse.from_dict(_expect_object(payload, "oauth_connect"))
+
+    def backend_disconnect_integration(self, project_id: str, integration_id: str) -> None:
+        """Enterprise backend: Disconnect an integration (revoke OAuth connection) (``POST /v1/projects/{id}/integrations/{iid}/disconnect``)."""
+        self._request_control_none(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/disconnect"
+        )
+
+    def backend_list_integration_documents(
+        self,
+        project_id: str,
+        integration_id: str,
+        *,
+        mime_types: str | None = None,
+        folder_id: str | None = None,
+        max_results: int | None = None,
+    ) -> BackendListDocumentsResponse:
+        """Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``)."""
+        payload = self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents",
+            params=_query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results),
+        )
+        return BackendListDocumentsResponse.from_dict(_expect_object(payload, "list_integration_documents"))
+
+    def backend_fetch_integration_document(self, project_id: str, integration_id: str, document_id: str) -> bytes:
+        """Enterprise backend: Fetch a single document from a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}``)."""
+        return self._request_control_bytes(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents/{_q(document_id)}"
+        )
+
+    def list_invitations(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListInvitationsResponse:
+        """Enterprise backend: List pending invitations for a project (``GET /v1/projects/{id}/invitations``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/invitations", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListInvitationsResponse.from_dict(_expect_object(payload, "list_invitations"))
+
+    def invite_user(
+        self, project_id: str, body: BackendCreateInvitationRequest | Mapping[str, Any]
+    ) -> BackendCreateInvitationResponse:
+        """Enterprise backend: Create a project invitation (sends token for email delivery by frontend) (``POST /v1/projects/{id}/invitations``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/invitations", json_body=_coerce_body(body)
+        )
+        return BackendCreateInvitationResponse.from_dict(_expect_object(payload, "invite_user"))
+
+    def revoke_invitation(self, project_id: str, invitation_id: str) -> None:
+        """Enterprise backend: Revoke a pending invitation (``DELETE /v1/projects/{id}/invitations/{inv_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/invitations/{_q(invitation_id)}")
+
+    def leave_project(self, project_id: str) -> None:
+        """Enterprise backend: Self-service: caller leaves a project they belong to (``POST /v1/projects/{id}/leave``)."""
+        self._request_control_none("POST", f"/v1/projects/{_q(project_id)}/leave")
+
+    def list_members(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListMembersResponse:
+        """Enterprise backend: List all members of a project (``GET /v1/projects/{id}/members``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/members", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListMembersResponse.from_dict(_expect_object(payload, "list_members"))
+
+    def remove_member(self, project_id: str, user_id: str) -> None:
+        """Enterprise backend: Remove a member from a project (``DELETE /v1/projects/{id}/members/{user_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}")
+
+    def update_member_role(
+        self, project_id: str, user_id: str, body: BackendUpdateMemberRoleRequest | Mapping[str, Any]
+    ) -> BackendMemberResponse:
+        """Enterprise backend: Update a member's role in a project (``PATCH /v1/projects/{id}/members/{user_id}``)."""
+        payload = self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}", json_body=_coerce_body(body)
+        )
+        return BackendMemberResponse.from_dict(_expect_object(payload, "update_member_role"))
+
+    def backend_get_rag_config(self, project_id: str) -> BackendRagConfigResponse:
+        """Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/rag-config")
+        return BackendRagConfigResponse.from_dict(_expect_object(payload, "get_rag_config"))
+
+    def backend_set_rag_config(
+        self, project_id: str, body: BackendSetRagConfigRequest | Mapping[str, Any]
+    ) -> BackendRagConfigResponse:
+        """Enterprise backend: Set a project's RAG configuration. (``PUT /v1/projects/{id}/rag-config``)."""
+        payload = self._request_control_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/rag-config", json_body=_coerce_body(body)
+        )
+        return BackendRagConfigResponse.from_dict(_expect_object(payload, "set_rag_config"))
+
+    def sandbox_extract(self, project_id: str, file: FileInput) -> BackendSandboxExtractResponse:
+        """Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/sandbox/extract", files=_multipart_files([file])
+        )
+        return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "sandbox_extract"))
+
+    def get_usage(self, project_id: str, *, start_date: str, end_date: str) -> BackendUsageResponse:
+        """Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``)."""
+        payload = self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/usage",
+            params=_query_params(start_date=start_date, end_date=end_date),
+        )
+        return BackendUsageResponse.from_dict(_expect_object(payload, "get_usage"))
+
+    def list_webhooks(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListWebhooksResponse:
+        """Enterprise backend: List all webhooks for a project (``GET /v1/projects/{id}/webhooks``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/webhooks", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListWebhooksResponse.from_dict(_expect_object(payload, "list_webhooks"))
+
+    def create_webhook(
+        self, project_id: str, body: BackendCreateWebhookRequest | Mapping[str, Any]
+    ) -> BackendWebhookResponse:
+        """Enterprise backend: Create a new webhook for a project (``POST /v1/projects/{id}/webhooks``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/webhooks", json_body=_coerce_body(body)
+        )
+        return BackendWebhookResponse.from_dict(_expect_object(payload, "create_webhook"))
+
+    def delete_webhook(self, project_id: str, webhook_id: str) -> None:
+        """Enterprise backend: Delete a webhook (``DELETE /v1/projects/{id}/webhooks/{wh_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}")
+
+    def update_webhook(
+        self, project_id: str, webhook_id: str, body: BackendUpdateWebhookRequest | Mapping[str, Any]
+    ) -> BackendWebhookResponse:
+        """Enterprise backend: Update a webhook's configuration (``PATCH /v1/projects/{id}/webhooks/{wh_id}``)."""
+        payload = self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}", json_body=_coerce_body(body)
+        )
+        return BackendWebhookResponse.from_dict(_expect_object(payload, "update_webhook"))
+
+    def list_webhook_deliveries(
+        self, project_id: str, webhook_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListWebhookDeliveriesResponse:
+        """Enterprise backend: List delivery attempts recorded for a webhook. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries``)."""
+        payload = self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries",
+            params=_query_params(limit=limit, offset=offset),
+        )
+        return BackendListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "list_webhook_deliveries"))
+
+    def retry_webhook_delivery(
+        self, project_id: str, webhook_id: str, delivery_id: str
+    ) -> BackendRetryWebhookDeliveryResponse:
+        """Enterprise backend: Manually retry one past delivery attempt. (``POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}/retry"
+        )
+        return BackendRetryWebhookDeliveryResponse.from_dict(_expect_object(payload, "retry_webhook_delivery"))
+
+    def test_webhook(self, project_id: str, webhook_id: str) -> BackendWebhookTestResponse:
+        """Enterprise backend: Send a test delivery to a webhook endpoint (``POST /v1/projects/{id}/webhooks/{wh_id}/test``)."""
+        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/test")
+        return BackendWebhookTestResponse.from_dict(_expect_object(payload, "test_webhook"))
+
+    def public_sandbox_extract(
+        self,
+        *,
+        file: FileInput | None = None,
+        mode: str | None = None,
+        preset: str | None = None,
+        url: str | None = None,
+        sandbox_token: str | None = None,
+    ) -> BackendSandboxExtractResponse:
+        """Extract in the public sandbox; pass its optional OIDC bearer as ``sandbox_token``."""
+        payload = self._request_control_json(
+            "POST",
+            "/v1/sandbox/public/extract",
+            files=_public_sandbox_files(file, mode=mode, preset=preset, url=url),
+            token=sandbox_token,
+            public=True,
+        )
+        return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "public_sandbox_extract"))
+
     def versions(self, document_id: str) -> Any:
         """Enterprise only: list a document's versions (``GET /v1/documents/{id}/versions``)."""
         self._require_tier("enterprise", "versions")
@@ -1334,6 +1834,7 @@ class AsyncXbergClient(_BaseClient):
         api_key: str | None = None,
         base_url: str | None = None,
         control_plane_base_url: str | None = None,
+        control_plane_token: str | None = None,
         target: Target | None = None,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         headers: Mapping[str, str] | None = None,
@@ -1345,6 +1846,7 @@ class AsyncXbergClient(_BaseClient):
             api_key=api_key,
             base_url=base_url,
             control_plane_base_url=control_plane_base_url,
+            control_plane_token=control_plane_token,
             target=target,
             timeout=timeout,
             headers=headers,
@@ -1381,6 +1883,9 @@ class AsyncXbergClient(_BaseClient):
         data: Any | None = None,
         json_body: Any | None = None,
         params: Mapping[str, Any] | None = None,
+        control_plane: bool = False,
+        public: bool = False,
+        token: str | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -1389,7 +1894,24 @@ class AsyncXbergClient(_BaseClient):
             _reject_unretryable_files(files)
         while True:
             try:
-                response = await self._http.request(method, path, files=files, data=data, json=json_body, params=params)
+                if control_plane:
+                    request = self._http.build_request(
+                        method,
+                        self._control_plane_base_url + path,
+                        files=files,
+                        data=data,
+                        json=json_body,
+                        params=params,
+                    )
+                    request.headers.pop("Authorization", None)
+                    credential = token if public else self._control_plane_token
+                    if credential is not None:
+                        request.headers["Authorization"] = f"Bearer {credential}"
+                    response = await self._http.send(request, follow_redirects=False)
+                else:
+                    response = await self._http.request(
+                        method, path, files=files, data=data, json=json_body, params=params
+                    )
             except httpx.TransportError as exc:
                 if attempt < self._retries:
                     attempt += 1
@@ -1890,6 +2412,388 @@ class AsyncXbergClient(_BaseClient):
         )
 
     # -- Enterprise-only surface ------------------------------------------
+
+    async def _request_control(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        known_tier = self._target or self._probed_tier
+        if known_tier is not None:
+            self._require_tier_or_raise(known_tier, "enterprise", "backend operation")
+        return await self._request(method, path, control_plane=True, **kwargs)
+
+    async def _request_control_json(self, method: str, path: str, **kwargs: Any) -> Any:
+        response = await self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+        return _backend_json(response)
+
+    async def _request_control_bytes(self, method: str, path: str, **kwargs: Any) -> bytes:
+        response = await self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+        return response.content
+
+    async def _request_control_none(self, method: str, path: str, **kwargs: Any) -> None:
+        response = await self._request_control(method, path, **kwargs)
+        raise_for_status(response)
+
+    async def _request_control_redirect(self, method: str, path: str, **kwargs: Any) -> str:
+        response = await self._request_control(method, path, **kwargs)
+        if response.status_code != 303 or not response.headers.get("Location"):
+            raise_for_status(response)
+            raise XbergError("OAuth callback did not return a redirect location", status_code=response.status_code)
+        return response.headers["Location"]
+
+    async def delete_account(self) -> None:
+        """Enterprise backend: Delete the authenticated user's account and all associated data (``DELETE /auth/account``)."""
+        await self._request_control_none("DELETE", "/auth/account")
+
+    async def get_auth_config(self) -> BackendAuthConfigResponse:
+        """Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``)."""
+        payload = await self._request_control_json("GET", "/auth/config", public=True)
+        return BackendAuthConfigResponse.from_dict(_expect_object(payload, "get_auth_config"))
+
+    async def backend_login(self, body: BackendLoginRequest | Mapping[str, Any]) -> BackendLoginResponse:
+        """Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``)."""
+        payload = await self._request_control_json("POST", "/auth/login", json_body=_coerce_body(body), public=True)
+        return BackendLoginResponse.from_dict(_expect_object(payload, "login"))
+
+    async def healthz(self) -> BackendHealthResponse:
+        """Enterprise backend: Liveness probe - returns 200 if the process is running (``GET /healthz``)."""
+        payload = await self._request_control_json("GET", "/healthz", public=True)
+        return BackendHealthResponse.from_dict(_expect_object(payload, "healthz"))
+
+    async def readyz(self) -> BackendReadinessResponse:
+        """Enterprise backend: Readiness probe - returns 200 if the service can handle traffic (``GET /readyz``)."""
+        payload = await self._request_control_json("GET", "/readyz", public=True)
+        return BackendReadinessResponse.from_dict(_expect_object(payload, "readyz"))
+
+    async def accept_invitation(
+        self, body: BackendAcceptInvitationRequest | Mapping[str, Any]
+    ) -> BackendMemberResponse:
+        """Enterprise backend: Accept an invitation using a token (``POST /v1/invitations/accept``)."""
+        payload = await self._request_control_json("POST", "/v1/invitations/accept", json_body=_coerce_body(body))
+        return BackendMemberResponse.from_dict(_expect_object(payload, "accept_invitation"))
+
+    async def oauth_callback(self, *, code: str, state: str) -> str:
+        """Enterprise backend: OAuth callback handler (``GET /v1/oauth/callback``)."""
+        return await self._request_control_redirect(
+            "GET", "/v1/oauth/callback", params=_query_params(code=code, state=state), public=True
+        )
+
+    async def backend_list_projects(
+        self, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListProjectsResponse:
+        """Enterprise backend: List all projects for the authenticated user (``GET /v1/projects``)."""
+        payload = await self._request_control_json(
+            "GET", "/v1/projects", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListProjectsResponse.from_dict(_expect_object(payload, "list_projects"))
+
+    async def backend_create_project(
+        self, body: BackendCreateProjectRequest | Mapping[str, Any]
+    ) -> BackendProjectResponse:
+        """Enterprise backend: Create a new project (``POST /v1/projects``)."""
+        payload = await self._request_control_json("POST", "/v1/projects", json_body=_coerce_body(body))
+        return BackendProjectResponse.from_dict(_expect_object(payload, "create_project"))
+
+    async def get_project(self, project_id: str) -> BackendProjectResponse:
+        """Enterprise backend: Get project details by ID (``GET /v1/projects/{id}``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}")
+        return BackendProjectResponse.from_dict(_expect_object(payload, "get_project"))
+
+    async def delete_project(self, project_id: str, *, erase: bool | None = None) -> None:
+        """Enterprise backend: Delete a project (``DELETE /v1/projects/{id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}", params=_query_params(erase=erase))
+
+    async def update_project(
+        self, project_id: str, body: BackendUpdateProjectRequest | Mapping[str, Any]
+    ) -> BackendProjectResponse:
+        """Enterprise backend: Update project details (``PATCH /v1/projects/{id}``)."""
+        payload = await self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}", json_body=_coerce_body(body)
+        )
+        return BackendProjectResponse.from_dict(_expect_object(payload, "update_project"))
+
+    async def get_analytics(self, project_id: str, *, start_date: str, end_date: str) -> BackendAnalyticsResponse:
+        """Enterprise backend: Get analytics data for a project within a date range (``GET /v1/projects/{id}/analytics``)."""
+        payload = await self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/analytics",
+            params=_query_params(start_date=start_date, end_date=end_date),
+        )
+        return BackendAnalyticsResponse.from_dict(_expect_object(payload, "get_analytics"))
+
+    async def backend_list_api_keys(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListApiKeysResponse:
+        """Enterprise backend: List all API keys for a project (``GET /v1/projects/{id}/api-keys``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/api-keys", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListApiKeysResponse.from_dict(_expect_object(payload, "list_api_keys"))
+
+    async def backend_create_api_key(
+        self, project_id: str, body: BackendCreateApiKeyRequest | Mapping[str, Any]
+    ) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: Create a new API key for a project (``POST /v1/projects/{id}/api-keys``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/api-keys", json_body=_coerce_body(body)
+        )
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "create_api_key"))
+
+    async def backend_revoke_api_key(self, project_id: str, key_id: str) -> None:
+        """Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/api-keys/{_q(key_id)}")
+
+    async def regenerate_api_key(self, project_id: str, key_id: str) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: Regenerate an API key (``POST /v1/projects/{id}/api-keys/{key_id}/regenerate``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/api-keys/{_q(key_id)}/regenerate"
+        )
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "regenerate_api_key"))
+
+    async def list_project_audit(
+        self, project_id: str, *, action: str | None = None, limit: int | None = None, offset: int | None = None
+    ) -> BackendListAuditEntriesResponse:
+        """Enterprise backend: List a project's audit events, most recent first. (``GET /v1/projects/{id}/audit``)."""
+        payload = await self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/audit",
+            params=_query_params(action=action, limit=limit, offset=offset),
+        )
+        return BackendListAuditEntriesResponse.from_dict(_expect_object(payload, "list_project_audit"))
+
+    async def get_billing(self, project_id: str) -> BackendBillingResponse:
+        """Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/billing")
+        return BackendBillingResponse.from_dict(_expect_object(payload, "get_billing"))
+
+    async def create_checkout(self, project_id: str) -> BackendCheckoutResponse:
+        """Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``)."""
+        payload = await self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/checkout")
+        return BackendCheckoutResponse.from_dict(_expect_object(payload, "create_checkout"))
+
+    async def create_portal(self, project_id: str) -> BackendPortalResponse:
+        """Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``)."""
+        payload = await self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/portal")
+        return BackendPortalResponse.from_dict(_expect_object(payload, "create_portal"))
+
+    async def backend_list_integrations(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListIntegrationsResponse:
+        """Enterprise backend: List all integrations for a project (``GET /v1/projects/{id}/integrations``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListIntegrationsResponse.from_dict(_expect_object(payload, "list_integrations"))
+
+    async def backend_create_integration(
+        self, project_id: str, body: BackendCreateIntegrationRequest | Mapping[str, Any]
+    ) -> BackendIntegrationResponse:
+        """Enterprise backend: Create a new integration (``POST /v1/projects/{id}/integrations``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations", json_body=_coerce_body(body)
+        )
+        return BackendIntegrationResponse.from_dict(_expect_object(payload, "create_integration"))
+
+    async def backend_get_integration(self, project_id: str, integration_id: str) -> BackendIntegrationResponse:
+        """Enterprise backend: Get a specific integration (``GET /v1/projects/{id}/integrations/{iid}``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}"
+        )
+        return BackendIntegrationResponse.from_dict(_expect_object(payload, "get_integration"))
+
+    async def backend_delete_integration(self, project_id: str, integration_id: str) -> None:
+        """Enterprise backend: Delete an integration (``DELETE /v1/projects/{id}/integrations/{iid}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}")
+
+    async def oauth_connect(self, project_id: str, integration_id: str) -> BackendBeginConnectResponse:
+        """Enterprise backend: Begin an OAuth authorization flow for an integration (owner-gated). (``POST /v1/projects/{id}/integrations/{iid}/connect``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/connect"
+        )
+        return BackendBeginConnectResponse.from_dict(_expect_object(payload, "oauth_connect"))
+
+    async def backend_disconnect_integration(self, project_id: str, integration_id: str) -> None:
+        """Enterprise backend: Disconnect an integration (revoke OAuth connection) (``POST /v1/projects/{id}/integrations/{iid}/disconnect``)."""
+        await self._request_control_none(
+            "POST", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/disconnect"
+        )
+
+    async def backend_list_integration_documents(
+        self,
+        project_id: str,
+        integration_id: str,
+        *,
+        mime_types: str | None = None,
+        folder_id: str | None = None,
+        max_results: int | None = None,
+    ) -> BackendListDocumentsResponse:
+        """Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``)."""
+        payload = await self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents",
+            params=_query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results),
+        )
+        return BackendListDocumentsResponse.from_dict(_expect_object(payload, "list_integration_documents"))
+
+    async def backend_fetch_integration_document(self, project_id: str, integration_id: str, document_id: str) -> bytes:
+        """Enterprise backend: Fetch a single document from a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}``)."""
+        return await self._request_control_bytes(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents/{_q(document_id)}"
+        )
+
+    async def list_invitations(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListInvitationsResponse:
+        """Enterprise backend: List pending invitations for a project (``GET /v1/projects/{id}/invitations``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/invitations", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListInvitationsResponse.from_dict(_expect_object(payload, "list_invitations"))
+
+    async def invite_user(
+        self, project_id: str, body: BackendCreateInvitationRequest | Mapping[str, Any]
+    ) -> BackendCreateInvitationResponse:
+        """Enterprise backend: Create a project invitation (sends token for email delivery by frontend) (``POST /v1/projects/{id}/invitations``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/invitations", json_body=_coerce_body(body)
+        )
+        return BackendCreateInvitationResponse.from_dict(_expect_object(payload, "invite_user"))
+
+    async def revoke_invitation(self, project_id: str, invitation_id: str) -> None:
+        """Enterprise backend: Revoke a pending invitation (``DELETE /v1/projects/{id}/invitations/{inv_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/invitations/{_q(invitation_id)}")
+
+    async def leave_project(self, project_id: str) -> None:
+        """Enterprise backend: Self-service: caller leaves a project they belong to (``POST /v1/projects/{id}/leave``)."""
+        await self._request_control_none("POST", f"/v1/projects/{_q(project_id)}/leave")
+
+    async def list_members(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListMembersResponse:
+        """Enterprise backend: List all members of a project (``GET /v1/projects/{id}/members``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/members", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListMembersResponse.from_dict(_expect_object(payload, "list_members"))
+
+    async def remove_member(self, project_id: str, user_id: str) -> None:
+        """Enterprise backend: Remove a member from a project (``DELETE /v1/projects/{id}/members/{user_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}")
+
+    async def update_member_role(
+        self, project_id: str, user_id: str, body: BackendUpdateMemberRoleRequest | Mapping[str, Any]
+    ) -> BackendMemberResponse:
+        """Enterprise backend: Update a member's role in a project (``PATCH /v1/projects/{id}/members/{user_id}``)."""
+        payload = await self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}", json_body=_coerce_body(body)
+        )
+        return BackendMemberResponse.from_dict(_expect_object(payload, "update_member_role"))
+
+    async def backend_get_rag_config(self, project_id: str) -> BackendRagConfigResponse:
+        """Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/rag-config")
+        return BackendRagConfigResponse.from_dict(_expect_object(payload, "get_rag_config"))
+
+    async def backend_set_rag_config(
+        self, project_id: str, body: BackendSetRagConfigRequest | Mapping[str, Any]
+    ) -> BackendRagConfigResponse:
+        """Enterprise backend: Set a project's RAG configuration. (``PUT /v1/projects/{id}/rag-config``)."""
+        payload = await self._request_control_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/rag-config", json_body=_coerce_body(body)
+        )
+        return BackendRagConfigResponse.from_dict(_expect_object(payload, "set_rag_config"))
+
+    async def sandbox_extract(self, project_id: str, file: FileInput) -> BackendSandboxExtractResponse:
+        """Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/sandbox/extract", files=_multipart_files([file])
+        )
+        return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "sandbox_extract"))
+
+    async def get_usage(self, project_id: str, *, start_date: str, end_date: str) -> BackendUsageResponse:
+        """Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``)."""
+        payload = await self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/usage",
+            params=_query_params(start_date=start_date, end_date=end_date),
+        )
+        return BackendUsageResponse.from_dict(_expect_object(payload, "get_usage"))
+
+    async def list_webhooks(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListWebhooksResponse:
+        """Enterprise backend: List all webhooks for a project (``GET /v1/projects/{id}/webhooks``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/webhooks", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListWebhooksResponse.from_dict(_expect_object(payload, "list_webhooks"))
+
+    async def create_webhook(
+        self, project_id: str, body: BackendCreateWebhookRequest | Mapping[str, Any]
+    ) -> BackendWebhookResponse:
+        """Enterprise backend: Create a new webhook for a project (``POST /v1/projects/{id}/webhooks``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/webhooks", json_body=_coerce_body(body)
+        )
+        return BackendWebhookResponse.from_dict(_expect_object(payload, "create_webhook"))
+
+    async def delete_webhook(self, project_id: str, webhook_id: str) -> None:
+        """Enterprise backend: Delete a webhook (``DELETE /v1/projects/{id}/webhooks/{wh_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}")
+
+    async def update_webhook(
+        self, project_id: str, webhook_id: str, body: BackendUpdateWebhookRequest | Mapping[str, Any]
+    ) -> BackendWebhookResponse:
+        """Enterprise backend: Update a webhook's configuration (``PATCH /v1/projects/{id}/webhooks/{wh_id}``)."""
+        payload = await self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}", json_body=_coerce_body(body)
+        )
+        return BackendWebhookResponse.from_dict(_expect_object(payload, "update_webhook"))
+
+    async def list_webhook_deliveries(
+        self, project_id: str, webhook_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListWebhookDeliveriesResponse:
+        """Enterprise backend: List delivery attempts recorded for a webhook. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries``)."""
+        payload = await self._request_control_json(
+            "GET",
+            f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries",
+            params=_query_params(limit=limit, offset=offset),
+        )
+        return BackendListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "list_webhook_deliveries"))
+
+    async def retry_webhook_delivery(
+        self, project_id: str, webhook_id: str, delivery_id: str
+    ) -> BackendRetryWebhookDeliveryResponse:
+        """Enterprise backend: Manually retry one past delivery attempt. (``POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}/retry"
+        )
+        return BackendRetryWebhookDeliveryResponse.from_dict(_expect_object(payload, "retry_webhook_delivery"))
+
+    async def test_webhook(self, project_id: str, webhook_id: str) -> BackendWebhookTestResponse:
+        """Enterprise backend: Send a test delivery to a webhook endpoint (``POST /v1/projects/{id}/webhooks/{wh_id}/test``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/test"
+        )
+        return BackendWebhookTestResponse.from_dict(_expect_object(payload, "test_webhook"))
+
+    async def public_sandbox_extract(
+        self,
+        *,
+        file: FileInput | None = None,
+        mode: str | None = None,
+        preset: str | None = None,
+        url: str | None = None,
+        sandbox_token: str | None = None,
+    ) -> BackendSandboxExtractResponse:
+        """Extract in the public sandbox; pass its optional OIDC bearer as ``sandbox_token``."""
+        payload = await self._request_control_json(
+            "POST",
+            "/v1/sandbox/public/extract",
+            files=_public_sandbox_files(file, mode=mode, preset=preset, url=url),
+            token=sandbox_token,
+            public=True,
+        )
+        return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "public_sandbox_extract"))
 
     async def versions(self, document_id: str) -> Any:
         """Enterprise only: async equivalent of :meth:`XbergClient.versions`."""

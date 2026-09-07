@@ -1,0 +1,972 @@
+[
+  {
+    "operation_id": "delete_account",
+    "name": "delete_account",
+    "verb": "DELETE",
+    "path": "/auth/account",
+    "arguments": {},
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "get_auth_config",
+    "name": "get_auth_config",
+    "verb": "GET",
+    "path": "/auth/config",
+    "arguments": {},
+    "query": {},
+    "status": 200,
+    "response": {
+      "methods": [],
+      "oidc": {
+        "enabled": true
+      }
+    },
+    "model": "AuthConfigResponse",
+    "public": true
+  },
+  {
+    "operation_id": "login",
+    "name": "backend_login",
+    "verb": "POST",
+    "path": "/auth/login",
+    "arguments": {
+      "body": {
+        "id_token": "fixture"
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "token": "fixture",
+      "user": {
+        "user_id": "fixture"
+      },
+      "pending_invitations": 1
+    },
+    "model": "LoginResponse",
+    "public": true
+  },
+  {
+    "operation_id": "healthz",
+    "name": "healthz",
+    "verb": "GET",
+    "path": "/healthz",
+    "arguments": {},
+    "query": {},
+    "status": 200,
+    "response": {
+      "status": "fixture",
+      "tier": "fixture"
+    },
+    "model": "HealthResponse",
+    "public": true
+  },
+  {
+    "operation_id": "readyz",
+    "name": "readyz",
+    "verb": "GET",
+    "path": "/readyz",
+    "arguments": {},
+    "query": {},
+    "status": 200,
+    "response": {
+      "status": "fixture",
+      "checks": {
+        "database": "fixture",
+        "maintenance_database": "fixture"
+      }
+    },
+    "model": "ReadinessResponse",
+    "public": true
+  },
+  {
+    "operation_id": "accept_invitation",
+    "name": "accept_invitation",
+    "verb": "POST",
+    "path": "/v1/invitations/accept",
+    "arguments": {
+      "body": {
+        "token": "fixture"
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "fixture",
+      "user_id": "fixture",
+      "role": "fixture",
+      "created_at": "fixture"
+    },
+    "model": "MemberResponse",
+    "public": false
+  },
+  {
+    "operation_id": "oauth_callback",
+    "name": "oauth_callback",
+    "verb": "GET",
+    "path": "/v1/oauth/callback",
+    "arguments": {
+      "code": "fixture",
+      "state": "fixture"
+    },
+    "query": {
+      "code": "fixture",
+      "state": "fixture"
+    },
+    "status": 303,
+    "public": true
+  },
+  {
+    "operation_id": "list_projects",
+    "name": "backend_list_projects",
+    "verb": "GET",
+    "path": "/v1/projects",
+    "arguments": {
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "projects": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListProjectsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_project",
+    "name": "backend_create_project",
+    "verb": "POST",
+    "path": "/v1/projects",
+    "arguments": {
+      "body": {
+        "name": "fixture"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "slug": "fixture",
+      "status": "fixture",
+      "owner_user_id": "fixture",
+      "created_at": "2026-09-07T10:00:00+00:00",
+      "updated_at": "2026-09-07T10:00:00+00:00",
+      "api_key_count": 1,
+      "webhook_count": 1,
+      "total_pages_extracted": 1
+    },
+    "model": "ProjectResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_project",
+    "name": "get_project",
+    "verb": "GET",
+    "path": "/v1/projects/{id}",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "slug": "fixture",
+      "status": "fixture",
+      "owner_user_id": "fixture",
+      "created_at": "2026-09-07T10:00:00+00:00",
+      "updated_at": "2026-09-07T10:00:00+00:00",
+      "api_key_count": 1,
+      "webhook_count": 1,
+      "total_pages_extracted": 1
+    },
+    "model": "ProjectResponse",
+    "public": false
+  },
+  {
+    "operation_id": "delete_project",
+    "name": "delete_project",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "erase": true
+    },
+    "query": {
+      "erase": true
+    },
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "update_project",
+    "name": "update_project",
+    "verb": "PATCH",
+    "path": "/v1/projects/{id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {}
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "slug": "fixture",
+      "status": "fixture",
+      "owner_user_id": "fixture",
+      "created_at": "2026-09-07T10:00:00+00:00",
+      "updated_at": "2026-09-07T10:00:00+00:00",
+      "api_key_count": 1,
+      "webhook_count": 1,
+      "total_pages_extracted": 1
+    },
+    "model": "ProjectResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_analytics",
+    "name": "get_analytics",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/analytics",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "start_date": "fixture",
+      "end_date": "fixture"
+    },
+    "query": {
+      "start_date": "fixture",
+      "end_date": "fixture"
+    },
+    "status": 200,
+    "response": {
+      "project_id": "fixture",
+      "start_date": "fixture",
+      "end_date": "fixture",
+      "days": []
+    },
+    "model": "AnalyticsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_api_keys",
+    "name": "backend_list_api_keys",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/api-keys",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "api_keys": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListApiKeysResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_api_key",
+    "name": "backend_create_api_key",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/api-keys",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {}
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "key": "fixture",
+      "key_prefix": "fixture",
+      "scope": "read",
+      "created_at": "2026-09-07T10:00:00+00:00"
+    },
+    "model": "CreateApiKeyResponse",
+    "public": false
+  },
+  {
+    "operation_id": "revoke_api_key",
+    "name": "backend_revoke_api_key",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/api-keys/{key_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "key_id": "key_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "regenerate_api_key",
+    "name": "regenerate_api_key",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/api-keys/{key_id}/regenerate",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "key_id": "key_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "key": "fixture",
+      "key_prefix": "fixture",
+      "scope": "read",
+      "created_at": "2026-09-07T10:00:00+00:00"
+    },
+    "model": "CreateApiKeyResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_project_audit",
+    "name": "list_project_audit",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/audit",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "action": "fixture",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "action": "fixture",
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "entries": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListAuditEntriesResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_billing",
+    "name": "get_billing",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/billing",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "project_id": "fixture",
+      "period_start": "fixture",
+      "period_end": "fixture",
+      "plan": {},
+      "usage": {
+        "pages_used": 1,
+        "total_documents": 1,
+        "total_failed": 1,
+        "by_mime_type": {}
+      }
+    },
+    "model": "BillingResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_checkout",
+    "name": "create_checkout",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/billing/checkout",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "url": "fixture"
+    },
+    "model": "CheckoutResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_portal",
+    "name": "create_portal",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/billing/portal",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "url": "fixture"
+    },
+    "model": "PortalResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_integrations",
+    "name": "backend_list_integrations",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/integrations",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "integrations": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListIntegrationsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_integration",
+    "name": "backend_create_integration",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/integrations",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "name": "fixture",
+        "kind": "fixture",
+        "auth_type": "fixture"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "kind": "fixture",
+      "auth_type": "fixture",
+      "provider": "fixture"
+    },
+    "model": "IntegrationResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_integration",
+    "name": "backend_get_integration",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/integrations/{iid}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "kind": "fixture",
+      "auth_type": "fixture",
+      "provider": "fixture"
+    },
+    "model": "IntegrationResponse",
+    "public": false
+  },
+  {
+    "operation_id": "delete_integration",
+    "name": "backend_delete_integration",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/integrations/{iid}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "oauth_connect",
+    "name": "oauth_connect",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/integrations/{iid}/connect",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "authorize_url": "fixture"
+    },
+    "model": "BeginConnectResponse",
+    "public": false
+  },
+  {
+    "operation_id": "disconnect_integration",
+    "name": "backend_disconnect_integration",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/integrations/{iid}/disconnect",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_integration_documents",
+    "name": "backend_list_integration_documents",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/integrations/{iid}/documents",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#",
+      "mime_types": "fixture",
+      "folder_id": "fixture",
+      "max_results": 1
+    },
+    "query": {
+      "mime_types": "fixture",
+      "folder_id": "fixture",
+      "max_results": 1
+    },
+    "status": 200,
+    "response": {
+      "documents": []
+    },
+    "model": "ListDocumentsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "fetch_integration_document",
+    "name": "backend_fetch_integration_document",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/integrations/{iid}/documents/{doc_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#",
+      "document_id": "document_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "bytes": true,
+    "public": false
+  },
+  {
+    "operation_id": "list_invitations",
+    "name": "list_invitations",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/invitations",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "invitations": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListInvitationsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "invite_user",
+    "name": "invite_user",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/invitations",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "email": "fixture",
+        "role": "fixture"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "fixture",
+      "email": "fixture",
+      "role": "fixture",
+      "token": "fixture",
+      "expires_at": "fixture"
+    },
+    "model": "CreateInvitationResponse",
+    "public": false
+  },
+  {
+    "operation_id": "revoke_invitation",
+    "name": "revoke_invitation",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/invitations/{inv_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "invitation_id": "invitation_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "leave_project",
+    "name": "leave_project",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/leave",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_members",
+    "name": "list_members",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/members",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "members": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListMembersResponse",
+    "public": false
+  },
+  {
+    "operation_id": "remove_member",
+    "name": "remove_member",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/members/{user_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "user_id": "user_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "update_member_role",
+    "name": "update_member_role",
+    "verb": "PATCH",
+    "path": "/v1/projects/{id}/members/{user_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "user_id": "user_id/?#",
+      "body": {
+        "role": "fixture"
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "fixture",
+      "user_id": "fixture",
+      "role": "fixture",
+      "created_at": "fixture"
+    },
+    "model": "MemberResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_rag_config",
+    "name": "backend_get_rag_config",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/rag-config",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "enabled": true
+    },
+    "model": "RagConfigResponse",
+    "public": false
+  },
+  {
+    "operation_id": "set_rag_config",
+    "name": "backend_set_rag_config",
+    "verb": "PUT",
+    "path": "/v1/projects/{id}/rag-config",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "enabled": true
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "enabled": true
+    },
+    "model": "RagConfigResponse",
+    "public": false
+  },
+  {
+    "operation_id": "sandbox_extract",
+    "name": "sandbox_extract",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/sandbox/extract",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "multipart": true,
+    "status": 200,
+    "response": {
+      "id": "fixture",
+      "filename": "fixture",
+      "status": "fixture",
+      "created_at": "fixture"
+    },
+    "model": "SandboxExtractResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_usage",
+    "name": "get_usage",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/usage",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "start_date": "fixture",
+      "end_date": "fixture"
+    },
+    "query": {
+      "start_date": "fixture",
+      "end_date": "fixture"
+    },
+    "status": 200,
+    "response": {
+      "project_id": "fixture",
+      "period": {
+        "start_date": "fixture",
+        "end_date": "fixture"
+      },
+      "summary": {
+        "total_requests": 1,
+        "successful_requests": 1,
+        "failed_requests": 1,
+        "average_response_time_ms": 1,
+        "total_request_bytes": 1,
+        "total_response_bytes": 1
+      },
+      "by_method": {},
+      "by_status_code": {},
+      "by_path": {},
+      "error_details": []
+    },
+    "model": "UsageResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_webhooks",
+    "name": "list_webhooks",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/webhooks",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "webhooks": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListWebhooksResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_webhook",
+    "name": "create_webhook",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/webhooks",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "name": "fixture",
+        "url": "fixture",
+        "events": []
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "url": "fixture",
+      "events": [],
+      "is_active": true,
+      "total_deliveries": 1,
+      "failed_deliveries": 1,
+      "created_at": "fixture",
+      "updated_at": "fixture"
+    },
+    "model": "WebhookResponse",
+    "public": false
+  },
+  {
+    "operation_id": "delete_webhook",
+    "name": "delete_webhook",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "update_webhook",
+    "name": "update_webhook",
+    "verb": "PATCH",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#",
+      "body": {}
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "fixture",
+      "url": "fixture",
+      "events": [],
+      "is_active": true,
+      "total_deliveries": 1,
+      "failed_deliveries": 1,
+      "created_at": "fixture",
+      "updated_at": "fixture"
+    },
+    "model": "WebhookResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_webhook_deliveries",
+    "name": "list_webhook_deliveries",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}/deliveries",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "deliveries": [],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListWebhookDeliveriesResponse",
+    "public": false
+  },
+  {
+    "operation_id": "retry_webhook_delivery",
+    "name": "retry_webhook_delivery",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#",
+      "delivery_id": "delivery_id/?#"
+    },
+    "query": {},
+    "status": 202,
+    "response": {
+      "delivery_id": "11111111-1111-1111-1111-111111111111",
+      "status": "fixture",
+      "queued_at": "fixture"
+    },
+    "model": "RetryWebhookDeliveryResponse",
+    "public": false
+  },
+  {
+    "operation_id": "test_webhook",
+    "name": "test_webhook",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}/test",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "success": true
+    },
+    "model": "WebhookTestResponse",
+    "public": false
+  },
+  {
+    "operation_id": "public_sandbox_extract",
+    "name": "public_sandbox_extract",
+    "verb": "POST",
+    "path": "/v1/sandbox/public/extract",
+    "arguments": {},
+    "query": {},
+    "multipart": true,
+    "status": 200,
+    "response": {
+      "id": "fixture",
+      "filename": "fixture",
+      "status": "fixture",
+      "created_at": "fixture"
+    },
+    "model": "SandboxExtractResponse",
+    "public": true
+  }
+]
