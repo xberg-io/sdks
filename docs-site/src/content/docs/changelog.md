@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-07
+
 ### Added
 
 - Add the SDK documentation site with per-language references, all three OpenAPI schemas, tier and authentication guides,
@@ -23,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Refresh generated contracts for nullable enrichment entities, latest-document results, document-diff conflicts, and
+  the current processing status vocabulary.
 - Accept nonempty opaque JSON objects in generated TypeScript schemas, including preset configuration and integration
   credentials, while retaining validation for explicitly typed fields.
 - Preserve path identifiers without allowing dot-segment navigation to retarget destructive requests. TypeScript rejects
@@ -279,7 +283,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/xberg-io/sdks/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xberg-io/sdks/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/xberg-io/sdks/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/xberg-io/sdks/compare/v0.2.0...v0.3.0
