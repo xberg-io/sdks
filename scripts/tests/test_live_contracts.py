@@ -100,5 +100,5 @@ def test_page_error_check_rejects_wrong_server_code(payload: dict) -> None:
     def fail() -> None:
         raise module.XbergError("page missing", status_code=404, payload=payload)
 
-    with pytest.raises(ValueError, match="expected error code page.not_found"):
+    with pytest.raises(ValueError, match=r"expected error code page\.not_found"):
         module.expect_status(fail, 404, expected_code="page.not_found")
