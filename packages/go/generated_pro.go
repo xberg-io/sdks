@@ -369,6 +369,19 @@ type OidcInfo struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
+// ProPresignUploadRequest Request body for presigning upload URLs.
+type ProPresignUploadRequest struct {
+	// Config Batch-level extraction configuration (applied to all documents).
+	// Opaque JSON — see the module doc comment for why.
+	Config *map[string]interface{} `json:"config,omitempty"`
+
+	// Documents Document metadata (no file data)
+	Documents []PresignDocumentInput `json:"documents"`
+
+	// Webhook Webhook configuration for async result delivery
+	Webhook *WebhookConfig `json:"webhook,omitempty"`
+}
+
 // ProReadinessChecks Per-dependency readiness results.
 type ProReadinessChecks struct {
 	// Database `ok` or `unhealthy`: a connection was checked out of the pool.
@@ -381,6 +394,11 @@ type ProReadinessChecks struct {
 	// refusal counts as an answer; the check proves reachability, not
 	// credentials.
 	Storage string `json:"storage"`
+
+	// Worker `ok` or `not_ready`: the embedded vector-index worker answered its own
+	// readiness endpoint with success. A worker that answers not ready, or not
+	// at all, is `not_ready`. Absent when the process runs without a worker.
+	Worker *string `json:"worker,omitempty"`
 }
 
 // ProReadinessResponse Readiness report: the process can serve traffic only when both checks pass.

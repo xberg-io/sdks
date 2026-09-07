@@ -1016,10 +1016,8 @@ func (e InlineType) Valid() bool {
 
 // Defines values for JobStatus.
 const (
-	JobStatusAggregating    JobStatus = "aggregating"
 	JobStatusAwaitingUpload JobStatus = "awaiting_upload"
 	JobStatusCancelled      JobStatus = "cancelled"
-	JobStatusChunking       JobStatus = "chunking"
 	JobStatusCompleted      JobStatus = "completed"
 	JobStatusFailed         JobStatus = "failed"
 	JobStatusPartialSuccess JobStatus = "partial_success"
@@ -1030,13 +1028,9 @@ const (
 // Valid indicates whether the value is a known member of the JobStatus enum.
 func (e JobStatus) Valid() bool {
 	switch e {
-	case JobStatusAggregating:
-		return true
 	case JobStatusAwaitingUpload:
 		return true
 	case JobStatusCancelled:
-		return true
-	case JobStatusChunking:
 		return true
 	case JobStatusCompleted:
 		return true
@@ -3495,13 +3489,15 @@ type CreateCollectionRequest struct {
 	// filling the default before persisting the collection.
 	IndexMethod *string `json:"index_method,omitempty"`
 
-	// LabelClassifierThreshold Confidence threshold (0.0–1.0) for classify_text. Default 0.5 when
-	// None and label_vocabulary is Some.
+	// LabelClassifierThreshold Not available. Sending this field is refused with
+	// `rag.label_classification.unsupported`, for the same reason as
+	// `label_vocabulary`.
 	LabelClassifierThreshold *float32 `json:"label_classifier_threshold,omitempty"`
 
-	// LabelVocabulary Labels vocabulary for xberg's classify_text. When None, auto-
-	// classification is disabled and labels remain pass-through-only.
-	// Length cap: 100 strings; each up to 64 chars.
+	// LabelVocabulary Not available. Sending this field is refused with
+	// `rag.label_classification.unsupported`: no build ships an ingest-time
+	// classifier, so a stored vocabulary would never label a document. Supply
+	// labels per document via `enrichment_overrides.labels` instead.
 	LabelVocabulary *[]string `json:"label_vocabulary,omitempty"`
 
 	// Name Collection name (unique per project)
@@ -4378,8 +4374,8 @@ type EnrichRequestOptions struct {
 
 // EnrichResult Result of enrichment processing.
 type EnrichResult struct {
-	// Entities Extracted entities (JSON object).
-	Entities *map[string]interface{} `json:"entities,omitempty"`
+	// Entities Extracted named entities, or null when entity detection was not requested.
+	Entities *[]map[string]interface{} `json:"entities,omitempty"`
 
 	// Keywords Extracted keywords.
 	Keywords *[]string `json:"keywords,omitempty"`
@@ -5120,7 +5116,9 @@ type ExtractionOptions struct {
 	SavedPresetId *string `json:"saved_preset_id,omitempty"`
 
 	// SplitDocuments When true and a document is a PDF, enable multi-document boundary
-	// detection and fan-out orchestration. Enterprise-only; Pro ignores it.
+	// detection and fan-out orchestration. Enterprise-only. Xberg Pro has no
+	// splitter and answers 400 when a request sets it, the way it already
+	// answers 400 for `urls` and `crawl_config`.
 	SplitDocuments *bool `json:"split_documents,omitempty"`
 }
 
@@ -5996,11 +5994,8 @@ type LatestDocumentResponse struct {
 	Id openapi_types.UUID `json:"id"`
 
 	// MimeType MIME type of the uploaded file.
-	MimeType string `json:"mime_type"`
-
-	// Result The extraction result, when the stored result could be fetched and
-	// deserialized; `null` otherwise.
-	Result *ExtractedDocument `json:"result,omitempty"`
+	MimeType string             `json:"mime_type"`
+	Result   *ExtractedDocument `json:"result,omitempty"`
 
 	// Status Job status of the latest version.
 	Status string `json:"status"`

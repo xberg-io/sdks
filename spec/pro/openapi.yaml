@@ -211,13 +211,13 @@ paths:
         - health
       summary: Check whether the service is ready to serve traffic.
       description: |-
-        Probes the primary database, the maintenance database login, and the
-        object store (a HEAD on a key that never exists — any answer, found or
-        refused, proves the store is reachable). Answers `200` with each
-        dependency's status only when all are healthy; any failure answers `503`
-        with the same body shape so the caller can see which check failed.
-        Unauthenticated: intended for a container orchestrator's readiness probe,
-        not for API clients.
+        Probes the primary database, the maintenance database login, the object
+        store (a HEAD on a key that never exists — any answer, found or refused,
+        proves the store is reachable) and the embedded vector-index worker.
+        Answers `200` with each dependency's status only when all are healthy; any
+        failure answers `503` with the same body shape so the caller can see which
+        check failed. Unauthenticated: intended for a container orchestrator's
+        readiness probe, not for API clients.
       operationId: readyz
       responses:
         "200":
@@ -811,6 +811,201 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/crawl-jobs/{crawl_job_id}/events:
+    get:
+      tags:
+        - jobs
+      summary: Stream crawl job lifecycle events over SSE.
+      description: 'Not yet implemented on Xberg Pro: every request answers `501`.'
+      operationId: stream_crawl_events
+      parameters:
+        - name: crawl_job_id
+          in: path
+          description: Crawl job ID (UUID)
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Crawl events SSE stream
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/CrawlEventV1'
+        "400":
+          description: Invalid crawl job ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Crawl job belongs to a different project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Crawl job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Crawl extraction is not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/enrich:
+    post:
+      tags:
+        - enrich
+      summary: Submit text for enrichment.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. The request
+        and success schemas are declared now so a client generated against this
+        spec does not change shape once the dispatcher wires the enrichment job
+        kind (tracked in #1505).
+      operationId: submit_enrich
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrichTextRequest'
+        required: true
+      responses:
+        "202":
+          description: Enrichment job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichJobSubmitted'
+        "400":
+          description: Text or labels exceed their limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Enrichment is not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/enrich/{job_id}:
+    get:
+      tags:
+        - enrich
+      summary: Poll an enrichment job's status.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. See
+        [`submit_enrich`] for the tracking issue.
+      operationId: get_enrich_status
+      parameters:
+        - name: job_id
+          in: path
+          description: Enrichment job ID (ULID)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status, with the result when completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichJobStatus'
+        "400":
+          description: Job ID is not a ULID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Enrichment is not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/extract:
     post:
       tags:
@@ -1183,6 +1378,74 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/jobs/{job_id}/pages/{page_number}:
+    get:
+      tags:
+        - jobs
+      summary: Retrieve a rasterized page PNG from a completed extraction job.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. Page
+        numbers are 1-indexed, matching Enterprise's own operation.
+      operationId: get_job_page
+      parameters:
+        - name: job_id
+          in: path
+          description: Extraction job ID (UUID)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page_number
+          in: path
+          description: 1-indexed page number
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Page PNG image
+          content:
+            image/png: {}
+        "400":
+          description: Invalid job ID or page number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Job or page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Page rasters are not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/oauth/callback:
     get:
       tags:
@@ -1215,6 +1478,11 @@ paths:
       responses:
         "303":
           description: Redirect to the dashboard landing URL, on success and on a provider-reported denial
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Dashboard landing URL
         "400":
           description: Missing code or state
           content:
@@ -1352,6 +1620,11 @@ paths:
       responses:
         "200":
           description: Sample bytes
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
         "400":
           description: Malformed request
           content:
@@ -2406,8 +2679,8 @@ paths:
         - integrations
       summary: Fetch one document's raw bytes through a connected source integration.
       description: |-
-        Streams the document as `application/octet-stream` with the source's own
-        MIME type in `Content-Type` and a sanitized filename in
+        Streams the document bytes with the source's MIME type in `Content-Type`
+        and a sanitized filename in
         `Content-Disposition` — there is no JSON envelope on success. `document_id`
         is the source's own identifier, not one this service assigns. As with
         listing, errors distinguish this service's own failures from the
@@ -2440,7 +2713,10 @@ paths:
         "200":
           description: Document bytes; Content-Type is the source's MIME type and Content-Disposition names the file
           content:
-            application/octet-stream: {}
+            '*/*':
+              schema:
+                type: string
+                format: binary
         "400":
           description: Invalid project or integration ID, the integration has no connector for its kind, or the document type cannot be exported
           content:
@@ -2740,7 +3016,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateCollectionResponse'
         "400":
-          description: Invalid request parameters
+          description: 'Invalid request parameters, or a label classification field was supplied: `rag.label_classification.unsupported`'
           content:
             application/json:
               schema:
@@ -4085,6 +4361,214 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/uploads/confirm:
+    post:
+      tags:
+        - uploads
+      summary: Confirm uploads are complete and start processing.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. See
+        [`presign_upload`] for the tracking issue.
+      operationId: confirm_upload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmUploadRequest'
+        required: true
+      responses:
+        "202":
+          description: Uploads confirmed, processing started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmUploadResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The API key is read-only and cannot use this method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: An uploaded document is larger than the project's configured limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Presigned uploads are not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/uploads/presign:
+    post:
+      tags:
+        - uploads
+      summary: Generate presigned upload URLs.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. See the
+        module doc comment for the tracking issue and the pending-store design
+        note.
+      operationId: presign_upload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignUploadRequest'
+        required: true
+      responses:
+        "200":
+          description: Presigned upload URLs generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignUploadResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The API key is read-only and cannot use this method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Presigned uploads are not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/usage:
+    get:
+      tags:
+        - usage
+      summary: Get usage statistics and quota for the caller's project.
+      description: |-
+        Not yet implemented on Xberg Pro: every request answers `501`. The
+        response schema is the same `UsageResponse` Enterprise already serves, so
+        a client generated against this spec does not change shape once the
+        aggregation query lands (#1508).
+      operationId: get_usage
+      parameters:
+        - name: start
+          in: query
+          description: Start date (ISO 8601, e.g. "2026-03-01"). Defaults to first day of current month.
+          required: false
+          schema:
+            type: string
+        - name: end
+          in: query
+          description: End date (ISO 8601, e.g. "2026-04-01"). Defaults to first day of next month.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageResponse'
+        "400":
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: Usage reporting is not implemented on Xberg Pro yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
 components:
   schemas:
     ApiKeyResponse:
@@ -4652,6 +5136,31 @@ components:
             - string
             - "null"
           description: Last ingestion timestamp (RFC3339)
+    ConfirmUploadRequest:
+      type: object
+      description: Request body for confirming uploads.
+      required:
+        - batch_id
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+          description: Batch ID from the presign response.
+    ConfirmUploadResponse:
+      type: object
+      description: Response from the confirm endpoint.
+      required:
+        - job_ids
+        - status
+      properties:
+        job_ids:
+          type: array
+          items:
+            type: string
+          description: Job IDs that are now queued for processing
+        status:
+          type: string
+          description: Status of the jobs
     ContentFilterConfig:
       type: object
       description: Content filtering configuration (headers, footers, watermarks).
@@ -4677,6 +5186,135 @@ components:
             - "null"
           description: Strip cross-page repeating text. Defaults to true when omitted.
       additionalProperties: false
+    CrawlEventV1:
+      oneOf:
+        - type: object
+          description: A page was successfully crawled and indexed.
+          required:
+            - crawl_job_id
+            - ts
+            - url
+            - status_code
+            - depth
+            - kind
+          properties:
+            crawl_job_id:
+              type: string
+              format: uuid
+              description: Job ID this event belongs to
+            depth:
+              type: integer
+              description: Crawl depth when this page was discovered
+              minimum: 0
+            kind:
+              type: string
+              enum:
+                - page
+            status_code:
+              type: integer
+              format: int32
+              description: HTTP status code
+              minimum: 0
+            ts:
+              type: string
+              format: date-time
+              description: Event timestamp (UTC)
+            url:
+              type: string
+              description: URL that was crawled
+        - type: object
+          description: An error occurred while crawling a URL.
+          required:
+            - crawl_job_id
+            - ts
+            - url
+            - error
+            - kind
+          properties:
+            crawl_job_id:
+              type: string
+              format: uuid
+              description: Job ID this event belongs to
+            error:
+              type: string
+              description: Error description
+            kind:
+              type: string
+              enum:
+                - error
+            ts:
+              type: string
+              format: date-time
+              description: Event timestamp (UTC)
+            url:
+              type: string
+              description: URL that failed
+        - type: object
+          description: A new URL was discovered during crawling.
+          required:
+            - crawl_job_id
+            - ts
+            - url
+            - depth
+            - kind
+          properties:
+            crawl_job_id:
+              type: string
+              format: uuid
+              description: Job ID this event belongs to
+            depth:
+              type: integer
+              description: Depth at which this URL was discovered
+              minimum: 0
+            kind:
+              type: string
+              enum:
+                - discovered
+            ts:
+              type: string
+              format: date-time
+              description: Event timestamp (UTC)
+            url:
+              type: string
+              description: URL that was discovered
+        - type: object
+          description: Crawl job completed.
+          required:
+            - crawl_job_id
+            - ts
+            - pages_crawled
+            - kind
+          properties:
+            crawl_job_id:
+              type: string
+              format: uuid
+              description: Job ID this event belongs to
+            kind:
+              type: string
+              enum:
+                - complete
+            pages_crawled:
+              type: integer
+              description: Total pages successfully crawled
+              minimum: 0
+            ts:
+              type: string
+              format: date-time
+              description: Event timestamp (UTC)
+      description: |-
+        A crawl event published to the SSE stream.
+
+        Tagged union with event kind as the discriminator. Each variant carries
+        `crawl_job_id` and `ts` (timestamp) for client-side ordering and deduplication.
+
+        Internally tagged on `kind` (`#[serde(tag = "kind")]`): each variant
+        serializes as a flat JSON object with a `kind` field alongside its other
+        fields, e.g. `{"kind":"page","crawl_job_id":"...","ts":"...",...}`. utoipa
+        derives the matching `oneOf` schema straight from that `#[serde(tag = ..)]`
+        attribute, so no separate `#[schema(...)]` tagging is needed. An explicit
+        `discriminator` is not applicable here: utoipa only supports OpenAPI
+        discriminators for `#[serde(untagged)]` enums with single-reference-field
+        variants, not internally tagged enums like this one.
     CreateApiKeyRequest:
       type: object
       description: Request to create a new API key.
@@ -4834,8 +5472,9 @@ components:
             - "null"
           format: float
           description: |-
-            Confidence threshold (0.0–1.0) for classify_text. Default 0.5 when
-            None and label_vocabulary is Some.
+            Not available. Sending this field is refused with
+            `rag.label_classification.unsupported`, for the same reason as
+            `label_vocabulary`.
         label_vocabulary:
           type:
             - array
@@ -4843,9 +5482,10 @@ components:
           items:
             type: string
           description: |-
-            Labels vocabulary for xberg's classify_text. When None, auto-
-            classification is disabled and labels remain pass-through-only.
-            Length cap: 100 strings; each up to 64 chars.
+            Not available. Sending this field is refused with
+            `rag.label_classification.unsupported`: no build ships an ingest-time
+            classifier, so a stored vocabulary would never label a document. Supply
+            labels per document via `enrichment_overrides.labels` instead.
         name:
           type: string
           description: Collection name (unique per project)
@@ -5416,6 +6056,102 @@ components:
             - "null"
           description: Show model download progress
       additionalProperties: false
+    EnrichJobStatus:
+      oneOf:
+        - type: object
+          description: Job submitted, awaiting processing.
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - pending
+        - type: object
+          description: Processing completed successfully.
+          required:
+            - result
+            - status
+          properties:
+            result:
+              $ref: '#/components/schemas/EnrichResult'
+              description: Enrichment result.
+            status:
+              type: string
+              enum:
+                - completed
+        - type: object
+          description: Processing failed.
+          required:
+            - error
+            - status
+          properties:
+            error:
+              type: string
+              description: Error message.
+            status:
+              type: string
+              enum:
+                - failed
+      description: Status response for an enrichment job.
+    EnrichJobSubmitted:
+      type: object
+      title: EnrichJobSubmitted
+      description: Response from submitting an enrichment job.
+      required:
+        - job_id
+      properties:
+        job_id:
+          type: string
+          description: Unique job identifier (ULID).
+    EnrichRequestOptions:
+      type: object
+      title: EnrichRequestOptions
+      description: Enrichment processing options.
+      properties:
+        entities:
+          type: boolean
+          description: Extract named entities via NER.
+        keywords:
+          type: boolean
+          description: Extract keywords from the text.
+        labels:
+          type: array
+          items:
+            type: string
+          description: Custom labels to assign (passthrough).
+    EnrichResult:
+      type: object
+      title: EnrichResult
+      description: Result of enrichment processing.
+      properties:
+        entities:
+          type:
+            - array
+            - "null"
+          items:
+            type: object
+          description: Extracted named entities, or null when entity detection was not requested.
+        keywords:
+          type: array
+          items:
+            type: string
+          description: Extracted keywords.
+        labels:
+          description: Assigned labels (JSON value).
+    EnrichTextRequest:
+      type: object
+      title: EnrichTextRequest
+      description: Request to submit text for enrichment.
+      required:
+        - text
+      properties:
+        options:
+          $ref: '#/components/schemas/EnrichRequestOptions'
+          description: Enrichment options.
+        text:
+          type: string
+          description: Text to enrich (max 1 MB).
     EnrichmentOverridesRequest:
       type: object
       description: |-
@@ -5657,7 +6393,9 @@ components:
             - "null"
           description: |-
             When true and a document is a PDF, enable multi-document boundary
-            detection and fan-out orchestration. Enterprise-only; Pro ignores it.
+            detection and fan-out orchestration. Enterprise-only. Xberg Pro has no
+            splitter and answers 400 when a request sets it, the way it already
+            answers 400 for `urls` and `crawl_config`.
       additionalProperties: false
     FileExtractionConfig:
       type: object
@@ -6277,8 +7015,6 @@ components:
         - awaiting_upload
         - pending
         - processing
-        - chunking
-        - aggregating
         - completed
         - partial_success
         - failed
@@ -7456,6 +8192,87 @@ components:
             type: string
         version:
           type: string
+    PresignDocumentInput:
+      type: object
+      description: Document metadata for presigned upload (no bytes).
+      required:
+        - filename
+        - mime_type
+      properties:
+        config:
+          $ref: '#/components/schemas/FileExtractionConfig'
+          description: |-
+            Per-file extraction config override.
+            Merged with batch-level `config` at confirm time. None = use batch default.
+        filename:
+          type: string
+          description: Original filename
+        mime_type:
+          type: string
+          description: MIME type of the document
+    PresignUploadRequest:
+      type: object
+      description: Request body for presigning upload URLs.
+      required:
+        - documents
+      properties:
+        config:
+          type: object
+          description: |-
+            Batch-level extraction configuration (applied to all documents).
+            Opaque JSON — see the module doc comment for why.
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresignDocumentInput'
+          description: Document metadata (no file data)
+        webhook:
+          $ref: '#/components/schemas/WebhookConfig'
+          description: Webhook configuration for async result delivery
+    PresignUploadResponse:
+      type: object
+      description: Response from the presign endpoint.
+      required:
+        - batch_id
+        - uploads
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+          description: Batch ID to pass to the confirm endpoint.
+        uploads:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresignedUploadInfo'
+          description: Per-document upload URLs
+    PresignedUploadInfo:
+      type: object
+      description: Info about a single presigned upload.
+      required:
+        - job_id
+        - upload_url
+        - object_key
+        - method
+        - expires_in_secs
+      properties:
+        expires_in_secs:
+          type: integer
+          format: int64
+          description: Seconds until the URL expires
+          minimum: 0
+        job_id:
+          type: string
+          format: uuid
+          description: Job ID for this document
+        method:
+          type: string
+          description: HTTP method to use (PUT)
+        object_key:
+          type: string
+          description: Storage object key
+        upload_url:
+          type: string
+          description: Presigned URL to upload the document to
     PrimaryScore:
       oneOf:
         - type: object
@@ -7773,6 +8590,14 @@ components:
             `ok` or `unhealthy`: the object store answered a metadata request. A
             refusal counts as an answer; the check proves reachability, not
             credentials.
+        worker:
+          type:
+            - string
+            - "null"
+          description: |-
+            `ok` or `not_ready`: the embedded vector-index worker answered its own
+            readiness endpoint with success. A worker that answers not ready, or not
+            at all, is `not_ready`. Absent when the process runs without a worker.
     ReadinessResponse:
       type: object
       description: 'Readiness report: the process can serve traffic only when both checks pass.'
@@ -8539,6 +9364,74 @@ components:
         url:
           type: string
           description: URL to crawl and extract documents from.
+    UsageByMimeType:
+      type: object
+      description: Usage statistics broken down by MIME type.
+      required:
+        - documents
+        - pages
+        - failed
+      properties:
+        documents:
+          type: integer
+          format: int32
+          description: Number of documents of this MIME type processed
+        failed:
+          type: integer
+          format: int32
+          description: Number of failed extractions for this MIME type
+        pages:
+          type: integer
+          format: int64
+          description: Total pages extracted from documents of this MIME type
+    UsageResponse:
+      type: object
+      description: Current period usage and quota information.
+      required:
+        - period_start
+        - period_end
+        - total_pages
+        - total_documents
+        - total_failed
+        - by_mime_type
+      properties:
+        by_mime_type:
+          type: object
+          description: Usage breakdown by MIME type
+          additionalProperties:
+            $ref: '#/components/schemas/UsageByMimeType'
+          propertyNames:
+            type: string
+        period_end:
+          type: string
+          description: End of the reporting period (ISO 8601 date)
+        period_start:
+          type: string
+          description: Start of the reporting period (ISO 8601 date)
+        quota_limit:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Monthly page quota limit (null = unlimited)
+        quota_remaining:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Remaining pages in monthly quota (null = unlimited)
+        total_documents:
+          type: integer
+          format: int32
+          description: Total documents processed in the period
+        total_failed:
+          type: integer
+          format: int32
+          description: Total failed extractions in the period
+        total_pages:
+          type: integer
+          format: int64
+          description: Total pages extracted in the period
     UserInfo:
       type: object
       description: User information in the login response.
@@ -8757,6 +9650,12 @@ tags:
     description: User-created extraction schema preset CRUD
   - name: health
     description: Health check endpoint
+  - name: usage
+    description: Usage and quota reporting
+  - name: uploads
+    description: Presigned direct-to-storage upload endpoints
+  - name: enrich
+    description: Text enrichment endpoints
   - name: rag
     description: RAG ingest, document lifecycle, and collection migration endpoints
   - name: auto-tune

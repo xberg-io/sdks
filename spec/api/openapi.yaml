@@ -634,6 +634,10 @@ paths:
         opens an ephemeral NATS subscriber, and streams events with a 15s heartbeat.
         Stream closes when a `Complete` event is received or the client disconnects.
 
+        Each data frame is a default `message` event carrying JSON. The `kind` discriminator is derived from the NATS subject
+        before serialization. A 15-second SSE comment heartbeat keeps the stream alive.
+        <!-- ~keep: public SSE wire contract -->
+
         # Response format
         - **200 OK** with `text/event-stream` media type and events in JSON with `kind` field
         - **401 Unauthorized** if authentication fails
@@ -822,6 +826,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Version extraction is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           content:
@@ -846,8 +856,8 @@ paths:
         `GET /v1/documents/{document_id}/diff`. Answers `202` with a
         `DiffAsyncAccepted` body while the computation is still pending, and `200`
         with the `DiffResponse` body once it completes. A diff job that itself
-        failed (rather than the poll request) surfaces as a `500` with the
-        recorded failure message.
+        cannot read a required extraction surfaces as a `409` with an actionable
+        reason; storage transport failures remain pending for retry.
       operationId: poll_diff
       parameters:
         - name: document_id
@@ -891,6 +901,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Diff job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Version extraction is unavailable
           content:
             application/json:
               schema:
@@ -1621,7 +1637,10 @@ paths:
         "200":
           description: Page PNG image
           content:
-            image/png: {}
+            image/png:
+              schema:
+                type: string
+                format: binary
         "400":
           description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
           content:
@@ -1738,7 +1757,12 @@ paths:
             type: string
       responses:
         "200":
-          description: Sample bytes (octet-stream)
+          description: Sample bytes; Content-Type follows the sample file
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
         "400":
           description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
           content:
@@ -1845,7 +1869,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateCollectionResponse'
         "400":
-          description: Invalid request parameters
+          description: 'Invalid request parameters, or a label classification field was supplied: `rag.label_classification.unsupported`'
           content:
             application/json:
               schema:
@@ -5387,8 +5411,9 @@ components:
             - "null"
           format: float
           description: |-
-            Confidence threshold (0.0–1.0) for classify_text. Default 0.5 when
-            None and label_vocabulary is Some.
+            Not available. Sending this field is refused with
+            `rag.label_classification.unsupported`, for the same reason as
+            `label_vocabulary`.
         label_vocabulary:
           type:
             - array
@@ -5396,9 +5421,10 @@ components:
           items:
             type: string
           description: |-
-            Labels vocabulary for xberg's classify_text. When None, auto-
-            classification is disabled and labels remain pass-through-only.
-            Length cap: 100 strings; each up to 64 chars.
+            Not available. Sending this field is refused with
+            `rag.label_classification.unsupported`: no build ships an ingest-time
+            classifier, so a stored vocabulary would never label a document. Supply
+            labels per document via `enrichment_overrides.labels` instead.
         name:
           type: string
           description: Collection name (unique per project)
@@ -6746,8 +6772,12 @@ components:
       description: Result of enrichment processing.
       properties:
         entities:
-          type: object
-          description: Extracted entities (JSON object).
+          type:
+            - array
+            - "null"
+          items:
+            type: object
+          description: Extracted named entities, or null when entity detection was not requested.
         keywords:
           type: array
           items:
@@ -7989,7 +8019,9 @@ components:
             - "null"
           description: |-
             When true and a document is a PDF, enable multi-document boundary
-            detection and fan-out orchestration. Enterprise-only; Pro ignores it.
+            detection and fan-out orchestration. Enterprise-only. Xberg Pro has no
+            splitter and answers 400 when a request sets it, the way it already
+            answers 400 for `urls` and `crawl_config`.
       additionalProperties: false
     FictionBookMetadata:
       type: object
@@ -9225,8 +9257,6 @@ components:
         - awaiting_upload
         - pending
         - processing
-        - chunking
-        - aggregating
         - completed
         - partial_success
         - failed
@@ -9488,10 +9518,12 @@ components:
           type: string
           description: MIME type of the uploaded file.
         result:
-          $ref: '#/components/schemas/ExtractedDocument'
-          description: |-
-            The extraction result, when the stored result could be fetched and
-            deserialized; `null` otherwise.
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/ExtractedDocument'
+              description: |-
+                The extraction result, when the stored result could be fetched and
+                deserialized; `null` otherwise.
         status:
           type: string
           description: Job status of the latest version.
