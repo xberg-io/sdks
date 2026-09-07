@@ -126,7 +126,7 @@ def execution_plan(snippets: list[Snippet], targets: list[str]) -> list[tuple[Sn
     plan = [(snippet, target) for snippet in snippets for target in targets if target in snippet.targets]
     if not plan:
         raise ValueError("No executions selected")
-    return plan
+    return sorted(plan, key=lambda item: "crawl-job" in item[0].requires)
 
 
 def local_url(value: str) -> str:
@@ -201,16 +201,16 @@ def run_command(
             if value and any(word in key for word in ("KEY", "TOKEN", "PASSWORD")):
                 output = output.replace(value, "[redacted]")
         raise ValueError(f"{name}: exit {result.returncode}\n{output[-4000:]}")
-    if expect_stdout is not None and expect_stdout not in result.stdout.splitlines():
-        raise ValueError(f"{name}: missing expected stdout marker {expect_stdout!r}")
+    if expect_stdout is not None and result.stdout.splitlines() != [expect_stdout]:
+        raise ValueError(f"{name}: stdout did not match the exact expected marker {expect_stdout!r}")
     return result.stdout
 
 
 def read_private_state(path: Path) -> dict:
     """Open a private owned regular state file without following a symbolic link."""
-    if path.is_symlink():
-        raise ValueError("Live state must be a regular file, not a symbolic link")
-    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    if not stat.S_ISREG(path.lstat().st_mode):
+        raise ValueError("Live state must be a regular file, not a symbolic link or special file")
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
     with os.fdopen(descriptor, encoding="utf-8") as source:
         metadata = os.fstat(source.fileno())
         if not stat.S_ISREG(metadata.st_mode):
@@ -406,14 +406,15 @@ def main() -> int:
         states = {target: state_environment(getattr(arguments, f"{target}_state"), target, root) for target in targets}
         completed = 0
         with tempfile.TemporaryDirectory(prefix="xberg-snippets-") as temporary:
+            prepared = {}
             for language in sorted({snippet.language for snippet, _ in plan}):
                 directory = Path(temporary) / language
                 directory.mkdir()
-                command = prepare_language(language, directory, arguments, root)
-                for snippet, target in plan:
-                    if snippet.language == language:
-                        execute_snippet(snippet, target, directory, command, states[target])
-                        completed += 1
+                prepared[language] = (directory, prepare_language(language, directory, arguments, root))
+            for snippet, target in plan:
+                directory, command = prepared[snippet.language]
+                execute_snippet(snippet, target, directory, command, states[target])
+                completed += 1
         if completed != len(plan):
             raise ValueError(f"Expected {len(plan)} executions, completed {completed}")
         print(f"Completed {completed}/{len(plan)} snippet executions")  # noqa: T201

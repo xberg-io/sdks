@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -206,3 +208,52 @@ def test_public_or_symlinked_state_files_are_rejected(tmp_path: Path) -> None:
     link.symlink_to(state)
     with pytest.raises(ValueError, match="regular"):
         runner().state_environment(link, "enterprise", tmp_path)
+
+
+def test_success_marker_cannot_hide_events_in_an_expected_idle_subscription(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="stdout"):
+        runner().run_command(
+            [sys.executable, "-c", "print('page'); print('Subscription canceled')"],
+            tmp_path,
+            {},
+            "idle-cancellation",
+            expect_stdout="Subscription canceled",
+        )
+
+
+def test_execution_plan_runs_all_ordinary_examples_before_idle_cancellation(tmp_path: Path) -> None:
+    (tmp_path / "a-idle.md").write_text(
+        metadata().replace("requires: []", 'requires: ["crawl-job"]') + "```go\npackage main\n```\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "z-ordinary.md").write_text(metadata() + "```python\nprint(1)\n```\n", encoding="utf-8")
+    module = runner()
+    plan = module.execution_plan(module.discover(tmp_path), ["enterprise"])
+    assert [snippet.name for snippet, _ in plan] == ["z-ordinary.md:1", "a-idle.md:1"]
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="Named pipes are a POSIX filesystem feature")
+def test_nonregular_state_is_rejected_without_blocking_on_a_named_pipe(tmp_path: Path) -> None:
+    snippets = tmp_path / "snippets"
+    snippets.mkdir()
+    write_snippet(snippets, metadata() + "```python\nprint(1)\n```\n")
+    pipe = tmp_path / "state.pipe"
+    os.mkfifo(pipe, 0o600)
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--snippets-root",
+            str(snippets),
+            "--target",
+            "enterprise",
+            "--enterprise-state",
+            str(pipe),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=1,
+        check=False,
+    )
+    assert result.returncode == 1
+    assert "regular file" in result.stderr
