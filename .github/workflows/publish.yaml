@@ -76,6 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
       - name: Verify all manifests match the tag
         shell: bash
         env:
@@ -117,7 +119,11 @@ jobs:
           set -euo pipefail
           status=$(curl -sS -o /dev/null -w '%{http_code}' \
             "https://pypi.org/pypi/xberg-io-sdk/${VERSION}/json")
-          if [ "$status" = "200" ]; then exists=true; else exists=false; fi
+          case "$status" in
+            200) exists=true ;;
+            404) exists=false ;;
+            *) echo "registry probe failed with HTTP $status" >&2; exit 1 ;;
+          esac
           echo "xberg-io-sdk ${VERSION} on PyPI: status=$status exists=$exists"
           echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
@@ -137,7 +143,11 @@ jobs:
           set -euo pipefail
           status=$(curl -sS -o /dev/null -w '%{http_code}' \
             "https://registry.npmjs.org/@xberg-io%2Fsdk/${VERSION}")
-          if [ "$status" = "200" ]; then exists=true; else exists=false; fi
+          case "$status" in
+            200) exists=true ;;
+            404) exists=false ;;
+            *) echo "registry probe failed with HTTP $status" >&2; exit 1 ;;
+          esac
           echo "@xberg-io/sdk ${VERSION} on npm: status=$status exists=$exists"
           echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
@@ -147,12 +157,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-python-env@v1
         with:
           python-version: "3.10"
       - uses: xberg-io/actions/install-task@v1
       - name: Generate client
         run: task python:generate
+      - name: Test Python with coverage
+        run: task python:test:cov
       - name: Build wheel + sdist
         run: task python:build
       - uses: actions/upload-artifact@v7
@@ -167,10 +181,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-node-workspace@v1
       - uses: xberg-io/actions/install-task@v1
-      - name: Generate client
-        run: task typescript:generate
+      - name: Test TypeScript with coverage
+        run: task typescript:test:cov
       - name: Build
         run: task typescript:build
       - name: Pack
@@ -186,6 +202,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26"
@@ -194,7 +212,7 @@ jobs:
         run: task go:test:package go:check:generated go:test
 
   publish-pypi:
-    needs: [prepare, validate-versions, validate-go, check-pypi, build-python, build-typescript]
+    needs: [prepare, validate-versions, validate-go, check-pypi, check-npm, build-python, build-typescript]
     if: |
       needs.prepare.outputs.release_python == 'true' &&
       (needs.check-pypi.outputs.exists != 'true' ||
@@ -222,7 +240,7 @@ jobs:
         run: ls -la dist/
 
   publish-npm:
-    needs: [prepare, validate-versions, validate-go, check-npm, build-python, build-typescript]
+    needs: [prepare, validate-versions, validate-go, check-pypi, check-npm, build-python, build-typescript]
     if: |
       needs.prepare.outputs.release_node == 'true' &&
       (needs.check-npm.outputs.exists != 'true' ||
@@ -246,12 +264,26 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   tag-go:
-    needs: [prepare, validate-versions, github-release]
+    needs: [
+      prepare,
+      validate-versions,
+      validate-go,
+      check-pypi,
+      check-npm,
+      build-python,
+      build-typescript,
+      github-release,
+    ]
     if: |
       always() &&
       !cancelled() &&
       needs.prepare.outputs.release_go == 'true' &&
       needs.validate-versions.result == 'success' &&
+      needs.validate-go.result == 'success' &&
+      needs.check-pypi.result == 'success' &&
+      needs.check-npm.result == 'success' &&
+      needs.build-python.result == 'success' &&
+      needs.build-typescript.result == 'success' &&
       (needs.github-release.result == 'success' ||
        needs.prepare.outputs.dry_run == 'true')
     runs-on: ubuntu-latest
@@ -260,6 +292,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ needs.prepare.outputs.tag }}
           fetch-depth: 0
       - uses: xberg-io/actions/finalize-release@v1
         with:
@@ -268,7 +301,17 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   github-release:
-    needs: [prepare, validate-versions, validate-go, build-python, build-typescript, publish-pypi, publish-npm]
+    needs: [
+      prepare,
+      validate-versions,
+      validate-go,
+      check-pypi,
+      check-npm,
+      build-python,
+      build-typescript,
+      publish-pypi,
+      publish-npm,
+    ]
     if: |
       always() &&
       !cancelled() &&
@@ -276,6 +319,8 @@ jobs:
       needs.prepare.result == 'success' &&
       needs.validate-versions.result == 'success' &&
       needs.validate-go.result == 'success' &&
+      needs.check-pypi.result == 'success' &&
+      needs.check-npm.result == 'success' &&
       needs.build-python.result == 'success' &&
       needs.build-typescript.result == 'success' &&
       (needs.publish-pypi.result == 'success' ||
@@ -287,6 +332,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/publish-github-release@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
