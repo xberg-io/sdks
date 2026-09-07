@@ -1,50 +1,23 @@
 version: "3"
-
-# ~keep Live verification against a real Pro instance.
-#
-# Every other suite in this repo mocks the transport, which is exactly why the
-# `JobResult` defect survived: the fixtures encoded `{"content": "extracted"}`,
-# a shape neither spec declares, so they would have passed against any type at
-# all. These tasks drive the container from the sibling xberg-enterprise
-# checkout and exercise the client against it, so the contract is checked
-# against the server rather than against our own assumptions.
-#
-# Not wired into CI yet -- the image is built from source and takes far longer
-# than a CI job should.
-
-vars:
-  ENTERPRISE_DIR: "{{.ROOT_DIR}}/../xberg-enterprise"
-  PRO_URL: '{{.XBERG_PRO_URL | default "http://127.0.0.1:8080"}}'
-
 tasks:
   up:
-    desc: "Start a local Pro instance from the sibling xberg-enterprise checkout"
-    dir: "{{.ENTERPRISE_DIR}}"
+    desc: "Start an isolated shipping Pro container from PRO_IMAGE"
     cmds:
-      - task pro:up
-
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" --tier pro up'
   down:
-    desc: "Stop the local Pro instance (keeps its volumes)"
-    dir: "{{.ENTERPRISE_DIR}}"
+    desc: "Stop only this SDK Pro stack, preserving volumes"
     cmds:
-      - task pro:down
-
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" --tier pro down'
   reset:
-    desc: "Stop the local Pro instance and wipe its volumes"
-    # The schema is applied once, at initdb. After any sql/ change `down`+`up`
-    # silently keeps the old schema; only this re-bootstraps.
-    dir: "{{.ENTERPRISE_DIR}}"
+    desc: "Remove only this SDK Pro stack and its data volumes"
     cmds:
-      - task pro:reset
-
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" --tier pro reset'
   key:
-    desc: "Mint a project API key against the running Pro instance and print it"
+    desc: "Print this isolated Pro project's API key"
     silent: true
     cmds:
-      - "{{.ROOT_DIR}}/scripts/pro-project-key.sh {{.PRO_URL}}"
-
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" --tier pro key'
   verify:
-    desc: "Check the live Pro surface against the vendored spec (tier, control plane, JobResult)"
-    silent: true
+    desc: "Exercise actual Pro extraction, batch, saved presets and jobs through the SDK"
     cmds:
-      - "{{.ROOT_DIR}}/scripts/pro-contract-check.sh {{.PRO_URL}}"
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" --tier pro verify'

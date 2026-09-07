@@ -1,0 +1,23 @@
+version: "3"
+tasks:
+  up:
+    desc: "Start isolated Enterprise infrastructure and built Linux services"
+    cmds:
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" up'
+  down:
+    desc: "Stop only this SDK Enterprise stack, preserving volumes"
+    cmds:
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" down'
+  reset:
+    desc: "Remove only this SDK Enterprise stack and its data volumes"
+    cmds:
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" reset'
+  key:
+    desc: "Print this isolated Enterprise project's API key"
+    silent: true
+    cmds:
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" key'
+  verify:
+    desc: "Exercise real Enterprise extraction, jobs, presets and exclusive SDK calls"
+    cmds:
+      - '"{{.ROOT_DIR}}/scripts/enterprise-stack.sh" verify'
