@@ -118,6 +118,7 @@ tasks:
       - task: lint
       - task: test
       - task: build
+      - task: go:test:package
       - echo "ready to tag v$(cat VERSION)"
 
   release:tag:

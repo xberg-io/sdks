@@ -181,8 +181,20 @@ jobs:
           path: ${{ runner.temp }}/*.tgz
           retention-days: 7
 
+  validate-go:
+    needs: [prepare, validate-versions]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+      - uses: xberg-io/actions/install-task@v1
+      - name: Validate the committed Go module and generation
+        run: task go:test:package go:check:generated go:test
+
   publish-pypi:
-    needs: [prepare, validate-versions, check-pypi, build-python]
+    needs: [prepare, validate-versions, validate-go, check-pypi, build-python, build-typescript]
     if: |
       needs.prepare.outputs.release_python == 'true' &&
       (needs.check-pypi.outputs.exists != 'true' ||
@@ -210,7 +222,7 @@ jobs:
         run: ls -la dist/
 
   publish-npm:
-    needs: [prepare, validate-versions, check-npm, build-typescript]
+    needs: [prepare, validate-versions, validate-go, check-npm, build-python, build-typescript]
     if: |
       needs.prepare.outputs.release_node == 'true' &&
       (needs.check-npm.outputs.exists != 'true' ||
@@ -256,12 +268,16 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   github-release:
-    needs: [prepare, publish-pypi, publish-npm]
+    needs: [prepare, validate-versions, validate-go, build-python, build-typescript, publish-pypi, publish-npm]
     if: |
       always() &&
       !cancelled() &&
       needs.prepare.outputs.dry_run != 'true' &&
       needs.prepare.result == 'success' &&
+      needs.validate-versions.result == 'success' &&
+      needs.validate-go.result == 'success' &&
+      needs.build-python.result == 'success' &&
+      needs.build-typescript.result == 'success' &&
       (needs.publish-pypi.result == 'success' ||
        needs.publish-pypi.result == 'skipped') &&
       (needs.publish-npm.result == 'success' ||

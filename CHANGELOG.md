@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ship the generated Go sources in tagged modules and preserve them during cleanup; verify a consumer of the committed
+  module before publishing any packages, and prevent GitHub releases after failed validation or builds.
+- Bound Python SSE lines and frames by UTF-8 bytes, reject oversized unterminated lines early, and preserve split Unicode
+  and CR/LF framing without treating Unicode paragraph separators as line endings.
+
+### Performance
+
+- Remove redundant TypeScript multipart byte copies while preserving typed-array slices and immutable Blob snapshots;
+  construction now allocates about one additional payload instead of two in the 100 MiB regression workload.
+
+- Reduce Go crawl-stream allocations by transferring ownership of validated frame bytes while retaining prior events.
+
+### Tooling
+
 - Validate every version target before changing manifests, preventing malformed later targets from leaving a partial bump.
   Keep the local release version check read-only and clarify the lint alias and local-only release tag task.
 
