@@ -69,6 +69,8 @@ def test_vector_worker_receives_no_database_credentials(tmp_path: Path) -> None:
     assert broker["user"] == worker["user"]
     assert worker["volumes"][0]["read_only"] is True
     assert services["sdk-api"]["ports"][0]["host_ip"] == "127.0.0.1"
+    assert services["sdk-rag"]["environment"]["NATS_USER"] == "rag"
+    assert services["sdk-rag"]["environment"]["NATS_PASSWORD"] == state["nats_passwords"]["rag"]
 
 
 def test_scope_mismatch_cannot_run_docker(tmp_path: Path) -> None:

@@ -182,7 +182,7 @@ def runtime_services(state: dict[str, Any], environment: dict[str, str], directo
         }
     )
     services = {}
-    for name in ("api", "backend", "worker"):
+    for name in ("api", "backend", "worker", "rag"):
         config = {**common, "NATS_USER": name, "NATS_PASSWORD": state["nats_passwords"][name]}
         if name != "backend":
             config.update(storage)
@@ -201,6 +201,7 @@ def runtime_services(state: dict[str, Any], environment: dict[str, str], directo
         }
     )
     services["sdk-backend"]["ports"] = [published_port(8080, state["ports"]["backend"])]
+    services["sdk-rag"]["environment"].update({"METRICS_ADDR": "0.0.0.0:9093", "NO_PROXY": "*", "no_proxy": "*"})
     services["sdk-worker"]["environment"].update({"METRICS_ADDR": "0.0.0.0:9092", "NO_PROXY": "*", "no_proxy": "*"})
     broker = {
         key: container_database_url(environment[key])
@@ -374,6 +375,7 @@ def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environm
         "api",
         "backend",
         "worker",
+        "rag",
         "vector-index-broker",
         "vector-index-broker-launcher",
         "vector-index-worker",
@@ -494,6 +496,7 @@ def up(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
                 "sdk-backend",
                 "sdk-api",
                 "sdk-worker",
+                "sdk-rag",
             ),
             enterprise,
             environment,

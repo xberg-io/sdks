@@ -172,6 +172,36 @@ def verify_presigned_upload(client: XbergClient) -> None:
     verify_result(client, upload["job_id"], marker)
 
 
+def verify_document_lineage(client: XbergClient, directory: Path) -> None:
+    """Create two actual versions and compare their latest metadata and computed diff."""
+    document_id = str(uuid.uuid4())
+    file = directory / "lineage.txt"
+    job_ids = []
+    marker = ""
+    for version in (1, 2):
+        marker = f"Xberg SDK snippet fixture {document_id} version {version}"
+        file.write_text(marker)
+        job = client.extract(file=file, document_id=document_id)
+        job_ids.append(str(job.id))
+        verify_result(client, str(job.id), marker)
+    versions = client.versions(document_id)
+    require([item["job_id"] for item in versions] == list(reversed(job_ids)), "document versions lost ordering")
+    require([item["version_sequence"] for item in versions] == [2, 1], "document version sequence is incorrect")
+    latest = client.get_document(document_id)
+    require(latest["document_id"] == document_id and latest["id"] == job_ids[-1], "latest document identity differs")
+    require(marker in latest["result"]["content"], "latest document content differs")
+    result = client.diff(document_id, params={"from": job_ids[0], "to": job_ids[1]})
+    deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
+    while "diff_job_id" in result:
+        require(time.monotonic() < deadline, "document diff deadline exceeded")
+        require(result["status"] != "failed", "document diff job failed")
+        time.sleep(POLL_INTERVAL_SECONDS)
+        result = client.get_diff_job(document_id, result["diff_job_id"])
+    require(result["document_id"] == document_id, "diff document ID differs")
+    require(result["from_job_id"] == job_ids[0] and result["to_job_id"] == job_ids[1], "diff version IDs differ")
+    require(isinstance(result["diff"], dict) and len(result["diff"]) > 0, "diff result is empty")
+
+
 def verify_tier(base_url: str, tier: str) -> None:
     """Check the live server identifies the requested deployment tier."""
     with httpx.Client(timeout=10, trust_env=False) as client:
@@ -225,9 +255,13 @@ def verify(args: argparse.Namespace) -> int:
                     "Enterprise extraction events",
                     lambda: require(client.list_extraction_events(limit=1).limit == 1, "events pagination ignored"),
                 )
+                checks.run(
+                    "Enterprise document lineage/latest/versions/diff",
+                    lambda: verify_document_lineage(client, Path(directory)),
+                )
                 checks.run("Enterprise enrichment submit/poll", lambda: verify_enrichment(client))
                 checks.run("Enterprise presign/upload/confirm", lambda: verify_presigned_upload(client))
-        return checks.finish(11 if args.tier == "enterprise" else 7)
+        return checks.finish(12 if args.tier == "enterprise" else 7)
     finally:
         if minted is not None:
             with XbergClient(
