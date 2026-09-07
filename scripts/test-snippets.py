@@ -12,13 +12,16 @@ import stat
 import subprocess
 import sys
 import tempfile
-from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 from xberg_io_sdk import XbergClient, XbergError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @dataclass(frozen=True)
