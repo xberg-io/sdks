@@ -34,6 +34,7 @@ from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Protocol
 from urllib.parse import quote
+from uuid import UUID
 
 import httpx
 
@@ -316,6 +317,29 @@ def _prepare_file_part(file: FileInput) -> tuple[str, bytes | BinaryIO, str]:
     name = getattr(file, "name", None)
     filename = Path(str(name)).name if isinstance(name, str) and name else "upload.bin"
     return (filename, file, _guess_mime_type(filename))
+
+
+def _document_lineage_data(
+    files: Sequence[FileInput],
+    document_ids: Sequence[str | UUID | None] | None,
+) -> dict[str, str]:
+    """Validate filename-keyed lineage without reading the upload streams."""
+    if document_ids is None:
+        return {}
+    if len(document_ids) != len(files):
+        raise XbergError("document_ids length must match files length", status_code=None)
+    by_filename: dict[str, str | None] = {}
+    for file, document_id in zip(files, document_ids, strict=True):
+        name = str(file) if isinstance(file, Path) else getattr(file, "name", None)
+        filename = Path(name).name if isinstance(name, str) and name else "upload.bin"
+        try:
+            canonical = str(UUID(str(document_id))) if document_id is not None else None
+        except (ValueError, AttributeError) as exc:
+            raise XbergError("document_ids must contain valid UUID values or None", status_code=None) from exc
+        if filename in by_filename and by_filename[filename] != canonical:
+            raise XbergError("duplicate filename has conflicting document_ids", status_code=None)
+        by_filename[filename] = canonical
+    return {f"document_id-{filename}": value for filename, value in by_filename.items() if value is not None}
 
 
 def _multipart_files(files: Iterable[FileInput]) -> list[tuple[str, tuple[str, bytes | BinaryIO, str]]]:
@@ -925,18 +949,21 @@ class XbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
+        document_id: str | UUID | None = None,
     ) -> JobResponse:
         """Submit a single document for extraction via ``POST /v1/extract`` (multipart).
 
         ``config`` is a per-file :class:`FileExtractionConfig` override sent as the
         ``config-<filename>`` part. The server resolves it against
         ``options.extraction_config``, any preset and the project default.
+        Enterprise-only ``document_id`` identifies the document across extraction versions.
         """
         return self.extract_batch(
             [file],
             options=options,
             webhook=webhook,
             configs=None if config is None else [config],
+            document_ids=None if document_id is None else [document_id],
         )[0]
 
     def extract_batch(
@@ -945,18 +972,25 @@ class XbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
+        document_ids: Sequence[str | UUID | None] | None = None,
     ) -> list[JobResponse]:
         """Submit multiple documents in a SINGLE multipart request carrying every file.
 
         ``configs``, when given, holds one per-file override per entry of ``files``
         in the same order (``None`` for no override) and must be the same length.
+        Enterprise-only ``document_ids`` follows the same ordering, with UUIDs or ``None``.
+        Duplicate filenames must have identical document IDs, including missing IDs.
         """
         materialized = list(files)
         if not materialized:
             raise XbergError("extract_batch called with no files", status_code=None)
+        lineage = _document_lineage_data(materialized, document_ids)
+        if lineage:
+            self._require_tier("enterprise", "document lineage")
         file_parts = _multipart_files(materialized)
         data = _multipart_data(options, webhook)
         data.update(_per_file_config_data(file_parts, configs))
+        data.update(lineage)
         payload = self._request_json("POST", "/v1/extract", files=file_parts, data=data)
         job_ids = _job_ids_from_extract_response(payload)
         return [self.get_job(job_id) for job_id in job_ids]
@@ -1033,12 +1067,13 @@ class XbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
+        document_id: str | UUID | None = None,
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
     ) -> JobResponse:
         """Submit a document and block until extraction completes (raises on failure/timeout)."""
-        job = self.extract(file=file, options=options, webhook=webhook, config=config)
+        job = self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
         return self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
 
     def audit(self, *, action: str | None = None, limit: int | None = None, offset: int | None = None) -> Any:
@@ -1993,6 +2028,7 @@ class AsyncXbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
+        document_id: str | UUID | None = None,
     ) -> JobResponse:
         """Async equivalent of :meth:`XbergClient.extract`."""
         jobs = await self.extract_batch(
@@ -2000,6 +2036,7 @@ class AsyncXbergClient(_BaseClient):
             options=options,
             webhook=webhook,
             configs=None if config is None else [config],
+            document_ids=None if document_id is None else [document_id],
         )
         return jobs[0]
 
@@ -2009,14 +2046,19 @@ class AsyncXbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
+        document_ids: Sequence[str | UUID | None] | None = None,
     ) -> list[JobResponse]:
         """Submit multiple documents in a SINGLE multipart request; fetch jobs concurrently."""
         materialized = list(files)
         if not materialized:
             raise XbergError("extract_batch called with no files", status_code=None)
+        lineage = _document_lineage_data(materialized, document_ids)
+        if lineage:
+            await self._require_tier("enterprise", "document lineage")
         file_parts = _multipart_files(materialized)
         data = _multipart_data(options, webhook)
         data.update(_per_file_config_data(file_parts, configs))
+        data.update(lineage)
         payload = await self._request_json("POST", "/v1/extract", files=file_parts, data=data)
         job_ids = _job_ids_from_extract_response(payload)
         return list(await asyncio.gather(*(self.get_job(job_id) for job_id in job_ids)))
@@ -2085,12 +2127,13 @@ class AsyncXbergClient(_BaseClient):
         options: OptionsInput = None,
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
+        document_id: str | UUID | None = None,
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
     ) -> JobResponse:
         """Submit a document and await extraction in a single call (raises on failure/timeout)."""
-        job = await self.extract(file=file, options=options, webhook=webhook, config=config)
+        job = await self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
         return await self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
 
     async def audit(self, *, action: str | None = None, limit: int | None = None, offset: int | None = None) -> Any:
