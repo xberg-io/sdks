@@ -21,7 +21,7 @@ const documentsPath = "/v1/documents"
 // documentPath renders a document-scoped route, escaping the document ID.
 // suffix is appended verbatim and must already start with "/" when non-empty.
 func documentPath(documentID, suffix string) string {
-	return documentsPath + "/" + url.PathEscape(documentID) + suffix
+	return documentsPath + "/" + escapePathSegment(documentID) + suffix
 }
 
 // GetDocument fetches a document's latest version together with its extraction
@@ -58,7 +58,7 @@ func (c *Client) GetDiffJob(ctx context.Context, documentID, diffJobID string) (
 	if err := c.requireTier(ctx, TargetEnterprise, "GetDiffJob"); err != nil {
 		return nil, err
 	}
-	return c.enterpriseGet(ctx, documentPath(documentID, "/diff/"+url.PathEscape(diffJobID)))
+	return c.enterpriseGet(ctx, documentPath(documentID, "/diff/"+escapePathSegment(diffJobID)))
 }
 
 // ListExtractionEvents lists the project's extraction events
@@ -106,7 +106,7 @@ func (c *Client) GetEnrichStatus(ctx context.Context, jobID string) (*EnrichJobS
 		return nil, err
 	}
 	var out EnrichJobStatus
-	if err := c.getJSON(ctx, "/v1/enrich/"+url.PathEscape(jobID), &out); err != nil {
+	if err := c.getJSON(ctx, "/v1/enrich/"+escapePathSegment(jobID), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

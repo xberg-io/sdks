@@ -25,7 +25,7 @@ const jobsPath = "/v1/jobs"
 // jobPath renders a job-scoped route, escaping the job ID. suffix is appended
 // verbatim and must already start with "/" when non-empty.
 func jobPath(jobID, suffix string) string {
-	return jobsPath + "/" + url.PathEscape(jobID) + suffix
+	return jobsPath + "/" + escapePathSegment(jobID) + suffix
 }
 
 // GetJob fetches the current status of a single job by ID.

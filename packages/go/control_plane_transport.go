@@ -13,12 +13,17 @@ const (
 )
 
 func (c *Client) controlPlaneClient(ctx context.Context, operation string, auth controlPlaneAuth) (*Client, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, operation); err != nil {
-		return nil, err
+	tier := string(c.cfg.target)
+	if tier == "" {
+		tier, _ = c.cachedTier()
+	}
+	if tier != "" && tier != string(TargetEnterprise) {
+		return nil, &TierError{Method: operation, Required: string(TargetEnterprise), Actual: tier}
 	}
 	// ~keep Copy configuration only: a Client contains live mutexes and cannot be shallow-copied.
 	config := c.cfg
 	httpClient := *config.httpClient
+	httpClient.Jar = nil
 	httpClient.CheckRedirect = func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }
 	config.httpClient = &httpClient
 	config.baseURL = config.controlPlaneBaseURL
@@ -27,7 +32,6 @@ func (c *Client) controlPlaneClient(ctx context.Context, operation string, auth 
 	}
 	if auth == controlPlanePublic {
 		config.apiKey = ""
-		config.httpClient.Jar = nil
 	}
 	return &Client{cfg: config}, nil
 }

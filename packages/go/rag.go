@@ -3,7 +3,6 @@ package xberg
 import (
 	"context"
 	"encoding/json"
-	"net/url"
 )
 
 // The RAG API is part of the shared surface (Enterprise + Pro). Its request and
@@ -23,57 +22,57 @@ func (c *Client) CreateRagCollection(ctx context.Context, body any) (json.RawMes
 
 // GetRagCollection fetches a RAG collection (GET /v1/rag/collections/{name}).
 func (c *Client) GetRagCollection(ctx context.Context, name string) (json.RawMessage, error) {
-	return c.ragGet(ctx, "/v1/rag/collections/"+url.PathEscape(name))
+	return c.ragGet(ctx, "/v1/rag/collections/"+escapePathSegment(name))
 }
 
 // DeleteRagCollection deletes a RAG collection (DELETE /v1/rag/collections/{name}).
 // The endpoint answers 204 with no body.
 func (c *Client) DeleteRagCollection(ctx context.Context, name string) error {
-	return c.callJSON(ctx, methodDelete, "/v1/rag/collections/"+url.PathEscape(name), nil, nil)
+	return c.callJSON(ctx, methodDelete, "/v1/rag/collections/"+escapePathSegment(name), nil, nil)
 }
 
 // AddRagDocuments adds documents to a RAG collection
 // (POST /v1/rag/collections/{name}/documents).
 func (c *Client) AddRagDocuments(ctx context.Context, name string, body any) (json.RawMessage, error) {
-	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+url.PathEscape(name)+"/documents", body)
+	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+escapePathSegment(name)+"/documents", body)
 }
 
 // DeleteRagDocuments deletes documents from a RAG collection by ID or filter
 // expression (DELETE /v1/rag/collections/{name}/documents). The response
 // carries the deleted count.
 func (c *Client) DeleteRagDocuments(ctx context.Context, name string, body any) (json.RawMessage, error) {
-	return c.ragSend(ctx, methodDelete, "/v1/rag/collections/"+url.PathEscape(name)+"/documents", body)
+	return c.ragSend(ctx, methodDelete, "/v1/rag/collections/"+escapePathSegment(name)+"/documents", body)
 }
 
 // ReindexRagDocument reindexes a RAG document
 // (POST /v1/rag/collections/{name}/documents/{id}/reindex).
 func (c *Client) ReindexRagDocument(ctx context.Context, name, documentID string, body any) (json.RawMessage, error) {
-	path := "/v1/rag/collections/" + url.PathEscape(name) + "/documents/" + url.PathEscape(documentID) + "/reindex"
+	path := "/v1/rag/collections/" + escapePathSegment(name) + "/documents/" + escapePathSegment(documentID) + "/reindex"
 	return c.ragSend(ctx, methodPost, path, body)
 }
 
 // RagRetrieve retrieves chunks from a RAG collection
 // (POST /v1/rag/collections/{name}/retrieve).
 func (c *Client) RagRetrieve(ctx context.Context, name string, body any) (json.RawMessage, error) {
-	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+url.PathEscape(name)+"/retrieve", body)
+	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+escapePathSegment(name)+"/retrieve", body)
 }
 
 // MigrateRagEmbeddings kicks off an embedding migration
 // (POST /v1/rag/collections/{name}/migrate-embeddings).
 func (c *Client) MigrateRagEmbeddings(ctx context.Context, name string, body any) (json.RawMessage, error) {
-	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+url.PathEscape(name)+"/migrate-embeddings", body)
+	return c.ragSend(ctx, methodPost, "/v1/rag/collections/"+escapePathSegment(name)+"/migrate-embeddings", body)
 }
 
 // GetRagMigrationJob polls an embedding-migration job
 // (GET /v1/rag/collections/{name}/migrate-embeddings/{jobID}).
 func (c *Client) GetRagMigrationJob(ctx context.Context, name, jobID string) (json.RawMessage, error) {
-	path := "/v1/rag/collections/" + url.PathEscape(name) + "/migrate-embeddings/" + url.PathEscape(jobID)
+	path := "/v1/rag/collections/" + escapePathSegment(name) + "/migrate-embeddings/" + escapePathSegment(jobID)
 	return c.ragGet(ctx, path)
 }
 
 // GetRagJob fetches a RAG job's status (GET /v1/rag/jobs/{jobID}).
 func (c *Client) GetRagJob(ctx context.Context, jobID string) (json.RawMessage, error) {
-	return c.ragGet(ctx, "/v1/rag/jobs/"+url.PathEscape(jobID))
+	return c.ragGet(ctx, "/v1/rag/jobs/"+escapePathSegment(jobID))
 }
 
 func (c *Client) ragGet(ctx context.Context, path string) (json.RawMessage, error) {

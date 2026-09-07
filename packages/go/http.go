@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -263,4 +264,15 @@ func (c *cancellingReadCloser) Close() error {
 		c.cancel()
 	}
 	return err
+}
+
+// ~keep Escaped dot segments remain identifiers rather than proxy/server path navigation.
+func escapePathSegment(value string) string {
+	if value == "." {
+		return "%2E"
+	}
+	if value == ".." {
+		return "%2E%2E"
+	}
+	return url.PathEscape(value)
 }

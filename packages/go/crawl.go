@@ -9,7 +9,6 @@ import (
 	"io"
 	"iter"
 	"net/http"
-	"net/url"
 )
 
 // This file holds the Enterprise-only crawl-event stream. It is the one
@@ -141,7 +140,7 @@ func (c *Client) StreamCrawlEvents(ctx context.Context, crawlJobID string) (iter
 	if err := c.requireTier(ctx, TargetEnterprise, "StreamCrawlEvents"); err != nil {
 		return nil, err
 	}
-	path := crawlJobsPath + "/" + url.PathEscape(crawlJobID) + "/events"
+	path := crawlJobsPath + "/" + escapePathSegment(crawlJobID) + "/events"
 	return func(yield func(CrawlEvent, error) bool) {
 		body, err := c.openEventStream(ctx, path)
 		if err != nil {

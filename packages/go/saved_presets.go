@@ -2,7 +2,6 @@ package xberg
 
 import (
 	"context"
-	"net/url"
 )
 
 // Saved (user-authored) presets are part of the shared surface — both specs
@@ -32,7 +31,7 @@ func savedPresetsPath(tier, presetID string) string {
 	if presetID == "" {
 		return base
 	}
-	return base + "/" + url.PathEscape(presetID)
+	return base + "/" + escapePathSegment(presetID)
 }
 
 // resolveSavedPresetsPath resolves the connected tier and renders the

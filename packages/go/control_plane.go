@@ -2,7 +2,6 @@ package xberg
 
 import (
 	"context"
-	"net/url"
 )
 
 // DeleteAccount calls DELETE /auth/account on the Enterprise control plane.
@@ -58,7 +57,7 @@ func (c *Client) DeleteProject(ctx context.Context, projectID string, params map
 		ctx,
 		"DeleteProject",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+encodeParams(params),
 	)
 }
 
@@ -69,7 +68,7 @@ func (c *Client) GetProject(ctx context.Context, projectID string) (*ProjectResp
 		c,
 		"GetProject",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID),
+		"/v1/projects/"+escapePathSegment(projectID),
 		nil,
 	)
 }
@@ -85,7 +84,7 @@ func (c *Client) UpdateProject(
 		c,
 		"UpdateProject",
 		methodPatch,
-		"/v1/projects/"+url.PathEscape(projectID),
+		"/v1/projects/"+escapePathSegment(projectID),
 		body,
 	)
 }
@@ -101,7 +100,7 @@ func (c *Client) GetAnalytics(
 		c,
 		"GetAnalytics",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/analytics"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/analytics"+encodeParams(params),
 		nil,
 	)
 }
@@ -117,7 +116,7 @@ func (c *Client) BackendListAPIKeys(
 		c,
 		"BackendListAPIKeys",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/api-keys"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/api-keys"+encodeParams(params),
 		nil,
 	)
 }
@@ -133,7 +132,7 @@ func (c *Client) BackendCreateAPIKey(
 		c,
 		"BackendCreateAPIKey",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/api-keys",
+		"/v1/projects/"+escapePathSegment(projectID)+"/api-keys",
 		body,
 	)
 }
@@ -144,7 +143,7 @@ func (c *Client) BackendRevokeAPIKey(ctx context.Context, projectID string, keyI
 		ctx,
 		"BackendRevokeAPIKey",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+"/api-keys/"+url.PathEscape(keyID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/api-keys/"+escapePathSegment(keyID),
 	)
 }
 
@@ -155,7 +154,7 @@ func (c *Client) RegenerateAPIKey(ctx context.Context, projectID string, keyID s
 		c,
 		"RegenerateAPIKey",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/api-keys/"+url.PathEscape(keyID)+"/regenerate",
+		"/v1/projects/"+escapePathSegment(projectID)+"/api-keys/"+escapePathSegment(keyID)+"/regenerate",
 		nil,
 	)
 }
@@ -171,7 +170,7 @@ func (c *Client) ListProjectAudit(
 		c,
 		"ListProjectAudit",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/audit"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/audit"+encodeParams(params),
 		nil,
 	)
 }
@@ -183,7 +182,7 @@ func (c *Client) GetBilling(ctx context.Context, projectID string) (*BillingResp
 		c,
 		"GetBilling",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/billing",
+		"/v1/projects/"+escapePathSegment(projectID)+"/billing",
 		nil,
 	)
 }
@@ -195,7 +194,7 @@ func (c *Client) CreateCheckout(ctx context.Context, projectID string) (*Checkou
 		c,
 		"CreateCheckout",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/billing/checkout",
+		"/v1/projects/"+escapePathSegment(projectID)+"/billing/checkout",
 		nil,
 	)
 }
@@ -207,7 +206,7 @@ func (c *Client) CreatePortal(ctx context.Context, projectID string) (*PortalRes
 		c,
 		"CreatePortal",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/billing/portal",
+		"/v1/projects/"+escapePathSegment(projectID)+"/billing/portal",
 		nil,
 	)
 }
@@ -223,7 +222,7 @@ func (c *Client) BackendListIntegrations(
 		c,
 		"BackendListIntegrations",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations"+encodeParams(params),
 		nil,
 	)
 }
@@ -239,7 +238,7 @@ func (c *Client) BackendCreateIntegration(
 		c,
 		"BackendCreateIntegration",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations",
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations",
 		body,
 	)
 }
@@ -250,7 +249,7 @@ func (c *Client) BackendDeleteIntegration(ctx context.Context, projectID string,
 		ctx,
 		"BackendDeleteIntegration",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations/"+url.PathEscape(integrationID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID),
 	)
 }
 
@@ -265,7 +264,7 @@ func (c *Client) BackendGetIntegration(
 		c,
 		"BackendGetIntegration",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations/"+url.PathEscape(integrationID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID),
 		nil,
 	)
 }
@@ -281,7 +280,7 @@ func (c *Client) OAuthConnect(
 		c,
 		"OAuthConnect",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations/"+url.PathEscape(integrationID)+"/connect",
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID)+"/connect",
 		nil,
 	)
 }
@@ -292,7 +291,7 @@ func (c *Client) BackendDisconnectIntegration(ctx context.Context, projectID str
 		ctx,
 		"BackendDisconnectIntegration",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations/"+url.PathEscape(integrationID)+"/disconnect",
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID)+"/disconnect",
 	)
 }
 
@@ -308,7 +307,7 @@ func (c *Client) BackendListIntegrationDocuments(
 		c,
 		"BackendListIntegrationDocuments",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/integrations/"+url.PathEscape(integrationID)+"/documents"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID)+"/documents"+encodeParams(params),
 		nil,
 	)
 }
@@ -324,7 +323,7 @@ func (c *Client) ListInvitations(
 		c,
 		"ListInvitations",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/invitations"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/invitations"+encodeParams(params),
 		nil,
 	)
 }
@@ -340,7 +339,7 @@ func (c *Client) InviteUser(
 		c,
 		"InviteUser",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/invitations",
+		"/v1/projects/"+escapePathSegment(projectID)+"/invitations",
 		body,
 	)
 }
@@ -351,13 +350,13 @@ func (c *Client) RevokeInvitation(ctx context.Context, projectID string, invitat
 		ctx,
 		"RevokeInvitation",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+"/invitations/"+url.PathEscape(invitationID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/invitations/"+escapePathSegment(invitationID),
 	)
 }
 
 // LeaveProject calls POST /v1/projects/{id}/leave on the Enterprise control plane.
 func (c *Client) LeaveProject(ctx context.Context, projectID string) error {
-	return c.controlPlaneEmpty(ctx, "LeaveProject", methodPost, "/v1/projects/"+url.PathEscape(projectID)+"/leave")
+	return c.controlPlaneEmpty(ctx, "LeaveProject", methodPost, "/v1/projects/"+escapePathSegment(projectID)+"/leave")
 }
 
 // ListMembers calls GET /v1/projects/{id}/members on the Enterprise control plane.
@@ -371,7 +370,7 @@ func (c *Client) ListMembers(
 		c,
 		"ListMembers",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/members"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/members"+encodeParams(params),
 		nil,
 	)
 }
@@ -382,7 +381,7 @@ func (c *Client) RemoveMember(ctx context.Context, projectID string, userID stri
 		ctx,
 		"RemoveMember",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+"/members/"+url.PathEscape(userID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/members/"+escapePathSegment(userID),
 	)
 }
 
@@ -398,7 +397,7 @@ func (c *Client) UpdateMemberRole(
 		c,
 		"UpdateMemberRole",
 		methodPatch,
-		"/v1/projects/"+url.PathEscape(projectID)+"/members/"+url.PathEscape(userID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/members/"+escapePathSegment(userID),
 		body,
 	)
 }
@@ -410,7 +409,7 @@ func (c *Client) BackendGetRAGConfig(ctx context.Context, projectID string) (*Ra
 		c,
 		"BackendGetRAGConfig",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/rag-config",
+		"/v1/projects/"+escapePathSegment(projectID)+"/rag-config",
 		nil,
 	)
 }
@@ -426,7 +425,7 @@ func (c *Client) BackendSetRAGConfig(
 		c,
 		"BackendSetRAGConfig",
 		methodPut,
-		"/v1/projects/"+url.PathEscape(projectID)+"/rag-config",
+		"/v1/projects/"+escapePathSegment(projectID)+"/rag-config",
 		body,
 	)
 }
@@ -442,7 +441,7 @@ func (c *Client) GetUsage(
 		c,
 		"GetUsage",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/usage"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/usage"+encodeParams(params),
 		nil,
 	)
 }
@@ -458,7 +457,7 @@ func (c *Client) ListWebhooks(
 		c,
 		"ListWebhooks",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks"+encodeParams(params),
 		nil,
 	)
 }
@@ -474,7 +473,7 @@ func (c *Client) CreateWebhook(
 		c,
 		"CreateWebhook",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks",
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks",
 		body,
 	)
 }
@@ -485,7 +484,7 @@ func (c *Client) DeleteWebhook(ctx context.Context, projectID string, webhookID 
 		ctx,
 		"DeleteWebhook",
 		methodDelete,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks/"+url.PathEscape(webhookID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID),
 	)
 }
 
@@ -501,7 +500,7 @@ func (c *Client) UpdateWebhook(
 		c,
 		"UpdateWebhook",
 		methodPatch,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks/"+url.PathEscape(webhookID),
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID),
 		body,
 	)
 }
@@ -518,7 +517,7 @@ func (c *Client) ListWebhookDeliveries(
 		c,
 		"ListWebhookDeliveries",
 		methodGet,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks/"+url.PathEscape(webhookID)+"/deliveries"+encodeParams(params),
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID)+"/deliveries"+encodeParams(params),
 		nil,
 	)
 }
@@ -535,7 +534,7 @@ func (c *Client) RetryWebhookDelivery(
 		c,
 		"RetryWebhookDelivery",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks/"+url.PathEscape(webhookID)+"/deliveries/"+url.PathEscape(deliveryID)+"/retry",
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID)+"/deliveries/"+escapePathSegment(deliveryID)+"/retry",
 		nil,
 	)
 }
@@ -547,7 +546,7 @@ func (c *Client) TestWebhook(ctx context.Context, projectID string, webhookID st
 		c,
 		"TestWebhook",
 		methodPost,
-		"/v1/projects/"+url.PathEscape(projectID)+"/webhooks/"+url.PathEscape(webhookID)+"/test",
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID)+"/test",
 		nil,
 	)
 }

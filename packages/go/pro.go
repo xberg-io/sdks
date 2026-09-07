@@ -24,13 +24,13 @@ const projectsPath = "/v1/projects"
 // projectPath renders a project-scoped route, escaping the project ID. suffix
 // is appended verbatim and must already start with "/" when non-empty.
 func projectPath(projectID, suffix string) string {
-	return projectsPath + "/" + url.PathEscape(projectID) + suffix
+	return projectsPath + "/" + escapePathSegment(projectID) + suffix
 }
 
 // integrationPath renders an integration-scoped route nested under a project.
 // suffix is appended verbatim and must already start with "/" when non-empty.
 func integrationPath(projectID, integrationID, suffix string) string {
-	return projectPath(projectID, "/integrations/"+url.PathEscape(integrationID)+suffix)
+	return projectPath(projectID, "/integrations/"+escapePathSegment(integrationID)+suffix)
 }
 
 // -- auth ---------------------------------------------------------------------
@@ -131,7 +131,7 @@ func (c *Client) RevokeAPIKey(ctx context.Context, projectID, keyID string) erro
 	if err := c.requireTier(ctx, TargetPro, "RevokeAPIKey"); err != nil {
 		return err
 	}
-	path := projectPath(projectID, "/api-keys/"+url.PathEscape(keyID))
+	path := projectPath(projectID, "/api-keys/"+escapePathSegment(keyID))
 	return c.callJSON(ctx, methodDelete, path, nil, nil)
 }
 
@@ -250,7 +250,7 @@ func (c *Client) FetchIntegrationDocument(ctx context.Context, projectID, integr
 	if err := c.requireTier(ctx, TargetPro, "FetchIntegrationDocument"); err != nil {
 		return nil, err
 	}
-	path := integrationPath(projectID, integrationID, "/documents/"+url.PathEscape(documentID))
+	path := integrationPath(projectID, integrationID, "/documents/"+escapePathSegment(documentID))
 	return c.getBytes(ctx, path)
 }
 

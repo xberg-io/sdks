@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/url"
 )
 
 // Auto-tune and the tuning-profile registry it promotes into are part of the
@@ -26,7 +25,7 @@ const (
 // autoTuneJobPath renders an auto-tune job route, escaping the job ID. suffix
 // is appended verbatim and must already start with "/" when non-empty.
 func autoTuneJobPath(autoTuneJobID, suffix string) string {
-	return autoTunePath + "/" + url.PathEscape(autoTuneJobID) + suffix
+	return autoTunePath + "/" + escapePathSegment(autoTuneJobID) + suffix
 }
 
 // ListAutoTuneJobs lists the project's auto-tune jobs (GET /v1/auto-tune,
@@ -159,7 +158,7 @@ func (c *Client) ListTuningProfiles(ctx context.Context, limit, offset int) (*Li
 // Part of the shared surface (Enterprise + Pro).
 func (c *Client) GetTuningProfile(ctx context.Context, profileID string) (*TuningProfileDetail, error) {
 	var out TuningProfileDetail
-	if err := c.getJSON(ctx, tuningProfilesPath+"/"+url.PathEscape(profileID), &out); err != nil {
+	if err := c.getJSON(ctx, tuningProfilesPath+"/"+escapePathSegment(profileID), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -171,7 +170,7 @@ func (c *Client) GetTuningProfile(ctx context.Context, profileID string) (*Tunin
 //
 // Part of the shared surface (Enterprise + Pro).
 func (c *Client) DeleteTuningProfile(ctx context.Context, profileID string) error {
-	path := tuningProfilesPath + "/" + url.PathEscape(profileID)
+	path := tuningProfilesPath + "/" + escapePathSegment(profileID)
 	return c.callJSON(ctx, methodDelete, path, nil, nil)
 }
 

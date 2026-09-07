@@ -2,7 +2,6 @@ package xberg
 
 import (
 	"context"
-	"net/url"
 )
 
 // The curated preset registry is part of the shared surface: `GET /v1/presets`,
@@ -30,7 +29,7 @@ func (c *Client) Presets(ctx context.Context) ([]PresetSummary, error) {
 // Part of the shared surface (Enterprise + Pro).
 func (c *Client) GetPreset(ctx context.Context, presetID string) (*PresetDetail, error) {
 	var out PresetDetail
-	if err := c.getJSON(ctx, presetsPath+"/"+url.PathEscape(presetID), &out); err != nil {
+	if err := c.getJSON(ctx, presetsPath+"/"+escapePathSegment(presetID), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -44,6 +43,6 @@ func (c *Client) GetPreset(ctx context.Context, presetID string) (*PresetDetail,
 //
 // Part of the shared surface (Enterprise + Pro).
 func (c *Client) GetPresetSample(ctx context.Context, presetID, name string) ([]byte, error) {
-	path := presetsPath + "/" + url.PathEscape(presetID) + "/sample/" + url.PathEscape(name)
+	path := presetsPath + "/" + escapePathSegment(presetID) + "/sample/" + escapePathSegment(name)
 	return c.getBytes(ctx, path)
 }

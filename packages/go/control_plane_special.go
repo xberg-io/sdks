@@ -64,7 +64,7 @@ func (c *Client) BackendFetchIntegrationDocument(ctx context.Context, projectID,
 	if err != nil {
 		return nil, err
 	}
-	return transport.getBytes(ctx, integrationPath(projectID, integrationID, "/documents/"+url.PathEscape(documentID)))
+	return transport.getBytes(ctx, integrationPath(projectID, integrationID, "/documents/"+escapePathSegment(documentID)))
 }
 
 // PublicSandboxOptions selects a public extraction mode and optional OIDC credential.
@@ -91,6 +91,9 @@ func (c *Client) PublicSandboxExtract(ctx context.Context, file *FileSource, opt
 	transport, err := c.controlPlaneClient(ctx, "PublicSandboxExtract", controlPlanePublic)
 	if err != nil {
 		return nil, err
+	}
+	if file == nil && (options == nil || options.Mode != "web" || options.URL == "") {
+		return nil, &ValidationError{XbergError: XbergError{Message: "a file is required unless mode is web with a URL"}}
 	}
 	if options != nil {
 		transport.cfg.apiKey = options.Token
