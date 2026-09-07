@@ -1493,7 +1493,7 @@ export class XbergClient {
     const headers = new Headers({ ...this.headers, ...init.headers });
     for (const name of ["authorization", "proxy-authorization", "cookie", "x-api-key"]) headers.delete(name);
     const token = init.backendPublic ? init.sandboxToken : this.controlPlaneToken;
-    if (token !== undefined) headers.set("Authorization", `Bearer ${token}`);
+    if (token !== undefined && token.length > 0) headers.set("Authorization", `Bearer ${token}`);
     if (init.body instanceof FormData || init.json !== undefined) headers.delete("content-type");
     return Object.fromEntries(headers);
   }
@@ -1589,7 +1589,7 @@ export class XbergClient {
   }
 
   private async requestWithRetry(method: string, path: string, init: RequestParts = {}): Promise<Response> {
-    if (init.controlPlane && this.target === "pro") {
+    if (init.controlPlane && (this.target ?? this.probedTier) === "pro") {
       throw new XbergError("Enterprise backend methods are not available on the 'pro' tier", { status: 0, body: null });
     }
     const origin = init.controlPlane ? this.controlPlaneBaseUrl : this.baseUrl;

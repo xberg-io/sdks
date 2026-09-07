@@ -882,3 +882,36 @@ it("sets one JSON content type even when custom headers use different casing", a
   expect(contentType).toBe("application/json");
   expect(body).toEqual({ id_token: "id-token" });
 });
+
+it("omits explicitly empty backend and public sandbox tokens", async () => {
+  const authorizations: (string | null)[] = [];
+  const client = new XbergClient({
+    apiKey: "data-key",
+    controlPlaneToken: "",
+    fetch: async (input, init) => {
+      authorizations.push(new Request(input, init).headers.get("authorization"));
+      return Response.json({});
+    },
+  });
+  await client.getProject("p");
+  await client.publicSandboxExtract({ file: new Uint8Array([1]), sandboxToken: "" });
+  expect(authorizations).toEqual([null, null]);
+});
+
+it("rejects every backend operation after the data plane is discovered to be Pro", async () => {
+  const paths: string[] = [];
+  const client = new XbergClient({
+    baseUrl: DATA_URL,
+    controlPlaneBaseUrl: CONTROL_URL,
+    fetch: async (input) => {
+      const path = String(input);
+      paths.push(path);
+      return Response.json(path.endsWith("/healthz") ? { tier: "pro" } : { projects: [] });
+    },
+  });
+  await client.listProjects();
+  for (const scenario of cases) {
+    await expect(scenario.call(client)).rejects.toThrow("not available on the 'pro' tier");
+  }
+  expect(paths).toEqual([`${DATA_URL}/healthz`, `${DATA_URL}/v1/projects`]);
+});
