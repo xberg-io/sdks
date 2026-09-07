@@ -46,7 +46,9 @@ exclude = [
 "packages/go/extract_test.go" = ["function-too-long"]
 "packages/go/jobs_test.go" = ["cyclomatic-complexity"]
 "packages/python/src/xberg_io_sdk/client.py" = ["file-too-long", "type-too-long"]
-"packages/typescript/src/client.ts" = ["type-too-long"]
+# ~keep The unified public client already exceeds the file limit within its class;
+# retain its API shape while tracking size debt only for this existing file.
+"packages/typescript/src/client.ts" = ["file-too-long", "type-too-long"]
 # --- end quality-debt baseline ---
 # Stylistic rules disabled repo-wide. Each is a formatting or idiom preference with no
 # correctness or security consequence, and each fires in volumes no one can hand-maintain
