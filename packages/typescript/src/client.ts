@@ -197,6 +197,8 @@ export interface XbergClientOptions {
 }
 
 export interface ExtractParams {
+  /** Enterprise document lineage UUID; omitted for a new document. */
+  documentId?: string;
   file: FileLike;
   options?: ExtractionOptions;
   webhook?: WebhookConfig;
@@ -209,6 +211,8 @@ export interface ExtractParams {
 }
 
 export interface ExtractBatchParams {
+  /** Enterprise lineage UUIDs aligned with files; null entries omit lineage. */
+  documentIds?: readonly (string | null)[];
   files: readonly FileLike[];
   options?: ExtractionOptions;
   webhook?: WebhookConfig;
@@ -760,6 +764,7 @@ export class XbergClient {
   public async extract(params: ExtractParams): Promise<Job> {
     const jobs = await this.extractBatch({
       files: [params.file],
+      ...(params.documentId !== undefined ? { documentIds: [params.documentId] } : {}),
       ...(params.options !== undefined ? { options: params.options } : {}),
       ...(params.webhook !== undefined ? { webhook: params.webhook } : {}),
       ...(params.config !== undefined ? { configs: [params.config] } : {}),
@@ -780,12 +785,15 @@ export class XbergClient {
       throw new XbergError("extractBatch called with no files", { status: 400, body: null });
     }
 
+    const filenames = params.files.map(describeFile);
+    const documentIds = prepareDocumentLineage(filenames, params.documentIds);
+    if (documentIds.size > 0) await this.requireTier("enterprise", "extract document lineage");
     const form = new FormData();
-    const filenames: string[] = [];
+    // ~keep The Enterprise parser captures lineage when reading each file part.
+    for (const [filename, documentId] of documentIds) form.append(`document_id-${filename}`, documentId);
     for (const file of params.files) {
       const { blob, filename } = toBlob(file);
       form.append("file", blob, filename);
-      filenames.push(filename);
     }
     if (params.options !== undefined) {
       form.append("options", JSON.stringify(params.options));
@@ -885,6 +893,7 @@ export class XbergClient {
   public async extractAndWait(params: ExtractAndWaitParams): Promise<Job> {
     const extractParams: ExtractParams = {
       file: params.file,
+      ...(params.documentId !== undefined ? { documentId: params.documentId } : {}),
       ...(params.options !== undefined ? { options: params.options } : {}),
       ...(params.webhook !== undefined ? { webhook: params.webhook } : {}),
       ...(params.config !== undefined ? { config: params.config } : {}),
@@ -1834,4 +1843,30 @@ function sandboxForm(params: PublicSandboxExtractParams): FormData {
     if (value !== undefined) form.append(name, value);
   }
   return form;
+}
+
+function prepareDocumentLineage(
+  filenames: readonly string[],
+  ids: readonly (string | null)[] | undefined,
+): Map<string, string> {
+  const fields = new Map<string, string>();
+  if (ids === undefined) return fields;
+  if (ids.length !== filenames.length)
+    throw new XbergError("documentIds must contain one entry per file", { status: 400, body: null });
+  const seen = new Map<string, string | null>();
+  for (const [index, filename] of filenames.entries()) {
+    const id = ids[index];
+    if (
+      id !== null &&
+      (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+    ) {
+      throw new XbergError("documentIds must contain UUID strings or null", { status: 400, body: null });
+    }
+    const canonical = id === null ? null : id.toLowerCase();
+    if (seen.has(filename) && seen.get(filename) !== canonical)
+      throw new XbergError("Conflicting document IDs for the same filename", { status: 400, body: null });
+    seen.set(filename, canonical);
+    if (canonical !== null) fields.set(filename, canonical);
+  }
+  return fields;
 }

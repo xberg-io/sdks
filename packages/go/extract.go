@@ -56,7 +56,11 @@ func (c *Client) ExtractBatch(
 	if err := validatePerFileConfigs(files, configsOf(opts)); err != nil {
 		return nil, err
 	}
-	body, contentType, err := buildMultipartBody(files, opts)
+	documentIDs, err := c.prepareDocumentLineage(ctx, files, opts)
+	if err != nil {
+		return nil, err
+	}
+	body, contentType, err := buildMultipartBody(files, opts, documentIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +110,14 @@ func (c *Client) ExtractBatch(
 func buildMultipartBody(
 	files []FileSource,
 	opts *ExtractOptions,
+	documentIDs map[string]string,
 ) ([]byte, string, error) {
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
+	// ~keep The Enterprise parser captures lineage when reading each file part.
+	if err := writeDocumentLineage(writer, documentIDs); err != nil {
+		return nil, "", err
+	}
 	if err := writeFileParts(writer, files); err != nil {
 		return nil, "", err
 	}

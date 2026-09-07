@@ -3,6 +3,8 @@ package xberg
 import (
 	"io"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // terminalJobStatuses lists the statuses for which the server will produce no
@@ -45,6 +47,11 @@ type WaitOptions struct {
 // may be nil; a nil Webhook omits the multipart "webhook" part entirely,
 // rather than sending an empty one.
 type ExtractOptions struct {
+	// DocumentIDs associates files with Enterprise document lineages. When non-nil,
+	// it must contain one entry per file; nil entries omit lineage. Duplicate
+	// filenames must carry identical IDs. Pro rejects non-nil IDs before reading files.
+	DocumentIDs []*uuid.UUID
+
 	Extraction *ExtractionOptions
 	Webhook    *WebhookConfig
 
