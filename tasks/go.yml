@@ -66,6 +66,17 @@ tasks:
         go tool oapi-codegen --config "{{.BACKEND_CONFIG_DERIVED}}" "{{.BACKEND_SPEC_DERIVED}}"
       - go fmt ./...
 
+  check:generated:
+    desc: "Verify tracked Go sources match all three vendored specifications"
+    cmds:
+      - task: generate
+      - git diff --exit-code -- packages/go/generated_api.go packages/go/generated_pro.go packages/go/generated_backend.go
+
+  test:package:
+    desc: "Build a consumer against the committed Go module without generation"
+    cmds:
+      - bash packages/go/test-package.sh
+
   install:
     desc: "Download Go module dependencies"
     dir: "{{.PKG_DIR}}"

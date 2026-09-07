@@ -42,9 +42,6 @@ packages/python/src/xberg_io_sdk/_generated_api/
 packages/python/src/xberg_io_sdk/_generated_pro/
 packages/python/src/xberg_io_sdk/_generated_backend/
 packages/typescript/src/_generated/
-packages/go/generated_api.go
-packages/go/generated_pro.go
-packages/go/generated_backend.go
 # Derived oapi-codegen config for each secondary Go schema set, and the derived
 # spec it is generated against (both written by tools/oapi-schemaset-config from
 # the matching base config + the vendored specs).
