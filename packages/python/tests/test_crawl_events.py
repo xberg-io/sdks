@@ -365,3 +365,91 @@ def test_stream_crawl_events_rejects_a_frame_that_never_closes(base_url: str, ap
 
     with enterprise_client(base_url, api_key) as client, pytest.raises(XbergError, match="exceeded"):
         list(client.stream_crawl_events(CRAWL_JOB_ID))
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("prefix", [b"data: ", b":", b"unknown:"])
+@respx.mock
+async def test_stream_rejects_unterminated_lines_before_reading_the_remaining_body(
+    base_url: str, api_key: str, asynchronous: bool, prefix: bytes
+) -> None:
+    class EndlessLine(RecordingStream):
+        def __init__(self) -> None:
+            super().__init__([])
+            self.reads = 0
+
+        def __iter__(self) -> Iterator[bytes]:
+            yield prefix
+            for _ in range(64):
+                self.reads += 1
+                yield b"x" * (64 * 1024)
+
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            for chunk in self:
+                yield chunk
+
+    stream = EndlessLine()
+    respx.get(f"{base_url}{EVENTS_PATH}").respond(200, stream=stream)
+    if asynchronous:
+        async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+            with pytest.raises(XbergError, match="exceeded"):
+                _ = [event async for event in client.stream_crawl_events(CRAWL_JOB_ID)]
+    else:
+        with enterprise_client(base_url, api_key) as sync_client, pytest.raises(XbergError, match="exceeded"):
+            list(sync_client.stream_crawl_events(CRAWL_JOB_ID))
+    assert stream.reads == 16
+    assert stream.closed
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@respx.mock
+async def test_stream_caps_multiline_frames_in_utf8_bytes(base_url: str, api_key: str, asynchronous: bool) -> None:
+    stream = RecordingStream([("data: " + "é" * (32 * 1024) + "\n").encode()] * 17)
+    respx.get(f"{base_url}{EVENTS_PATH}").respond(200, stream=stream)
+    if asynchronous:
+        async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+            with pytest.raises(XbergError, match="exceeded"):
+                _ = [event async for event in client.stream_crawl_events(CRAWL_JOB_ID)]
+    else:
+        with enterprise_client(base_url, api_key) as sync_client, pytest.raises(XbergError, match="exceeded"):
+            list(sync_client.stream_crawl_events(CRAWL_JOB_ID))
+    assert stream.closed
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("separator", ["\n", "\r", "\r\n"])
+@respx.mock
+async def test_stream_preserves_split_utf8_and_line_terminators(
+    base_url: str, api_key: str, asynchronous: bool, separator: str
+) -> None:
+    message = "é\u2028終"
+    body = ("data: " + json.dumps({**ERROR_EVENT, "error": message}, ensure_ascii=False) + separator * 2).encode()
+    stream = RecordingStream([body[index : index + 1] for index in range(len(body))])
+    respx.get(f"{base_url}{EVENTS_PATH}").respond(200, stream=stream)
+    if asynchronous:
+        async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+            events = [event async for event in client.stream_crawl_events(CRAWL_JOB_ID)]
+    else:
+        with enterprise_client(base_url, api_key) as sync_client:
+            events = list(sync_client.stream_crawl_events(CRAWL_JOB_ID))
+    assert len(events) == 1
+    assert events[0].error == message
+    assert stream.closed
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@respx.mock
+async def test_stream_accepts_exact_limit_lines_in_a_larger_chunk(
+    base_url: str, api_key: str, asynchronous: bool
+) -> None:
+    body = b":" + b"x" * ((1 << 20) - 1) + b"\r\n" + sse(json_frame(COMPLETE_EVENT))
+    response, stream = stream_response(body)
+    respx.get(f"{base_url}{EVENTS_PATH}").mock(return_value=response)
+    if asynchronous:
+        async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+            events = [event async for event in client.stream_crawl_events(CRAWL_JOB_ID)]
+    else:
+        with enterprise_client(base_url, api_key) as sync_client:
+            events = list(sync_client.stream_crawl_events(CRAWL_JOB_ID))
+    assert [event.kind for event in events] == ["complete"]
+    assert stream.closed

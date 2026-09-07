@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import json
 import mimetypes
+import re
 import threading
 import time
 from collections.abc import Mapping
@@ -184,14 +185,8 @@ _CRAWL_EVENT_MODELS: dict[str, _CrawlEventModel] = {
 _SSE_ACCEPT = "text/event-stream"
 _SSE_DATA_FIELD = "data"
 _SSE_COMMENT_PREFIX = ":"
-# Caps the running total of a frame's ``data:`` fields, so a server that never
-# sends the blank line closing a frame cannot grow the decoder without bound.
-#
-# Unlike Go and TypeScript, this client reads lines through ``httpx``'s own
-# decoder, which applies no per-line cap of its own -- so a single endless line
-# (as opposed to endless *lines*) is still bounded only by memory. Closing that
-# needs the line splitting to move in here; tracked separately.
 _MAX_SSE_FRAME_BYTES = 1 << 20
+_SSE_LINE_END = re.compile(rb"\r\n|\r|\n")
 
 
 def _user_agent() -> str:
@@ -375,7 +370,7 @@ def _parse_enrich_status(payload: Any) -> EnrichJobStatus:
 
 
 class _SSEDecoder:
-    """Incremental decoder for a ``text/event-stream`` body, fed one line at a time.
+    """Incremental decoder for a ``text/event-stream`` body, fed response byte chunks.
 
     Implements the parts of the WHATWG event-stream parser this endpoint can
     exercise. A frame is terminated by a blank line, not by a newline: its
@@ -396,6 +391,33 @@ class _SSEDecoder:
     def __init__(self) -> None:
         self._data: list[str] = []
         self._size = 0
+        self._line = bytearray()
+        self._after_cr = False
+
+    def feed_bytes(self, chunk: bytes) -> Iterator[str]:
+        """Split only SSE line endings, bounding pending bytes before copying them."""
+        start = int(self._after_cr and chunk.startswith(b"\n"))
+        if not chunk:
+            return
+        self._after_cr = False
+        for ending in _SSE_LINE_END.finditer(chunk, start):
+            self._append_line(chunk, start, ending.start())
+            line = self._line.decode("utf-8", errors="replace")
+            self._line.clear()
+            payload = self.feed(line)
+            start = ending.end()
+            self._after_cr = ending.group() == b"\r" and start == len(chunk)
+            if payload is not None:
+                yield payload
+        self._append_line(chunk, start, len(chunk))
+
+    def _append_line(self, chunk: bytes, start: int, end: int) -> None:
+        if len(self._line) + end - start > _MAX_SSE_FRAME_BYTES:
+            raise XbergError(
+                f"crawl event line exceeded {_MAX_SSE_FRAME_BYTES} bytes before the stream closed it",
+                status_code=None,
+            )
+        self._line.extend(memoryview(chunk)[start:end])
 
     def feed(self, line: str) -> str | None:
         """Consume one terminator-stripped line, returning a payload if it completed a frame."""
@@ -407,7 +429,7 @@ class _SSEDecoder:
         if separator and value.startswith(" "):
             value = value[1:]
         if field == _SSE_DATA_FIELD:
-            self._size += len(value) + 1  # +1 for the newline _dispatch joins with
+            self._size += len(value.encode("utf-8")) + 1  # +1 for the newline _dispatch joins with
             if self._size > _MAX_SSE_FRAME_BYTES:
                 raise XbergError(
                     f"crawl event frame exceeded {_MAX_SSE_FRAME_BYTES} bytes before the stream closed it",
@@ -1292,9 +1314,8 @@ class XbergClient(_BaseClient):
         self._require_tier("enterprise", "stream_crawl_events")
         decoder = _SSEDecoder()
         with self._request_stream("GET", f"/v1/crawl-jobs/{_q(crawl_job_id)}/events", accept=_SSE_ACCEPT) as response:
-            for line in response.iter_lines():
-                payload = decoder.feed(line)
-                if payload is not None:
+            for chunk in response.iter_bytes():
+                for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)
 
 
@@ -1945,9 +1966,8 @@ class AsyncXbergClient(_BaseClient):
         decoder = _SSEDecoder()
         path = f"/v1/crawl-jobs/{_q(crawl_job_id)}/events"
         async with self._request_stream("GET", path, accept=_SSE_ACCEPT) as response:
-            async for line in response.aiter_lines():
-                payload = decoder.feed(line)
-                if payload is not None:
+            async for chunk in response.aiter_bytes():
+                for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)
 
 
