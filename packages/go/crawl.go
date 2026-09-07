@@ -2,6 +2,7 @@ package xberg
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"iter"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 // This file holds the Enterprise-only crawl-event stream. It is the one
@@ -161,7 +161,7 @@ func streamCrawlEventFrames(body io.Reader, yield func(CrawlEvent, error) bool) 
 	scanner.Split(scanEventStreamLines)
 	var frames sseDecoder
 	for scanner.Scan() {
-		payload, complete, err := frames.feed(scanner.Text())
+		payload, complete, err := frames.feed(scanner.Bytes())
 		if err != nil {
 			yield(CrawlEvent{}, err)
 			return
@@ -229,8 +229,7 @@ func (c *Client) openEventStream(ctx context.Context, path string) (io.ReadClose
 // validates nothing, so the kind is read (and checked) from a minimal envelope
 // first — a frame naming a kind the spec does not declare is an error, not an
 // event silently handed on with an empty Kind.
-func parseCrawlEvent(payload string) (CrawlEvent, error) {
-	raw := []byte(payload)
+func parseCrawlEvent(raw []byte) (CrawlEvent, error) {
 	var envelope struct {
 		Kind string `json:"kind"`
 	}
@@ -243,11 +242,8 @@ func parseCrawlEvent(payload string) (CrawlEvent, error) {
 			Message: fmt.Sprintf("crawl event stream sent unrecognized kind %q", envelope.Kind),
 		}
 	}
-	event := CrawlEvent{Kind: kind}
-	if err := event.UnmarshalJSON(raw); err != nil {
-		return CrawlEvent{}, &XbergError{Message: fmt.Sprintf("decoding crawl event: %s", err)}
-	}
-	return event, nil
+	// ~keep dispatch transfers ownership; the scanner cannot overwrite this union's bytes.
+	return CrawlEvent{Kind: kind, CrawlEventV1: CrawlEventV1{union: raw}}, nil
 }
 
 // sseDecoder assembles text/event-stream frames from the lines of a response
@@ -267,50 +263,42 @@ func parseCrawlEvent(payload string) (CrawlEvent, error) {
 // A stream that ends mid-frame — no terminating blank line — discards it, as
 // the spec requires: the payload is by definition incomplete.
 type sseDecoder struct {
-	data []string
-	// size is the running byte total of the frame being assembled, reset with
-	// data on every dispatch.
-	size int
+	data    []byte
+	present bool
 }
 
-// feed consumes one terminator-stripped line and reports the payload of the
-// frame it completed, if it completed one.
-func (d *sseDecoder) feed(line string) (payload string, complete bool, err error) {
-	if line == "" {
-		payload, complete = d.dispatch()
-		return payload, complete, nil
+func (d *sseDecoder) feed(line []byte) (payload []byte, complete bool, err error) {
+	if len(line) == 0 {
+		return d.dispatch()
 	}
-	if strings.HasPrefix(line, ":") {
-		return "", false, nil
+	field, value, _ := bytes.Cut(line, []byte(":"))
+	if !bytes.Equal(field, []byte("data")) {
+		return nil, false, nil
 	}
-	field, value, hasColon := strings.Cut(line, ":")
-	if hasColon {
-		value = strings.TrimPrefix(value, " ")
+	value = bytes.TrimPrefix(value, []byte(" "))
+	separator := 0
+	if d.present {
+		separator = 1
 	}
-	if field == "data" {
-		// +1 for the "\n" dispatch will join with.
-		d.size += len(value) + 1
-		if d.size > maxCrawlEventFrameBytes {
-			return "", false, &XbergError{Message: fmt.Sprintf(
-				"crawl event frame exceeded %d bytes before the stream closed it",
-				maxCrawlEventFrameBytes,
-			)}
-		}
-		d.data = append(d.data, value)
+	if len(d.data)+len(value)+separator+1 > maxCrawlEventFrameBytes {
+		return nil, false, &XbergError{Message: fmt.Sprintf(
+			"crawl event frame exceeded %d bytes before the stream closed it", maxCrawlEventFrameBytes,
+		)}
 	}
-	return "", false, nil
+	if d.present {
+		d.data = append(d.data, '\n')
+	}
+	d.data = append(d.data, value...)
+	d.present = true
+	return nil, false, nil
 }
 
-// dispatch emits the buffered data payload, or reports that the blank line
-// closed no frame.
-func (d *sseDecoder) dispatch() (payload string, complete bool) {
-	if len(d.data) == 0 {
-		return "", false
-	}
-	joined := strings.Join(d.data, "\n")
-	d.data = d.data[:0]
-	d.size = 0
-	return joined, true
+func (d *sseDecoder) dispatch() (payload []byte, complete bool, err error) {
+	payload, complete = d.data, d.present
+	// ~keep Each event owns its buffer after dispatch; retained events must survive later scanner reads.
+	d.data = nil
+	d.present = false
+	return payload, complete, nil
 }
 
 // scanEventStreamLines is a [bufio.SplitFunc] splitting on the three line

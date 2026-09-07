@@ -103,6 +103,12 @@ tasks:
       - task: test:tools
       - go test -race -v ./...
 
+  bench:crawl:
+    desc: "Measure complete crawl SSE framing and decoding allocations"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - go test -run '^$' -bench BenchmarkCrawlEventFrames -benchmem -count 3
+
   test:cov:
     desc: "Run Go tests with coverage"
     dir: "{{.PKG_DIR}}"
