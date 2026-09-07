@@ -19,6 +19,7 @@ OUT_DIR="${PKG_DIR}/src/_generated"
 mkdir -p "${OUT_DIR}"
 
 cd "${PKG_DIR}"
-pnpm exec openapi-typescript "${API_SPEC}" -o "${OUT_DIR}/api.d.ts"
-pnpm exec openapi-typescript "${PRO_SPEC}" -o "${OUT_DIR}/pro.d.ts"
-pnpm exec openapi-typescript "${BACKEND_SPEC}" -o "${OUT_DIR}/backend.d.ts"
+# ~keep Unconstrained object schemas carry user JSON, such as preset schemas and integration credentials.
+pnpm exec openapi-typescript "${API_SPEC}" -o "${OUT_DIR}/api.d.ts" --empty-objects-unknown
+pnpm exec openapi-typescript "${PRO_SPEC}" -o "${OUT_DIR}/pro.d.ts" --empty-objects-unknown
+pnpm exec openapi-typescript "${BACKEND_SPEC}" -o "${OUT_DIR}/backend.d.ts" --empty-objects-unknown
