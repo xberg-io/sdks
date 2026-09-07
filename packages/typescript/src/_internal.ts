@@ -289,3 +289,12 @@ export class EventStreamDecoder {
     return payload;
   }
 }
+
+/** Encode a path identifier without allowing the HTTP client to change its route. */
+export function encodePathSegment(value: string): string {
+  // ~keep WHATWG URL normalizes even percent-encoded dot segments, so encoding alone is insufficient.
+  if (value === "." || value === "..") {
+    throw new XbergError("Path identifiers must not be '.' or '..'", { status: 400, body: null });
+  }
+  return encodeURIComponent(value);
+}

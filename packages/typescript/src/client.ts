@@ -15,8 +15,8 @@
  * Enterprise splits into two binaries — the data plane `baseUrl` addresses and a
  * control plane (projects, API keys, integrations) on its own origin — while Pro
  * serves both from one. `controlPlaneBaseUrl` records the origin of the second
- * and defaults to `baseUrl`; no method routes there yet, so today it is
- * configuration held for the control-plane operations that have not landed.
+ * and defaults to `baseUrl`. The backend methods use that origin and an optional
+ * separate `controlPlaneToken`; existing Pro methods retain their data-plane routing.
  */
 
 import createOpenApiClient, { type Client } from "openapi-fetch";
@@ -26,6 +26,7 @@ import {
   DEFAULT_ENTERPRISE_BASE_URL,
   DEFAULT_RETRY_BACKOFF_CAP_MS,
   EventStreamDecoder,
+  encodePathSegment,
   buildQueryString,
   defaultSleep,
   describeFile,
@@ -39,6 +40,46 @@ import type { BackoffStrategy, FileLike, QueryParams, Target } from "./_internal
 import { RateLimitError, TimeoutError, XbergError, raiseForStatus } from "./errors.js";
 import type {
   AuthConfigResponse,
+  BackendAcceptInvitationRequest,
+  BackendAnalyticsResponse,
+  BackendAuthConfigResponse,
+  BackendBeginConnectResponse,
+  BackendBillingResponse,
+  BackendCheckoutResponse,
+  BackendCreateApiKeyRequest,
+  BackendCreateApiKeyResponse,
+  BackendCreateIntegrationRequest,
+  BackendCreateInvitationRequest,
+  BackendCreateInvitationResponse,
+  BackendCreateProjectRequest,
+  BackendCreateWebhookRequest,
+  BackendHealthResponse,
+  BackendIntegrationResponse,
+  BackendListApiKeysResponse,
+  BackendListAuditEntriesResponse,
+  BackendListDocumentsResponse,
+  BackendListIntegrationsResponse,
+  BackendListInvitationsResponse,
+  BackendListMembersResponse,
+  BackendListProjectsResponse,
+  BackendListWebhookDeliveriesResponse,
+  BackendListWebhooksResponse,
+  BackendLoginRequest,
+  BackendLoginResponse,
+  BackendMemberResponse,
+  BackendPortalResponse,
+  BackendProjectResponse,
+  BackendRagConfigResponse,
+  BackendReadinessResponse,
+  BackendRetryWebhookDeliveryResponse,
+  BackendSandboxExtractResponse,
+  BackendSetRagConfigRequest,
+  BackendUpdateMemberRoleRequest,
+  BackendUpdateProjectRequest,
+  BackendUpdateWebhookRequest,
+  BackendUsageResponse,
+  BackendWebhookResponse,
+  BackendWebhookTestResponse,
   AutoTuneCapabilitiesResponse,
   AutoTuneJobStatus,
   AutoTuneResult,
@@ -139,19 +180,11 @@ export interface XbergClientOptions {
    * alongside the data plane. Defaults to `baseUrl` — Pro serves both planes
    * from one binary, so every Pro call keeps working untouched.
    *
-   * No method routes to it yet. The control-plane operations are vendored but
-   * unimplemented (xberg-io/sdks#22), and every control-plane method this
-   * client does have is Pro-only and tier-gated, so today this option only
-   * records an origin that {@link XbergClient.controlPlaneBaseUrl} reads back.
-   * It ships ahead of those methods so the constructor does not change shape
-   * when they land.
    */
   controlPlaneBaseUrl?: string;
-  /**
-   * Which product to talk to. When omitted, the tier is discovered lazily from
-   * `GET /healthz` before the first tier-specific call. Enterprise defaults
-   * `baseUrl`; `target: "pro"` requires an explicit `baseUrl`.
-   */
+  /** Bearer token for protected backend calls; defaults to `apiKey`. */
+  controlPlaneToken?: string;
+  /** Product for tier-specific data-plane methods; discovered lazily when omitted. */
   target?: Target;
   fetch?: typeof fetch;
   headers?: Record<string, string>;
@@ -252,6 +285,30 @@ export interface ListIntegrationDocumentsParams {
   maxResults?: number;
 }
 
+export interface BackendDateRange {
+  startDate: string;
+  endDate: string;
+}
+export interface BackendOAuthCallbackParams {
+  code: string;
+  state: string;
+}
+export interface BackendAuditParams {
+  action?: string;
+  limit?: number;
+  offset?: number;
+}
+export interface BackendSandboxExtractParams {
+  file: FileLike;
+}
+export interface PublicSandboxExtractParams {
+  file?: FileLike;
+  mode?: string;
+  preset?: string;
+  url?: string;
+  sandboxToken?: string;
+}
+
 /** Underlying `openapi-fetch` client, typed over the Enterprise API schema. */
 export type XbergRawClient = Client<paths>;
 
@@ -261,11 +318,10 @@ export type XbergRawClient = Client<paths>;
 export class XbergClient {
   private readonly baseUrl: string;
   /**
-   * Origin the control-plane surface will be addressed at. Same as `baseUrl`
-   * unless overridden. No request is routed there yet — see
-   * {@link XbergClientOptions.controlPlaneBaseUrl}.
+   * Origin used by the Enterprise backend methods. Defaults to `baseUrl`.
    */
   public readonly controlPlaneBaseUrl: string;
+  private readonly controlPlaneToken: string | undefined;
   private readonly headers: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
   private readonly timeoutMs: number;
@@ -286,6 +342,7 @@ export class XbergClient {
     }
     this.baseUrl = resolveBaseUrl(options.baseUrl, options.target);
     this.controlPlaneBaseUrl = resolveControlPlaneBaseUrl(options.controlPlaneBaseUrl, this.baseUrl);
+    this.controlPlaneToken = options.controlPlaneToken ?? options.apiKey;
     this.fetchImpl = options.fetch ?? fetch;
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.retries = options.retries ?? 0;
@@ -305,6 +362,392 @@ export class XbergClient {
       baseUrl: this.baseUrl,
       headers: this.headers,
       fetch: this.fetchImpl,
+    });
+  }
+
+  /** Enterprise backend `DELETE /auth/account`. */
+  public async deleteAccount(): Promise<void> {
+    return await this.backendRequest<void>("DELETE", `/auth/account`);
+  }
+  /** Enterprise backend `GET /auth/config`. */
+  public async getAuthConfig(): Promise<BackendAuthConfigResponse> {
+    return await this.backendRequest<BackendAuthConfigResponse>("GET", `/auth/config`, { backendPublic: true });
+  }
+  /** Enterprise backend `POST /auth/login`. */
+  public async backendLogin(body: BackendLoginRequest): Promise<BackendLoginResponse> {
+    return await this.backendRequest<BackendLoginResponse>("POST", `/auth/login`, { json: body, backendPublic: true });
+  }
+  /** Enterprise backend `GET /healthz`. */
+  public async healthz(): Promise<BackendHealthResponse> {
+    return await this.backendRequest<BackendHealthResponse>("GET", `/healthz`, { backendPublic: true });
+  }
+  /** Enterprise backend `GET /readyz`. */
+  public async readyz(): Promise<BackendReadinessResponse> {
+    return await this.backendRequest<BackendReadinessResponse>("GET", `/readyz`, { backendPublic: true });
+  }
+  /** Enterprise backend `POST /v1/invitations/accept`. */
+  public async acceptInvitation(body: BackendAcceptInvitationRequest): Promise<BackendMemberResponse> {
+    return await this.backendRequest<BackendMemberResponse>("POST", `/v1/invitations/accept`, { json: body });
+  }
+  /** Enterprise backend `GET /v1/oauth/callback`. */
+  public async oauthCallback(params: BackendOAuthCallbackParams): Promise<string> {
+    const response = await this.requestWithRetry("GET", "/v1/oauth/callback", {
+      controlPlane: true,
+      backendPublic: true,
+      acceptRedirect: true,
+      params: { code: params.code, state: params.state },
+    });
+    const location = response.headers.get("location");
+    await response.body?.cancel();
+    if (response.status !== 303 || location === null || location.length === 0) {
+      throw new XbergError("OAuth callback did not return a 303 Location", { status: response.status, body: null });
+    }
+    return location;
+  }
+  /** Enterprise backend `GET /v1/projects`. */
+  public async backendListProjects(params: PaginationParams = {}): Promise<BackendListProjectsResponse> {
+    return await this.backendRequest<BackendListProjectsResponse>("GET", `/v1/projects`, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+  /** Enterprise backend `POST /v1/projects`. */
+  public async backendCreateProject(body: BackendCreateProjectRequest): Promise<BackendProjectResponse> {
+    return await this.backendRequest<BackendProjectResponse>("POST", `/v1/projects`, { json: body });
+  }
+  /** Enterprise backend `GET /v1/projects/{id}`. */
+  public async getProject(projectId: string): Promise<BackendProjectResponse> {
+    return await this.backendRequest<BackendProjectResponse>("GET", `/v1/projects/${encodePathSegment(projectId)}`);
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}`. */
+  public async deleteProject(projectId: string, params: { erase?: boolean } = {}): Promise<void> {
+    return await this.backendRequest<void>("DELETE", `/v1/projects/${encodePathSegment(projectId)}`, {
+      params: { erase: params.erase === undefined ? undefined : String(params.erase) },
+    });
+  }
+  /** Enterprise backend `PATCH /v1/projects/{id}`. */
+  public async updateProject(projectId: string, body: BackendUpdateProjectRequest): Promise<BackendProjectResponse> {
+    return await this.backendRequest<BackendProjectResponse>("PATCH", `/v1/projects/${encodePathSegment(projectId)}`, {
+      json: body,
+    });
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/analytics`. */
+  public async getAnalytics(projectId: string, params: BackendDateRange): Promise<BackendAnalyticsResponse> {
+    return await this.backendRequest<BackendAnalyticsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/analytics`,
+      { params: { start_date: params.startDate, end_date: params.endDate } },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/api-keys`. */
+  public async backendListApiKeys(
+    projectId: string,
+    params: PaginationParams = {},
+  ): Promise<BackendListApiKeysResponse> {
+    return await this.backendRequest<BackendListApiKeysResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/api-keys`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/api-keys`. */
+  public async backendCreateApiKey(
+    projectId: string,
+    body: BackendCreateApiKeyRequest,
+  ): Promise<BackendCreateApiKeyResponse> {
+    return await this.backendRequest<BackendCreateApiKeyResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/api-keys`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/api-keys/{key_id}`. */
+  public async backendRevokeApiKey(projectId: string, apiKeyId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/api-keys/${encodePathSegment(apiKeyId)}`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/api-keys/{key_id}/regenerate`. */
+  public async regenerateApiKey(projectId: string, apiKeyId: string): Promise<BackendCreateApiKeyResponse> {
+    return await this.backendRequest<BackendCreateApiKeyResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/api-keys/${encodePathSegment(apiKeyId)}/regenerate`,
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/audit`. */
+  public async listProjectAudit(
+    projectId: string,
+    params: BackendAuditParams = {},
+  ): Promise<BackendListAuditEntriesResponse> {
+    return await this.backendRequest<BackendListAuditEntriesResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/audit`,
+      { params: { action: params.action, limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/billing`. */
+  public async getBilling(projectId: string): Promise<BackendBillingResponse> {
+    return await this.backendRequest<BackendBillingResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/billing`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/billing/checkout`. */
+  public async createCheckout(projectId: string): Promise<BackendCheckoutResponse> {
+    return await this.backendRequest<BackendCheckoutResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/billing/checkout`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/billing/portal`. */
+  public async createPortal(projectId: string): Promise<BackendPortalResponse> {
+    return await this.backendRequest<BackendPortalResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/billing/portal`,
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/integrations`. */
+  public async backendListIntegrations(
+    projectId: string,
+    params: PaginationParams = {},
+  ): Promise<BackendListIntegrationsResponse> {
+    return await this.backendRequest<BackendListIntegrationsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/integrations`. */
+  public async backendCreateIntegration(
+    projectId: string,
+    body: BackendCreateIntegrationRequest,
+  ): Promise<BackendIntegrationResponse> {
+    return await this.backendRequest<BackendIntegrationResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/integrations/{iid}`. */
+  public async backendGetIntegration(projectId: string, integrationId: string): Promise<BackendIntegrationResponse> {
+    return await this.backendRequest<BackendIntegrationResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}`,
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/integrations/{iid}`. */
+  public async backendDeleteIntegration(projectId: string, integrationId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/integrations/{iid}/connect`. */
+  public async oauthConnect(projectId: string, integrationId: string): Promise<BackendBeginConnectResponse> {
+    return await this.backendRequest<BackendBeginConnectResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/connect`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/integrations/{iid}/disconnect`. */
+  public async backendDisconnectIntegration(projectId: string, integrationId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/disconnect`,
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/integrations/{iid}/documents`. */
+  public async backendListIntegrationDocuments(
+    projectId: string,
+    integrationId: string,
+    params: ListIntegrationDocumentsParams = {},
+  ): Promise<BackendListDocumentsResponse> {
+    return await this.backendRequest<BackendListDocumentsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/documents`,
+      { params: { mime_types: params.mimeTypes, folder_id: params.folderId, max_results: params.maxResults } },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}`. */
+  public async backendFetchIntegrationDocument(
+    projectId: string,
+    integrationId: string,
+    documentId: string,
+  ): Promise<Uint8Array> {
+    return await this.requestBytes(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/documents/${encodePathSegment(documentId)}`,
+      { controlPlane: true },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/invitations`. */
+  public async listInvitations(
+    projectId: string,
+    params: PaginationParams = {},
+  ): Promise<BackendListInvitationsResponse> {
+    return await this.backendRequest<BackendListInvitationsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/invitations`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/invitations`. */
+  public async inviteUser(
+    projectId: string,
+    body: BackendCreateInvitationRequest,
+  ): Promise<BackendCreateInvitationResponse> {
+    return await this.backendRequest<BackendCreateInvitationResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/invitations`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/invitations/{inv_id}`. */
+  public async revokeInvitation(projectId: string, invitationId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/invitations/${encodePathSegment(invitationId)}`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/leave`. */
+  public async leaveProject(projectId: string): Promise<void> {
+    return await this.backendRequest<void>("POST", `/v1/projects/${encodePathSegment(projectId)}/leave`);
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/members`. */
+  public async listMembers(projectId: string, params: PaginationParams = {}): Promise<BackendListMembersResponse> {
+    return await this.backendRequest<BackendListMembersResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/members`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/members/{user_id}`. */
+  public async removeMember(projectId: string, userId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/members/${encodePathSegment(userId)}`,
+    );
+  }
+  /** Enterprise backend `PATCH /v1/projects/{id}/members/{user_id}`. */
+  public async updateMemberRole(
+    projectId: string,
+    userId: string,
+    body: BackendUpdateMemberRoleRequest,
+  ): Promise<BackendMemberResponse> {
+    return await this.backendRequest<BackendMemberResponse>(
+      "PATCH",
+      `/v1/projects/${encodePathSegment(projectId)}/members/${encodePathSegment(userId)}`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/rag-config`. */
+  public async backendGetRagConfig(projectId: string): Promise<BackendRagConfigResponse> {
+    return await this.backendRequest<BackendRagConfigResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/rag-config`,
+    );
+  }
+  /** Enterprise backend `PUT /v1/projects/{id}/rag-config`. */
+  public async backendSetRagConfig(
+    projectId: string,
+    body: BackendSetRagConfigRequest,
+  ): Promise<BackendRagConfigResponse> {
+    return await this.backendRequest<BackendRagConfigResponse>(
+      "PUT",
+      `/v1/projects/${encodePathSegment(projectId)}/rag-config`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/sandbox/extract`. */
+  public async sandboxExtract(
+    projectId: string,
+    params: BackendSandboxExtractParams,
+  ): Promise<BackendSandboxExtractResponse> {
+    return await this.backendRequest<BackendSandboxExtractResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/sandbox/extract`,
+      { body: sandboxForm(params) },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/usage`. */
+  public async getUsage(projectId: string, params: BackendDateRange): Promise<BackendUsageResponse> {
+    return await this.backendRequest<BackendUsageResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/usage`,
+      { params: { start_date: params.startDate, end_date: params.endDate } },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/webhooks`. */
+  public async listWebhooks(projectId: string, params: PaginationParams = {}): Promise<BackendListWebhooksResponse> {
+    return await this.backendRequest<BackendListWebhooksResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/webhooks`. */
+  public async createWebhook(projectId: string, body: BackendCreateWebhookRequest): Promise<BackendWebhookResponse> {
+    return await this.backendRequest<BackendWebhookResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/webhooks/{wh_id}`. */
+  public async deleteWebhook(projectId: string, webhookId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}`,
+    );
+  }
+  /** Enterprise backend `PATCH /v1/projects/{id}/webhooks/{wh_id}`. */
+  public async updateWebhook(
+    projectId: string,
+    webhookId: string,
+    body: BackendUpdateWebhookRequest,
+  ): Promise<BackendWebhookResponse> {
+    return await this.backendRequest<BackendWebhookResponse>(
+      "PATCH",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/webhooks/{wh_id}/deliveries`. */
+  public async listWebhookDeliveries(
+    projectId: string,
+    webhookId: string,
+    params: PaginationParams = {},
+  ): Promise<BackendListWebhookDeliveriesResponse> {
+    return await this.backendRequest<BackendListWebhookDeliveriesResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}/deliveries`,
+      { params: { limit: params.limit, offset: params.offset } },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry`. */
+  public async retryWebhookDelivery(
+    projectId: string,
+    webhookId: string,
+    deliveryId: string,
+  ): Promise<BackendRetryWebhookDeliveryResponse> {
+    return await this.backendRequest<BackendRetryWebhookDeliveryResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}/deliveries/${encodePathSegment(deliveryId)}/retry`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/webhooks/{wh_id}/test`. */
+  public async testWebhook(projectId: string, webhookId: string): Promise<BackendWebhookTestResponse> {
+    return await this.backendRequest<BackendWebhookTestResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}/test`,
+    );
+  }
+  /** Enterprise backend `POST /v1/sandbox/public/extract`. */
+  public async publicSandboxExtract(params: PublicSandboxExtractParams): Promise<BackendSandboxExtractResponse> {
+    return await this.backendRequest<BackendSandboxExtractResponse>("POST", `/v1/sandbox/public/extract`, {
+      body: sandboxForm(params),
+      ...(params.sandboxToken !== undefined ? { sandboxToken: params.sandboxToken } : {}),
+      backendPublic: true,
     });
   }
 
@@ -369,7 +812,7 @@ export class XbergClient {
 
   /** Fetch the current state of a job. */
   public async getJob(jobId: string): Promise<Job> {
-    return await this.requestJson<Job>("GET", `${JOBS_PATH}/${encodeURIComponent(jobId)}`);
+    return await this.requestJson<Job>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}`);
   }
 
   /**
@@ -380,7 +823,7 @@ export class XbergClient {
    * returns the job's metadata record.
    */
   public async getJobResult(jobId: string): Promise<JobResult> {
-    return await this.requestJson<JobResult>("GET", `${JOBS_PATH}/${encodeURIComponent(jobId)}/result`);
+    return await this.requestJson<JobResult>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}/result`);
   }
 
   /** List jobs (paginated) via `GET /v1/jobs`. */
@@ -396,7 +839,7 @@ export class XbergClient {
    * `204`.
    */
   public async cancelJob(jobId: string): Promise<void> {
-    await this.requestJson("DELETE", `${JOBS_PATH}/${encodeURIComponent(jobId)}`);
+    await this.requestJson("DELETE", `${JOBS_PATH}/${encodePathSegment(jobId)}`);
   }
 
   /**
@@ -471,7 +914,7 @@ export class XbergClient {
 
   /** Fetch one curated preset in full (`GET /v1/presets/{id}`). */
   public async getPreset(presetId: string): Promise<PresetDetail> {
-    return await this.requestJson<PresetDetail>("GET", `/v1/presets/${encodeURIComponent(presetId)}`);
+    return await this.requestJson<PresetDetail>("GET", `/v1/presets/${encodePathSegment(presetId)}`);
   }
 
   /**
@@ -480,7 +923,7 @@ export class XbergClient {
    * JSON.
    */
   public async getPresetSample(presetId: string, name: string): Promise<Uint8Array> {
-    const path = `/v1/presets/${encodeURIComponent(presetId)}/sample/${encodeURIComponent(name)}`;
+    const path = `/v1/presets/${encodePathSegment(presetId)}/sample/${encodePathSegment(name)}`;
     return await this.requestBytes("GET", path);
   }
 
@@ -498,17 +941,17 @@ export class XbergClient {
 
   /** Fetch a RAG collection (`GET /v1/rag/collections/{name}`). */
   public async getRagCollection(name: string): Promise<unknown> {
-    return await this.requestJson("GET", `/v1/rag/collections/${encodeURIComponent(name)}`);
+    return await this.requestJson("GET", `/v1/rag/collections/${encodePathSegment(name)}`);
   }
 
   /** Delete a RAG collection (`DELETE /v1/rag/collections/{name}`). The spec documents a 204 with no content. */
   public async deleteRagCollection(name: string): Promise<void> {
-    await this.requestJson("DELETE", `/v1/rag/collections/${encodeURIComponent(name)}`);
+    await this.requestJson("DELETE", `/v1/rag/collections/${encodePathSegment(name)}`);
   }
 
   /** Add documents to a RAG collection (`POST /v1/rag/collections/{name}/documents`). */
   public async addRagDocuments(name: string, body: Record<string, unknown>): Promise<unknown> {
-    return await this.requestJson("POST", `/v1/rag/collections/${encodeURIComponent(name)}/documents`, { json: body });
+    return await this.requestJson("POST", `/v1/rag/collections/${encodePathSegment(name)}/documents`, { json: body });
   }
 
   /**
@@ -518,38 +961,38 @@ export class XbergClient {
    * many documents were removed.
    */
   public async deleteRagDocuments(name: string, body: Record<string, unknown>): Promise<unknown> {
-    return await this.requestJson("DELETE", `/v1/rag/collections/${encodeURIComponent(name)}/documents`, {
+    return await this.requestJson("DELETE", `/v1/rag/collections/${encodePathSegment(name)}/documents`, {
       json: body,
     });
   }
 
   /** Reindex a RAG document (`POST /v1/rag/collections/{name}/documents/{id}/reindex`). */
   public async reindexRagDocument(name: string, documentId: string, body?: Record<string, unknown>): Promise<unknown> {
-    const path = `/v1/rag/collections/${encodeURIComponent(name)}/documents/${encodeURIComponent(documentId)}/reindex`;
+    const path = `/v1/rag/collections/${encodePathSegment(name)}/documents/${encodePathSegment(documentId)}/reindex`;
     return await this.requestJson("POST", path, body !== undefined ? { json: body } : {});
   }
 
   /** Retrieve chunks from a RAG collection (`POST /v1/rag/collections/{name}/retrieve`). */
   public async ragRetrieve(name: string, body: Record<string, unknown>): Promise<unknown> {
-    return await this.requestJson("POST", `/v1/rag/collections/${encodeURIComponent(name)}/retrieve`, { json: body });
+    return await this.requestJson("POST", `/v1/rag/collections/${encodePathSegment(name)}/retrieve`, { json: body });
   }
 
   /** Kick off an embedding migration (`POST /v1/rag/collections/{name}/migrate-embeddings`). */
   public async migrateRagEmbeddings(name: string, body: Record<string, unknown>): Promise<unknown> {
-    return await this.requestJson("POST", `/v1/rag/collections/${encodeURIComponent(name)}/migrate-embeddings`, {
+    return await this.requestJson("POST", `/v1/rag/collections/${encodePathSegment(name)}/migrate-embeddings`, {
       json: body,
     });
   }
 
   /** Poll an embedding-migration job (`GET .../migrate-embeddings/{jobId}`). */
   public async getRagMigrationJob(name: string, jobId: string): Promise<unknown> {
-    const path = `/v1/rag/collections/${encodeURIComponent(name)}/migrate-embeddings/${encodeURIComponent(jobId)}`;
+    const path = `/v1/rag/collections/${encodePathSegment(name)}/migrate-embeddings/${encodePathSegment(jobId)}`;
     return await this.requestJson("GET", path);
   }
 
   /** Fetch a RAG job's status (`GET /v1/rag/jobs/{jobId}`). */
   public async getRagJob(jobId: string): Promise<unknown> {
-    return await this.requestJson("GET", `/v1/rag/jobs/${encodeURIComponent(jobId)}`);
+    return await this.requestJson("GET", `/v1/rag/jobs/${encodePathSegment(jobId)}`);
   }
 
   // -- Shared saved presets ----------------------------------------------
@@ -681,13 +1124,13 @@ export class XbergClient {
   /** Pro only: fetch a project's RAG config (`GET /v1/projects/{projectId}/rag-config`). */
   public async getRagConfig(projectId: string): Promise<RagConfigResponse> {
     await this.requireTier("pro", "getRagConfig");
-    return this.requestJson<RagConfigResponse>("GET", `/v1/projects/${encodeURIComponent(projectId)}/rag-config`);
+    return this.requestJson<RagConfigResponse>("GET", `/v1/projects/${encodePathSegment(projectId)}/rag-config`);
   }
 
   /** Pro only: update a project's RAG config (`PUT /v1/projects/{projectId}/rag-config`). */
   public async setRagConfig(projectId: string, body: SetRagConfigRequest): Promise<RagConfigResponse> {
     await this.requireTier("pro", "setRagConfig");
-    return this.requestJson<RagConfigResponse>("PUT", `/v1/projects/${encodeURIComponent(projectId)}/rag-config`, {
+    return this.requestJson<RagConfigResponse>("PUT", `/v1/projects/${encodePathSegment(projectId)}/rag-config`, {
       json: body,
     });
   }
@@ -725,7 +1168,7 @@ export class XbergClient {
   /** Pro only: revoke an API key (`DELETE /v1/projects/{projectId}/api-keys/{keyId}`). */
   public async revokeApiKey(projectId: string, keyId: string): Promise<void> {
     await this.requireTier("pro", "revokeApiKey");
-    await this.requestJson("DELETE", `${this.projectPath(projectId)}/api-keys/${encodeURIComponent(keyId)}`);
+    await this.requestJson("DELETE", `${this.projectPath(projectId)}/api-keys/${encodePathSegment(keyId)}`);
   }
 
   /** Pro only: list a project's integrations (`GET /v1/projects/{projectId}/integrations`). */
@@ -802,7 +1245,7 @@ export class XbergClient {
     documentId: string,
   ): Promise<Uint8Array> {
     await this.requireTier("pro", "fetchIntegrationDocument");
-    const path = `${this.integrationPath(projectId, integrationId)}/documents/${encodeURIComponent(documentId)}`;
+    const path = `${this.integrationPath(projectId, integrationId)}/documents/${encodePathSegment(documentId)}`;
     return this.requestBytes("GET", path);
   }
 
@@ -862,7 +1305,7 @@ export class XbergClient {
    */
   public async getDiffJob(documentId: string, diffJobId: string): Promise<DiffResult> {
     await this.requireTier("enterprise", "getDiffJob");
-    const path = `${this.documentPath(documentId)}/diff/${encodeURIComponent(diffJobId)}`;
+    const path = `${this.documentPath(documentId)}/diff/${encodePathSegment(diffJobId)}`;
     const { status, body } = await this.requestJsonWithStatus<DiffResponse | DiffAsyncAccepted>("GET", path);
     return toDiffResult(status, body);
   }
@@ -882,7 +1325,7 @@ export class XbergClient {
    */
   public async getJobPage(jobId: string, pageNumber: number): Promise<Uint8Array> {
     await this.requireTier("enterprise", "getJobPage");
-    const path = `${JOBS_PATH}/${encodeURIComponent(jobId)}/pages/${encodeURIComponent(String(pageNumber))}`;
+    const path = `${JOBS_PATH}/${encodePathSegment(jobId)}/pages/${encodePathSegment(String(pageNumber))}`;
     return this.requestBytes("GET", path);
   }
 
@@ -895,7 +1338,7 @@ export class XbergClient {
   /** Enterprise only: fetch an enrichment job's status (`GET /v1/enrich/{jobId}`). */
   public async getEnrichStatus(jobId: string): Promise<EnrichJobStatus> {
     await this.requireTier("enterprise", "getEnrichStatus");
-    return this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodeURIComponent(jobId)}`);
+    return this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodePathSegment(jobId)}`);
   }
 
   /**
@@ -922,7 +1365,7 @@ export class XbergClient {
    * every event the caller had already handled.
    */
   public streamCrawlEvents(crawlJobId: string, options: StreamCrawlEventsOptions = {}): AsyncIterable<CrawlEvent> {
-    const path = `${CRAWL_JOBS_PATH}/${encodeURIComponent(crawlJobId)}/events`;
+    const path = `${CRAWL_JOBS_PATH}/${encodePathSegment(crawlJobId)}/events`;
     const open = async (): Promise<Response> => {
       await this.requireTier("enterprise", "streamCrawlEvents");
       return this.openEventStream(path, options.signal);
@@ -953,27 +1396,27 @@ export class XbergClient {
 
   /** Build `/v1/projects/{projectId}` with the id percent-encoded. */
   private projectPath(projectId: string): string {
-    return `/v1/projects/${encodeURIComponent(projectId)}`;
+    return `/v1/projects/${encodePathSegment(projectId)}`;
   }
 
   /** Build `/v1/projects/{projectId}/integrations/{integrationId}`. */
   private integrationPath(projectId: string, integrationId: string): string {
-    return `${this.projectPath(projectId)}/integrations/${encodeURIComponent(integrationId)}`;
+    return `${this.projectPath(projectId)}/integrations/${encodePathSegment(integrationId)}`;
   }
 
   /** Build `/v1/documents/{documentId}` with the id percent-encoded. */
   private documentPath(documentId: string): string {
-    return `${DOCUMENTS_PATH}/${encodeURIComponent(documentId)}`;
+    return `${DOCUMENTS_PATH}/${encodePathSegment(documentId)}`;
   }
 
   /** Build `/v1/auto-tune/{id}` with the id percent-encoded. */
   private autoTunePath(autoTuneJobId: string): string {
-    return `${AUTO_TUNE_PATH}/${encodeURIComponent(autoTuneJobId)}`;
+    return `${AUTO_TUNE_PATH}/${encodePathSegment(autoTuneJobId)}`;
   }
 
   /** Build `/v1/tuning-profiles/{id}` with the id percent-encoded. */
   private tuningProfilePath(profileId: string): string {
-    return `${TUNING_PROFILES_PATH}/${encodeURIComponent(profileId)}`;
+    return `${TUNING_PROFILES_PATH}/${encodePathSegment(profileId)}`;
   }
 
   /**
@@ -984,7 +1427,7 @@ export class XbergClient {
   private async savedPresetsPath(presetId?: string): Promise<string> {
     const tier = await this.resolveTier();
     const base = tier === "pro" ? SAVED_PRESETS_PATH_PRO : SAVED_PRESETS_PATH_ENTERPRISE;
-    return presetId === undefined ? base : `${base}/${encodeURIComponent(presetId)}`;
+    return presetId === undefined ? base : `${base}/${encodePathSegment(presetId)}`;
   }
 
   /**
@@ -1040,6 +1483,19 @@ export class XbergClient {
         body: null,
       });
     }
+  }
+
+  private backendRequest<T>(method: string, path: string, init: RequestParts = {}): Promise<T> {
+    return this.requestJson<T>(method, path, { ...init, controlPlane: true });
+  }
+
+  private backendHeaders(init: RequestParts): Record<string, string> {
+    const headers = new Headers({ ...this.headers, ...init.headers });
+    for (const name of ["authorization", "proxy-authorization", "cookie", "x-api-key"]) headers.delete(name);
+    const token = init.backendPublic ? init.sandboxToken : this.controlPlaneToken;
+    if (token !== undefined) headers.set("Authorization", `Bearer ${token}`);
+    if (init.body instanceof FormData || init.json !== undefined) headers.delete("content-type");
+    return Object.fromEntries(headers);
   }
 
   /** Issue a request, raise on non-2xx, and decode the JSON body (undefined for empty bodies). */
@@ -1113,21 +1569,35 @@ export class XbergClient {
    * handling. Returns the raw (2xx) {@link Response}; non-2xx responses are
    * mapped to a thrown {@link XbergError} subclass.
    */
+  private prepareRequest(method: string, init: RequestParts): RequestInit {
+    const headers = init.controlPlane ? this.backendHeaders(init) : { ...this.headers, ...init.headers };
+    let body: FormData | string | Uint8Array | undefined = init.body;
+    if (init.json !== undefined) {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(init.json);
+    }
+    const requestInit: RequestInit = {
+      method,
+      headers,
+      signal: AbortSignal.timeout(this.timeoutMs),
+      ...(init.controlPlane ? ({ credentials: "omit", redirect: "manual" } as const) : {}),
+    };
+    if (body !== undefined) {
+      requestInit.body = body;
+    }
+    return requestInit;
+  }
+
   private async requestWithRetry(method: string, path: string, init: RequestParts = {}): Promise<Response> {
-    const url = `${this.baseUrl}${path}${buildQueryString(init.params)}`;
+    if (init.controlPlane && this.target === "pro") {
+      throw new XbergError("Enterprise backend methods are not available on the 'pro' tier", { status: 0, body: null });
+    }
+    const origin = init.controlPlane ? this.controlPlaneBaseUrl : this.baseUrl;
+    const url = `${origin}${path}${buildQueryString(init.params)}`;
     let attempt = 0;
     let interval = DEFAULT_RETRY_BACKOFF_BASE_MS;
     for (;;) {
-      const headers = { ...this.headers, ...init.headers };
-      let body: FormData | string | Uint8Array | undefined = init.body;
-      if (init.json !== undefined) {
-        headers["Content-Type"] = "application/json";
-        body = JSON.stringify(init.json);
-      }
-      const requestInit: RequestInit = { method, headers, signal: AbortSignal.timeout(this.timeoutMs) };
-      if (body !== undefined) {
-        requestInit.body = body;
-      }
+      const requestInit = this.prepareRequest(method, init);
 
       let response: Response;
       try {
@@ -1139,10 +1609,16 @@ export class XbergClient {
           interval = nextBackoffInterval(interval, this.retryBackoff);
           continue;
         }
+        if (init.controlPlane) {
+          throw new XbergError(`Network error contacting Enterprise control plane (${method} ${path})`, {
+            status: 0,
+            body: null,
+          });
+        }
         throw new XbergError(`Network error contacting ${url}`, { status: 0, body: null, cause });
       }
 
-      if (response.ok) {
+      if (response.ok || (init.acceptRedirect && response.status === 303)) {
         return response;
       }
 
@@ -1173,6 +1649,10 @@ export class XbergClient {
 
 /** Parts accepted by the internal request engine. */
 interface RequestParts {
+  controlPlane?: boolean;
+  backendPublic?: boolean;
+  sandboxToken?: string;
+  acceptRedirect?: boolean;
   body?: FormData | string | Uint8Array;
   json?: unknown;
   headers?: Record<string, string>;
@@ -1338,4 +1818,20 @@ export function createClient(options: CreateClientOptions = {}): XbergRawClient 
     headers,
     ...(options.fetch !== undefined ? { fetch: options.fetch } : {}),
   });
+}
+
+function sandboxForm(params: PublicSandboxExtractParams): FormData {
+  if (params.file === undefined && !(params.mode === "web" && params.url !== undefined && params.url.length > 0)) {
+    throw new XbergError("Sandbox extraction requires a file or web mode with a URL", { status: 400, body: null });
+  }
+  const form = new FormData();
+  if (params.file !== undefined) {
+    const { blob, filename } = toBlob(params.file);
+    form.append("file", blob, filename);
+  }
+  for (const name of ["mode", "preset", "url"] as const) {
+    const value = params[name];
+    if (value !== undefined) form.append(name, value);
+  }
+  return form;
 }

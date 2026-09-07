@@ -1,14 +1,15 @@
 /**
- * Friendly re-exports of the two generated schema sets.
+ * Friendly re-exports of the independently generated API, Pro and backend schema sets.
  *
  * Shared and Enterprise-only types key off `_generated/api.d.ts` (the Xberg
  * Enterprise managed API); Pro-only response types key off
- * `_generated/pro.d.ts`. The two schema sets are generated separately and never
- * merged — mirrors xberg-enterprise ADR-0072.
+ * `_generated/pro.d.ts`; Backend-prefixed types use `_generated/backend.d.ts`.
+ * Schema sets are generated separately and never merged — mirrors ADR-0072.
  */
 
 import type { components } from "./_generated/api.js";
 import type { components as proComponents } from "./_generated/pro.js";
+import type { components as backendComponents } from "./_generated/backend.js";
 
 // -- Shared surface (present in both schema sets; typed off the Enterprise API) --
 export type ExtractionOptions = components["schemas"]["ExtractionOptions"];
@@ -164,3 +165,48 @@ export const TERMINAL_JOB_STATUSES: readonly JobStatus[] = [
  * "completed but check warnings" result from a hard failure.
  */
 export const SUCCESS_JOB_STATUSES: readonly JobStatus[] = ["completed", "partial_success"] as const;
+
+export type BackendAcceptInvitationRequest = backendComponents["schemas"]["AcceptInvitationRequest"];
+export type BackendAnalyticsResponse = backendComponents["schemas"]["AnalyticsResponse"];
+export type BackendAuthConfigResponse = backendComponents["schemas"]["AuthConfigResponse"];
+export type BackendBeginConnectResponse = backendComponents["schemas"]["BeginConnectResponse"];
+export type BackendBillingResponse = backendComponents["schemas"]["BillingResponse"];
+export type BackendCheckoutResponse = backendComponents["schemas"]["CheckoutResponse"];
+export type BackendCreateApiKeyRequest = backendComponents["schemas"]["CreateApiKeyRequest"];
+export type BackendCreateApiKeyResponse = backendComponents["schemas"]["CreateApiKeyResponse"];
+/** Backend integration configuration accepts arbitrary JSON object properties. */
+export type BackendCreateIntegrationRequest = Omit<
+  backendComponents["schemas"]["CreateIntegrationRequest"],
+  "config" | "credentials"
+> & { config?: Record<string, unknown>; credentials?: Record<string, unknown> };
+export type BackendCreateInvitationRequest = backendComponents["schemas"]["CreateInvitationRequest"];
+export type BackendCreateInvitationResponse = backendComponents["schemas"]["CreateInvitationResponse"];
+export type BackendCreateProjectRequest = backendComponents["schemas"]["CreateProjectRequest"];
+export type BackendCreateWebhookRequest = backendComponents["schemas"]["CreateWebhookRequest"];
+export type BackendHealthResponse = backendComponents["schemas"]["HealthResponse"];
+export type BackendIntegrationResponse = backendComponents["schemas"]["IntegrationResponse"];
+export type BackendListApiKeysResponse = backendComponents["schemas"]["ListApiKeysResponse"];
+export type BackendListAuditEntriesResponse = backendComponents["schemas"]["ListAuditEntriesResponse"];
+export type BackendListDocumentsResponse = backendComponents["schemas"]["ListDocumentsResponse"];
+export type BackendListIntegrationsResponse = backendComponents["schemas"]["ListIntegrationsResponse"];
+export type BackendListInvitationsResponse = backendComponents["schemas"]["ListInvitationsResponse"];
+export type BackendListMembersResponse = backendComponents["schemas"]["ListMembersResponse"];
+export type BackendListProjectsResponse = backendComponents["schemas"]["ListProjectsResponse"];
+export type BackendListWebhookDeliveriesResponse = backendComponents["schemas"]["ListWebhookDeliveriesResponse"];
+export type BackendListWebhooksResponse = backendComponents["schemas"]["ListWebhooksResponse"];
+export type BackendLoginRequest = backendComponents["schemas"]["LoginRequest"];
+export type BackendLoginResponse = backendComponents["schemas"]["LoginResponse"];
+export type BackendMemberResponse = backendComponents["schemas"]["MemberResponse"];
+export type BackendPortalResponse = backendComponents["schemas"]["PortalResponse"];
+export type BackendProjectResponse = backendComponents["schemas"]["ProjectResponse"];
+export type BackendRagConfigResponse = backendComponents["schemas"]["RagConfigResponse"];
+export type BackendReadinessResponse = backendComponents["schemas"]["ReadinessResponse"];
+export type BackendRetryWebhookDeliveryResponse = backendComponents["schemas"]["RetryWebhookDeliveryResponse"];
+export type BackendSandboxExtractResponse = backendComponents["schemas"]["SandboxExtractResponse"];
+export type BackendSetRagConfigRequest = backendComponents["schemas"]["SetRagConfigRequest"];
+export type BackendUpdateMemberRoleRequest = backendComponents["schemas"]["UpdateMemberRoleRequest"];
+export type BackendUpdateProjectRequest = backendComponents["schemas"]["UpdateProjectRequest"];
+export type BackendUpdateWebhookRequest = backendComponents["schemas"]["UpdateWebhookRequest"];
+export type BackendUsageResponse = backendComponents["schemas"]["UsageResponse"];
+export type BackendWebhookResponse = backendComponents["schemas"]["WebhookResponse"];
+export type BackendWebhookTestResponse = backendComponents["schemas"]["WebhookTestResponse"];
