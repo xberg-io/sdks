@@ -163,12 +163,8 @@ def parse_arguments(argv: list[str]) -> bool:
     return CHECK_FLAG in argv
 
 
-def main(argv: list[str]) -> int:
-    """Propagate the root VERSION to every manifest, or under ``--check`` report drift without writing."""
-    check_only = parse_arguments(argv)
-    version = read_version()
-    require_all_targets_exist([PYTHON_PYPROJECT, TYPESCRIPT_PACKAGE, TYPESCRIPT_VERSION_TS, PYTHON_INIT, GO_VERSION])
-    write = not check_only
+def update_targets(version: str, *, write: bool) -> list[str]:
+    """Validate or update all manifests and return the paths with version drift."""
     drifted: list[str] = []
     if update_pyproject(PYTHON_PYPROJECT, version, write=write):
         drifted.append(str(PYTHON_PYPROJECT.relative_to(REPO_ROOT)))
@@ -180,6 +176,18 @@ def main(argv: list[str]) -> int:
         drifted.append(str(PYTHON_INIT.relative_to(REPO_ROOT)))
     if update_go_version(GO_VERSION, version, write=write):
         drifted.append(str(GO_VERSION.relative_to(REPO_ROOT)))
+
+    return drifted
+
+
+def main(argv: list[str]) -> int:
+    """Propagate the root VERSION to every manifest, or under ``--check`` report drift without writing."""
+    check_only = parse_arguments(argv)
+    version = read_version()
+    require_all_targets_exist([PYTHON_PYPROJECT, TYPESCRIPT_PACKAGE, TYPESCRIPT_VERSION_TS, PYTHON_INIT, GO_VERSION])
+    drifted = update_targets(version, write=False)
+    if drifted and not check_only:
+        update_targets(version, write=True)
 
     if not drifted:
         print(f"version {version} already in sync")  # noqa: T201

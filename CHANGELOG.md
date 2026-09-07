@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Validate every version target before changing manifests, preventing malformed later targets from leaving a partial bump.
+  Keep the local release version check read-only and clarify the lint alias and local-only release tag task.
+
 ## [0.4.0] - 2026-09-06
 
 ### Changed

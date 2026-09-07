@@ -70,9 +70,9 @@ tasks:
       - poly lint .
 
   lint:check:
-    desc: "Lint all code via poly (check only)"
+    desc: "Alias for lint (check only)"
     cmds:
-      - poly lint .
+      - task: lint
 
   format:
     desc: "Format all code via poly"
@@ -121,7 +121,7 @@ tasks:
       - echo "ready to tag v$(cat VERSION)"
 
   release:tag:
-    desc: "Create and push the unified release tag (vX.Y.Z) — refuses if working tree dirty"
+    desc: "Create the unified release tag (vX.Y.Z) — refuses if working tree dirty"
     cmds:
       - |
         if [ -n "$(git status --porcelain)" ]; then
@@ -143,7 +143,6 @@ tasks:
       - rm -rf packages/python/src/xberg_io_sdk/_generated_api packages/python/src/xberg_io_sdk/_generated_pro
       - rm -rf packages/python/src/xberg_io_sdk/_generated_backend
       - rm -rf packages/typescript/src/_generated
-      - rm -f packages/go/generated_api.go packages/go/generated_pro.go packages/go/generated_backend.go
       - rm -f packages/go/oapi-codegen-pro.gen.yaml packages/go/spec-pro.gen.yaml
       - rm -f packages/go/oapi-codegen-backend.gen.yaml packages/go/spec-backend.gen.yaml
       - rm -rf packages/python/dist packages/typescript/dist

@@ -17,6 +17,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "sync-versions.py"
 
@@ -112,3 +114,28 @@ def test_bumping_the_version_leaves_package_json_formatting_alone(tmp_path: Path
     assert '"version": "1.2.3"' in written
     assert '"keywords": ["one", "two"]' in written, "the bump reflowed an array it was not asked to touch"
     assert '"files": ["dist"]' in written
+
+
+def test_invalid_late_manifest_leaves_every_earlier_manifest_unchanged(tmp_path: Path) -> None:
+    build_repository(tmp_path, version="1.2.3", manifest_version="0.0.1")
+    (tmp_path / GO_VERSION_RELATIVE).write_text("package xberg\n", encoding="utf-8")
+    before = {relative: (tmp_path / relative).read_bytes() for relative in MANIFESTS}
+
+    result = run_script(tmp_path)
+
+    assert result.returncode != 0
+    assert "no `const Version` line" in result.stderr
+    assert {relative: (tmp_path / relative).read_bytes() for relative in MANIFESTS} == before
+
+
+@pytest.mark.parametrize("relative", MANIFESTS)
+def test_check_rejects_each_individual_manifest_without_repair(tmp_path: Path, relative: str) -> None:
+    build_repository(tmp_path, version="1.2.3", manifest_version="1.2.3")
+    (tmp_path / relative).write_text(MANIFESTS[relative].format(version="0.0.1"), encoding="utf-8")
+    before = {name: (tmp_path / name).read_bytes() for name in MANIFESTS}
+
+    result = run_script(tmp_path, "--check")
+
+    assert result.returncode == 1
+    assert relative in result.stderr
+    assert {name: (tmp_path / name).read_bytes() for name in MANIFESTS} == before

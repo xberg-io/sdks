@@ -12,7 +12,7 @@ tasks:
       - cat {{.VERSION_FILE}}
 
   sync:
-    desc: "Propagate VERSION to packages/python/pyproject.toml and packages/typescript/package.json"
+    desc: "Propagate VERSION to all Python, TypeScript, and Go version fields"
     cmds:
       - python3 scripts/sync-versions.py
 
