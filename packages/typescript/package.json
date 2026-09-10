@@ -48,14 +48,14 @@
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "@vitest/coverage-v8": "^4.1.7",
-    "msw": "^2.14.6",
+    "@types/node": "^25.9.5",
+    "@vitest/coverage-v8": "^4.1.11",
+    "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",
     "oxfmt": "^0.47.0",
-    "oxlint": "^1.66.0",
+    "oxlint": "^1.82.0",
     "tsdown": "^0.18.4",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.11"
   }
 }
