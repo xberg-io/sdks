@@ -12,7 +12,7 @@ cd "$package_dir/consumer"
 export GOWORK=off
 go mod init consumer.example/sdk
 go mod edit -replace "github.com/xberg-io/sdks/packages/go=$package_dir/sdk"
-cat > main.go <<'GO'
+cat >main.go <<'GO'
 package main
 
 import xberg "github.com/xberg-io/sdks/packages/go"
