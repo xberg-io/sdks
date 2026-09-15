@@ -54,6 +54,10 @@ format.docstring-code-format = true
 lint.select = ["ALL"]
 lint.ignore = [
   "ANN401",
+  # ~keep ruff 0.16 promoted CPY001 into `ALL`. This project carries its licence in the
+  # root LICENSE file rather than a per-file header, so the rule fires on every source
+  # file and asks for a convention the repo deliberately does not use.
+  "CPY001",
   "ASYNC109",
   "ASYNC110",
   "BLE001",

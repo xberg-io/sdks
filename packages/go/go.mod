@@ -1,10 +1,11 @@
 module github.com/xberg-io/sdks/packages/go
 
-go 1.26
+go 1.26.0
 
 require (
-	github.com/oapi-codegen/runtime v1.6.0
-	golang.org/x/sync v0.22.0
+	github.com/google/uuid v1.6.0
+	github.com/oapi-codegen/runtime v1.7.0
+	golang.org/x/sync v0.23.0
 )
 
 require (
@@ -13,7 +14,6 @@ require (
 	github.com/getkin/kin-openapi v0.142.0 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.0 // indirect
 	github.com/oasdiff/yaml v0.1.1 // indirect
 	github.com/oasdiff/yaml3 v0.0.14 // indirect
