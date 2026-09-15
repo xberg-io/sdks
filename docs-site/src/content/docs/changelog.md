@@ -10,6 +10,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-15
+
+### Added
+
+- Client methods for seven operations the specifications describe and no client reached: the
+  auto-tune stop verb and managed embedding presets on both tiers, Pro's license read and its
+  local-upload leg, webhook delivery history on the Enterprise data plane, and a single delivery
+  read on the Enterprise control plane.
+- The generated API reference is now gated in CI. It is produced from the client sources and also
+  fails when the three languages' method surfaces diverge, but nothing ran it, so either could land
+  unnoticed.
+
+### Changed
+
+- **Breaking.** Listing integration documents takes `limit` and `offset` in place of `max_results`,
+  following the upstream route. Every client had continued to send `max_results`, which the service
+  no longer accepts; the Python and TypeScript suites stayed green because they assert against mocks
+  that echo whatever the client sends.
+- **Breaking (Go).** Enum constants generated from the Pro and control-plane schema sets are now
+  prefixed with their type — `ApiKeyScopeRead` rather than `Read`. Two schema sets had begun
+  emitting the same constant names into one package. The Enterprise set, which owns 141 of the 147
+  constants, is deliberately left unprefixed.
+- The `JobResponse` schema is now `ExtractionJobResponse`. Each language keeps the previous public
+  name as an alias, so no caller has to change.
+- All three specifications re-synced with upstream: 53 Enterprise data-plane, 67 Pro, and 49
+  Enterprise control-plane operations.
+
+### Fixed
+
+- Saved presets on Pro were routed at `/v1/saved-presets`, which Pro no longer serves. Both tiers
+  now use `/v1/saved_presets`, and the five methods no longer need a tier probe to choose a spelling.
+- `usage`, `presign_upload`, `confirm_upload`, `get_job_page`, `submit_enrich`, `get_enrich_status`
+  and `stream_crawl_events` were gated to Enterprise in all three clients. Every one is served by
+  Pro, and was before this release, so Pro callers had been refused seven working endpoints. The
+  package READMEs and tier documentation that described the refusal as intended are corrected with
+  them.
+- Two gates were passing without examining anything. The control-plane coverage assertion hard-coded
+  48 of 48 operations, so a specification gaining a 49th turned a coverage *gain* into a failure; it
+  now derives the count and refuses a specification with no operations. Six Go tier-probe tests used
+  `Usage()` purely as the vehicle for exercising the gate, so ungating it would have left them green
+  while testing nothing; they now probe an operation Pro genuinely lacks.
+
 ## [0.5.0] - 2026-09-07
 
 ### Added
@@ -286,7 +328,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xberg-io/sdks/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xberg-io/sdks/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xberg-io/sdks/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/xberg-io/sdks/compare/v0.3.0...v0.3.1
