@@ -7222,7 +7222,9 @@ type OcrConfig struct {
 	// AutoRotate Automatic page rotation detection
 	AutoRotate *bool `json:"auto_rotate,omitempty"`
 
-	// Backend OCR backend: only "tesseract" is supported; any other value is rejected at the API.
+	// Backend OCR backend name. Must be one this deployment has compiled in and
+	// registered; the accepted set is deployment-dependent and is rejected
+	// with a 400 when not recognized.
 	Backend *string `json:"backend,omitempty"`
 
 	// ElementConfig Structured OCR element extraction
@@ -7348,7 +7350,9 @@ type OcrPipelineConfig struct {
 
 // OcrPipelineStage Single backend stage in the OCR pipeline.
 type OcrPipelineStage struct {
-	// Backend Backend name: only "tesseract" is supported; any other value is rejected at the API boundary.
+	// Backend Backend name for this pipeline stage. Must be one this deployment has
+	// compiled in and registered; the accepted set is deployment-dependent
+	// and is rejected with a 400 when not recognized.
 	Backend string `json:"backend"`
 
 	// Language Language override for this stage
