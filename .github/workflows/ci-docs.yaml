@@ -8,6 +8,9 @@ on:
       - "spec/**"
       - "tasks/docs.yml"
       - "scripts/generate-reference.py"
+      - "packages/python/src/**"
+      - "packages/typescript/src/**"
+      - "packages/go/*.go"
       - "pnpm-lock.yaml"
       - ".textlintrc.json"
       - ".textlintignore"
@@ -20,6 +23,9 @@ on:
       - "spec/**"
       - "tasks/docs.yml"
       - "scripts/generate-reference.py"
+      - "packages/python/src/**"
+      - "packages/typescript/src/**"
+      - "packages/go/*.go"
       - "pnpm-lock.yaml"
       - ".textlintrc.json"
       - ".textlintignore"
@@ -41,6 +47,30 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The per-language reference pages are generated from the client sources by
+  # scripts/generate-reference.py, which also fails when the three languages'
+  # method surfaces diverge. Nothing in CI ran it, so a client change could land
+  # a stale reference -- and a divergence -- without any job going red.
+  reference:
+    name: reference / Check generated pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Pin Python
+        run: uv python install 3.10
+      - name: Install task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install deps
+        run: uv sync
+      - name: Fail if the generated API reference is stale
+        run: task docs:reference:check
+
   docs:
     uses: xberg-io/actions/.github/workflows/reusable-docs-deploy.yml@v1
     with:
