@@ -10,15 +10,6 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// DefaultEnterpriseBaseURL is the production endpoint of the Xberg Enterprise
-// API. It is the default base URL for the enterprise target (and when no target
-// is given); the Pro target ships no default and requires an explicit base URL.
-const DefaultEnterpriseBaseURL = "https://api.xberg.io"
-
-// DefaultBaseURL is retained as an alias of [DefaultEnterpriseBaseURL] for
-// callers written against the single-target client.
-const DefaultBaseURL = DefaultEnterpriseBaseURL
-
 const userAgent = "xberg-io-sdk-go/" + Version
 
 // Target selects which product a [Client] talks to. When unset the tier is
@@ -26,7 +17,7 @@ const userAgent = "xberg-io-sdk-go/" + Version
 type Target string
 
 const (
-	// TargetEnterprise selects Xberg Enterprise (defaults the base URL).
+	// TargetEnterprise selects Xberg Enterprise.
 	TargetEnterprise Target = "enterprise"
 	// TargetPro selects Xberg Pro (requires an explicit base URL).
 	TargetPro Target = "pro"
@@ -35,8 +26,7 @@ const (
 // Option configures a Client constructed via New.
 type Option func(*clientConfig)
 
-// WithBaseURL overrides the base URL of the API. For the enterprise target it
-// defaults to [DefaultEnterpriseBaseURL]; the Pro target requires it.
+// WithBaseURL sets the base URL of the self-hosted API deployment.
 func WithBaseURL(u string) Option {
 	return func(c *clientConfig) {
 		c.baseURL = u
@@ -124,9 +114,8 @@ type Client struct {
 	tierGroup  singleflight.Group
 }
 
-// New constructs a Client. With no options it targets the Enterprise production
-// API. Selecting [TargetPro] without a base URL is a configuration error, since
-// the Pro spec ships no default server.
+// New constructs a Client. Both products are self-hosted, so callers must pass
+// [WithBaseURL] with the deployment's data-plane URL.
 func New(opts ...Option) (*Client, error) {
 	cfg := clientConfig{
 		userAgent: userAgent,
@@ -146,9 +135,7 @@ func New(opts ...Option) (*Client, error) {
 	return &Client{cfg: cfg}, nil
 }
 
-// resolveBaseURL enforces the base-URL policy: an explicit empty base URL is
-// rejected; an unset base URL defaults to Enterprise unless the Pro target is
-// selected, which has no default.
+// resolveBaseURL enforces the base-URL policy for both self-hosted products.
 func resolveBaseURL(cfg *clientConfig) error {
 	if cfg.baseURLSet {
 		if cfg.baseURL == "" {
@@ -156,14 +143,7 @@ func resolveBaseURL(cfg *clientConfig) error {
 		}
 		return nil
 	}
-	if cfg.target == TargetPro {
-		return fmt.Errorf(
-			"xberg: Xberg Pro has no default base URL (its spec ships no servers block); " +
-				"pass WithBaseURL pointing at your Pro instance",
-		)
-	}
-	cfg.baseURL = DefaultEnterpriseBaseURL
-	return nil
+	return fmt.Errorf("xberg: no default base URL; pass WithBaseURL pointing at your deployment")
 }
 
 // resolveControlPlaneBaseURL defaults the control-plane origin to the data-plane

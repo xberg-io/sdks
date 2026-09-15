@@ -11,8 +11,8 @@ raise a clear error instead of a raw 404 when invoked against the wrong tier.
 
 Both products authenticate identically: ``Authorization: Bearer {api_key}`` —
 Enterprise uses a ``kz_`` project key, Pro accepts a ``kz_`` key or an OIDC
-session JWT. Enterprise defaults ``base_url`` to ``https://api.xberg.io``; Pro
-has no default (its spec ships no servers block) and requires an explicit one.
+session JWT. Both products are self-hosted and require the deployment's
+``base_url``.
 
 Enterprise splits into two binaries — the data plane ``base_url`` addresses and
 a control plane (projects, API keys, integrations) on its own origin — while Pro
@@ -196,7 +196,6 @@ if TYPE_CHECKING:
     else:
         from typing_extensions import Self
 
-DEFAULT_ENTERPRISE_BASE_URL = "https://api.xberg.io"
 DEFAULT_TIMEOUT_SECONDS = 30.0
 
 
@@ -664,16 +663,15 @@ def _next_interval(current: float, backoff: BackoffStrategy) -> float:
 
 
 def _resolve_base_url(base_url: str | None, target: Target | None) -> str:
-    """Resolve the effective base URL, enforcing that Pro requires an explicit one."""
-    if base_url is not None:
-        return base_url.rstrip("/")
-    if target == "pro":
-        raise XbergError(
-            "Xberg Pro has no default base_url (its spec ships no servers block); "
-            "pass base_url=... pointing at your Pro instance.",
-            status_code=None,
-        )
-    return DEFAULT_ENTERPRISE_BASE_URL
+    """Resolve the deployer's base URL; neither self-hosted product has a default."""
+    resolved = base_url.rstrip("/") if base_url is not None else ""
+    if resolved:
+        return resolved
+    product = "Xberg Pro" if target == "pro" else "Xberg Enterprise" if target == "enterprise" else "Xberg"
+    raise XbergError(
+        f"{product} has no default base_url; pass base_url=... pointing at your deployment.",
+        status_code=None,
+    )
 
 
 def _resolve_control_plane_base_url(control_plane_base_url: str | None, base_url: str) -> str:
@@ -774,7 +772,7 @@ class _BaseClient:
 class XbergClient(_BaseClient):
     """Synchronous client for Xberg Enterprise and Xberg Pro.
 
-    >>> with XbergClient(api_key="kz_...") as client:  # doctest: +SKIP
+    >>> with XbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:  # doctest: +SKIP
     ...     job = client.extract(file=Path("invoice.pdf"))
     ...     result = client.wait_for_job(str(job.id))
     """
@@ -1946,7 +1944,7 @@ class AsyncXbergClient(_BaseClient):
 
     Mirrors :class:`XbergClient` method-for-method; everything is awaitable.
 
-    >>> async with AsyncXbergClient(api_key="kz_...") as client:  # doctest: +SKIP
+    >>> async with AsyncXbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:  # doctest: +SKIP
     ...     result = await client.extract_and_wait(file=Path("invoice.pdf"))
     """
 

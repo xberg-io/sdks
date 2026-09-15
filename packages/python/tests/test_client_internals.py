@@ -103,14 +103,14 @@ def test_wait_for_job_failure_without_detail_key_has_no_suffix(base_url: str, ap
 
 
 def test_custom_headers_are_merged_with_defaults() -> None:
-    with XbergClient(api_key="k", headers={"X-Trace-Id": "abc123"}) as client:
+    with XbergClient(api_key="k", base_url="https://api.example.test", headers={"X-Trace-Id": "abc123"}) as client:
         assert client._headers["X-Trace-Id"] == "abc123"
         assert client._headers["Authorization"] == "Bearer k"
         assert "User-Agent" in client._headers
 
 
 def test_custom_headers_can_override_default_user_agent() -> None:
-    with XbergClient(headers={"User-Agent": "custom-agent/1.0"}) as client:
+    with XbergClient(base_url="https://api.example.test", headers={"User-Agent": "custom-agent/1.0"}) as client:
         assert client._headers["User-Agent"] == "custom-agent/1.0"
 
 
@@ -228,13 +228,16 @@ async def test_request_json_returns_none_for_204_async(base_url: str, api_key: s
 
 
 def test_extract_batch_sync_with_no_files_raises() -> None:
-    with XbergClient(api_key="k") as client, pytest.raises(XbergError, match="no files"):
+    with (
+        XbergClient(api_key="k", base_url="https://api.example.test") as client,
+        pytest.raises(XbergError, match="no files"),
+    ):
         client.extract_batch([])
 
 
 @pytest.mark.asyncio
 async def test_extract_batch_async_with_no_files_raises() -> None:
-    async with AsyncXbergClient(api_key="k") as client:
+    async with AsyncXbergClient(api_key="k", base_url="https://api.example.test") as client:
         with pytest.raises(XbergError, match="no files"):
             await client.extract_batch([])
 

@@ -45,11 +45,11 @@ async def test_lineage_is_canonical_and_precedes_file(asynchronous: bool, base_u
 async def test_lineage_invalid_inputs_do_not_read_upload(asynchronous: bool, ids, message: str) -> None:
     stream = io.BytesIO(b"unchanged")
     if asynchronous:
-        async with AsyncXbergClient(target="enterprise") as client:
+        async with AsyncXbergClient(target="enterprise", base_url="https://enterprise.example.test") as client:
             with pytest.raises(XbergError, match=message):
                 await client.extract_batch([stream], document_ids=ids)
     else:
-        with XbergClient(target="enterprise") as client:
+        with XbergClient(target="enterprise", base_url="https://enterprise.example.test") as client:
             with pytest.raises(XbergError, match=message):
                 client.extract_batch([stream], document_ids=ids)
     assert stream.tell() == 0
@@ -62,11 +62,11 @@ async def test_lineage_invalid_inputs_do_not_read_upload(asynchronous: bool, ids
 @respx.mock
 async def test_conflicting_duplicate_filenames_are_rejected(asynchronous: bool, ids) -> None:
     if asynchronous:
-        async with AsyncXbergClient(target="enterprise") as client:
+        async with AsyncXbergClient(target="enterprise", base_url="https://enterprise.example.test") as client:
             with pytest.raises(XbergError, match="filename"):
                 await client.extract_batch([b"a", b"b"], document_ids=ids)
     else:
-        with XbergClient(target="enterprise") as client:
+        with XbergClient(target="enterprise", base_url="https://enterprise.example.test") as client:
             with pytest.raises(XbergError, match="filename"):
                 client.extract_batch([b"a", b"b"], document_ids=ids)
     assert len(respx.calls) == 0

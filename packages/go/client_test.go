@@ -7,17 +7,14 @@ import (
 	"testing"
 )
 
-func TestNew_DefaultsApply(t *testing.T) {
+func TestNew_RequiresBaseURL(t *testing.T) {
 	t.Parallel()
-	c, err := New()
-	if err != nil {
-		t.Fatalf("New() returned error: %v", err)
+	_, err := New()
+	if err == nil {
+		t.Fatalf("New() returned nil error, want a base-URL error")
 	}
-	if got, want := c.BaseURL(), DefaultBaseURL; got != want {
-		t.Errorf("BaseURL = %q, want %q", got, want)
-	}
-	if c.HTTPClient() == nil {
-		t.Errorf("HTTPClient() = nil, want non-nil")
+	if got, want := err.Error(), "xberg: no default base URL; pass WithBaseURL pointing at your deployment"; got != want {
+		t.Errorf("error = %q, want %q", got, want)
 	}
 }
 
@@ -42,7 +39,7 @@ func TestNew_RejectsEmptyBaseURL(t *testing.T) {
 
 func TestAuthorize_SetsAuthorizationHeader(t *testing.T) {
 	t.Parallel()
-	c, err := New(WithAPIKey("secret"))
+	c, err := New(WithBaseURL("https://api.example.test"), WithAPIKey("secret"))
 	if err != nil {
 		t.Fatalf("New() returned error: %v", err)
 	}
@@ -60,7 +57,7 @@ func TestAuthorize_SetsAuthorizationHeader(t *testing.T) {
 
 func TestAuthorize_OmitsAuthorizationWhenNoKey(t *testing.T) {
 	t.Parallel()
-	c, err := New()
+	c, err := New(WithBaseURL("https://api.example.test"))
 	if err != nil {
 		t.Fatalf("New() returned error: %v", err)
 	}
@@ -76,7 +73,7 @@ func TestAuthorize_OmitsAuthorizationWhenNoKey(t *testing.T) {
 func TestWithHTTPClient_OverridesDefault(t *testing.T) {
 	t.Parallel()
 	custom := &http.Client{}
-	c, err := New(WithHTTPClient(custom))
+	c, err := New(WithBaseURL("https://api.example.test"), WithHTTPClient(custom))
 	if err != nil {
 		t.Fatalf("New() returned error: %v", err)
 	}
@@ -87,7 +84,7 @@ func TestWithHTTPClient_OverridesDefault(t *testing.T) {
 
 func TestWithUserAgent_OverridesDefault(t *testing.T) {
 	t.Parallel()
-	c, err := New(WithUserAgent("custom-ua/1.0"))
+	c, err := New(WithBaseURL("https://api.example.test"), WithUserAgent("custom-ua/1.0"))
 	if err != nil {
 		t.Fatalf("New() returned error: %v", err)
 	}

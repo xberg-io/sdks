@@ -8,9 +8,11 @@ expect_stdout: "Subscription canceled"
 ```ts title="TypeScript"
 import { XbergClient } from "@xberg-io/sdk";
 
+const baseUrl = process.env.XBERG_BASE_URL;
+if (!baseUrl) throw new Error("Set XBERG_BASE_URL to your deployment URL");
 const client = new XbergClient({
   apiKey: process.env.XBERG_API_KEY,
-  baseUrl: process.env.XBERG_BASE_URL,
+  baseUrl,
   target: "enterprise",
   timeoutMs: 500,
 });

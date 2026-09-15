@@ -18,7 +18,7 @@ vars:
   # Already YAML upstream; still piped through yq so all three vendored copies
   # carry the same key ordering and quoting and drift diffs stay readable.
   UPSTREAM_BACKEND_LOCAL: '{{.UPSTREAM_ROOT}}/frontend/openapi-backend.yaml'
-  UPSTREAM_API_URL: '{{.XBERG_ENTERPRISE_URL | default "https://api.xberg.io"}}/api-doc/openapi.json'
+  UPSTREAM_API_URL: "{{.XBERG_ENTERPRISE_URL}}/api-doc/openapi.json"
 
 tasks:
   coverage:
@@ -36,6 +36,9 @@ tasks:
 
   fetch:remote:
     desc: "Refresh the Enterprise spec from a running xberg-enterprise API server"
+    preconditions:
+      - sh: 'test -n "{{.XBERG_ENTERPRISE_URL}}"'
+        msg: "Set XBERG_ENTERPRISE_URL to the base URL of your Enterprise deployment"
     cmds:
       - curl -fsSL {{.UPSTREAM_API_URL}} | yq -P -oy '.' > {{.API_SPEC}}
       - git diff --stat {{.API_SPEC}} || true

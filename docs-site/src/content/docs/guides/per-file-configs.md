@@ -50,7 +50,7 @@ from pathlib import Path
 
 from xberg_io_sdk import XbergClient
 
-with XbergClient(api_key="kz_...", base_url="https://api.xberg.io") as client:
+with XbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:
     # One document, one override.
     job = client.extract(
         file=Path("invoice.pdf"),
@@ -160,7 +160,7 @@ import base64
 import httpx
 
 response = httpx.post(
-    "https://api.xberg.io/v1/extract",
+    "https://xberg.example.com/v1/extract",
     headers={"Authorization": "Bearer kz_..."},
     json={
         "documents": [

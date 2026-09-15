@@ -61,8 +61,8 @@ Requires Python 3.10+.
 from pathlib import Path
 from xberg_io_sdk import XbergClient
 
-# Enterprise (base_url defaults to https://api.xberg.io)
-with XbergClient(api_key="kz_...") as client:
+# Enterprise and Pro are self-hosted; pass your deployment URL.
+with XbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:
     job = client.extract_and_wait(file=Path("invoice.pdf"))
     if job.result is not None:
         print(job.result.content)
@@ -70,7 +70,7 @@ with XbergClient(api_key="kz_...") as client:
 
 ### Connecting to Xberg Pro
 
-Pro is self-hosted and has no default URL — pass `base_url` (and, to skip the
+Both products have no default URL — pass `base_url` (and, to skip the
 `/healthz` tier probe, `target="pro"`):
 
 ```python
@@ -92,7 +92,7 @@ from pathlib import Path
 from xberg_io_sdk import AsyncXbergClient
 
 async def main() -> None:
-    async with AsyncXbergClient(api_key="kz_...") as client:
+    async with AsyncXbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:
         jobs = await client.extract_batch([Path("a.pdf"), Path("b.pdf"), Path("c.pdf")])
         results = await client.wait_for_jobs([str(j.id) for j in jobs])
         for job in results:
@@ -106,6 +106,7 @@ asyncio.run(main())
 One `XbergClient` (sync) / `AsyncXbergClient` (async) serves both products.
 Constructor: `(api_key=None, base_url=None, target=None, timeout=30,
 headers=None, retries=0, retry_on=..., retry_backoff="exponential")`.
+`base_url` must name the deployment; omitting it raises `XbergError`.
 
 Shared methods (both tiers):
 

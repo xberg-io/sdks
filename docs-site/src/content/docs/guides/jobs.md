@@ -21,7 +21,7 @@ from pathlib import Path
 
 from xberg_io_sdk import XbergClient
 
-with XbergClient(api_key="kz_...") as client:
+with XbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:
     job = client.extract(file=Path("invoice.pdf"))
     job = client.get_job(job.id)
     print(job.status)
@@ -30,7 +30,7 @@ with XbergClient(api_key="kz_...") as client:
 ```ts title="TypeScript"
 import { XbergClient } from "@xberg-io/sdk";
 
-const client = new XbergClient({ apiKey: process.env.XBERG_API_KEY! });
+const client = new XbergClient({ baseUrl: "https://xberg.example.com", apiKey: process.env.XBERG_API_KEY! });
 
 const job = await client.extract({ file: { name: "invoice.pdf", data, mimeType: "application/pdf" } });
 const current = await client.getJob(job.id);

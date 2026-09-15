@@ -29,23 +29,18 @@ function recordingFetch(): { fetchImpl: typeof fetch; urls: string[] } {
 // -- base-url policy ----------------------------------------------------------
 
 describe("base-url policy", () => {
-  it("defaults the base URL to https://api.xberg.io for the enterprise target", async () => {
-    const { fetchImpl, urls } = recordingFetch();
-    const client = new XbergClient({ apiKey: "k", target: "enterprise", fetch: fetchImpl });
-    await client.listRagCollections();
-    expect(urls[0]).toBe("https://api.xberg.io/v1/rag/collections");
+  it("rejects an empty base URL for the enterprise target", () => {
+    expect(() => new XbergClient({ baseUrl: "", target: "enterprise" })).toThrow(XbergError);
+    expect(() => new XbergClient({ baseUrl: "", target: "enterprise" })).toThrow(/no default base URL/);
   });
 
-  it("defaults to the enterprise base URL when no target is given", async () => {
-    const { fetchImpl, urls } = recordingFetch();
-    const client = new XbergClient({ apiKey: "k", fetch: fetchImpl });
-    await client.listRagCollections();
-    expect(urls[0]).toBe("https://api.xberg.io/v1/rag/collections");
+  it("rejects an empty base URL when no target is given", () => {
+    expect(() => new XbergClient({ baseUrl: "" })).toThrow(/no default base URL/);
   });
 
-  it("throws a clear error when target is pro and no base URL is provided", () => {
-    expect(() => new XbergClient({ target: "pro" })).toThrow(XbergError);
-    expect(() => new XbergClient({ target: "pro" })).toThrow(/no default base URL/);
+  it("throws a clear error when target is pro and the base URL is empty", () => {
+    expect(() => new XbergClient({ baseUrl: "", target: "pro" })).toThrow(XbergError);
+    expect(() => new XbergClient({ baseUrl: "", target: "pro" })).toThrow(/no default base URL/);
   });
 
   it("accepts an explicit pro base URL and strips a trailing slash", async () => {

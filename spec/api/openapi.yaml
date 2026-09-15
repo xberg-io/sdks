@@ -9,11 +9,6 @@ info:
   license:
     name: Proprietary
   version: 1.0.0
-servers:
-  - url: https://api.xberg.io
-    description: Production API
-  - url: https://api.staging.enterprise.xberg.io
-    description: Staging API
 paths:
   /healthz:
     get:
@@ -12531,7 +12526,10 @@ components:
           type:
             - string
             - "null"
-          description: 'OCR backend: only "tesseract" is supported; any other value is rejected at the API.'
+          description: |-
+            OCR backend name. Must be one this deployment has compiled in and
+            registered; the accepted set is deployment-dependent and is rejected
+            with a 400 when not recognized.
         element_config:
           $ref: '#/components/schemas/OcrElementConfig'
           description: Structured OCR element extraction
@@ -12724,7 +12722,10 @@ components:
       properties:
         backend:
           type: string
-          description: 'Backend name: only "tesseract" is supported; any other value is rejected at the API boundary.'
+          description: |-
+            Backend name for this pipeline stage. Must be one this deployment has
+            compiled in and registered; the accepted set is deployment-dependent
+            and is rejected with a 400 when not recognized.
         language:
           type:
             - string
@@ -16185,6 +16186,3 @@ tags:
     description: RAG ingest, document lifecycle, and collection migration endpoints
   - name: auto-tune
     description: Auto-tune job submission, polling, and tuning-profile lifecycle endpoints
-externalDocs:
-  url: https://enterprise.xberg.io
-  description: API reference and documentation

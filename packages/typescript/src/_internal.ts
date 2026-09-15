@@ -9,7 +9,6 @@
 
 import { XbergError } from "./errors.js";
 
-export const DEFAULT_ENTERPRISE_BASE_URL = "https://api.xberg.io";
 export const DEFAULT_RETRY_BACKOFF_CAP_MS = 30_000;
 export const DEFAULT_BACKOFF_FACTOR = 2;
 
@@ -43,19 +42,18 @@ export type QueryParams = Record<string, string | number | undefined>;
 export type FileLike = File | Blob | Uint8Array | { name?: string; data: Blob | Uint8Array; mimeType?: string };
 
 /**
- * Resolve the effective base URL, enforcing that Pro requires an explicit one.
+ * Resolve the deployer's base URL; neither self-hosted product has a default.
  */
 export function resolveBaseUrl(baseUrl: string | undefined, target: Target | undefined): string {
-  if (baseUrl !== undefined) {
-    return baseUrl.replace(/\/+$/, "");
+  const resolved = baseUrl?.replace(/\/+$/, "");
+  if (resolved !== undefined && resolved.length > 0) {
+    return resolved;
   }
-  if (target === "pro") {
-    throw new XbergError(
-      "Xberg Pro has no default base URL (its spec ships no servers block); pass baseUrl pointing at your Pro instance.",
-      { status: 0, body: null },
-    );
-  }
-  return DEFAULT_ENTERPRISE_BASE_URL;
+  const product = target === "pro" ? "Xberg Pro" : target === "enterprise" ? "Xberg Enterprise" : "Xberg";
+  throw new XbergError(`${product} has no default base URL; pass baseUrl pointing at your deployment.`, {
+    status: 0,
+    body: null,
+  });
 }
 
 /**
