@@ -314,12 +314,6 @@ file_safety = { exclude = [
 [tools.actionlint]
 enabled = true
 
-[tools.shfmt]
-enabled = true
-
-[tools.shellcheck]
-enabled = true
-
 [tools.pydocstyle]
 enabled = true
 
