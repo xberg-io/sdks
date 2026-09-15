@@ -21,7 +21,7 @@ func main() {
     _ = xberg.JobResult{Results: &[]xberg.JobResultDocument{{
         Content: "consumer",
         Counts: xberg.JobResultCounts{Pages: 1, Tables: 1, Images: 1},
-        ProcessingWarnings: &[]xberg.JobResultWarning{{Source: "ocr", Message: "partial"}},
+        ProcessingWarnings: &[]xberg.ProcessingWarning{{Source: "ocr", Message: "partial"}},
         Metadata: map[string]interface{}{"title": "consumer"},
         Tables: []interface{}{},
         Chunks: &[]interface{}{},
