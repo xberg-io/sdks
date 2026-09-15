@@ -1,9 +1,10 @@
-"""Coverage for the Enterprise-only operations only ``spec/api/openapi.yaml`` declares.
+"""Coverage for the data-plane operations only ``spec/api/openapi.yaml`` declares, plus their neighbours.
 
-Enrichment, the latest-document read, the extraction-event feed, and the rendered page image
-are absent from the Pro spec, so every method here is gated to the ``enterprise`` tier and
-raises before touching the wire on Pro. ``GET /v1/jobs/{id}/pages/{n}`` serves ``image/png``
-and therefore comes back as raw bytes rather than a decoded model.
+The latest-document read and the extraction-event feed are absent from the Pro spec, so those
+methods are gated to the ``enterprise`` tier and raise before touching the wire on Pro.
+Enrichment and the rendered page image are NOT: both specs declare them, so they must reach
+the wire on either tier. ``GET /v1/jobs/{id}/pages/{n}`` serves ``image/png`` and therefore
+comes back as raw bytes rather than a decoded model.
 """
 
 from __future__ import annotations
@@ -185,11 +186,8 @@ def test_get_job_page_sync_returns_raw_png_bytes(base_url: str, api_key: str) ->
 @pytest.mark.parametrize(
     ("method_name", "args"),
     [
-        ("submit_enrich", ({"text": "hi"},)),
-        ("get_enrich_status", (ENRICH_JOB_ID,)),
         ("get_document", (DOCUMENT_ID,)),
         ("list_extraction_events", ()),
-        ("get_job_page", (JOB_ID, PAGE_NUMBER)),
     ],
 )
 def test_enterprise_only_methods_are_rejected_on_pro(api_key: str, method_name: str, args: tuple[object, ...]) -> None:
@@ -198,6 +196,40 @@ def test_enterprise_only_methods_are_rejected_on_pro(api_key: str, method_name: 
         pytest.raises(XbergError, match="not available on the 'pro' tier"),
     ):
         getattr(client, method_name)(*args)
+
+
+@respx.mock
+def test_submit_enrich_reaches_the_wire_on_pro(api_key: str) -> None:
+    # `POST /v1/enrich` is in the Pro spec; the client used to refuse it before any request.
+    route = respx.post(f"{PRO_URL}{ENRICH_PATH}").mock(
+        return_value=httpx.Response(202, json={"job_id": ENRICH_JOB_ID}),
+    )
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert str(client.submit_enrich({"text": "hi"}).job_id) == ENRICH_JOB_ID
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_get_enrich_status_reaches_the_wire_on_pro(api_key: str) -> None:
+    route = respx.get(f"{PRO_URL}{ENRICH_PATH}/{ENRICH_JOB_ID}").mock(
+        return_value=httpx.Response(200, json={"status": "pending"}),
+    )
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert isinstance(client.get_enrich_status(ENRICH_JOB_ID), EnrichJobStatusType0)
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_get_job_page_reaches_the_wire_on_pro(api_key: str) -> None:
+    route = respx.get(f"{PRO_URL}/v1/jobs/{JOB_ID}/pages/{PAGE_NUMBER}").mock(
+        return_value=httpx.Response(200, content=PNG_BYTES, headers={"Content-Type": "image/png"}),
+    )
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert client.get_job_page(JOB_ID, PAGE_NUMBER) == PNG_BYTES
+
+    assert route.call_count == 1
 
 
 # -- enrichment, documents, events, page images — async ------------------------
@@ -273,6 +305,138 @@ async def test_get_job_page_async_returns_raw_png_bytes(base_url: str, api_key: 
 async def test_enterprise_only_methods_are_rejected_on_pro_async(api_key: str) -> None:
     async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
         with pytest.raises(XbergError, match="not available on the 'pro' tier"):
-            await client.get_job_page(JOB_ID, PAGE_NUMBER)
+            await client.get_document(DOCUMENT_ID)
         with pytest.raises(XbergError, match="not available on the 'pro' tier"):
-            await client.submit_enrich({"text": "hi"})
+            await client.list_extraction_events()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_shared_operations_reach_the_wire_on_pro_async(api_key: str) -> None:
+    enrich = respx.post(f"{PRO_URL}{ENRICH_PATH}").mock(
+        return_value=httpx.Response(202, json={"job_id": ENRICH_JOB_ID}),
+    )
+    page = respx.get(f"{PRO_URL}/v1/jobs/{JOB_ID}/pages/{PAGE_NUMBER}").mock(
+        return_value=httpx.Response(200, content=PNG_BYTES, headers={"Content-Type": "image/png"}),
+    )
+    async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert str((await client.submit_enrich({"text": "hi"})).job_id) == ENRICH_JOB_ID
+        assert await client.get_job_page(JOB_ID, PAGE_NUMBER) == PNG_BYTES
+
+    assert enrich.call_count == 1
+    assert page.call_count == 1
+
+
+# -- GET /v1/webhooks/{id}/deliveries[/{delivery_id}] --------------------------
+
+
+WEBHOOK_ID = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+DELIVERY_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd"
+
+DELIVERY = {
+    "id": DELIVERY_ID,
+    "event_id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+    "event_type": "job.completed",
+    "job_id": JOB_ID,
+    "attempt_number": 2,
+    "success": False,
+    "duration_ms": 431,
+    "occurred_at": "2026-05-09T10:00:00Z",
+    "status_code": 503,
+    "error": "endpoint unavailable",
+}
+
+DELIVERY_LIST = {"deliveries": [DELIVERY], "total": 1, "limit": 100, "offset": 0}
+
+DELIVERY_DETAIL = {
+    "delivery": DELIVERY,
+    "request_preview": '{"job_id":"job-page-1"}',
+    "request_truncated": False,
+    "response_preview": "service unavailable",
+    "response_truncated": True,
+}
+
+
+@respx.mock
+def test_list_subscription_deliveries_sync_forwards_pagination(base_url: str, api_key: str) -> None:
+    route = respx.get(f"{base_url}/v1/webhooks/{WEBHOOK_ID}/deliveries").mock(
+        return_value=httpx.Response(200, json=DELIVERY_LIST),
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+        response = client.list_subscription_deliveries(WEBHOOK_ID, limit=100, offset=0)
+
+    assert response.total == 1
+    assert str(response.deliveries[0].id) == DELIVERY_ID
+    assert response.deliveries[0].attempt_number == 2
+    assert response.deliveries[0].success is False
+    assert route.calls.last.request.method == "GET"
+    assert route.calls.last.request.url.path == f"/v1/webhooks/{WEBHOOK_ID}/deliveries"
+    assert dict(route.calls.last.request.url.params) == {"limit": "100", "offset": "0"}
+
+
+@respx.mock
+def test_list_subscription_deliveries_sync_omits_unset_pagination(base_url: str, api_key: str) -> None:
+    route = respx.get(f"{base_url}/v1/webhooks/{WEBHOOK_ID}/deliveries").mock(
+        return_value=httpx.Response(200, json=DELIVERY_LIST),
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+        client.list_subscription_deliveries(WEBHOOK_ID)
+
+    assert dict(route.calls.last.request.url.params) == {}
+
+
+@respx.mock
+def test_get_subscription_delivery_sync(base_url: str, api_key: str) -> None:
+    route = respx.get(f"{base_url}/v1/webhooks/{WEBHOOK_ID}/deliveries/{DELIVERY_ID}").mock(
+        return_value=httpx.Response(200, json=DELIVERY_DETAIL),
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+        detail = client.get_subscription_delivery(WEBHOOK_ID, DELIVERY_ID)
+
+    assert detail.request_preview == '{"job_id":"job-page-1"}'
+    assert detail.response_truncated is True
+    assert str(detail.delivery.id) == DELIVERY_ID
+    assert route.calls.last.request.url.path == f"/v1/webhooks/{WEBHOOK_ID}/deliveries/{DELIVERY_ID}"
+
+
+@pytest.mark.parametrize(
+    ("method_name", "args"),
+    [
+        ("list_subscription_deliveries", (WEBHOOK_ID,)),
+        ("get_subscription_delivery", (WEBHOOK_ID, DELIVERY_ID)),
+    ],
+)
+def test_subscription_delivery_reads_are_rejected_on_pro(
+    api_key: str, method_name: str, args: tuple[object, ...]
+) -> None:
+    with (
+        XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client,
+        pytest.raises(XbergError, match="not available on the 'pro' tier"),
+    ):
+        getattr(client, method_name)(*args)
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_subscription_delivery_reads_async(base_url: str, api_key: str) -> None:
+    listing = respx.get(f"{base_url}/v1/webhooks/{WEBHOOK_ID}/deliveries").mock(
+        return_value=httpx.Response(200, json=DELIVERY_LIST),
+    )
+    detail = respx.get(f"{base_url}/v1/webhooks/{WEBHOOK_ID}/deliveries/{DELIVERY_ID}").mock(
+        return_value=httpx.Response(200, json=DELIVERY_DETAIL),
+    )
+    async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+        assert (await client.list_subscription_deliveries(WEBHOOK_ID, limit=5)).limit == 100
+        assert (await client.get_subscription_delivery(WEBHOOK_ID, DELIVERY_ID)).delivery.status_code == 503
+
+    assert dict(listing.calls.last.request.url.params) == {"limit": "5"}
+    assert detail.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_subscription_delivery_reads_are_rejected_on_pro_async(api_key: str) -> None:
+    async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        with pytest.raises(XbergError, match="not available on the 'pro' tier"):
+            await client.list_subscription_deliveries(WEBHOOK_ID)
+        with pytest.raises(XbergError, match="not available on the 'pro' tier"):
+            await client.get_subscription_delivery(WEBHOOK_ID, DELIVERY_ID)

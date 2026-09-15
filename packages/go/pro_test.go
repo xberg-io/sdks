@@ -63,10 +63,9 @@ func TestCreateProject_PostsRequestBody(t *testing.T) {
 		"updated_at":"2025-01-01T00:00:00Z","api_key_count":0,"webhook_count":0,
 		"total_pages_extracted":0}`, &seen)
 
-	slug := "acme"
 	project, err := client.CreateProject(context.Background(), xberg.CreateProjectRequest{
 		Name: "Acme",
-		Slug: &slug,
+		Slug: "acme",
 	})
 	if err != nil {
 		t.Fatalf("CreateProject: %v", err)
@@ -106,7 +105,7 @@ func TestListApiKeys_ReturnsTypedPage(t *testing.T) {
 	if len(page.ApiKeys) != 1 || page.ApiKeys[0].KeyPrefix != "kz_abcdefgh" {
 		t.Fatalf("page = %+v, want one key with prefix kz_abcdefgh", page)
 	}
-	if page.ApiKeys[0].Scope != xberg.Read {
+	if page.ApiKeys[0].Scope != xberg.ApiKeyScopeRead {
 		t.Errorf("Scope = %q, want read", page.ApiKeys[0].Scope)
 	}
 }
@@ -117,7 +116,7 @@ func TestCreateApiKey_ReturnsPlaintextKeyOnce(t *testing.T) {
 	client := proClient(t, http.StatusCreated, `{"id":"eeeeeeee-0000-4000-8000-000000000001","key":"kz_secret_value",
 		"key_prefix":"kz_secret","scope":"write","created_at":"2025-01-01T00:00:00Z"}`, &seen)
 
-	scope := xberg.Write
+	scope := xberg.ApiKeyScopeWrite
 	name := "ci"
 	created, err := client.CreateAPIKey(context.Background(), testProjectID, xberg.CreateApiKeyRequest{
 		Name:  &name,
@@ -277,16 +276,16 @@ func TestListIntegrationDocuments_EncodesFilters(t *testing.T) {
 	]}`, &seen)
 
 	mimeTypes := "application/pdf,text/plain"
-	maxResults := 25
+	limit := int64(25)
 	docs, err := client.ListIntegrationDocuments(context.Background(), testProjectID, testIntegrationID,
-		&xberg.ListIntegrationDocumentsParams{MimeTypes: &mimeTypes, MaxResults: &maxResults})
+		&xberg.ListIntegrationDocumentsParams{MimeTypes: &mimeTypes, Limit: &limit})
 	if err != nil {
 		t.Fatalf("ListIntegrationDocuments: %v", err)
 	}
 	if seen.path != "/v1/projects/bbbbbbbb-0000-4000-8000-000000000001/integrations/dddddddd-0000-4000-8000-000000000001/documents" {
 		t.Errorf("path = %q, want the documents route", seen.path)
 	}
-	want := "max_results=25&mime_types=application%2Fpdf%2Ctext%2Fplain"
+	want := "limit=25&mime_types=application%2Fpdf%2Ctext%2Fplain"
 	if seen.query != want {
 		t.Errorf("query = %q, want %q", seen.query, want)
 	}

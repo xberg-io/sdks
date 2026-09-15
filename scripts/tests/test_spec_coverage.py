@@ -9,6 +9,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+VERBS = ("get", "put", "post", "delete", "patch", "head", "options")
+
+
+def backend_operation_count() -> int:
+    """Count the control-plane spec's operations.
+
+    Derived rather than hard-coded: this assertion carried a stale `48` through a spec sync that
+    took the control plane to 49, so a real coverage gain rendered as a test failure.
+    """
+    from ruamel.yaml import YAML
+
+    document = YAML(typ="safe").load(ROOT / "spec" / "backend" / "openapi.yaml")
+    return sum(1 for item in document["paths"].values() for verb in item if verb.lower() in VERBS)
+
 
 def run_gate(tmp_path: Path, source: str) -> subprocess.CompletedProcess[str]:
     shutil.copytree(ROOT / "spec", tmp_path / "spec")
@@ -26,7 +40,9 @@ def test_gate_counts_every_backend_operation(tmp_path: Path) -> None:
     source = (ROOT / "packages/python/src/xberg_io_sdk/client.py").read_text()
     result = run_gate(tmp_path, source)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "backend     48/48 reached, 0 excluded" in result.stdout
+    total = backend_operation_count()
+    assert total > 0, "no backend operations parsed -- the gate would pass on an empty spec"
+    assert f"{'backend':<12}{total}/{total} reached, 0 excluded" in result.stdout
 
 
 def test_data_plane_and_comments_cannot_hide_missing_backend_operation(tmp_path: Path) -> None:

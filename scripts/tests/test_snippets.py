@@ -252,7 +252,11 @@ def test_nonregular_state_is_rejected_without_blocking_on_a_named_pipe(tmp_path:
         ],
         capture_output=True,
         text=True,
-        timeout=1,
+        # ~keep The assertion is that opening a FIFO does not block forever, so the bound only
+        # has to separate "returns" from "hangs". It was 1s, which the script's own import time
+        # (~1.5s) exceeds on its own, so this failed whenever the machine was not idle -- it was
+        # timing interpreter startup, not detecting a block.
+        timeout=30,
         check=False,
     )
     assert result.returncode == 1

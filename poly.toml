@@ -50,6 +50,10 @@ exclude = [
 # retain its API shape while tracking size debt only for this existing file.
 "packages/typescript/src/client.ts" = ["file-too-long", "type-too-long"]
 # --- end quality-debt baseline ---
+# ~keep Not quality debt: a JSON contract-case fixture is data, not code, and its line count
+# tracks how many operations the suite covers. `file-too-long` there penalises ADDING coverage,
+# which is backwards. The metric stays on for every source file.
+"**/tests/**/*.json" = ["file-too-long"]
 # Stylistic rules disabled repo-wide. Each is a formatting or idiom preference with no
 # correctness or security consequence, and each fires in volumes no one can hand-maintain
 # (`require-unicode-regexp` alone was 724 across the polyrepo, `no-inline-comments` 200).

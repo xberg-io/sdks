@@ -27,7 +27,7 @@ Poll, read, page through and cancel extraction jobs.
 | `list_jobs` | List jobs via ``GET /v1/jobs`` (paginated). Returns the decoded response body. |
 | `get_job` | Fetch a job's current status and (when terminal) its extraction result. |
 | `get_job_result` | Fetch a job's stored result envelope (``GET /v1/jobs/{id}/result``). |
-| `get_job_page` | Enterprise only: fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes). |
+| `get_job_page` | Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes). |
 | `cancel_job` | Cancel an extraction job (``DELETE /v1/jobs/{id}``, 204 whether pending or already terminal). |
 | `wait_for_job` | Poll ``GET /v1/jobs/{id}`` until the job reaches a terminal status or ``timeout`` elapses. |
 | `wait_for_jobs` | Wait for multiple jobs sequentially (sync). |
@@ -39,7 +39,7 @@ Enterprise-only crawl job event stream.
 
 | Method | Description |
 | --- | --- |
-| `stream_crawl_events` | Enterprise only: stream a crawl job's events (``GET /v1/crawl-jobs/{id}/events``). |
+| `stream_crawl_events` | Stream a crawl job's events (``GET /v1/crawl-jobs/{id}/events``). |
 
 ## Presets
 
@@ -57,8 +57,8 @@ Project-scoped presets you create and update.
 
 | Method | Description |
 | --- | --- |
-| `list_saved_presets` | List the project's saved presets (``GET /v1/saved_presets``; Pro spells it ``/v1/saved-presets``). |
-| `create_saved_preset` | Create a saved preset (``POST /v1/saved_presets``; Pro spells it ``/v1/saved-presets``). |
+| `list_saved_presets` | List the project's saved presets (``GET /v1/saved_presets``, paginated). |
+| `create_saved_preset` | Create a saved preset (``POST /v1/saved_presets``). |
 | `get_saved_preset` | Fetch one saved preset in full (``GET /v1/saved_presets/{preset_id}``). |
 | `update_saved_preset` | Replace a saved preset's definition (``PATCH /v1/saved_presets/{preset_id}``). |
 | `delete_saved_preset` | Delete a saved preset (``DELETE /v1/saved_presets/{preset_id}``, 204). |
@@ -124,8 +124,8 @@ Enterprise-only text enrichment.
 
 | Method | Description |
 | --- | --- |
-| `submit_enrich` | Enterprise only: submit text for enrichment (``POST /v1/enrich``, 202 Accepted). |
-| `get_enrich_status` | Enterprise only: poll an enrichment job (``GET /v1/enrich/{job_id}``). |
+| `submit_enrich` | Submit text for enrichment (``POST /v1/enrich``, 202 Accepted). |
+| `get_enrich_status` | Poll an enrichment job (``GET /v1/enrich/{job_id}``). |
 
 ## Uploads and usage
 
@@ -133,9 +133,9 @@ Enterprise-only upload staging and metering.
 
 | Method | Description |
 | --- | --- |
-| `presign_upload` | Enterprise only: request a presigned upload URL (``POST /v1/uploads/presign``). |
-| `confirm_upload` | Enterprise only: confirm a presigned upload (``POST /v1/uploads/confirm``). |
-| `usage` | Enterprise only: fetch usage/metering data (``GET /v1/usage``). |
+| `presign_upload` | Request presigned upload URLs (``POST /v1/uploads/presign``). Returns the decoded body. |
+| `confirm_upload` | Confirm a presigned upload batch and enqueue extraction (``POST /v1/uploads/confirm``, 202). |
+| `usage` | Fetch aggregate extraction usage for a date range (``GET /v1/usage``). |
 | `list_extraction_events` | Enterprise only: list recent extraction events (``GET /v1/extractions``). |
 
 ## Control plane
@@ -221,3 +221,15 @@ Pro-only session and configuration reads.
 | --- | --- |
 | `auth_config` | Pro only: fetch the instance's accepted auth methods (unauthenticated ``GET /auth/config``). |
 | `login` | Pro only: exchange a verified OIDC ID token for a Pro session JWT (``POST /auth/login``). |
+
+## Other
+
+| Method | Description |
+| --- | --- |
+| `get_license_info` | Pro only: report the instance's license state and entitlements (``GET /v1/license``). |
+| `get_subscription_delivery` | Enterprise only: read one delivery's payload previews (``GET /v1/webhooks/{id}/deliveries/{delivery_id}``). |
+| `get_webhook_delivery` | Enterprise backend: Fetch bounded payload previews for one retained managed attempt. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}``). |
+| `list_managed_embedding_presets` | List the curated embedding presets a RAG collection may name (``GET /v1/rag/embedding-presets``). |
+| `list_subscription_deliveries` | Enterprise only: list a subscription's delivery attempts (``GET /v1/webhooks/{id}/deliveries``). |
+| `put_local_upload` | Pro only: write document bytes against a presigned capability (``PUT /v1/uploads/local/{project_id}/{token}``, 204). |
+| `stop_auto_tune_job` | Stop a running auto-tune job, keeping its artifacts (``POST /v1/auto-tune/{id}/stop``, 204). |

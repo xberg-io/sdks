@@ -1,9 +1,10 @@
 """High-level dual-target client for the Xberg Enterprise and Xberg Pro HTTP APIs.
 
 One :class:`XbergClient` (and its async twin :class:`AsyncXbergClient`) speaks to
-either product. The shared surface — extraction, jobs (including job results),
-audit, managed presets, saved presets, auto-tune, tuning profiles, and the RAG
-API — is written once and carries no tier gate. Tier-specific methods are
+either product. The shared surface — extraction, jobs (including job results and
+rendered page images), audit, managed presets, saved presets, auto-tune, tuning
+profiles, the RAG API, presigned uploads, usage, enrichment, and the crawl-event
+stream — is written once and carries no tier gate. Tier-specific methods are
 capability-gated: they probe the
 connected instance (``GET /healthz``'s ``tier``, or an explicit ``target``) and
 raise a clear error instead of a raw 404 when invoked against the wrong tier.
@@ -51,19 +52,24 @@ from xberg_io_sdk._generated_api.models.enrich_job_status_type_0 import EnrichJo
 from xberg_io_sdk._generated_api.models.enrich_job_status_type_1 import EnrichJobStatusType1
 from xberg_io_sdk._generated_api.models.enrich_job_status_type_2 import EnrichJobStatusType2
 from xberg_io_sdk._generated_api.models.enrich_job_submitted import EnrichJobSubmitted
+from xberg_io_sdk._generated_api.models.extraction_job_response import ExtractionJobResponse
 from xberg_io_sdk._generated_api.models.extraction_options import ExtractionOptions
 from xberg_io_sdk._generated_api.models.file_extraction_config import FileExtractionConfig
-from xberg_io_sdk._generated_api.models.job_response import JobResponse
 from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.list_auto_tune_jobs_response import ListAutoTuneJobsResponse
 from xberg_io_sdk._generated_api.models.list_extraction_events_response import ListExtractionEventsResponse
+from xberg_io_sdk._generated_api.models.list_managed_embedding_presets_response import (
+    ListManagedEmbeddingPresetsResponse,
+)
 from xberg_io_sdk._generated_api.models.list_saved_presets_response import ListSavedPresetsResponse
 from xberg_io_sdk._generated_api.models.list_tuning_profiles_response import ListTuningProfilesResponse
+from xberg_io_sdk._generated_api.models.list_webhook_deliveries_response import ListWebhookDeliveriesResponse
 from xberg_io_sdk._generated_api.models.preset_detail import PresetDetail
 from xberg_io_sdk._generated_api.models.preset_summary import PresetSummary
 from xberg_io_sdk._generated_api.models.saved_preset_detail import SavedPresetDetail
 from xberg_io_sdk._generated_api.models.tuning_profile_detail import TuningProfileDetail
 from xberg_io_sdk._generated_api.models.update_saved_preset_response import UpdateSavedPresetResponse
+from xberg_io_sdk._generated_api.models.webhook_delivery_detail_response import WebhookDeliveryDetailResponse
 from xberg_io_sdk._generated_backend.models.analytics_response import AnalyticsResponse as BackendAnalyticsResponse
 from xberg_io_sdk._generated_backend.models.auth_config_response import AuthConfigResponse as BackendAuthConfigResponse
 from xberg_io_sdk._generated_backend.models.begin_connect_response import (
@@ -121,6 +127,9 @@ from xberg_io_sdk._generated_backend.models.sandbox_extract_response import (
     SandboxExtractResponse as BackendSandboxExtractResponse,
 )
 from xberg_io_sdk._generated_backend.models.usage_response import UsageResponse as BackendUsageResponse
+from xberg_io_sdk._generated_backend.models.webhook_delivery_detail_response import (
+    WebhookDeliveryDetailResponse as BackendWebhookDeliveryDetailResponse,
+)
 from xberg_io_sdk._generated_backend.models.webhook_response import WebhookResponse as BackendWebhookResponse
 from xberg_io_sdk._generated_backend.models.webhook_test_response import (
     WebhookTestResponse as BackendWebhookTestResponse,
@@ -128,6 +137,7 @@ from xberg_io_sdk._generated_backend.models.webhook_test_response import (
 from xberg_io_sdk._generated_pro.models.begin_o_auth_response import BeginOAuthResponse
 from xberg_io_sdk._generated_pro.models.create_api_key_response import CreateApiKeyResponse
 from xberg_io_sdk._generated_pro.models.integration_response import IntegrationResponse
+from xberg_io_sdk._generated_pro.models.license_info_response import LicenseInfoResponse
 from xberg_io_sdk._generated_pro.models.list_api_keys_response import ListApiKeysResponse
 from xberg_io_sdk._generated_pro.models.list_documents_response import ListDocumentsResponse
 from xberg_io_sdk._generated_pro.models.list_integrations_response import ListIntegrationsResponse
@@ -190,8 +200,6 @@ DEFAULT_ENTERPRISE_BASE_URL = "https://api.xberg.io"
 DEFAULT_TIMEOUT_SECONDS = 30.0
 
 
-# The two specs spell the saved-preset collection differently; every saved-preset
-# call renders its path from the resolved tier via ``_saved_presets_path``.
 def _q(value: object) -> str:
     """Percent-encode a path parameter.
 
@@ -206,8 +214,7 @@ def _q(value: object) -> str:
     return quote(segment, safe="")
 
 
-_SAVED_PRESETS_PATH_ENTERPRISE = "/v1/saved_presets"
-_SAVED_PRESETS_PATH_PRO = "/v1/saved-presets"
+_SAVED_PRESETS_PATH = "/v1/saved_presets"
 
 _AUTO_TUNE_PATH = "/v1/auto-tune"
 _TUNING_PROFILES_PATH = "/v1/tuning-profiles"
@@ -278,6 +285,8 @@ _CRAWL_EVENT_MODELS: dict[str, _CrawlEventModel] = {
     "discovered": CrawlEventV1Type2,
     "complete": CrawlEventV1Type3,
 }
+
+_OCTET_STREAM_CONTENT_TYPE = "application/octet-stream"
 
 _SSE_ACCEPT = "text/event-stream"
 _SSE_DATA_FIELD = "data"
@@ -458,12 +467,6 @@ def _per_file_config_data(
     return data
 
 
-def _saved_presets_path(tier: str, preset_id: str | None = None) -> str:
-    """Render the saved-preset route for ``tier`` — Pro hyphenates the collection, Enterprise underscores it."""
-    base = _SAVED_PRESETS_PATH_PRO if tier == "pro" else _SAVED_PRESETS_PATH_ENTERPRISE
-    return base if preset_id is None else f"{base}/{_q(preset_id)}"
-
-
 def _job_ids_from_extract_response(payload: Any) -> list[str]:
     """Pluck the ``job_ids`` list out of a ``POST /v1/extract`` response body."""
     if not isinstance(payload, dict):
@@ -600,11 +603,11 @@ def _parse_crawl_event(payload: str) -> CrawlEvent:
     return model.from_dict(document)
 
 
-def _parse_job(payload: Any) -> JobResponse:
-    """Parse a ``GET /v1/jobs/{id}`` response body into a typed :class:`JobResponse`."""
+def _parse_job(payload: Any) -> ExtractionJobResponse:
+    """Parse a ``GET /v1/jobs/{id}`` response body into a typed :class:`ExtractionJobResponse`."""
     if not isinstance(payload, dict):
         raise XbergError(f"unexpected job response shape: {payload!r}", status_code=None)
-    return JobResponse.from_dict(payload)
+    return ExtractionJobResponse.from_dict(payload)
 
 
 def _parse_job_result(payload: Any) -> JobResult:
@@ -630,7 +633,7 @@ def _pagination(limit: int | None, offset: int | None) -> dict[str, Any] | None:
     return _query_params(limit=limit, offset=offset)
 
 
-def _job_failure_detail(job: JobResponse) -> str | None:
+def _job_failure_detail(job: ExtractionJobResponse) -> str | None:
     """Best-effort extraction of a human-readable error detail from a terminal-failed job."""
     data = job.to_dict()
     if isinstance(data, dict):
@@ -641,7 +644,7 @@ def _job_failure_detail(job: JobResponse) -> str | None:
     return None
 
 
-def _raise_if_failed(job: JobResponse) -> None:
+def _raise_if_failed(job: ExtractionJobResponse) -> None:
     """Raise :class:`XbergError` when ``job`` reached a ``failed``/``cancelled`` terminal state."""
     if job.status in _FAILED_STATUSES:
         detail = _job_failure_detail(job)
@@ -830,6 +833,7 @@ class XbergClient(_BaseClient):
         files: Any | None = None,
         data: Any | None = None,
         json_body: Any | None = None,
+        content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
         control_plane: bool = False,
         public: bool = False,
@@ -838,6 +842,10 @@ class XbergClient(_BaseClient):
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
         interval = _RETRY_BACKOFF_BASE
+        # ~keep The only raw-body route either spec declares is the octet-stream
+        # ~keep local upload, so `content` implies that media type; httpx sets no
+        # ~keep Content-Type of its own for a bytes body and the route answers 415.
+        headers = {"Content-Type": _OCTET_STREAM_CONTENT_TYPE} if content is not None else None
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -849,6 +857,8 @@ class XbergClient(_BaseClient):
                         files=files,
                         data=data,
                         json=json_body,
+                        content=content,
+                        headers=headers,
                         params=params,
                     )
                     for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
@@ -858,7 +868,16 @@ class XbergClient(_BaseClient):
                         request.headers["Authorization"] = f"Bearer {credential}"
                     response = self._http.send(request, follow_redirects=False)
                 else:
-                    response = self._http.request(method, path, files=files, data=data, json=json_body, params=params)
+                    response = self._http.request(
+                        method,
+                        path,
+                        files=files,
+                        data=data,
+                        json=json_body,
+                        content=content,
+                        headers=headers,
+                        params=params,
+                    )
             except httpx.TransportError as exc:
                 if attempt < self._retries:
                     attempt += 1
@@ -884,10 +903,19 @@ class XbergClient(_BaseClient):
         files: Any | None = None,
         data: Any | None = None,
         json_body: Any | None = None,
+        content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
-        response = self._request(method, path, files=files, data=data, json_body=json_body, params=params)
+        response = self._request(
+            method,
+            path,
+            files=files,
+            data=data,
+            json_body=json_body,
+            content=content,
+            params=params,
+        )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
             return None
@@ -950,7 +978,7 @@ class XbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
         document_id: str | UUID | None = None,
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Submit a single document for extraction via ``POST /v1/extract`` (multipart).
 
         ``config`` is a per-file :class:`FileExtractionConfig` override sent as the
@@ -973,7 +1001,7 @@ class XbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
         document_ids: Sequence[str | UUID | None] | None = None,
-    ) -> list[JobResponse]:
+    ) -> list[ExtractionJobResponse]:
         """Submit multiple documents in a SINGLE multipart request carrying every file.
 
         ``configs``, when given, holds one per-file override per entry of ``files``
@@ -995,7 +1023,7 @@ class XbergClient(_BaseClient):
         job_ids = _job_ids_from_extract_response(payload)
         return [self.get_job(job_id) for job_id in job_ids]
 
-    def get_job(self, job_id: str) -> JobResponse:
+    def get_job(self, job_id: str) -> ExtractionJobResponse:
         """Fetch a job's current status and (when terminal) its extraction result."""
         return _parse_job(self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
 
@@ -1024,7 +1052,7 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Poll ``GET /v1/jobs/{id}`` until the job reaches a terminal status or ``timeout`` elapses.
 
         Raises :class:`xberg_io_sdk.errors.TimeoutError` if the deadline is hit first, and
@@ -1053,7 +1081,7 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> list[JobResponse]:
+    ) -> list[ExtractionJobResponse]:
         """Wait for multiple jobs sequentially (sync)."""
         return [
             self.wait_for_job(job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff)
@@ -1071,7 +1099,7 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Submit a document and block until extraction completes (raises on failure/timeout)."""
         job = self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
         return self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
@@ -1150,21 +1178,19 @@ class XbergClient(_BaseClient):
         limit: int | None = None,
         offset: int | None = None,
     ) -> ListSavedPresetsResponse:
-        """List the project's saved presets (``GET /v1/saved_presets``; Pro spells it ``/v1/saved-presets``)."""
-        path = _saved_presets_path(self._resolve_tier())
-        payload = self._request_json("GET", path, params=_pagination(limit, offset))
+        """List the project's saved presets (``GET /v1/saved_presets``, paginated)."""
+        payload = self._request_json("GET", _SAVED_PRESETS_PATH, params=_pagination(limit, offset))
         return ListSavedPresetsResponse.from_dict(_expect_object(payload, "saved preset list"))
 
     def create_saved_preset(self, body: CreateSavedPresetRequest | Mapping[str, Any]) -> CreateSavedPresetResponse:
-        """Create a saved preset (``POST /v1/saved_presets``; Pro spells it ``/v1/saved-presets``)."""
-        path = _saved_presets_path(self._resolve_tier())
-        payload = self._request_json("POST", path, json_body=_coerce_body(body))
+        """Create a saved preset (``POST /v1/saved_presets``)."""
+        payload = self._request_json("POST", _SAVED_PRESETS_PATH, json_body=_coerce_body(body))
         return CreateSavedPresetResponse.from_dict(_expect_object(payload, "saved preset"))
 
     def get_saved_preset(self, preset_id: str) -> SavedPresetDetail:
         """Fetch one saved preset in full (``GET /v1/saved_presets/{preset_id}``)."""
-        path = _saved_presets_path(self._resolve_tier(), preset_id)
-        return SavedPresetDetail.from_dict(_expect_object(self._request_json("GET", path), "saved preset"))
+        payload = self._request_json("GET", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}")
+        return SavedPresetDetail.from_dict(_expect_object(payload, "saved preset"))
 
     def update_saved_preset(
         self,
@@ -1172,13 +1198,12 @@ class XbergClient(_BaseClient):
         body: UpdateSavedPresetRequest | Mapping[str, Any],
     ) -> UpdateSavedPresetResponse:
         """Replace a saved preset's definition (``PATCH /v1/saved_presets/{preset_id}``)."""
-        path = _saved_presets_path(self._resolve_tier(), preset_id)
-        payload = self._request_json("PATCH", path, json_body=_coerce_body(body))
+        payload = self._request_json("PATCH", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}", json_body=_coerce_body(body))
         return UpdateSavedPresetResponse.from_dict(_expect_object(payload, "saved preset"))
 
     def delete_saved_preset(self, preset_id: str) -> None:
         """Delete a saved preset (``DELETE /v1/saved_presets/{preset_id}``, 204)."""
-        self._request_json("DELETE", _saved_presets_path(self._resolve_tier(), preset_id))
+        self._request_json("DELETE", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}")
 
     def list_auto_tune_jobs(self, *, limit: int | None = None, offset: int | None = None) -> ListAutoTuneJobsResponse:
         """List auto-tune jobs (``GET /v1/auto-tune``, paginated)."""
@@ -1248,6 +1273,68 @@ class XbergClient(_BaseClient):
         """Delete a tuning profile (``DELETE /v1/tuning-profiles/{id}``, 204)."""
         self._request_json("DELETE", f"{_TUNING_PROFILES_PATH}/{_q(profile_id)}")
 
+    def stop_auto_tune_job(self, auto_tune_job_id: str) -> None:
+        """Stop a running auto-tune job, keeping its artifacts (``POST /v1/auto-tune/{id}/stop``, 204)."""
+        self._request_json("POST", f"{_AUTO_TUNE_PATH}/{_q(auto_tune_job_id)}/stop")
+
+    def list_managed_embedding_presets(self) -> ListManagedEmbeddingPresetsResponse:
+        """List the curated embedding presets a RAG collection may name (``GET /v1/rag/embedding-presets``)."""
+        payload = self._request_json("GET", "/v1/rag/embedding-presets")
+        return ListManagedEmbeddingPresetsResponse.from_dict(_expect_object(payload, "embedding preset list"))
+
+    def presign_upload(self, body: Mapping[str, Any]) -> Any:
+        """Request presigned upload URLs (``POST /v1/uploads/presign``). Returns the decoded body."""
+        return self._request_json("POST", "/v1/uploads/presign", json_body=body)
+
+    def confirm_upload(self, body: Mapping[str, Any]) -> Any:
+        """Confirm a presigned upload batch and enqueue extraction (``POST /v1/uploads/confirm``, 202)."""
+        return self._request_json("POST", "/v1/uploads/confirm", json_body=body)
+
+    def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
+        """Fetch aggregate extraction usage for a date range (``GET /v1/usage``).
+
+        ``params`` carries the optional ``start``/``end`` ISO-8601 dates; both
+        specs default the window to the current month when they are omitted.
+        """
+        return self._request_json("GET", "/v1/usage", params=params)
+
+    def get_job_page(self, job_id: str, page_number: int) -> bytes:
+        """Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes)."""
+        return self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
+
+    def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
+        """Submit text for enrichment (``POST /v1/enrich``, 202 Accepted)."""
+        payload = self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
+        return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
+
+    def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
+        """Poll an enrichment job (``GET /v1/enrich/{job_id}``)."""
+        return _parse_enrich_status(self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
+
+    def stream_crawl_events(self, crawl_job_id: str) -> Iterator[CrawlEvent]:
+        """Stream a crawl job's events (``GET /v1/crawl-jobs/{id}/events``).
+
+        Yields the ``kind``-discriminated :data:`CrawlEvent` variants as the
+        server publishes them, and returns when the server closes the stream
+        (which it does once it has sent the ``complete`` event).
+
+        This is a generator: nothing is requested until iteration begins, and
+        the response body is closed when iteration ends, whether that is
+        exhaustion, ``break``, or an exception. Closing the generator explicitly
+        (or letting it fall out of scope) is enough to hang up on the server.
+
+        >>> for event in client.stream_crawl_events(job_id):  # doctest: +SKIP
+        ...     if event.kind == "page":
+        ...         print(event.url, event.status_code)
+        ...     elif event.kind == "complete":
+        ...         break
+        """
+        decoder = _SSEDecoder()
+        with self._request_stream("GET", f"/v1/crawl-jobs/{_q(crawl_job_id)}/events", accept=_SSE_ACCEPT) as response:
+            for chunk in response.iter_bytes():
+                for payload in decoder.feed_bytes(chunk):
+                    yield _parse_crawl_event(payload)
+
     # -- Pro-only surface --------------------------------------------------
 
     def auth_config(self) -> Any:
@@ -1269,6 +1356,24 @@ class XbergClient(_BaseClient):
         """Pro only: update a project's RAG config (``PUT /v1/projects/{project_id}/rag-config``)."""
         self._require_tier("pro", "set_rag_config")
         return self._request_json("PUT", f"/v1/projects/{_q(project_id)}/rag-config", json_body=body)
+
+    def get_license_info(self) -> LicenseInfoResponse:
+        """Pro only: report the instance's license state and entitlements (``GET /v1/license``)."""
+        self._require_tier("pro", "get_license_info")
+        return LicenseInfoResponse.from_dict(_expect_object(self._request_json("GET", "/v1/license"), "license"))
+
+    def put_local_upload(self, project_id: str, token: str, content: bytes) -> None:
+        """Pro only: write document bytes against a presigned capability (``PUT /v1/uploads/local/{project_id}/{token}``, 204).
+
+        ``token`` is the one-use, expiring capability :meth:`presign_upload` issued
+        for this object; the accepted size is the limit recorded when it was minted.
+        """
+        self._require_tier("pro", "put_local_upload")
+        self._request_json(
+            "PUT",
+            f"/v1/uploads/local/{_q(project_id)}/{_q(token)}",
+            content=content,
+        )
 
     # -- Pro-only control plane (projects, API keys, integrations) ---------
 
@@ -1374,11 +1479,12 @@ class XbergClient(_BaseClient):
         *,
         mime_types: str | None = None,
         folder_id: str | None = None,
-        max_results: int | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> ListDocumentsResponse:
         """Pro only: list documents visible through an integration (``GET .../documents``)."""
         self._require_tier("pro", "list_integration_documents")
-        params = _query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results)
+        params = _query_params(mime_types=mime_types, folder_id=folder_id, limit=limit, offset=offset)
         payload = self._request_json(
             "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents", params=params
         )
@@ -1592,13 +1698,14 @@ class XbergClient(_BaseClient):
         *,
         mime_types: str | None = None,
         folder_id: str | None = None,
-        max_results: int | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> BackendListDocumentsResponse:
         """Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``)."""
         payload = self._request_control_json(
             "GET",
             f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents",
-            params=_query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results),
+            params=_query_params(mime_types=mime_types, folder_id=folder_id, limit=limit, offset=offset),
         )
         return BackendListDocumentsResponse.from_dict(_expect_object(payload, "list_integration_documents"))
 
@@ -1728,6 +1835,15 @@ class XbergClient(_BaseClient):
         )
         return BackendListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "list_webhook_deliveries"))
 
+    def get_webhook_delivery(
+        self, project_id: str, webhook_id: str, delivery_id: str
+    ) -> BackendWebhookDeliveryDetailResponse:
+        """Enterprise backend: Fetch bounded payload previews for one retained managed attempt. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}"
+        )
+        return BackendWebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "get_webhook_delivery"))
+
     def retry_webhook_delivery(
         self, project_id: str, webhook_id: str, delivery_id: str
     ) -> BackendRetryWebhookDeliveryResponse:
@@ -1776,21 +1892,6 @@ class XbergClient(_BaseClient):
         self._require_tier("enterprise", "get_diff_job")
         return self._request_json("GET", f"/v1/documents/{_q(document_id)}/diff/{_q(diff_job_id)}")
 
-    def presign_upload(self, body: Mapping[str, Any]) -> Any:
-        """Enterprise only: request a presigned upload URL (``POST /v1/uploads/presign``)."""
-        self._require_tier("enterprise", "presign_upload")
-        return self._request_json("POST", "/v1/uploads/presign", json_body=body)
-
-    def confirm_upload(self, body: Mapping[str, Any]) -> Any:
-        """Enterprise only: confirm a presigned upload (``POST /v1/uploads/confirm``)."""
-        self._require_tier("enterprise", "confirm_upload")
-        return self._request_json("POST", "/v1/uploads/confirm", json_body=body)
-
-    def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
-        """Enterprise only: fetch usage/metering data (``GET /v1/usage``)."""
-        self._require_tier("enterprise", "usage")
-        return self._request_json("GET", "/v1/usage", params=params)
-
     def get_document(self, document_id: str) -> Any:
         """Enterprise only: fetch a document's latest version (``GET /v1/documents/{document_id}``).
 
@@ -1798,11 +1899,6 @@ class XbergClient(_BaseClient):
         """
         self._require_tier("enterprise", "get_document")
         return self._request_json("GET", f"/v1/documents/{_q(document_id)}")
-
-    def get_job_page(self, job_id: str, page_number: int) -> bytes:
-        """Enterprise only: fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes)."""
-        self._require_tier("enterprise", "get_job_page")
-        return self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
 
     def list_extraction_events(
         self,
@@ -1817,42 +1913,32 @@ class XbergClient(_BaseClient):
         payload = self._request_json("GET", _EXTRACTIONS_PATH, params=params)
         return ListExtractionEventsResponse.from_dict(_expect_object(payload, "extraction event list"))
 
-    def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
-        """Enterprise only: submit text for enrichment (``POST /v1/enrich``, 202 Accepted)."""
-        self._require_tier("enterprise", "submit_enrich")
-        payload = self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
-        return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
+    def list_subscription_deliveries(
+        self,
+        webhook_id: str,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> ListWebhookDeliveriesResponse:
+        """Enterprise only: list a subscription's delivery attempts (``GET /v1/webhooks/{id}/deliveries``).
 
-    def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
-        """Enterprise only: poll an enrichment job (``GET /v1/enrich/{job_id}``)."""
-        self._require_tier("enterprise", "get_enrich_status")
-        return _parse_enrich_status(self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
-
-    def stream_crawl_events(self, crawl_job_id: str) -> Iterator[CrawlEvent]:
-        """Enterprise only: stream a crawl job's events (``GET /v1/crawl-jobs/{id}/events``).
-
-        Yields the ``kind``-discriminated :data:`CrawlEvent` variants as the
-        server publishes them, and returns when the server closes the stream
-        (which it does once it has sent the ``complete`` event).
-
-        This is a generator: nothing is requested -- not even the ``/healthz``
-        tier probe -- until iteration begins, and the response body is closed
-        when iteration ends, whether that is exhaustion, ``break``, or an
-        exception. Closing the generator explicitly (or letting it fall out of
-        scope) is enough to hang up on the server.
-
-        >>> for event in client.stream_crawl_events(job_id):  # doctest: +SKIP
-        ...     if event.kind == "page":
-        ...         print(event.url, event.status_code)
-        ...     elif event.kind == "complete":
-        ...         break
+        Distinct from :meth:`list_webhook_deliveries`, which reads the same
+        history through the control plane's project-scoped route.
         """
-        self._require_tier("enterprise", "stream_crawl_events")
-        decoder = _SSEDecoder()
-        with self._request_stream("GET", f"/v1/crawl-jobs/{_q(crawl_job_id)}/events", accept=_SSE_ACCEPT) as response:
-            for chunk in response.iter_bytes():
-                for payload in decoder.feed_bytes(chunk):
-                    yield _parse_crawl_event(payload)
+        self._require_tier("enterprise", "list_subscription_deliveries")
+        payload = self._request_json(
+            "GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries", params=_pagination(limit, offset)
+        )
+        return ListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "webhook delivery list"))
+
+    def get_subscription_delivery(self, webhook_id: str, delivery_id: str) -> WebhookDeliveryDetailResponse:
+        """Enterprise only: read one delivery's payload previews (``GET /v1/webhooks/{id}/deliveries/{delivery_id}``).
+
+        The previews are bounded at 4096 UTF-8 bytes and may contain project document content.
+        """
+        self._require_tier("enterprise", "get_subscription_delivery")
+        payload = self._request_json("GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}")
+        return WebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "webhook delivery"))
 
 
 class AsyncXbergClient(_BaseClient):
@@ -1918,6 +2004,7 @@ class AsyncXbergClient(_BaseClient):
         files: Any | None = None,
         data: Any | None = None,
         json_body: Any | None = None,
+        content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
         control_plane: bool = False,
         public: bool = False,
@@ -1926,6 +2013,10 @@ class AsyncXbergClient(_BaseClient):
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
         interval = _RETRY_BACKOFF_BASE
+        # ~keep The only raw-body route either spec declares is the octet-stream
+        # ~keep local upload, so `content` implies that media type; httpx sets no
+        # ~keep Content-Type of its own for a bytes body and the route answers 415.
+        headers = {"Content-Type": _OCTET_STREAM_CONTENT_TYPE} if content is not None else None
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -1937,6 +2028,8 @@ class AsyncXbergClient(_BaseClient):
                         files=files,
                         data=data,
                         json=json_body,
+                        content=content,
+                        headers=headers,
                         params=params,
                     )
                     for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
@@ -1947,7 +2040,14 @@ class AsyncXbergClient(_BaseClient):
                     response = await self._http.send(request, follow_redirects=False)
                 else:
                     response = await self._http.request(
-                        method, path, files=files, data=data, json=json_body, params=params
+                        method,
+                        path,
+                        files=files,
+                        data=data,
+                        json=json_body,
+                        content=content,
+                        headers=headers,
+                        params=params,
                     )
             except httpx.TransportError as exc:
                 if attempt < self._retries:
@@ -1974,10 +2074,19 @@ class AsyncXbergClient(_BaseClient):
         files: Any | None = None,
         data: Any | None = None,
         json_body: Any | None = None,
+        content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
-        response = await self._request(method, path, files=files, data=data, json_body=json_body, params=params)
+        response = await self._request(
+            method,
+            path,
+            files=files,
+            data=data,
+            json_body=json_body,
+            content=content,
+            params=params,
+        )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
             return None
@@ -2029,7 +2138,7 @@ class AsyncXbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
         document_id: str | UUID | None = None,
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Async equivalent of :meth:`XbergClient.extract`."""
         jobs = await self.extract_batch(
             [file],
@@ -2047,7 +2156,7 @@ class AsyncXbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
         document_ids: Sequence[str | UUID | None] | None = None,
-    ) -> list[JobResponse]:
+    ) -> list[ExtractionJobResponse]:
         """Submit multiple documents in a SINGLE multipart request; fetch jobs concurrently."""
         materialized = list(files)
         if not materialized:
@@ -2063,7 +2172,7 @@ class AsyncXbergClient(_BaseClient):
         job_ids = _job_ids_from_extract_response(payload)
         return list(await asyncio.gather(*(self.get_job(job_id) for job_id in job_ids)))
 
-    async def get_job(self, job_id: str) -> JobResponse:
+    async def get_job(self, job_id: str) -> ExtractionJobResponse:
         """Async equivalent of :meth:`XbergClient.get_job`."""
         return _parse_job(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
 
@@ -2087,7 +2196,7 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Async equivalent of :meth:`XbergClient.wait_for_job` (raises on failure/timeout)."""
         deadline = time.monotonic() + timeout
         interval = poll_interval
@@ -2112,7 +2221,7 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> list[JobResponse]:
+    ) -> list[ExtractionJobResponse]:
         """Wait for multiple jobs concurrently."""
         coros = [
             self.wait_for_job(job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff)
@@ -2131,7 +2240,7 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
-    ) -> JobResponse:
+    ) -> ExtractionJobResponse:
         """Submit a document and await extraction in a single call (raises on failure/timeout)."""
         job = await self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
         return await self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
@@ -2207,8 +2316,7 @@ class AsyncXbergClient(_BaseClient):
         offset: int | None = None,
     ) -> ListSavedPresetsResponse:
         """Async equivalent of :meth:`XbergClient.list_saved_presets`."""
-        path = _saved_presets_path(await self._resolve_tier())
-        payload = await self._request_json("GET", path, params=_pagination(limit, offset))
+        payload = await self._request_json("GET", _SAVED_PRESETS_PATH, params=_pagination(limit, offset))
         return ListSavedPresetsResponse.from_dict(_expect_object(payload, "saved preset list"))
 
     async def create_saved_preset(
@@ -2216,14 +2324,13 @@ class AsyncXbergClient(_BaseClient):
         body: CreateSavedPresetRequest | Mapping[str, Any],
     ) -> CreateSavedPresetResponse:
         """Async equivalent of :meth:`XbergClient.create_saved_preset`."""
-        path = _saved_presets_path(await self._resolve_tier())
-        payload = await self._request_json("POST", path, json_body=_coerce_body(body))
+        payload = await self._request_json("POST", _SAVED_PRESETS_PATH, json_body=_coerce_body(body))
         return CreateSavedPresetResponse.from_dict(_expect_object(payload, "saved preset"))
 
     async def get_saved_preset(self, preset_id: str) -> SavedPresetDetail:
         """Async equivalent of :meth:`XbergClient.get_saved_preset`."""
-        path = _saved_presets_path(await self._resolve_tier(), preset_id)
-        return SavedPresetDetail.from_dict(_expect_object(await self._request_json("GET", path), "saved preset"))
+        payload = await self._request_json("GET", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}")
+        return SavedPresetDetail.from_dict(_expect_object(payload, "saved preset"))
 
     async def update_saved_preset(
         self,
@@ -2231,13 +2338,14 @@ class AsyncXbergClient(_BaseClient):
         body: UpdateSavedPresetRequest | Mapping[str, Any],
     ) -> UpdateSavedPresetResponse:
         """Async equivalent of :meth:`XbergClient.update_saved_preset`."""
-        path = _saved_presets_path(await self._resolve_tier(), preset_id)
-        payload = await self._request_json("PATCH", path, json_body=_coerce_body(body))
+        payload = await self._request_json(
+            "PATCH", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}", json_body=_coerce_body(body)
+        )
         return UpdateSavedPresetResponse.from_dict(_expect_object(payload, "saved preset"))
 
     async def delete_saved_preset(self, preset_id: str) -> None:
         """Async equivalent of :meth:`XbergClient.delete_saved_preset`."""
-        await self._request_json("DELETE", _saved_presets_path(await self._resolve_tier(), preset_id))
+        await self._request_json("DELETE", f"{_SAVED_PRESETS_PATH}/{_q(preset_id)}")
 
     async def list_auto_tune_jobs(
         self,
@@ -2315,6 +2423,54 @@ class AsyncXbergClient(_BaseClient):
         """Async equivalent of :meth:`XbergClient.delete_tuning_profile`."""
         await self._request_json("DELETE", f"{_TUNING_PROFILES_PATH}/{_q(profile_id)}")
 
+    async def stop_auto_tune_job(self, auto_tune_job_id: str) -> None:
+        """Async equivalent of :meth:`XbergClient.stop_auto_tune_job`."""
+        await self._request_json("POST", f"{_AUTO_TUNE_PATH}/{_q(auto_tune_job_id)}/stop")
+
+    async def list_managed_embedding_presets(self) -> ListManagedEmbeddingPresetsResponse:
+        """Async equivalent of :meth:`XbergClient.list_managed_embedding_presets`."""
+        payload = await self._request_json("GET", "/v1/rag/embedding-presets")
+        return ListManagedEmbeddingPresetsResponse.from_dict(_expect_object(payload, "embedding preset list"))
+
+    async def presign_upload(self, body: Mapping[str, Any]) -> Any:
+        """Async equivalent of :meth:`XbergClient.presign_upload`."""
+        return await self._request_json("POST", "/v1/uploads/presign", json_body=body)
+
+    async def confirm_upload(self, body: Mapping[str, Any]) -> Any:
+        """Async equivalent of :meth:`XbergClient.confirm_upload`."""
+        return await self._request_json("POST", "/v1/uploads/confirm", json_body=body)
+
+    async def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
+        """Async equivalent of :meth:`XbergClient.usage`."""
+        return await self._request_json("GET", "/v1/usage", params=params)
+
+    async def get_job_page(self, job_id: str, page_number: int) -> bytes:
+        """Async equivalent of :meth:`XbergClient.get_job_page`."""
+        return await self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
+
+    async def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
+        """Async equivalent of :meth:`XbergClient.submit_enrich`."""
+        payload = await self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
+        return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
+
+    async def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
+        """Async equivalent of :meth:`XbergClient.get_enrich_status`."""
+        return _parse_enrich_status(await self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
+
+    async def stream_crawl_events(self, crawl_job_id: str) -> AsyncIterator[CrawlEvent]:
+        """Async equivalent of :meth:`XbergClient.stream_crawl_events`.
+
+        An async generator: consume it with ``async for``. Same guarantees as
+        the sync form -- nothing is requested until iteration begins, and the
+        response body is closed when iteration ends however it ends.
+        """
+        decoder = _SSEDecoder()
+        path = f"/v1/crawl-jobs/{_q(crawl_job_id)}/events"
+        async with self._request_stream("GET", path, accept=_SSE_ACCEPT) as response:
+            async for chunk in response.aiter_bytes():
+                for payload in decoder.feed_bytes(chunk):
+                    yield _parse_crawl_event(payload)
+
     # -- Pro-only surface --------------------------------------------------
 
     async def auth_config(self) -> Any:
@@ -2336,6 +2492,21 @@ class AsyncXbergClient(_BaseClient):
         """Pro only: async equivalent of :meth:`XbergClient.set_rag_config`."""
         await self._require_tier("pro", "set_rag_config")
         return await self._request_json("PUT", f"/v1/projects/{_q(project_id)}/rag-config", json_body=body)
+
+    async def get_license_info(self) -> LicenseInfoResponse:
+        """Pro only: async equivalent of :meth:`XbergClient.get_license_info`."""
+        await self._require_tier("pro", "get_license_info")
+        payload = await self._request_json("GET", "/v1/license")
+        return LicenseInfoResponse.from_dict(_expect_object(payload, "license"))
+
+    async def put_local_upload(self, project_id: str, token: str, content: bytes) -> None:
+        """Pro only: async equivalent of :meth:`XbergClient.put_local_upload`."""
+        await self._require_tier("pro", "put_local_upload")
+        await self._request_json(
+            "PUT",
+            f"/v1/uploads/local/{_q(project_id)}/{_q(token)}",
+            content=content,
+        )
 
     # -- Pro-only control plane (projects, API keys, integrations) ---------
 
@@ -2439,11 +2610,12 @@ class AsyncXbergClient(_BaseClient):
         *,
         mime_types: str | None = None,
         folder_id: str | None = None,
-        max_results: int | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> ListDocumentsResponse:
         """Async equivalent of :meth:`XbergClient.list_integration_documents`."""
         await self._require_tier("pro", "list_integration_documents")
-        params = _query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results)
+        params = _query_params(mime_types=mime_types, folder_id=folder_id, limit=limit, offset=offset)
         payload = await self._request_json(
             "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents", params=params
         )
@@ -2669,13 +2841,14 @@ class AsyncXbergClient(_BaseClient):
         *,
         mime_types: str | None = None,
         folder_id: str | None = None,
-        max_results: int | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> BackendListDocumentsResponse:
         """Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``)."""
         payload = await self._request_control_json(
             "GET",
             f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents",
-            params=_query_params(mime_types=mime_types, folder_id=folder_id, max_results=max_results),
+            params=_query_params(mime_types=mime_types, folder_id=folder_id, limit=limit, offset=offset),
         )
         return BackendListDocumentsResponse.from_dict(_expect_object(payload, "list_integration_documents"))
 
@@ -2805,6 +2978,15 @@ class AsyncXbergClient(_BaseClient):
         )
         return BackendListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "list_webhook_deliveries"))
 
+    async def get_webhook_delivery(
+        self, project_id: str, webhook_id: str, delivery_id: str
+    ) -> BackendWebhookDeliveryDetailResponse:
+        """Enterprise backend: Fetch bounded payload previews for one retained managed attempt. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}"
+        )
+        return BackendWebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "get_webhook_delivery"))
+
     async def retry_webhook_delivery(
         self, project_id: str, webhook_id: str, delivery_id: str
     ) -> BackendRetryWebhookDeliveryResponse:
@@ -2855,30 +3037,10 @@ class AsyncXbergClient(_BaseClient):
         await self._require_tier("enterprise", "get_diff_job")
         return await self._request_json("GET", f"/v1/documents/{_q(document_id)}/diff/{_q(diff_job_id)}")
 
-    async def presign_upload(self, body: Mapping[str, Any]) -> Any:
-        """Enterprise only: async equivalent of :meth:`XbergClient.presign_upload`."""
-        await self._require_tier("enterprise", "presign_upload")
-        return await self._request_json("POST", "/v1/uploads/presign", json_body=body)
-
-    async def confirm_upload(self, body: Mapping[str, Any]) -> Any:
-        """Enterprise only: async equivalent of :meth:`XbergClient.confirm_upload`."""
-        await self._require_tier("enterprise", "confirm_upload")
-        return await self._request_json("POST", "/v1/uploads/confirm", json_body=body)
-
-    async def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
-        """Enterprise only: async equivalent of :meth:`XbergClient.usage`."""
-        await self._require_tier("enterprise", "usage")
-        return await self._request_json("GET", "/v1/usage", params=params)
-
     async def get_document(self, document_id: str) -> Any:
         """Enterprise only: async equivalent of :meth:`XbergClient.get_document`."""
         await self._require_tier("enterprise", "get_document")
         return await self._request_json("GET", f"/v1/documents/{_q(document_id)}")
-
-    async def get_job_page(self, job_id: str, page_number: int) -> bytes:
-        """Enterprise only: async equivalent of :meth:`XbergClient.get_job_page`."""
-        await self._require_tier("enterprise", "get_job_page")
-        return await self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
 
     async def list_extraction_events(
         self,
@@ -2893,31 +3055,25 @@ class AsyncXbergClient(_BaseClient):
         payload = await self._request_json("GET", _EXTRACTIONS_PATH, params=params)
         return ListExtractionEventsResponse.from_dict(_expect_object(payload, "extraction event list"))
 
-    async def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
-        """Enterprise only: async equivalent of :meth:`XbergClient.submit_enrich`."""
-        await self._require_tier("enterprise", "submit_enrich")
-        payload = await self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
-        return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
+    async def list_subscription_deliveries(
+        self,
+        webhook_id: str,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> ListWebhookDeliveriesResponse:
+        """Enterprise only: async equivalent of :meth:`XbergClient.list_subscription_deliveries`."""
+        await self._require_tier("enterprise", "list_subscription_deliveries")
+        payload = await self._request_json(
+            "GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries", params=_pagination(limit, offset)
+        )
+        return ListWebhookDeliveriesResponse.from_dict(_expect_object(payload, "webhook delivery list"))
 
-    async def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
-        """Enterprise only: async equivalent of :meth:`XbergClient.get_enrich_status`."""
-        await self._require_tier("enterprise", "get_enrich_status")
-        return _parse_enrich_status(await self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
-
-    async def stream_crawl_events(self, crawl_job_id: str) -> AsyncIterator[CrawlEvent]:
-        """Enterprise only: async equivalent of :meth:`XbergClient.stream_crawl_events`.
-
-        An async generator: consume it with ``async for``. Same guarantees as
-        the sync form -- nothing is requested until iteration begins, and the
-        response body is closed when iteration ends however it ends.
-        """
-        await self._require_tier("enterprise", "stream_crawl_events")
-        decoder = _SSEDecoder()
-        path = f"/v1/crawl-jobs/{_q(crawl_job_id)}/events"
-        async with self._request_stream("GET", path, accept=_SSE_ACCEPT) as response:
-            async for chunk in response.aiter_bytes():
-                for payload in decoder.feed_bytes(chunk):
-                    yield _parse_crawl_event(payload)
+    async def get_subscription_delivery(self, webhook_id: str, delivery_id: str) -> WebhookDeliveryDetailResponse:
+        """Enterprise only: async equivalent of :meth:`XbergClient.get_subscription_delivery`."""
+        await self._require_tier("enterprise", "get_subscription_delivery")
+        payload = await self._request_json("GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}")
+        return WebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "webhook delivery"))
 
 
 __all__ = [

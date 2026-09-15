@@ -522,6 +522,24 @@ func (c *Client) ListWebhookDeliveries(
 	)
 }
 
+// GetWebhookDelivery calls GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id} on the Enterprise control plane.
+func (c *Client) GetWebhookDelivery(
+	ctx context.Context,
+	projectID string,
+	webhookID string,
+	deliveryID string,
+) (*WebhookDeliveryDetailResponse, error) {
+	return controlPlaneJSON[WebhookDeliveryDetailResponse](
+		ctx,
+		c,
+		"GetWebhookDelivery",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/webhooks/"+escapePathSegment(webhookID)+
+			"/deliveries/"+escapePathSegment(deliveryID),
+		nil,
+	)
+}
+
 // RetryWebhookDelivery calls POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry on the Enterprise control plane.
 func (c *Client) RetryWebhookDelivery(
 	ctx context.Context,

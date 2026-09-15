@@ -1,7 +1,8 @@
-"""Coverage for ``stream_crawl_events`` — the Enterprise-only SSE feed of a crawl job's progress.
+"""Coverage for ``stream_crawl_events`` — the SSE feed of a crawl job's progress.
 
-``GET /v1/crawl-jobs/{id}/events`` is the one operation in the Enterprise spec that answers
-``text/event-stream`` rather than JSON, so it is also the one that cannot reuse the request
+``GET /v1/crawl-jobs/{id}/events`` is declared by both specs and carries no tier gate. It is
+the one operation either spec answers with ``text/event-stream`` rather than JSON, so it is
+also the one that cannot reuse the request
 helpers: the retry engine would replay a partly-consumed stream, and the response body has to
 be closed on every exit path rather than read to completion. The frames it sends are SSE
 frames -- terminated by a blank line, payload spread over any number of ``data:`` lines, with
@@ -265,32 +266,30 @@ def test_stream_crawl_events_raises_the_typed_error_for_a_missing_job(base_url: 
     assert excinfo.value.status_code == 404
 
 
-# -- tier gate -----------------------------------------------------------------
+# -- no tier gate: the Pro spec declares this operation too ---------------------
 
 
 @respx.mock
-def test_stream_crawl_events_refuses_on_pro(api_key: str) -> None:
-    route = respx.get(f"{PRO_URL}{EVENTS_PATH}")
+def test_stream_crawl_events_reaches_the_wire_on_pro(api_key: str) -> None:
+    response, _ = stream_response(sse(json_frame(COMPLETE_EVENT)))
+    route = respx.get(f"{PRO_URL}{EVENTS_PATH}").mock(return_value=response)
 
-    with (
-        XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client,
-        pytest.raises(XbergError, match="not available on the 'pro' tier"),
-    ):
-        list(client.stream_crawl_events(CRAWL_JOB_ID))
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert [event.kind for event in client.stream_crawl_events(CRAWL_JOB_ID)] == ["complete"]
 
-    assert route.call_count == 0
+    assert route.call_count == 1
 
 
+@pytest.mark.asyncio
 @respx.mock
-async def test_stream_crawl_events_refuses_on_pro_async(api_key: str) -> None:
-    route = respx.get(f"{PRO_URL}{EVENTS_PATH}")
+async def test_stream_crawl_events_reaches_the_wire_on_pro_async(api_key: str) -> None:
+    response, _ = stream_response(sse(json_frame(COMPLETE_EVENT)))
+    route = respx.get(f"{PRO_URL}{EVENTS_PATH}").mock(return_value=response)
 
     async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
-        with pytest.raises(XbergError, match="not available on the 'pro' tier"):
-            async for _ in client.stream_crawl_events(CRAWL_JOB_ID):
-                pass
+        assert [event.kind async for event in client.stream_crawl_events(CRAWL_JOB_ID)] == ["complete"]
 
-    assert route.call_count == 0
+    assert route.call_count == 1
 
 
 # -- the async twin: same framing and teardown, driven by ``async for`` --------

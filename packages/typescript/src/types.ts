@@ -18,7 +18,8 @@ export type ExtractionConfig = components["schemas"]["ExtractionConfig"];
 export type FileExtractionConfig = components["schemas"]["FileExtractionConfig"];
 export type ExtractedDocument = components["schemas"]["ExtractedDocument"];
 export type ExtractionResult = ExtractedDocument;
-export type Job = components["schemas"]["JobResponse"];
+// ~keep Upstream renamed this schema `JobResponse` -> `ExtractionJobResponse`; `Job` is public API and stays.
+export type Job = components["schemas"]["ExtractionJobResponse"];
 export type JobStatus = components["schemas"]["JobStatus"];
 export type WebhookConfig = components["schemas"]["WebhookConfig"];
 export type ExtractResponse = components["schemas"]["ExtractResponse"];
@@ -61,8 +62,22 @@ export type ListTuningProfilesResponse = components["schemas"]["ListTuningProfil
 export type TuningProfileSummary = components["schemas"]["TuningProfileSummary"];
 export type TuningProfileDetail = components["schemas"]["TuningProfileDetail"];
 
-// -- Enterprise-only surface (api schema) --
+// -- Shared managed embedding presets (both specs declare these identically) --
+export type ListManagedEmbeddingPresetsResponse = components["schemas"]["ListManagedEmbeddingPresetsResponse"];
+export type ManagedEmbeddingPreset = components["schemas"]["ManagedEmbeddingPreset"];
+
+// -- Shared uploads, usage and enrichment (both specs declare these) --
 export type UsageResponse = components["schemas"]["UsageResponse"];
+export type PresignUploadRequest = components["schemas"]["PresignUploadRequest"];
+export type PresignUploadResponse = components["schemas"]["PresignUploadResponse"];
+export type ConfirmUploadRequest = components["schemas"]["ConfirmUploadRequest"];
+export type ConfirmUploadResponse = components["schemas"]["ConfirmUploadResponse"];
+export type EnrichTextRequest = components["schemas"]["EnrichTextRequest"];
+export type EnrichRequestOptions = components["schemas"]["EnrichRequestOptions"];
+export type EnrichJobSubmitted = components["schemas"]["EnrichJobSubmitted"];
+export type EnrichJobStatus = components["schemas"]["EnrichJobStatus"];
+
+// -- Enterprise-only surface (api schema) --
 export type DiffResponse = components["schemas"]["DiffResponse"];
 /** The async-pending envelope `diff`/`getDiffJob` return in place of {@link DiffResponse} while a diff is still computing. */
 export type DiffAsyncAccepted = components["schemas"]["DiffAsyncAccepted"];
@@ -82,16 +97,12 @@ export type DiffResult =
   | { readonly status: 200; readonly body: DiffResponse }
   | { readonly status: 202; readonly body: DiffAsyncAccepted };
 export type DocumentVersionEntry = components["schemas"]["DocumentVersionEntry"];
-export type PresignUploadRequest = components["schemas"]["PresignUploadRequest"];
-export type PresignUploadResponse = components["schemas"]["PresignUploadResponse"];
-export type ConfirmUploadRequest = components["schemas"]["ConfirmUploadRequest"];
-export type ConfirmUploadResponse = components["schemas"]["ConfirmUploadResponse"];
-export type EnrichTextRequest = components["schemas"]["EnrichTextRequest"];
-export type EnrichRequestOptions = components["schemas"]["EnrichRequestOptions"];
-export type EnrichJobSubmitted = components["schemas"]["EnrichJobSubmitted"];
-export type EnrichJobStatus = components["schemas"]["EnrichJobStatus"];
 export type ListExtractionEventsResponse = components["schemas"]["ListExtractionEventsResponse"];
 export type ExtractionEventSummary = components["schemas"]["ExtractionEventSummary"];
+/** Delivery attempts of a data-plane webhook subscription, without payload previews. */
+export type ListWebhookDeliveriesResponse = components["schemas"]["ListWebhookDeliveriesResponse"];
+/** One delivery attempt with its bounded request and response previews. */
+export type WebhookDeliveryDetailResponse = components["schemas"]["WebhookDeliveryDetailResponse"];
 
 /**
  * One event from {@link XbergClient.streamCrawlEvents}.
@@ -132,6 +143,8 @@ export type LoginRequest = proComponents["schemas"]["LoginRequest"];
 export type LoginResponse = proComponents["schemas"]["LoginResponse"];
 export type SetRagConfigRequest = proComponents["schemas"]["SetRagConfigRequest"];
 export type RagConfigResponse = proComponents["schemas"]["RagConfigResponse"];
+/** Licensee, plan, expiry and grace window of the running Pro instance. */
+export type LicenseInfoResponse = proComponents["schemas"]["LicenseInfoResponse"];
 
 // -- Pro-only control plane (projects, API keys, integrations) --
 export type ListProjectsResponse = proComponents["schemas"]["ListProjectsResponse"];
@@ -208,5 +221,6 @@ export type BackendUpdateMemberRoleRequest = backendComponents["schemas"]["Updat
 export type BackendUpdateProjectRequest = backendComponents["schemas"]["UpdateProjectRequest"];
 export type BackendUpdateWebhookRequest = backendComponents["schemas"]["UpdateWebhookRequest"];
 export type BackendUsageResponse = backendComponents["schemas"]["UsageResponse"];
+export type BackendWebhookDeliveryDetailResponse = backendComponents["schemas"]["WebhookDeliveryDetailResponse"];
 export type BackendWebhookResponse = backendComponents["schemas"]["WebhookResponse"];
 export type BackendWebhookTestResponse = backendComponents["schemas"]["WebhookTestResponse"];

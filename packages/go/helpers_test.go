@@ -49,6 +49,19 @@ func targetClient(
 	return mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithTarget(target))
 }
 
+// newRefusingServer returns the base URL of a server that fails the test if it
+// is ever hit, for asserting that a tier gate short-circuits before any request
+// is issued. A gate that produced the right error only *after* calling the
+// server would still satisfy a plain error-type assertion.
+func newRefusingServer(t *testing.T) string {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		t.Errorf("unexpected HTTP call to %s; gate should short-circuit", r.URL.Path)
+	}))
+	t.Cleanup(server.Close)
+	return server.URL
+}
+
 // mustClient builds a Client with the given options, failing the test on
 // configuration errors. Used to keep test bodies focused on assertions.
 func mustClient(t *testing.T, opts ...xberg.Option) *xberg.Client {

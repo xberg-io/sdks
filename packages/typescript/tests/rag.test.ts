@@ -157,4 +157,26 @@ describe("shared RAG surface", () => {
     const result = await makeClient().getRagJob("job-1");
     expect(result).toEqual({ status: "completed" });
   });
+
+  it("listManagedEmbeddingPresets issues GET /v1/rag/embedding-presets", async () => {
+    let receivedPath = "";
+    server.use(
+      http.get(url("/v1/rag/embedding-presets"), ({ request }) => {
+        receivedPath = new URL(request.url).pathname;
+        return HttpResponse.json({ presets: [{ id: "small", model: "m" }] }, { status: 200 });
+      }),
+    );
+    const result = await makeClient().listManagedEmbeddingPresets();
+    expect(result).toEqual({ presets: [{ id: "small", model: "m" }] });
+    expect(receivedPath).toBe("/v1/rag/embedding-presets");
+  });
+
+  it("listManagedEmbeddingPresets is not tier-gated and reaches a pro instance", async () => {
+    const proUrl = "https://pro.example.test";
+    server.use(
+      http.get(`${proUrl}/v1/rag/embedding-presets`, () => HttpResponse.json({ presets: [] }, { status: 200 })),
+    );
+    const client = new XbergClient({ apiKey: "k", baseUrl: proUrl, target: "pro", sleep: async () => {} });
+    await expect(client.listManagedEmbeddingPresets()).resolves.toEqual({ presets: [] });
+  });
 });

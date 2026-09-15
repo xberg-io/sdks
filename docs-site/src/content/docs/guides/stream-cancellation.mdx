@@ -1,6 +1,6 @@
 ---
 title: Cancel a crawl subscription
-description: Bound an Enterprise crawl event subscription, including while no events arrive.
+description: Bound a crawl event subscription, including while no events arrive.
 ---
 
 import { Content as PythonCancellation } from '../../../snippets/python/stream_cancellation.md';
@@ -12,7 +12,7 @@ The ordinary request timeout does not bound the stream: Python disables its read
 and per-request timeout, and TypeScript relies on the caller's abort signal. Set a caller deadline when your application
 needs a bounded subscription.
 
-The examples below subscribe to an existing Enterprise crawl job. Set `XBERG_BASE_URL`, `XBERG_API_KEY`, and
+The examples below subscribe to an existing crawl job; both tiers serve the stream. Set `XBERG_BASE_URL`, `XBERG_API_KEY`, and
 `XBERG_CRAWL_JOB_ID`. They default to a 30-second caller deadline; `XBERG_STREAM_TIMEOUT_SECONDS` overrides it.
 Their ordinary request timeout is deliberately shorter, demonstrating that it does not limit an idle stream.
 

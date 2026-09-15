@@ -454,29 +454,41 @@ func TestStreamCrawlEvents_MapsNotFound(t *testing.T) {
 	}
 }
 
-func TestStreamCrawlEvents_RefusesOnPro(t *testing.T) {
+// TestStreamCrawlEvents_StreamsOnPro pins that the crawl feed is reachable on
+// Pro. The Pro spec declares `/v1/crawl-jobs/{id}/events` and always has, so the
+// client must open the stream rather than refuse it — this method used to be
+// gated to Enterprise, denying Pro callers an endpoint their own server serves.
+func TestStreamCrawlEvents_StreamsOnPro(t *testing.T) {
 	t.Parallel()
-	requested := false
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		requested = true
-		w.WriteHeader(http.StatusOK)
+	var requestedPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestedPath = r.URL.Path
+		w.Header().Set("Content-Type", sseMediaType)
+		_, _ = io.WriteString(w, pageFrame())
 	}))
 	t.Cleanup(server.Close)
 	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithTarget(xberg.TargetPro))
 
 	events, err := client.StreamCrawlEvents(context.Background(), testCrawlJobID)
 	var tierErr *xberg.TierError
-	if !errors.As(err, &tierErr) {
-		t.Fatalf("err = %v, want a *TierError", err)
+	if errors.As(err, &tierErr) {
+		t.Fatalf("crawl events must not be Enterprise-gated, got %v", tierErr)
 	}
-	if events != nil {
-		t.Error("a refused stream must return no iterator")
+	if err != nil {
+		t.Fatalf("StreamCrawlEvents on pro: %v", err)
 	}
-	if tierErr.Method != "StreamCrawlEvents" || tierErr.Required != string(xberg.TargetEnterprise) {
-		t.Errorf("tier error = %+v, want StreamCrawlEvents requiring enterprise", tierErr)
+	var kinds []xberg.CrawlEventKind
+	for event, iterErr := range events {
+		if iterErr != nil {
+			t.Fatalf("iterating the pro stream: %v", iterErr)
+		}
+		kinds = append(kinds, event.Kind)
 	}
-	if requested {
-		t.Error("the tier gate must refuse before opening the stream")
+	if len(kinds) != 1 || kinds[0] != xberg.CrawlEventKindPage {
+		t.Errorf("kinds = %v, want exactly one page event", kinds)
+	}
+	if requestedPath != crawlEventsPath {
+		t.Errorf("path = %q, want %q", requestedPath, crawlEventsPath)
 	}
 }
 

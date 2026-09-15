@@ -14,6 +14,13 @@ from xberg_io_sdk import client as client_module
 
 PRO_URL = "https://pro.example.test"
 
+# The probe tests need an operation that is still Enterprise-only, so a wrong tier is refused
+# before any request and a client without an explicit `target` has to resolve one. `usage` used
+# to play that part and no longer can: the Pro spec declares `GET /v1/usage` as well.  ~keep
+GATED_DOCUMENT_ID = "doc-1"
+GATED_PATH = f"/v1/documents/{GATED_DOCUMENT_ID}/versions"
+GATED_BODY = {"versions": [1, 2]}
+
 
 # -- base-url policy -----------------------------------------------------------
 
@@ -173,7 +180,7 @@ def test_enterprise_only_method_rejected_on_pro(api_key: str) -> None:
         XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client,
         pytest.raises(XbergError, match="not available on the 'pro' tier"),
     ):
-        client.usage()
+        client.versions(GATED_DOCUMENT_ID)
 
 
 @respx.mock
@@ -188,12 +195,18 @@ def test_pro_login_reaches_endpoint_on_pro(api_key: str) -> None:
 
 
 @respx.mock
-def test_enterprise_usage_on_enterprise(base_url: str, api_key: str) -> None:
-    respx.get(f"{base_url}/v1/usage").mock(
-        return_value=httpx.Response(200, json={"pages": 42}),
-    )
+def test_usage_reaches_the_wire_on_both_tiers(base_url: str, api_key: str) -> None:
+    # `GET /v1/usage` is in both specs; the client used to refuse it on Pro before any request.
+    enterprise = respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 42}))
+    pro = respx.get(f"{PRO_URL}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 7}))
+
     with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
         assert client.usage() == {"pages": 42}
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert client.usage() == {"pages": 7}
+
+    assert enterprise.call_count == 1
+    assert pro.call_count == 1
 
 
 # -- tier gating (capability probe) -------------------------------------------
@@ -204,14 +217,12 @@ def test_capability_probe_reads_healthz_tier_and_caches(base_url: str, api_key: 
     health = respx.get(f"{base_url}/healthz").mock(
         return_value=httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
     )
-    respx.get(f"{base_url}/v1/usage").mock(
-        return_value=httpx.Response(200, json={"pages": 7}),
-    )
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     # target omitted -> tier is discovered from /healthz, then cached.
     with XbergClient(api_key=api_key, base_url=base_url) as client:
-        assert client.usage() == {"pages": 7}
-        assert client.usage() == {"pages": 7}
+        assert client.versions(GATED_DOCUMENT_ID) == GATED_BODY
+        assert client.versions(GATED_DOCUMENT_ID) == GATED_BODY
 
     assert health.call_count == 1
 
@@ -225,7 +236,7 @@ def test_capability_probe_gates_wrong_tier(base_url: str, api_key: str) -> None:
         XbergClient(api_key=api_key, base_url=base_url) as client,
         pytest.raises(XbergError, match="not available on the 'pro' tier"),
     ):
-        client.usage()
+        client.versions(GATED_DOCUMENT_ID)
 
 
 @respx.mock
@@ -236,12 +247,12 @@ def test_capability_probe_missing_tier_raises_and_does_not_poison_cache(base_url
             httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
         ],
     )
-    respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 1}))
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     with XbergClient(api_key=api_key, base_url=base_url) as client:
         with pytest.raises(XbergError, match="unrecognized tier"):
-            client.usage()
-        assert client.usage() == {"pages": 1}
+            client.versions(GATED_DOCUMENT_ID)
+        assert client.versions(GATED_DOCUMENT_ID) == GATED_BODY
 
     assert health.call_count == 2
 
@@ -254,13 +265,13 @@ def test_capability_probe_null_tier_raises_and_does_not_poison_cache(base_url: s
             httpx.Response(200, json={"status": "ok", "tier": "pro"}),
         ],
     )
-    respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 1}))
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     with XbergClient(api_key=api_key, base_url=base_url) as client:
         with pytest.raises(XbergError, match="unrecognized tier"):
-            client.usage()
+            client.versions(GATED_DOCUMENT_ID)
         with pytest.raises(XbergError, match="not available on the 'pro' tier"):
-            client.usage()
+            client.versions(GATED_DOCUMENT_ID)
 
     assert health.call_count == 2
 
@@ -273,12 +284,12 @@ def test_capability_probe_unknown_tier_raises_and_does_not_poison_cache(base_url
             httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
         ],
     )
-    respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 1}))
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     with XbergClient(api_key=api_key, base_url=base_url) as client:
         with pytest.raises(XbergError, match="unrecognized tier 'starter'"):
-            client.usage()
-        assert client.usage() == {"pages": 1}
+            client.versions(GATED_DOCUMENT_ID)
+        assert client.versions(GATED_DOCUMENT_ID) == GATED_BODY
 
     assert health.call_count == 2
 
@@ -288,7 +299,7 @@ def test_capability_probe_concurrent_callers_share_one_probe_sync(base_url: str,
     health = respx.get(f"{base_url}/healthz").mock(
         return_value=httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
     )
-    respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 1}))
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     with XbergClient(api_key=api_key, base_url=base_url) as client:
         thread_count = 8
@@ -298,7 +309,7 @@ def test_capability_probe_concurrent_callers_share_one_probe_sync(base_url: str,
 
         def _call() -> None:
             barrier.wait()
-            result = client.usage()
+            result = client.versions(GATED_DOCUMENT_ID)
             with results_lock:
                 results.append(result)
 
@@ -309,7 +320,7 @@ def test_capability_probe_concurrent_callers_share_one_probe_sync(base_url: str,
             thread.join()
 
     assert health.call_count == 1
-    assert results == [{"pages": 1}] * thread_count
+    assert results == [GATED_BODY] * thread_count
 
 
 @pytest.mark.asyncio
@@ -318,15 +329,13 @@ async def test_capability_probe_concurrent_callers_share_one_probe_async(base_ur
     health = respx.get(f"{base_url}/healthz").mock(
         return_value=httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
     )
-    respx.get(f"{base_url}/v1/saved_presets").mock(
-        return_value=httpx.Response(200, json={"presets": [], "limit": 20, "page": 0, "total": 0}),
-    )
+    respx.get(f"{base_url}{GATED_PATH}").mock(return_value=httpx.Response(200, json=GATED_BODY))
 
     async with AsyncXbergClient(api_key=api_key, base_url=base_url) as client:
-        results = await asyncio.gather(*(client.list_saved_presets() for _ in range(8)))
+        results = await asyncio.gather(*(client.versions(GATED_DOCUMENT_ID) for _ in range(8)))
 
     assert health.call_count == 1
-    assert all(result.presets == [] for result in results)
+    assert results == [GATED_BODY] * 8
 
 
 def test_control_plane_base_url_is_readable_on_both_clients() -> None:

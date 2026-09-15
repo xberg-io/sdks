@@ -251,3 +251,80 @@ async def test_get_preset_sample_async_on_pro(api_key: str) -> None:
     )
     async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
         assert await client.get_preset_sample("invoice-v1", "demo.pdf") == b"async sample bytes"
+
+
+# -- GET /v1/rag/embedding-presets  ~keep
+
+
+EMBEDDING_PRESETS = {
+    "presets": [
+        {
+            "name": "default",
+            "embedding_source": "bge-small-en-v1.5",
+            "embedding_dim": 384,
+            "description": "Balanced English retrieval.",
+            "is_default": True,
+        }
+    ]
+}
+
+
+@respx.mock
+def test_list_managed_embedding_presets_on_enterprise(base_url: str, api_key: str) -> None:
+    route = respx.get(f"{base_url}/v1/rag/embedding-presets").mock(
+        return_value=httpx.Response(200, json=EMBEDDING_PRESETS),
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
+        response = client.list_managed_embedding_presets()
+
+    assert [preset.name for preset in response.presets] == ["default"]
+    assert response.presets[0].embedding_dim == 384
+    assert response.presets[0].embedding_source == "bge-small-en-v1.5"
+    assert response.presets[0].is_default is True
+    assert route.calls.last.request.method == "GET"
+    assert route.calls.last.request.url.path == "/v1/rag/embedding-presets"
+
+
+@respx.mock
+def test_list_managed_embedding_presets_on_pro_is_not_gated(api_key: str) -> None:
+    route = respx.get(f"{PRO_URL}/v1/rag/embedding-presets").mock(
+        return_value=httpx.Response(200, json=EMBEDDING_PRESETS),
+    )
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert client.list_managed_embedding_presets().presets[0].name == "default"
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_list_managed_embedding_presets_without_target_does_not_probe_healthz(base_url: str, api_key: str) -> None:
+    route = respx.get(f"{base_url}/v1/rag/embedding-presets").mock(
+        return_value=httpx.Response(200, json={"presets": []}),
+    )
+    with XbergClient(api_key=api_key, base_url=base_url) as client:
+        assert client.list_managed_embedding_presets().presets == []
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_list_managed_embedding_presets_rejects_a_non_object_body(base_url: str, api_key: str) -> None:
+    respx.get(f"{base_url}/v1/rag/embedding-presets").mock(return_value=httpx.Response(200, json=["nope"]))
+    with (
+        XbergClient(api_key=api_key, base_url=base_url, target="pro") as client,
+        pytest.raises(XbergError, match="unexpected embedding preset list response shape"),
+    ):
+        client.list_managed_embedding_presets()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_list_managed_embedding_presets_async_on_pro(api_key: str) -> None:
+    route = respx.get(f"{PRO_URL}/v1/rag/embedding-presets").mock(
+        return_value=httpx.Response(200, json=EMBEDDING_PRESETS),
+    )
+    async with AsyncXbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        response = await client.list_managed_embedding_presets()
+
+    assert response.presets[0].description == "Balanced English retrieval."
+    assert route.calls.last.request.url.path == "/v1/rag/embedding-presets"

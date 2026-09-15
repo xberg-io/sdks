@@ -27,7 +27,7 @@ Poll, read, page through and cancel extraction jobs.
 | `listJobs` |  |
 | `getJob` |  |
 | `getJobResult` | Fetch a job's stored result document (`GET /v1/jobs/{id}/result`). |
-| `getJobPage` | Enterprise only: download one rendered page of an extraction job |
+| `getJobPage` | Download one rendered page of an extraction job |
 | `cancelJob` | Cancel a job (`DELETE /v1/jobs/{id}`). Idempotent: both a successful |
 | `waitForJob` | Poll {@link getJob} until the job reaches a terminal status. Throws |
 | `waitForJobs` |  |
@@ -39,7 +39,7 @@ Enterprise-only crawl job event stream.
 
 | Method | Description |
 | --- | --- |
-| `streamCrawlEvents` | Enterprise only: stream a crawl job's events |
+| `streamCrawlEvents` | Stream a crawl job's events (`GET /v1/crawl-jobs/{crawl_job_id}/events`, |
 
 ## Presets
 
@@ -133,7 +133,7 @@ Enterprise-only upload staging and metering.
 
 | Method | Description |
 | --- | --- |
-| `presignUpload` |  |
+| `presignUpload` | Request presigned upload URLs (`POST /v1/uploads/presign`). |
 | `confirmUpload` |  |
 | `usage` |  |
 | `listExtractionEvents` |  |
@@ -221,3 +221,15 @@ Pro-only session and configuration reads.
 | --- | --- |
 | `authConfig` |  |
 | `login` |  |
+
+## Other
+
+| Method | Description |
+| --- | --- |
+| `getLicenseInfo` | Pro only: read the running instance's license detail (`GET /v1/license`) — |
+| `getSubscriptionDelivery` | Enterprise only: fetch one delivery attempt with its bounded request and |
+| `getWebhookDelivery` |  |
+| `listManagedEmbeddingPresets` | List the managed embedding presets this server build ships |
+| `listSubscriptionDeliveries` | Enterprise only: list a webhook subscription's delivery attempts |
+| `putLocalUpload` | Pro only: upload a document's bytes against a presigned local capability |
+| `stopAutoTuneJob` | Stop a running auto-tune job (`POST /v1/auto-tune/{id}/stop`). |

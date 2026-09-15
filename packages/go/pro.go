@@ -61,6 +61,24 @@ func (c *Client) Login(ctx context.Context, body LoginRequest) (*LoginResponse, 
 	return &out, nil
 }
 
+// -- license ------------------------------------------------------------------
+
+// GetLicenseInfo reports the instance's license state (GET /v1/license):
+// licensee, license ID, plan, expiry, grace window and days remaining. The API
+// process re-evaluates it hourly rather than snapshotting it at boot, so the
+// answer can change without a restart. Requires an admin API key or an admin
+// session. Pro only.
+func (c *Client) GetLicenseInfo(ctx context.Context) (*LicenseInfoResponse, error) {
+	if err := c.requireTier(ctx, TargetPro, "GetLicenseInfo"); err != nil {
+		return nil, err
+	}
+	var out LicenseInfoResponse
+	if err := c.getJSON(ctx, "/v1/license", &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // -- projects -----------------------------------------------------------------
 
 // ListProjects lists the projects visible to the caller
@@ -267,8 +285,11 @@ func encodeDocumentParams(params *ListIntegrationDocumentsParams) string {
 	if params.FolderId != nil {
 		q.Set("folder_id", *params.FolderId)
 	}
-	if params.MaxResults != nil {
-		q.Set("max_results", strconv.Itoa(*params.MaxResults))
+	if params.Limit != nil {
+		q.Set("limit", strconv.FormatInt(*params.Limit, 10))
+	}
+	if params.Offset != nil {
+		q.Set("offset", strconv.FormatInt(*params.Offset, 10))
 	}
 	if encoded := q.Encode(); encoded != "" {
 		return "?" + encoded

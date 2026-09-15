@@ -31,6 +31,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -65,6 +82,7 @@ paths:
       tags:
         - auth
       summary: Authenticate with an OIDC ID token and receive a backend JWT
+      description: Validates the configured identity-provider token, creates the user's first project when needed, and returns the active project in a backend session token.
       operationId: login
       requestBody:
         content:
@@ -117,6 +135,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -132,6 +167,7 @@ paths:
       tags:
         - health
       summary: Liveness probe - returns 200 if the process is running
+      description: Reports process liveness without checking dependencies, so orchestrators can restart a stopped or wedged process.
       operationId: healthz
       responses:
         "200":
@@ -143,11 +179,16 @@ paths:
               example:
                 status: ok
                 tier: enterprise
+                auto_tune:
+                  enabled: true
+                rag:
+                  enabled: true
   /readyz:
     get:
       tags:
         - health
       summary: Readiness probe - returns 200 if the service can handle traffic
+      description: Checks both application database pools and returns 503 while either dependency cannot serve requests.
       operationId: readyz
       responses:
         "200":
@@ -172,6 +213,7 @@ paths:
       tags:
         - members
       summary: Accept an invitation using a token
+      description: Consumes a valid invitation token, adds the authenticated user to the project, and returns the resulting membership.
       operationId: accept_invitation
       requestBody:
         content:
@@ -218,6 +260,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -250,6 +309,11 @@ paths:
       responses:
         "303":
           description: Redirect to the landing page, on success and on a provider-reported denial
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Dashboard landing URL
         "400":
           description: Invalid or missing parameters
           content:
@@ -257,13 +321,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: Invalid or expired state token
+          description: OAuth authentication refused
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -285,6 +366,7 @@ paths:
       tags:
         - projects
       summary: List all projects for the authenticated user
+      description: Returns only projects visible to the authenticated user, using limit and offset to page through memberships.
       operationId: list_projects
       parameters:
         - name: limit
@@ -311,6 +393,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
       responses:
@@ -334,6 +417,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -344,6 +444,7 @@ paths:
       tags:
         - projects
       summary: Create a new project
+      description: Creates the project, owner membership, billing account, and audit record in one transaction; the authenticated user becomes the owner.
       operationId: create_project
       requestBody:
         content:
@@ -390,6 +491,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -401,6 +519,7 @@ paths:
       tags:
         - projects
       summary: Get project details by ID
+      description: Requires project membership and returns identity, ownership, status, timestamps, and the response's aggregate counters.
       operationId: get_project
       parameters:
         - name: id
@@ -443,6 +562,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -453,6 +589,9 @@ paths:
       tags:
         - projects
       summary: Delete a project
+      description: |-
+        Requires project ownership and tombstones project rows. With `erase=true`, it requests asynchronous content erasure. The
+        endpoint still returns 204 if event publication fails; an operator must retry erasure.
       operationId: delete_project
       parameters:
         - name: id
@@ -503,6 +642,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -519,6 +675,7 @@ paths:
       tags:
         - projects
       summary: Update project details
+      description: Requires project ownership and applies the supplied mutable fields while retaining values omitted from the request.
       operationId: update_project
       parameters:
         - name: id
@@ -579,6 +736,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -650,6 +824,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -661,6 +852,7 @@ paths:
       tags:
         - api_keys
       summary: List all API keys for a project
+      description: Requires project membership and returns redacted key metadata; secret key values are never returned by this operation.
       operationId: list_api_keys
       parameters:
         - name: limit
@@ -687,6 +879,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -729,6 +922,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -739,6 +949,7 @@ paths:
       tags:
         - api_keys
       summary: Create a new API key for a project
+      description: Requires project ownership, persists a hashed credential, and returns the plaintext key once in the creation response.
       operationId: create_api_key
       parameters:
         - name: id
@@ -799,6 +1010,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -810,6 +1038,7 @@ paths:
       tags:
         - api_keys
       summary: Revoke an API key
+      description: Requires project ownership and permanently disables the selected credential for subsequent API authentication.
       operationId: revoke_api_key
       parameters:
         - name: id
@@ -855,6 +1084,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -872,6 +1118,7 @@ paths:
       tags:
         - api_keys
       summary: Regenerate an API key
+      description: Requires project ownership, revokes the existing credential, and returns its replacement plaintext key once.
       operationId: regenerate_api_key
       parameters:
         - name: id
@@ -921,6 +1168,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -938,6 +1202,7 @@ paths:
       tags:
         - audit
       summary: List a project's audit events, most recent first.
+      description: Requires project membership and returns project audit entries in reverse chronological order with limit and offset pagination.
       operationId: list_project_audit
       parameters:
         - name: id
@@ -949,24 +1214,30 @@ paths:
             format: uuid
         - name: action
           in: query
-          description: Optional action filter, e.g. api_key.create
+          description: Filter to entries matching this action exactly (e.g. `"job.submit"`).
           required: false
           schema:
             type: string
         - name: limit
           in: query
-          description: Page size (default 50, max 100)
+          description: Page size. Values outside 1..=100 are rejected.
           required: false
           schema:
             type: integer
             format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
         - name: offset
           in: query
-          description: Pagination offset (default 0)
+          description: Number of items to skip. Values outside 0..=1,000,000 are rejected.
           required: false
           schema:
             type: integer
             format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
       responses:
         "200":
           description: Audit entries for the project
@@ -1000,6 +1271,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1057,6 +1345,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1114,6 +1419,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1164,6 +1486,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1175,6 +1514,7 @@ paths:
       tags:
         - integrations
       summary: List all integrations for a project
+      description: Requires project membership and returns configured integrations in a paginated response without exposing stored credentials.
       operationId: list_integrations
       parameters:
         - name: limit
@@ -1201,6 +1541,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -1243,6 +1584,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1253,6 +1611,7 @@ paths:
       tags:
         - integrations
       summary: Create a new integration
+      description: Requires project ownership, validates provider configuration, and seals OAuth or OIDC credentials before persistence.
       operationId: create_integration
       parameters:
         - name: id
@@ -1299,6 +1658,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Integration name already exists in this project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -1313,6 +1678,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1324,6 +1706,7 @@ paths:
       tags:
         - integrations
       summary: Get a specific integration
+      description: Requires project membership and returns one integration only when it belongs to the selected project.
       operationId: get_integration
       parameters:
         - name: id
@@ -1373,6 +1756,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1383,6 +1783,7 @@ paths:
       tags:
         - integrations
       summary: Delete an integration
+      description: Requires project ownership and permanently removes the integration after verifying that it belongs to the project.
       operationId: delete_integration
       parameters:
         - name: id
@@ -1428,6 +1829,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1483,6 +1901,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1498,6 +1933,7 @@ paths:
       tags:
         - integrations
       summary: Disconnect an integration (revoke OAuth connection)
+      description: Requires project ownership and clears the integration's active connection credentials while retaining its configuration record.
       operationId: disconnect_integration
       parameters:
         - name: id
@@ -1543,6 +1979,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1566,9 +2019,7 @@ paths:
             If not provided, all document types are returned.
           required: false
           schema:
-            type:
-              - string
-              - "null"
+            type: string
         - name: folder_id
           in: query
           description: |-
@@ -1576,19 +2027,26 @@ paths:
             If not provided, lists documents from the root/default location.
           required: false
           schema:
-            type:
-              - string
-              - "null"
-        - name: max_results
+            type: string
+        - name: limit
           in: query
-          description: |-
-            Maximum number of documents to return. Clamped to 1000 maximum.
-            If not provided, uses the connector's default.
+          description: Maximum number of documents to return.
           required: false
           schema:
-            type:
-              - integer
-              - "null"
+            type: integer
+            format: int64
+            default: 100
+            maximum: 1000
+            minimum: 1
+        - name: offset
+          in: query
+          description: Number of matching documents to skip.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
             minimum: 0
         - name: id
           in: path
@@ -1618,7 +2076,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: Unauthorized - OAuth connection missing/revoked
+          description: Session authentication failed
           content:
             application/json:
               schema:
@@ -1635,8 +2093,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The source connection is missing or revoked and must be connected again
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limited by source
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1692,7 +2173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: Unauthorized - OAuth connection missing/revoked
+          description: Session authentication failed
           content:
             application/json:
               schema:
@@ -1709,6 +2190,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The source connection is missing or revoked and must be connected again
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "413":
           description: Document exceeds maximum size
           content:
@@ -1717,6 +2204,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limited by source
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1734,6 +2238,7 @@ paths:
       tags:
         - members
       summary: List pending invitations for a project
+      description: Requires project membership and returns pending invitations using limit and offset pagination.
       operationId: list_invitations
       parameters:
         - name: limit
@@ -1760,6 +2265,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -1802,6 +2308,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1812,6 +2335,7 @@ paths:
       tags:
         - members
       summary: Create a project invitation (sends token for email delivery by frontend)
+      description: Requires project ownership and creates a pending invitation for the requested email address and role.
       operationId: invite_user
       parameters:
         - name: id
@@ -1878,6 +2402,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1889,6 +2430,7 @@ paths:
       tags:
         - members
       summary: Revoke a pending invitation
+      description: Requires project ownership and removes a pending invitation before it can be accepted.
       operationId: revoke_invitation
       parameters:
         - name: id
@@ -1934,6 +2476,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1945,6 +2504,7 @@ paths:
       tags:
         - members
       summary: 'Self-service: caller leaves a project they belong to'
+      description: Removes the authenticated user's own membership, but rejects a sole owner's request while other members remain.
       operationId: leave_project
       parameters:
         - name: id
@@ -1983,6 +2543,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -1994,6 +2571,7 @@ paths:
       tags:
         - members
       summary: List all members of a project
+      description: Requires project membership and returns current members with their roles using limit and offset pagination.
       operationId: list_members
       parameters:
         - name: limit
@@ -2020,6 +2598,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -2062,6 +2641,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2073,6 +2669,7 @@ paths:
       tags:
         - members
       summary: Remove a member from a project
+      description: Requires project ownership and removes the selected member while preventing removal that would violate ownership constraints.
       operationId: remove_member
       parameters:
         - name: id
@@ -2117,6 +2714,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2127,6 +2741,7 @@ paths:
       tags:
         - members
       summary: Update a member's role in a project
+      description: Requires project ownership and changes the selected member's role while preserving the project's ownership constraints.
       operationId: update_member_role
       parameters:
         - name: id
@@ -2193,6 +2808,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2249,6 +2881,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2259,6 +2908,9 @@ paths:
       tags:
         - projects
       summary: Set a project's RAG configuration.
+      description: |-
+        Requires project membership and fully replaces the stored `enabled` and `default_collection` values. This operation stores
+        configuration; it does not run retrieval.
       operationId: set_rag_config
       parameters:
         - name: id
@@ -2319,6 +2971,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2391,6 +3060,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limited (upstream)
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2408,6 +3094,7 @@ paths:
       tags:
         - usage
       summary: Get usage statistics for a project within a date range
+      description: Requires project membership and aggregates request counts, transfer sizes, and latency across the inclusive date window.
       operationId: get_usage
       parameters:
         - name: start_date
@@ -2464,6 +3151,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2475,6 +3179,7 @@ paths:
       tags:
         - webhooks
       summary: List all webhooks for a project
+      description: Requires project membership and returns webhook subscriptions with recent delivery statistics using limit and offset pagination.
       operationId: list_webhooks
       parameters:
         - name: limit
@@ -2501,6 +3206,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -2543,6 +3249,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2553,6 +3276,7 @@ paths:
       tags:
         - webhooks
       summary: Create a new webhook for a project
+      description: Requires project ownership, validates the HTTPS endpoint and event set, and stores the signing secret used for deliveries.
       operationId: create_webhook
       parameters:
         - name: id
@@ -2570,11 +3294,11 @@ paths:
         required: true
       responses:
         "201":
-          description: Webhook created
+          description: Webhook created; signing secret is shown only once
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookResponse'
+                $ref: '#/components/schemas/CreateWebhookResponse'
         "400":
           description: Validation failed
           content:
@@ -2613,6 +3337,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2624,6 +3365,7 @@ paths:
       tags:
         - webhooks
       summary: Delete a webhook
+      description: Requires project ownership and soft-deactivates the subscription by recording its deletion timestamp.
       operationId: delete_webhook
       parameters:
         - name: id
@@ -2669,6 +3411,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2679,6 +3438,7 @@ paths:
       tags:
         - webhooks
       summary: Update a webhook's configuration
+      description: Requires project ownership and updates supplied subscription fields after revalidating endpoint and event constraints.
       operationId: update_webhook
       parameters:
         - name: id
@@ -2746,6 +3506,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2756,13 +3533,8 @@ paths:
     get:
       tags:
         - webhooks
-      summary: List delivery attempts recorded for a webhook.
-      description: |-
-        Placeholder: the response schema and error set are final (see the design
-        note above this function), but there is no delivery-history table yet, so
-        every call answers 501. Wiring the real query is the only change needed
-        once the table lands — this annotation's success/error responses stay as
-        written.
+      summary: List managed webhook attempts eligible for cleanup after seven days, newest first.
+      description: Requires project membership and returns retained attempt metadata without request or response payload previews, using limit and offset pagination.
       operationId: list_webhook_deliveries
       parameters:
         - name: limit
@@ -2789,6 +3561,7 @@ paths:
             type: integer
             format: int64
             default: 0
+            maximum: 1000000
             minimum: 0
           example: 0
         - name: id
@@ -2838,12 +3611,105 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        "501":
-          description: Delivery history is not implemented yet
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}:
+    get:
+      tags:
+        - webhooks
+      summary: Fetch bounded payload previews for one retained managed attempt.
+      description: Requires project membership and returns one retained attempt with bounded request and response previews; truncation flags identify incomplete previews.
+      operationId: get_webhook_delivery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: wh_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: delivery_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Delivery details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookDeliveryDetailResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Not a project member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Webhook or delivery not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2855,10 +3721,7 @@ paths:
       tags:
         - webhooks
       summary: Manually retry one past delivery attempt.
-      description: |-
-        Placeholder: as with the delivery-history route, the response schema and
-        error set are final, only the 501 goes away once redelivery is wired to
-        the real delivery path.
+      description: Queue the original canonical payload for delivery to the subscription's current endpoint.
       operationId: retry_webhook_delivery
       parameters:
         - name: id
@@ -2882,6 +3745,14 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: Idempotency-Key
+          in: header
+          description: Optional project-scoped replay identity, at most 128 ASCII bytes
+          required: false
+          schema:
+            type:
+              - string
+              - "null"
       responses:
         "202":
           description: Retry accepted and queued for redelivery
@@ -2890,7 +3761,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RetryWebhookDeliveryResponse'
         "400":
-          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          description: Invalid idempotency key
           content:
             application/json:
               schema:
@@ -2913,14 +3784,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+        "409":
+          description: Incomplete source, inactive subscription, or idempotency conflict
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        "501":
-          description: Manual retry is not implemented yet
+        "429":
+          description: Replay limit reached; Retry-After indicates when to retry
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2932,6 +3820,7 @@ paths:
       tags:
         - webhooks
       summary: Send a test delivery to a webhook endpoint
+      description: Requires project ownership and performs a test delivery to the configured endpoint, returning the receiver outcome.
       operationId: test_webhook
       parameters:
         - name: id
@@ -2981,6 +3870,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -2993,7 +3899,7 @@ paths:
         - sandbox
       summary: Extract a document from the public landing-page sandbox.
       description: |-
-        Public twin of [`sandbox_extract`], reachable without dashboard auth. The
+        Public twin of `sandbox_extract`, reachable without dashboard auth. The
         route is always mounted; the protective layers around it are the
         non-negotiable trust boundary:
 
@@ -3055,6 +3961,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -3484,16 +4407,30 @@ components:
         - methods
         - oidc
       properties:
+        identity:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/LocalIdentity'
+              description: Local operator identity when authentication is disabled.
         methods:
           type: array
           items:
             type: string
           description: Accepted authentication methods (`"api_key"`, optionally `"oidc"`).
+        mode:
+          $ref: '#/components/schemas/AuthMode'
+          description: Explicit instance authentication policy; older servers require authentication.
         oidc:
           $ref: '#/components/schemas/OidcInfo'
           description: |-
             OIDC-specific detail, used by the frontend to decide whether to render
             a "Sign in with Google" button.
+    AuthMode:
+      type: string
+      description: Authentication policy advertised by the instance.
+      enum:
+        - required
+        - disabled
     BeginConnectResponse:
       type: object
       description: OAuth authorization initiation response
@@ -3747,8 +4684,8 @@ components:
                 chunking. `None` otherwise, including on builds without the `late-interaction`
                 feature.
 
-                Uses the crate-root [`crate::MultiVectorEmbedding`] alias for the same reason
-                `sparse_embedding` uses [`crate::SparseEmbedding`] — see that field's docs.
+                Uses the crate-root `MultiVectorEmbedding` alias for the same reason
+                `sparse_embedding` uses `SparseEmbedding` — see that field's docs.
         metadata:
           $ref: '#/components/schemas/ChunkMetadata'
           description: Metadata about this chunk's position and properties.
@@ -3762,7 +4699,7 @@ components:
                 Only populated when sparse-embedding generation is configured for chunking.
                 `None` otherwise, including on builds without the `sparse-embeddings` feature.
 
-                Uses the crate-root [`crate::SparseEmbedding`] alias rather than
+                Uses the crate-root `SparseEmbedding` alias rather than
                 `crate::sparse_embeddings::SparseEmbedding` directly: the `sparse_embeddings`
                 module itself only compiles under `sparse-embeddings`/`sparse-embedding-presets`,
                 while the crate-root alias is always defined (a field-compatible stub on builds
@@ -3797,7 +4734,7 @@ components:
             Multi-label classification result for this chunk.
 
             Populated by the chunk-classification post-processor when
-            [`ExtractionConfig::chunk_classification`](crate::core::config::ExtractionConfig::chunk_classification)
+            `ExtractionConfig.chunk_classification`
             is set. A chunk may match zero, one, or many of the configured label
             definitions. Empty when chunk classification was not configured.
         first_page:
@@ -3827,9 +4764,9 @@ components:
             Flattened heading trail from document root to this chunk's section.
 
             Each element is a heading's text, outermost first. Derived from
-            [`heading_context`](Self::heading_context) when present; empty otherwise.
+            `heading_context` when present; empty otherwise.
             Provides a binding-friendly, RAG-shaped breadcrumb without requiring
-            callers to walk the nested [`HeadingContext`] structure.
+            callers to walk the nested `HeadingContext` structure.
         image_indices:
           type: array
           items:
@@ -3857,11 +4794,11 @@ components:
           items:
             type: string
           description: |-
-            Ids of the [`DocumentNode`](super::document_structure::DocumentNode)s
+            Ids of the `DocumentNode`s
             this chunk was derived from.
 
             Joins a chunk back to the structured document tree via
-            [`DocumentNode::id`](super::document_structure::DocumentNode::id).
+            `DocumentNode.id`.
             Populated from exact node provenance when available, with a textual
             containment fallback for rendered chunks that do not retain byte offsets.
         page_spans:
@@ -3872,10 +4809,10 @@ components:
             Per-page bounding-box spans this chunk covers, for viewer highlighting (#1295).
 
             One entry per page the chunk overlaps, in page order — the first and last entries'
-            `page` fields equal [`first_page`](Self::first_page)/[`last_page`](Self::last_page).
+            `page` fields equal `first_page`/`last_page`.
             Populated whenever page-boundary provenance is available (the same condition under
             which `first_page`/`last_page` are populated); each entry's `bbox` is additionally
-            populated when the document's structured node tree ([`ExtractedDocument::document`]) is
+            populated when the document's structured node tree (`ExtractedDocument.document`) is
             available, as the union of that page's body-layer node bounding boxes found within this
             chunk. Empty when page-boundary provenance is unavailable (mirrors `first_page`/
             `last_page` being `None`).
@@ -4010,7 +4947,7 @@ components:
     CodeDataAttribute:
       type: object
       description: |-
-        An XML-style attribute attached to an [`Element`](CodeDataNodeKind::Element) node.
+        An XML-style attribute attached to an `Element` node.
 
         Populated only for `CodeDataNodeKind::Element`; always empty for `KeyValue` and
         `Sequence` nodes.
@@ -4088,7 +5025,7 @@ components:
     CodeDataNodeKind:
       type: string
       description: |-
-        Discriminates the shape of a [`CodeDataNode`].
+        Discriminates the shape of a `CodeDataNode`.
 
         Purpose-built mirror of `tree_sitter_language_pack::DataNodeKind` — kept as an
         xberg-owned type so binding generators never need to resolve the upstream crate's
@@ -4102,7 +5039,7 @@ components:
       description: |-
         Code-format metadata: the structural chunks produced by tree-sitter parsing.
 
-        Wrapped by [`FormatMetadata::Code`]. Kept as a named struct (rather than an inline
+        Wrapped by `FormatMetadata.Code`. Kept as a named struct (rather than an inline
         enum-variant body) so serde can tag it under internal tagging and utoipa can emit a
         referenceable `CodeMetadata` component in the OpenAPI schema.
       required:
@@ -4379,6 +5316,18 @@ components:
         url:
           type: string
           description: Webhook delivery URL (must use HTTPS).
+    CreateWebhookResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebhookResponse'
+          description: Webhook configuration, flattened into the creation response.
+        - type: object
+          required:
+            - secret
+          properties:
+            secret:
+              type: string
+              description: Signing secret disclosed only in the creation response, including when supplied by the caller.
+      description: 'Newly created webhook and its signing secret. Store the secret securely: only creation returns it.'
     CsvMetadata:
       type: object
       description: CSV/TSV file metadata.
@@ -4695,7 +5644,7 @@ components:
       description: |-
         Cheap structural counts for an extracted document.
 
-        Populated on every [`ExtractedDocument`] returned by `extract` /
+        Populated on every `ExtractedDocument` returned by `extract` /
         `extract_batch`, regardless of whether the heavy `pages` / `images`
         collections are materialized. A caller that only needs "how many pages /
         tables / images did this document have?" (reporting, cost estimation,
@@ -4933,9 +5882,9 @@ components:
             Sorted, deduplicated list of node type names present in this document.
 
             Each value is the snake_case `node_type` tag of the corresponding
-            [`NodeContent`] variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …).
+            `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …).
 
-            Computed from `nodes` via [`DocumentStructure::finalize_node_types`].
+            Computed from `nodes` via node-type derivation.
             Empty until that method is called (internal construction paths call it
             at the end of derivation).
         nodes:
@@ -5436,7 +6385,7 @@ components:
             Cheap structural counts (pages, tables, images).
 
             Always populated by the extraction pipeline, even when the `pages` /
-            `images` collections are `None`. See [`DocumentCounts`].
+            `images` collections are `None`. See `DocumentCounts`.
         detected_language_confidences:
           type:
             - array
@@ -6160,6 +7109,22 @@ components:
         content:
           type: string
           description: Cell text content.
+        heading_level:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: |-
+            Outline level (1-6) of the heading style this cell's text carries, when it has one.
+
+            A DOCX banner row -- row 0, one cell spanning the grid, styled `Heading1`..`Heading6` --
+            is what Word's navigation pane and a `TOC` field treat as the document's outline, but as
+            a table cell it reached consumers as anonymous text (GH#1587). `content` is deliberately
+            left as the bare cell text: prefixing it with `#` would put a markdown heading inside a
+            table cell, which is invalid where it lands and changes text every existing consumer
+            already reads. This field is the signal instead, so a caller can decide for itself
+            whether a `heading 2` in a banner row is a section title or a column label. ~keep
+          minimum: 0
         is_header:
           type: boolean
           description: Whether this is a header cell.
@@ -6173,6 +7138,15 @@ components:
           format: int32
           description: Number of rows this cell spans.
           minimum: 0
+        style_name:
+          type:
+            - string
+            - "null"
+          description: |-
+            Human-readable name of the paragraph style applied to this cell's text (`heading 2`).
+
+            Carries the style even when it resolves to no outline level, so a caller can key on a
+            named style this crate does not map to a heading. See `GridCell.heading_level`. ~keep
     HeaderMetadata:
       type: object
       description: Header/heading element metadata.
@@ -6238,25 +7212,41 @@ components:
           description: The text content of the heading.
     HealthResponse:
       type: object
-      description: |-
-        Liveness response body: process status plus a service-supplied deployment tier.
-
-        The `tier` seam lets each service report its own value — `api` reads it
-        from `AppState.tier`, `backend` reads the `DEPLOYMENT_TIER` env var — while
-        both share the identical JSON shape and (with the `openapi` feature)
-        `utoipa` schema.
+      description: Backend liveness and deployment capabilities used by the dashboard.
       required:
         - status
         - tier
       properties:
+        auto_tune:
+          oneOf:
+            - type: "null"
+            - type: object
+              description: Whether Enterprise mounts a feature API.
+              required:
+                - enabled
+              properties:
+                enabled:
+                  type: boolean
+                  description: Instance availability, not a grant of project access or billing entitlement.
+          description: Enterprise AutoTune availability; project entitlement is checked on submission.
+        rag:
+          oneOf:
+            - type: "null"
+            - type: object
+              description: Whether Enterprise mounts a feature API.
+              required:
+                - enabled
+              properties:
+                enabled:
+                  type: boolean
+                  description: Instance availability, not a grant of project access or billing entitlement.
+          description: Enterprise RAG availability; project configuration is checked on each request.
         status:
           type: string
-          description: Service status
-          example: ok
+          description: Process liveness status.
         tier:
           type: string
-          description: Deployment tier the frontend uses for runtime feature gating (ADR-0047).
-          example: enterprise
+          description: Deployment tier.
     HierarchicalBlock:
       type: object
       required:
@@ -6946,15 +7936,12 @@ components:
             Source-specific folder ID to restrict results to (e.g., Google Drive folder ID).
             If not provided, lists documents from the root/default location.
           example: "1234567890"
-        max_results:
+        limit:
           type:
             - integer
             - "null"
-          description: |-
-            Maximum number of documents to return. Clamped to 1000 maximum.
-            If not provided, uses the connector's default.
-          example: "50"
-          minimum: 0
+          format: int64
+          description: Maximum number of documents to return.
         mime_types:
           type:
             - string
@@ -6963,6 +7950,12 @@ components:
             Comma-separated MIME types to filter by (e.g., "text/plain,application/pdf").
             If not provided, all document types are returned.
           example: text/plain,application/pdf
+        offset:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Number of matching documents to skip.
     ListDocumentsResponse:
       type: object
       description: |-
@@ -7186,6 +8179,37 @@ components:
           format: int64
           description: Total tokens (input + output).
           minimum: 0
+    LocalIdentity:
+      type: object
+      description: Persisted local operator exposed only when authentication is disabled.
+      required:
+        - user_id
+        - name
+        - default_project_id
+        - project_name
+        - role
+      properties:
+        default_project_id:
+          type: string
+          format: uuid
+          description: Persisted default workspace identifier.
+        email:
+          type:
+            - string
+            - "null"
+          description: No external identity provider supplies an email in this mode.
+        name:
+          type: string
+          description: Display name of the local operator.
+        project_name:
+          type: string
+          description: Default workspace display name.
+        role:
+          type: string
+          description: Workspace role of the local operator.
+        user_id:
+          type: string
+          description: Local audit and project ownership principal.
     LoginRequest:
       type: object
       description: Login request with OIDC ID token
@@ -7636,7 +8660,7 @@ components:
           description: |-
             Reviewer/editor comment content (e.g. DOCX comments).
 
-            Distinct from [`NodeContent::Footnote`] (xberg-io/xberg#300): comments and
+            Distinct from `NodeContent.Footnote` (xberg-io/xberg#300): comments and
             footnotes both reach the internal document via a marker/definition pair, but
             a consumer needs to tell a reviewer comment apart from an authored footnote.
           required:
@@ -8173,6 +9197,11 @@ components:
 
             Contains detected layout regions with class, confidence, bounding box,
             and area fraction. Only populated when layout detection is configured.
+        ocr_confidence:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/PageOcrConfidence'
+              description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
         page_number:
           type: integer
           format: int32
@@ -8308,12 +9337,50 @@ components:
             - string
             - "null"
           description: Page title (usually for presentations)
+    PageOcrConfidence:
+      type: object
+      description: |-
+        Aggregate OCR legibility score for a page, reported by the backend that produced its text.
+
+        This is distinct from `OcrConfidence`, which scores a single detected element (a word or
+        line) using detection/recognition confidence from the OCR engine itself. `PageOcrConfidence`
+        is a page-level summary computed after noise filtering, intended for triage of which pages
+        are worth a closer look, not for comparing OCR engines against each other.
+      required:
+        - word_count
+        - backend
+      properties:
+        backend:
+          type: string
+          description: Name of the OCR backend that produced the page text.
+        score:
+          type:
+            - number
+            - "null"
+          format: double
+          description: |-
+            Aggregate legibility score in `0.0..=1.0`, or `None` when the backend that
+            produced this page does not report a calibrated legibility scale.
+
+            Backends differ in what their confidence numbers mean (see `OcrConfidence`'s
+            per-backend normalization), and not every backend maps onto a 0.0-1.0 legibility
+            scale at all. When a backend has no such calibrated scale, this is `None` rather
+            than a misleading number, and scores must never be compared across backends.
+        word_count:
+          type: integer
+          format: int32
+          description: |-
+            Number of words the score was averaged over, AFTER noise filtering.
+
+            A small `word_count` means the average is based on little evidence, so a high
+            `score` next to a small `word_count` is not representative of the whole page.
+          minimum: 0
     PageSpan:
       type: object
       description: |-
         A single page covered by a chunk, with an optional bounding box on that page.
 
-        See [`ChunkMetadata::page_spans`] (#1295) for population semantics.
+        See `ChunkMetadata.page_spans` (#1295) for population semantics.
       required:
         - page
       properties:
@@ -8411,7 +9478,7 @@ components:
             - string
             - "null"
           description: |-
-            The document text covered by [`Self::quad_points`], recovered from the
+            The document text covered by `quad_points`, recovered from the
             page content underneath the marked-up region. Populated for
             Highlight, Underline, StrikeOut, and Squiggly annotations when the
             underlying text could be recovered.
@@ -8676,8 +9743,8 @@ components:
             Caller-supplied custom category (e.g. internal employee IDs).
 
             Surfaced by the redaction engine when a hit comes from
-            [`RedactionConfig::custom_terms`](crate::core::config::redaction::RedactionConfig::custom_terms)
-            or [`RedactionConfig::custom_patterns`](crate::core::config::redaction::RedactionConfig::custom_patterns).
+            custom term rules
+            or custom pattern rules.
             The string is the label passed alongside the term/pattern. Use those
             fields rather than constructing `Custom` directly via the
             `categories` filter — the pattern engine cannot detect arbitrary text
@@ -8691,8 +9758,8 @@ components:
                 Caller-supplied custom category (e.g. internal employee IDs).
 
                 Surfaced by the redaction engine when a hit comes from
-                [`RedactionConfig::custom_terms`](crate::core::config::redaction::RedactionConfig::custom_terms)
-                or [`RedactionConfig::custom_patterns`](crate::core::config::redaction::RedactionConfig::custom_patterns).
+                custom term rules
+                or custom pattern rules.
                 The string is the label passed alongside the term/pattern. Use those
                 fields rather than constructing `Custom` directly via the
                 `categories` filter — the pattern engine cannot detect arbitrary text
@@ -9448,6 +10515,22 @@ components:
                   candle-based backends) or the layout detector reported them in. There is no
                   PDF page geometry to rescale into for this case, so the raw pixel box is
                   passed through unchanged.
+        cell_styles:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableCellStyle'
+          description: |-
+            Paragraph styles carried by individual cells, for the cells that have one.
+
+            Sparse and flat on purpose. A DOCX banner row -- row 0, one cell spanning the grid,
+            styled `Heading1`..`Heading6` -- is what Word's navigation pane and a `TOC` field treat
+            as the document outline, but as a table cell it reached consumers as anonymous text
+            (GH#1587). `cells` keeps the bare text: prefixing it with `#` would put a markdown
+            heading inside a table cell, which is invalid where it lands and would change text every
+            existing consumer already reads. This list is the signal instead.
+
+            Entries are only emitted for cells that actually carry a style, so an ordinary table
+            serialises exactly as it did before. Indices are into `cells`. ~keep
         cells:
           type: array
           items:
@@ -9499,6 +10582,39 @@ components:
             intentionally *not* linked — its per-page pieces get separate ids.
             Sharing one id across page-boundary fragments is a known possible
             future extension, not implemented yet.
+    TableCellStyle:
+      type: object
+      description: |-
+        The paragraph style a single table cell's text carries, located by grid position.
+
+        Flat rather than a nested `Vec<Vec<Option<..>>>`: the nested shape marshals badly across the
+        FFI bindings, and the data is sparse anyway. See `Table.cell_styles`. ~keep
+      required:
+        - row
+        - col
+      properties:
+        col:
+          type: integer
+          format: int32
+          description: Zero-indexed column of the cell this style belongs to.
+          minimum: 0
+        heading_level:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Outline level 1-6 when the style resolves to a heading, otherwise `None`.
+          minimum: 0
+        row:
+          type: integer
+          format: int32
+          description: Zero-indexed row of the cell this style belongs to.
+          minimum: 0
+        style_name:
+          type:
+            - string
+            - "null"
+          description: Human-readable style name, e.g. `heading 2`.
     TableGrid:
       type: object
       description: |-
@@ -9881,6 +10997,34 @@ components:
           type: string
           description: User ID from identity provider
           example: user-id-abc123
+    WebhookDeliveryDetailResponse:
+      type: object
+      description: |-
+        Diagnostic payload previews for one authorized delivery; eligible for cleanup after seven days.
+        Previews are capped at 4096 UTF-8 bytes and can contain tenant document content.
+      required:
+        - delivery
+        - request_preview
+        - request_truncated
+        - response_truncated
+      properties:
+        delivery:
+          $ref: '#/components/schemas/WebhookDeliveryResponse'
+        request_preview:
+          type: string
+        request_truncated:
+          type: boolean
+        response_error:
+          type:
+            - string
+            - "null"
+          description: A failure to capture the response body, separate from the HTTP delivery outcome.
+        response_preview:
+          type:
+            - string
+            - "null"
+        response_truncated:
+          type: boolean
     WebhookDeliveryResponse:
       type: object
       description: |-
@@ -9899,6 +11043,7 @@ components:
         webhook-event payloads already use.
       required:
         - id
+        - event_id
         - event_type
         - job_id
         - attempt_number
@@ -9908,10 +11053,15 @@ components:
       properties:
         attempt_number:
           type: integer
-          format: int32
+          format: int64
           description: |-
             1-based attempt number within the redelivery sequence for this event
-            (bounded by `WEBHOOK_MAX_ATTEMPTS` in `common::webhook`).
+            Automatic retries follow the configured delivery limit.
+        completed_at:
+          type:
+            - string
+            - "null"
+          description: Completion time; absent if the sender was interrupted before recording an outcome.
         duration_ms:
           type: integer
           format: int64
@@ -9921,6 +11071,10 @@ components:
             - string
             - "null"
           description: Error message, present when the attempt did not succeed.
+        event_id:
+          type: string
+          format: uuid
+          description: Stable event identifier shared by automatic redeliveries.
         event_type:
           type: string
           description: The event type delivered (e.g. `"job.completed"`, `"job.failed"`).

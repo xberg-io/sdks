@@ -15,7 +15,7 @@ import (
 	xberg "github.com/xberg-io/sdks/packages/go"
 )
 
-// jobUUID is a valid UUID used across job fixtures — the generated JobResponse
+// jobUUID is a valid UUID used across job fixtures — the generated ExtractionJobResponse
 // types its id as a UUID, so non-UUID fixture ids fail to decode.
 const jobUUID = "550e8400-e29b-41d4-a716-446655440000"
 

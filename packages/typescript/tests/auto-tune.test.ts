@@ -215,4 +215,30 @@ describe("tuning-profile surface", () => {
     expect(got.method).toBe("DELETE");
     expect(got.path).toBe("/v1/tuning-profiles/tp-1");
   });
+
+  it("stopAutoTuneJob issues POST /v1/auto-tune/{id}/stop and returns nothing on 204", async () => {
+    const got = seen();
+    server.use(
+      http.post(url("/v1/auto-tune/:id/stop"), ({ request }) => {
+        record(got, request);
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const result = await enterpriseClient().stopAutoTuneJob("at 1");
+    expect(result).toBeUndefined();
+    expect(got.method).toBe("POST");
+    expect(got.path).toBe("/v1/auto-tune/at%201/stop");
+  });
+
+  it("stopAutoTuneJob is not tier-gated and reaches a pro instance", async () => {
+    let receivedPath = "";
+    server.use(
+      http.post(`${PRO_URL}/v1/auto-tune/:id/stop`, ({ request }) => {
+        receivedPath = new URL(request.url).pathname;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    await expect(proClient().stopAutoTuneJob("at-1")).resolves.toBeUndefined();
+    expect(receivedPath).toBe("/v1/auto-tune/at-1/stop");
+  });
 });

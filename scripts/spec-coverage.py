@@ -62,11 +62,6 @@ HELPER_BUILT = {
     ("GET", "/v1/saved_presets/{}"),
     ("PATCH", "/v1/saved_presets/{}"),
     ("DELETE", "/v1/saved_presets/{}"),
-    ("GET", "/v1/saved-presets"),
-    ("POST", "/v1/saved-presets"),
-    ("GET", "/v1/saved-presets/{}"),
-    ("PATCH", "/v1/saved-presets/{}"),
-    ("DELETE", "/v1/saved-presets/{}"),
 }
 
 

@@ -12,7 +12,7 @@ import (
 )
 
 // Extract submits a single document for asynchronous extraction and returns the
-// queued [JobResponse]. Use [Client.WaitForJob] (or [Client.ExtractAndWait] for
+// queued [ExtractionJobResponse]. Use [Client.WaitForJob] (or [Client.ExtractAndWait] for
 // a one-shot helper) to obtain the extraction result. opts.Webhook, when set,
 // asks the server to deliver job-completion events to that URL instead of (or
 // in addition to) polling.
@@ -22,7 +22,7 @@ func (c *Client) Extract(
 	ctx context.Context,
 	file FileSource,
 	opts *ExtractOptions,
-) (*JobResponse, error) {
+) (*ExtractionJobResponse, error) {
 	jobs, err := c.ExtractBatch(ctx, []FileSource{file}, opts)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (c *Client) Extract(
 
 // ExtractBatch submits multiple documents in a single multipart request. The
 // server returns one job ID per file (in submission order); each is then
-// fetched via [Client.GetJob] so callers receive fully-typed [JobResponse]
+// fetched via [Client.GetJob] so callers receive fully-typed [ExtractionJobResponse]
 // values, mirroring the Python SDK.
 //
 // Part of the shared surface (Enterprise + Pro).
@@ -43,7 +43,7 @@ func (c *Client) ExtractBatch(
 	ctx context.Context,
 	files []FileSource,
 	opts *ExtractOptions,
-) ([]*JobResponse, error) {
+) ([]*ExtractionJobResponse, error) {
 	if len(files) == 0 {
 		return nil, fmt.Errorf("xberg: ExtractBatch requires at least one file")
 	}
@@ -87,7 +87,7 @@ func (c *Client) ExtractBatch(
 	if len(jobIDs) != len(files) {
 		return nil, fmt.Errorf("xberg: expected %d job IDs, got %d", len(files), len(jobIDs))
 	}
-	jobs := make([]*JobResponse, len(jobIDs))
+	jobs := make([]*ExtractionJobResponse, len(jobIDs))
 	for i, id := range jobIDs {
 		job, err := c.GetJob(ctx, id)
 		if err != nil {

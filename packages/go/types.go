@@ -7,6 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// JobResponse is the previous name of [ExtractionJobResponse].
+//
+// ~keep The upstream schema was renamed JobResponse -> ExtractionJobResponse,
+// which renamed the generated type with it. This alias keeps code written
+// against the old exported name compiling. Prefer ExtractionJobResponse.
+type JobResponse = ExtractionJobResponse
+
 // terminalJobStatuses lists the statuses for which the server will produce no
 // further updates. WaitForJob polls until one of these is observed. The
 // [JobStatus] values are defined by the generated Enterprise schema set.

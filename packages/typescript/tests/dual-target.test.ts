@@ -88,7 +88,7 @@ describe("tier gating with an explicit target", () => {
 
   it("rejects an enterprise-only method on the pro tier without an HTTP call", async () => {
     const client = new XbergClient({ apiKey: "k", baseUrl: PRO_URL, target: "pro" });
-    await expect(client.usage()).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.listExtractionEvents()).rejects.toThrow(/not available on the 'pro' tier/);
   });
 
   it("reaches the login endpoint on the pro tier", async () => {
@@ -107,7 +107,7 @@ describe("tier gating with an explicit target", () => {
 
   it("lists saved presets on the pro tier", async () => {
     server.use(
-      http.get(`${PRO_URL}/v1/saved-presets`, () =>
+      http.get(`${PRO_URL}/v1/saved_presets`, () =>
         HttpResponse.json({ presets: [], total: 0, page: 0, limit: 0 }, { status: 200 }),
       ),
     );
@@ -132,12 +132,12 @@ describe("tier gating via the /healthz capability probe", () => {
         healthzCalls += 1;
         return HttpResponse.json({ status: "ok", tier: "enterprise" }, { status: 200 });
       }),
-      http.get(`${ENTERPRISE_URL}/v1/usage`, () => HttpResponse.json({ pages: 7 }, { status: 200 })),
+      http.get(`${ENTERPRISE_URL}/v1/extractions`, () => HttpResponse.json({ events: [] }, { status: 200 })),
     );
     // target omitted -> tier is discovered from /healthz, then cached.
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    expect(await client.usage()).toEqual({ pages: 7 });
-    expect(await client.usage()).toEqual({ pages: 7 });
+    expect(await client.listExtractionEvents()).toEqual({ events: [] });
+    expect(await client.listExtractionEvents()).toEqual({ events: [] });
     expect(healthzCalls).toBe(1);
   });
 
@@ -146,7 +146,7 @@ describe("tier gating via the /healthz capability probe", () => {
       http.get(`${ENTERPRISE_URL}/healthz`, () => HttpResponse.json({ status: "ok", tier: "pro" }, { status: 200 })),
     );
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    await expect(client.usage()).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.listExtractionEvents()).rejects.toThrow(/not available on the 'pro' tier/);
   });
 });
 
@@ -161,11 +161,11 @@ describe("tier probe hardening", () => {
         const body = healthzCalls === 1 ? { status: "ok" } : { status: "ok", tier: "enterprise" };
         return HttpResponse.json(body, { status: 200 });
       }),
-      http.get(`${ENTERPRISE_URL}/v1/usage`, () => HttpResponse.json({ pages: 1 }, { status: 200 })),
+      http.get(`${ENTERPRISE_URL}/v1/extractions`, () => HttpResponse.json({ events: [1] }, { status: 200 })),
     );
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    await expect(client.usage()).rejects.toThrow(XbergError);
-    expect(await client.usage()).toEqual({ pages: 1 });
+    await expect(client.listExtractionEvents()).rejects.toThrow(XbergError);
+    expect(await client.listExtractionEvents()).toEqual({ events: [1] });
     expect(healthzCalls).toBe(2);
   });
 
@@ -177,11 +177,11 @@ describe("tier probe hardening", () => {
         const body = healthzCalls === 1 ? { status: "ok", tier: null } : { status: "ok", tier: "enterprise" };
         return HttpResponse.json(body, { status: 200 });
       }),
-      http.get(`${ENTERPRISE_URL}/v1/usage`, () => HttpResponse.json({ pages: 2 }, { status: 200 })),
+      http.get(`${ENTERPRISE_URL}/v1/extractions`, () => HttpResponse.json({ events: [2] }, { status: 200 })),
     );
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    await expect(client.usage()).rejects.toThrow(XbergError);
-    expect(await client.usage()).toEqual({ pages: 2 });
+    await expect(client.listExtractionEvents()).rejects.toThrow(XbergError);
+    expect(await client.listExtractionEvents()).toEqual({ events: [2] });
     expect(healthzCalls).toBe(2);
   });
 
@@ -193,11 +193,11 @@ describe("tier probe hardening", () => {
         const body = healthzCalls === 1 ? { status: "ok", tier: "trial" } : { status: "ok", tier: "enterprise" };
         return HttpResponse.json(body, { status: 200 });
       }),
-      http.get(`${ENTERPRISE_URL}/v1/usage`, () => HttpResponse.json({ pages: 3 }, { status: 200 })),
+      http.get(`${ENTERPRISE_URL}/v1/extractions`, () => HttpResponse.json({ events: [3] }, { status: 200 })),
     );
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    await expect(client.usage()).rejects.toThrow(XbergError);
-    expect(await client.usage()).toEqual({ pages: 3 });
+    await expect(client.listExtractionEvents()).rejects.toThrow(XbergError);
+    expect(await client.listExtractionEvents()).toEqual({ events: [3] });
     expect(healthzCalls).toBe(2);
   });
 
@@ -208,11 +208,15 @@ describe("tier probe hardening", () => {
         healthzCalls += 1;
         return HttpResponse.json({ status: "ok", tier: "enterprise" }, { status: 200 });
       }),
-      http.get(`${ENTERPRISE_URL}/v1/usage`, () => HttpResponse.json({ pages: 4 }, { status: 200 })),
+      http.get(`${ENTERPRISE_URL}/v1/extractions`, () => HttpResponse.json({ events: [4] }, { status: 200 })),
     );
     const client = new XbergClient({ apiKey: "k", baseUrl: ENTERPRISE_URL });
-    const results = await Promise.all([client.usage(), client.usage(), client.usage()]);
-    expect(results).toEqual([{ pages: 4 }, { pages: 4 }, { pages: 4 }]);
+    const results = await Promise.all([
+      client.listExtractionEvents(),
+      client.listExtractionEvents(),
+      client.listExtractionEvents(),
+    ]);
+    expect(results).toEqual([{ events: [4] }, { events: [4] }, { events: [4] }]);
     expect(healthzCalls).toBe(1);
   });
 });

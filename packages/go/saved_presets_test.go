@@ -17,16 +17,18 @@ const (
 		"created_at":"2025-01-01T00:00:00Z","updated_at":"2025-01-02T00:00:00Z"}`
 )
 
-// savedPresetTiers pairs each target with the route spelling its spec declares:
-// Enterprise underscores the segment, Pro hyphenates it.
-var savedPresetTiers = map[xberg.Target]string{
-	xberg.TargetEnterprise: "/v1/saved_presets",
-	xberg.TargetPro:        "/v1/saved-presets",
-}
+// savedPresetsBase is the one route spelling both specs declare. A hyphenated
+// `/v1/saved-presets` appears in neither — it survives only as a tag name — so
+// the client must reach this path on either tier.
+const savedPresetsBase = "/v1/saved_presets"
 
-func TestListSavedPresets_UsesTierSpecificPath(t *testing.T) {
+// savedPresetTargets are the tiers every saved-preset test exercises; both must
+// reach savedPresetsBase.
+var savedPresetTargets = []xberg.Target{xberg.TargetEnterprise, xberg.TargetPro}
+
+func TestListSavedPresets_ReachesTheSharedRoute(t *testing.T) {
 	t.Parallel()
-	for target, base := range savedPresetTiers {
+	for _, target := range savedPresetTargets {
 		t.Run(string(target), func(t *testing.T) {
 			t.Parallel()
 			var seen recordedRequest
@@ -36,8 +38,8 @@ func TestListSavedPresets_UsesTierSpecificPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ListSavedPresets: %v", err)
 			}
-			if seen.method != http.MethodGet || seen.path != base {
-				t.Errorf("request = %s %s, want GET %s", seen.method, seen.path, base)
+			if seen.method != http.MethodGet || seen.path != savedPresetsBase {
+				t.Errorf("request = %s %s, want GET %s", seen.method, seen.path, savedPresetsBase)
 			}
 			if seen.query != "limit=25&offset=5" {
 				t.Errorf("query = %q, want limit=25&offset=5", seen.query)
@@ -62,9 +64,9 @@ func TestListSavedPresets_OmitsNonPositivePaging(t *testing.T) {
 	}
 }
 
-func TestCreateSavedPreset_UsesTierSpecificPath(t *testing.T) {
+func TestCreateSavedPreset_ReachesTheSharedRoute(t *testing.T) {
 	t.Parallel()
-	for target, base := range savedPresetTiers {
+	for _, target := range savedPresetTargets {
 		t.Run(string(target), func(t *testing.T) {
 			t.Parallel()
 			var seen recordedRequest
@@ -81,8 +83,8 @@ func TestCreateSavedPreset_UsesTierSpecificPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("CreateSavedPreset: %v", err)
 			}
-			if seen.method != http.MethodPost || seen.path != base {
-				t.Errorf("request = %s %s, want POST %s", seen.method, seen.path, base)
+			if seen.method != http.MethodPost || seen.path != savedPresetsBase {
+				t.Errorf("request = %s %s, want POST %s", seen.method, seen.path, savedPresetsBase)
 			}
 			if created.Id.String() != savedPresetID {
 				t.Errorf("Id = %q, want %s", created.Id.String(), savedPresetID)
@@ -91,9 +93,9 @@ func TestCreateSavedPreset_UsesTierSpecificPath(t *testing.T) {
 	}
 }
 
-func TestGetSavedPreset_UsesTierSpecificPath(t *testing.T) {
+func TestGetSavedPreset_ReachesTheSharedRoute(t *testing.T) {
 	t.Parallel()
-	for target, base := range savedPresetTiers {
+	for _, target := range savedPresetTargets {
 		t.Run(string(target), func(t *testing.T) {
 			t.Parallel()
 			var seen recordedRequest
@@ -103,8 +105,8 @@ func TestGetSavedPreset_UsesTierSpecificPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("GetSavedPreset: %v", err)
 			}
-			if seen.method != http.MethodGet || seen.path != base+"/"+savedPresetID {
-				t.Errorf("request = %s %s, want GET %s/%s", seen.method, seen.path, base, savedPresetID)
+			if seen.method != http.MethodGet || seen.path != savedPresetsBase+"/"+savedPresetID {
+				t.Errorf("request = %s %s, want GET %s/%s", seen.method, seen.path, savedPresetsBase, savedPresetID)
 			}
 			if preset.Name != "Invoice" || !preset.EmitCitations {
 				t.Errorf("preset = %+v, want name=Invoice emit_citations=true", preset)
@@ -113,27 +115,31 @@ func TestGetSavedPreset_UsesTierSpecificPath(t *testing.T) {
 	}
 }
 
-func TestUpdateSavedPreset_PatchesTierSpecificPath(t *testing.T) {
+func TestUpdateSavedPreset_PatchesTheSharedRoute(t *testing.T) {
 	t.Parallel()
-	for target, base := range savedPresetTiers {
+	for _, target := range savedPresetTargets {
 		t.Run(string(target), func(t *testing.T) {
 			t.Parallel()
 			var seen recordedRequest
 			client := targetClient(t, target, http.StatusOK,
 				`{"success":true,"message":"updated"}`, &seen)
 
+			name := "Invoice v2"
+			callMode := "text_only"
+			emitCitations := false
+			schema := map[string]any{"type": "object"}
 			updated, err := client.UpdateSavedPreset(context.Background(), savedPresetID,
 				xberg.UpdateSavedPresetRequest{
-					Name:              "Invoice v2",
-					PreferredCallMode: "text_only",
-					EmitCitations:     false,
-					Schema:            map[string]any{"type": "object"},
+					Name:              &name,
+					PreferredCallMode: &callMode,
+					EmitCitations:     &emitCitations,
+					Schema:            &schema,
 				})
 			if err != nil {
 				t.Fatalf("UpdateSavedPreset: %v", err)
 			}
-			if seen.method != http.MethodPatch || seen.path != base+"/"+savedPresetID {
-				t.Errorf("request = %s %s, want PATCH %s/%s", seen.method, seen.path, base, savedPresetID)
+			if seen.method != http.MethodPatch || seen.path != savedPresetsBase+"/"+savedPresetID {
+				t.Errorf("request = %s %s, want PATCH %s/%s", seen.method, seen.path, savedPresetsBase, savedPresetID)
 			}
 			if !updated.Success {
 				t.Errorf("Success = false, want true")
@@ -142,9 +148,9 @@ func TestUpdateSavedPreset_PatchesTierSpecificPath(t *testing.T) {
 	}
 }
 
-func TestDeleteSavedPreset_DeletesTierSpecificPath(t *testing.T) {
+func TestDeleteSavedPreset_DeletesTheSharedRoute(t *testing.T) {
 	t.Parallel()
-	for target, base := range savedPresetTiers {
+	for _, target := range savedPresetTargets {
 		t.Run(string(target), func(t *testing.T) {
 			t.Parallel()
 			var seen recordedRequest
@@ -153,8 +159,8 @@ func TestDeleteSavedPreset_DeletesTierSpecificPath(t *testing.T) {
 			if err := client.DeleteSavedPreset(context.Background(), savedPresetID); err != nil {
 				t.Fatalf("DeleteSavedPreset: %v", err)
 			}
-			if seen.method != http.MethodDelete || seen.path != base+"/"+savedPresetID {
-				t.Errorf("request = %s %s, want DELETE %s/%s", seen.method, seen.path, base, savedPresetID)
+			if seen.method != http.MethodDelete || seen.path != savedPresetsBase+"/"+savedPresetID {
+				t.Errorf("request = %s %s, want DELETE %s/%s", seen.method, seen.path, savedPresetsBase, savedPresetID)
 			}
 		})
 	}
@@ -189,7 +195,7 @@ func TestSavedPresets_AreNotTierGated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListSavedPresets on enterprise: %v", err)
 	}
-	if seen.path != "/v1/saved_presets" {
-		t.Errorf("path = %q, want the enterprise spelling to be reached", seen.path)
+	if seen.path != savedPresetsBase {
+		t.Errorf("path = %q, want %s to be reached", seen.path, savedPresetsBase)
 	}
 }

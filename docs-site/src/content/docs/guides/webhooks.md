@@ -116,6 +116,10 @@ A webhook removes the poll loop but does not remove the need to handle a job tha
 job on your own timeout as a fallback for jobs your webhook handler has not seen close.
 
 Managed webhook *subscriptions* — a standing registration independent of any single extract call —
-are a control-plane feature, not part of this API on either tier; the inline `webhook` documented
-here is the only webhook surface exposed by the clients. See
+are an Enterprise control-plane feature; the inline `webhook` documented here is the only way to
+request a delivery on either tier.
+
+Delivery history for a managed subscription is readable on Enterprise:
+`list_subscription_deliveries` / `get_subscription_delivery` on the data plane, and
+`get_webhook_delivery` for a single delivery through the control plane. See
 [Tier capabilities](/reference/tier-capabilities/).

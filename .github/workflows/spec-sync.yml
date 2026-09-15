@@ -28,7 +28,7 @@ jobs:
     name: refresh vendored OpenAPI specs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v2
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
@@ -38,7 +38,7 @@ jobs:
             sdks
             xberg-enterprise
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
@@ -61,7 +61,7 @@ jobs:
           echo "version=${PAYLOAD_VERSION:-latest}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout sibling xberg-enterprise
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: xberg-io/xberg-enterprise
           path: _xberg-enterprise
@@ -104,7 +104,7 @@ jobs:
 
       - name: Open PR
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore(spec): sync api + pro + backend openapi specs from xberg-enterprise (${{ steps.ref.outputs.version }})"

@@ -13,6 +13,8 @@ import (
 const (
 	testDocumentID    = "doc-1"
 	testEnrichJobID   = "01JENRICHJOB0000000000000"
+	testWebhookID     = "9f8e7d6c-0000-4000-8000-000000000001"
+	testDeliveryID    = "9f8e7d6c-0000-4000-8000-000000000002"
 	enrichStatusBody  = `{"status":"completed","result":{"keywords":["invoice","acme"]}}`
 	extractionsResult = `{"events":[{"job_id":"aaaaaaaa-0000-4000-8000-000000000011","filename":"a.pdf","status":"completed",
 		"pages":3,"created_at":"2025-01-01T00:00:00Z"}],"total":1,"limit":50,"page":0}`
@@ -138,12 +140,15 @@ func TestEnterpriseAdditions_AreGatedToEnterprise(t *testing.T) {
 			_, err := client.ListExtractionEvents(ctx, 0, 0, 0)
 			return err
 		},
-		"SubmitEnrich": func() error {
-			_, err := client.SubmitEnrich(ctx, xberg.EnrichTextRequest{Text: "x"})
+		"Versions": func() error { _, err := client.Versions(ctx, testDocumentID); return err },
+		"ListSubscriptionDeliveries": func() error {
+			_, err := client.ListSubscriptionDeliveries(ctx, testWebhookID, 0, 0)
 			return err
 		},
-		"GetEnrichStatus": func() error { _, err := client.GetEnrichStatus(ctx, testEnrichJobID); return err },
-		"GetJobPage":      func() error { _, err := client.GetJobPage(ctx, jobUUID, 1); return err },
+		"GetSubscriptionDelivery": func() error {
+			_, err := client.GetSubscriptionDelivery(ctx, testWebhookID, testDeliveryID)
+			return err
+		},
 	}
 	if len(calls) != 5 {
 		t.Fatalf("covered %d Enterprise-only additions, want all 5", len(calls))

@@ -78,6 +78,7 @@ import type {
   BackendUpdateProjectRequest,
   BackendUpdateWebhookRequest,
   BackendUsageResponse,
+  BackendWebhookDeliveryDetailResponse,
   BackendWebhookResponse,
   BackendWebhookTestResponse,
   AutoTuneCapabilitiesResponse,
@@ -108,6 +109,7 @@ import type {
   IntegrationResponse,
   Job,
   JobResult,
+  LicenseInfoResponse,
   ListApiKeysResponse,
   ListAuditEntriesResponse,
   ListAutoTuneJobsResponse,
@@ -115,9 +117,11 @@ import type {
   ListExtractionEventsResponse,
   ListIntegrationsResponse,
   ListJobsResponse,
+  ListManagedEmbeddingPresetsResponse,
   ListProjectsResponse,
   ListSavedPresetsResponse,
   ListTuningProfilesResponse,
+  ListWebhookDeliveriesResponse,
   LoginRequest,
   LoginResponse,
   PresetDetail,
@@ -134,6 +138,7 @@ import type {
   UpdateSavedPresetResponse,
   UsageResponse,
   WebhookConfig,
+  WebhookDeliveryDetailResponse,
 } from "./types.js";
 import { SUCCESS_JOB_STATUSES, TERMINAL_JOB_STATUSES } from "./types.js";
 import { VERSION } from "./version.js";
@@ -152,12 +157,10 @@ const DEFAULT_RETRY_STATUSES: readonly number[] = [429, 502, 503, 504];
 const DEFAULT_RETRY_BACKOFF_BASE_MS = 200;
 
 /**
- * Saved presets are the one shared resource whose *path* differs per tier:
- * Enterprise serves `/v1/saved_presets` (underscore), Pro `/v1/saved-presets`
- * (hyphen). The request and response schemas are identical.
+ * ~keep `saved-presets` is an OpenAPI *tag* name, not a route: both specs serve
+ * `/v1/saved_presets`, so there is no per-tier spelling to select between.
  */
-const SAVED_PRESETS_PATH_ENTERPRISE = "/v1/saved_presets";
-const SAVED_PRESETS_PATH_PRO = "/v1/saved-presets";
+const SAVED_PRESETS_PATH = "/v1/saved_presets";
 const AUTO_TUNE_PATH = "/v1/auto-tune";
 const TUNING_PROFILES_PATH = "/v1/tuning-profiles";
 const ENRICH_PATH = "/v1/enrich";
@@ -165,6 +168,10 @@ const EXTRACTIONS_PATH = "/v1/extractions";
 const DOCUMENTS_PATH = "/v1/documents";
 const JOBS_PATH = "/v1/jobs";
 const CRAWL_JOBS_PATH = "/v1/crawl-jobs";
+const WEBHOOKS_PATH = "/v1/webhooks";
+
+/** Media type of a raw upload body, and the fallback when a submitted file declares none. */
+const OCTET_STREAM_MEDIA_TYPE = "application/octet-stream";
 
 /** Media type of the crawl-event stream, sent as `Accept` and served as `Content-Type`. */
 const EVENT_STREAM_MEDIA_TYPE = "text/event-stream";
@@ -286,7 +293,9 @@ export interface ListIntegrationDocumentsParams {
   /** Source-specific folder to list instead of the connection root. */
   folderId?: string;
   /** Upper bound on the number of documents returned. */
-  maxResults?: number;
+  limit?: number;
+  /** Number of documents to skip before returning results. */
+  offset?: number;
 }
 
 export interface BackendDateRange {
@@ -569,7 +578,14 @@ export class XbergClient {
     return await this.backendRequest<BackendListDocumentsResponse>(
       "GET",
       `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/documents`,
-      { params: { mime_types: params.mimeTypes, folder_id: params.folderId, max_results: params.maxResults } },
+      {
+        params: {
+          mime_types: params.mimeTypes,
+          folder_id: params.folderId,
+          limit: params.limit,
+          offset: params.offset,
+        },
+      },
     );
   }
   /** Enterprise backend `GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}`. */
@@ -728,6 +744,17 @@ export class XbergClient {
       { params: { limit: params.limit, offset: params.offset } },
     );
   }
+  /** Enterprise backend `GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}`. */
+  public async getWebhookDelivery(
+    projectId: string,
+    webhookId: string,
+    deliveryId: string,
+  ): Promise<BackendWebhookDeliveryDetailResponse> {
+    return await this.backendRequest<BackendWebhookDeliveryDetailResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/webhooks/${encodePathSegment(webhookId)}/deliveries/${encodePathSegment(deliveryId)}`,
+    );
+  }
   /** Enterprise backend `POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry`. */
   public async retryWebhookDelivery(
     projectId: string,
@@ -791,8 +818,8 @@ export class XbergClient {
     const form = new FormData();
     // ~keep The Enterprise parser captures lineage when reading each file part.
     for (const [filename, documentId] of documentIds) form.append(`document_id-${filename}`, documentId);
-    for (const file of params.files) {
-      const { blob, filename } = toBlob(file);
+    const parts = params.files.map(toBlob);
+    for (const { blob, filename } of parts) {
       form.append("file", blob, filename);
     }
     if (params.options !== undefined) {
@@ -806,7 +833,9 @@ export class XbergClient {
     const body = await this.requestJson<ExtractResponse>("POST", "/v1/extract", { body: form });
     const jobIds = body.job_ids ?? [];
     const now = new Date().toISOString();
-    return params.files.map((file, index) => {
+    // ~keep `POST /v1/extract` answers with job IDs alone, so the rest of each record is
+    // synthesized from what was submitted; `mime_type` is the type the file was uploaded under.
+    return parts.map(({ blob, filename }, index) => {
       const id = jobIds[index];
       if (id === undefined) {
         throw new XbergError(`Server returned ${jobIds.length} job IDs for ${params.files.length} files`, {
@@ -814,7 +843,13 @@ export class XbergClient {
           body,
         });
       }
-      return { id, filename: describeFile(file), status: "pending", created_at: now };
+      return {
+        id,
+        filename,
+        mime_type: blob.type.length > 0 ? blob.type : OCTET_STREAM_MEDIA_TYPE,
+        status: "pending",
+        created_at: now,
+      };
     });
   }
 
@@ -1004,41 +1039,44 @@ export class XbergClient {
     return await this.requestJson("GET", `/v1/rag/jobs/${encodePathSegment(jobId)}`);
   }
 
+  /**
+   * List the managed embedding presets this server build ships
+   * (`GET /v1/rag/embedding-presets`), in the canonical backend order.
+   */
+  public async listManagedEmbeddingPresets(): Promise<ListManagedEmbeddingPresetsResponse> {
+    return await this.requestJson<ListManagedEmbeddingPresetsResponse>("GET", "/v1/rag/embedding-presets");
+  }
+
   // -- Shared saved presets ----------------------------------------------
   //
-  // Both tiers serve the same schemas under a different spelling, so every
-  // method here resolves the tier and renders its path from it.
+  // Both tiers serve the same routes under the same spelling and the same
+  // schemas, so nothing here is tier-dependent.
 
-  /** List the project's saved presets (`GET /v1/saved_presets`, `/v1/saved-presets` on Pro). */
+  /** List the project's saved presets (`GET /v1/saved_presets`). */
   public async listSavedPresets(params: PaginationParams = {}): Promise<ListSavedPresetsResponse> {
-    const path = await this.savedPresetsPath();
-    return await this.requestJson<ListSavedPresetsResponse>("GET", path, {
+    return await this.requestJson<ListSavedPresetsResponse>("GET", SAVED_PRESETS_PATH, {
       params: { limit: params.limit, offset: params.offset },
     });
   }
 
-  /** Create a saved preset (`POST /v1/saved_presets`, `/v1/saved-presets` on Pro). */
+  /** Create a saved preset (`POST /v1/saved_presets`). */
   public async createSavedPreset(body: CreateSavedPresetRequest): Promise<CreateSavedPresetResponse> {
-    const path = await this.savedPresetsPath();
-    return await this.requestJson<CreateSavedPresetResponse>("POST", path, { json: body });
+    return await this.requestJson<CreateSavedPresetResponse>("POST", SAVED_PRESETS_PATH, { json: body });
   }
 
-  /** Fetch one saved preset (`GET /v1/saved_presets/{presetId}`, `/v1/saved-presets/{id}` on Pro). */
+  /** Fetch one saved preset (`GET /v1/saved_presets/{preset_id}`). */
   public async getSavedPreset(presetId: string): Promise<SavedPresetDetail> {
-    const path = await this.savedPresetsPath(presetId);
-    return await this.requestJson<SavedPresetDetail>("GET", path);
+    return await this.requestJson<SavedPresetDetail>("GET", this.savedPresetPath(presetId));
   }
 
-  /** Update a saved preset (`PATCH /v1/saved_presets/{presetId}`, `/v1/saved-presets/{id}` on Pro). */
+  /** Update a saved preset (`PATCH /v1/saved_presets/{preset_id}`). */
   public async updateSavedPreset(presetId: string, body: UpdateSavedPresetRequest): Promise<UpdateSavedPresetResponse> {
-    const path = await this.savedPresetsPath(presetId);
-    return await this.requestJson<UpdateSavedPresetResponse>("PATCH", path, { json: body });
+    return await this.requestJson<UpdateSavedPresetResponse>("PATCH", this.savedPresetPath(presetId), { json: body });
   }
 
-  /** Delete a saved preset (`DELETE /v1/saved_presets/{presetId}`, `/v1/saved-presets/{id}` on Pro). */
+  /** Delete a saved preset (`DELETE /v1/saved_presets/{preset_id}`). */
   public async deleteSavedPreset(presetId: string): Promise<void> {
-    const path = await this.savedPresetsPath(presetId);
-    await this.requestJson("DELETE", path);
+    await this.requestJson("DELETE", this.savedPresetPath(presetId));
   }
 
   // -- Shared auto-tune surface ------------------------------------------
@@ -1082,6 +1120,18 @@ export class XbergClient {
     await this.requestJson("DELETE", this.autoTunePath(autoTuneJobId));
   }
 
+  /**
+   * Stop a running auto-tune job (`POST /v1/auto-tune/{id}/stop`).
+   *
+   * The run finishes the trial in flight and then completes with the partial
+   * leaderboard, so {@link getAutoTuneResult} still serves the best configuration
+   * the search found. Idempotent: a job that already reached a terminal state
+   * answers `204` and nothing changes.
+   */
+  public async stopAutoTuneJob(autoTuneJobId: string): Promise<void> {
+    await this.requestJson("POST", `${this.autoTunePath(autoTuneJobId)}/stop`);
+  }
+
   /** Promote an auto-tune result to a named tuning profile (`POST /v1/auto-tune/{id}/promote`). */
   public async promoteAutoTuneProfile(
     autoTuneJobId: string,
@@ -1116,6 +1166,81 @@ export class XbergClient {
     await this.requestJson("DELETE", this.tuningProfilePath(profileId));
   }
 
+  // -- Shared uploads, usage, pages, enrichment and crawl streams ---------
+  //
+  // ~keep Every route below is declared by both specs; the Enterprise gate these
+  // once carried denied Pro callers endpoints Pro serves.
+
+  /**
+   * Request presigned upload URLs (`POST /v1/uploads/presign`).
+   *
+   * The request body is typed off the Enterprise schema, whose `config` is a full
+   * `ExtractionConfig`; Pro declares that field as an open object and accepts the
+   * same payload.
+   */
+  public async presignUpload(body: PresignUploadRequest): Promise<PresignUploadResponse> {
+    return await this.requestJson<PresignUploadResponse>("POST", "/v1/uploads/presign", { json: body });
+  }
+
+  /** Confirm presigned uploads and start processing (`POST /v1/uploads/confirm`). */
+  public async confirmUpload(body: ConfirmUploadRequest): Promise<ConfirmUploadResponse> {
+    return await this.requestJson<ConfirmUploadResponse>("POST", "/v1/uploads/confirm", { json: body });
+  }
+
+  /** Fetch usage/metering data for a date window (`GET /v1/usage`). */
+  public async usage(params?: QueryParams): Promise<UsageResponse> {
+    const init: RequestParts = params !== undefined ? { params } : {};
+    return await this.requestJson<UsageResponse>("GET", "/v1/usage", init);
+  }
+
+  /**
+   * Download one rendered page of an extraction job
+   * (`GET /v1/jobs/{job_id}/pages/{page_number}`). The response is a PNG image —
+   * raw bytes, not JSON. `pageNumber` is 1-indexed.
+   */
+  public async getJobPage(jobId: string, pageNumber: number): Promise<Uint8Array> {
+    const path = `${JOBS_PATH}/${encodePathSegment(jobId)}/pages/${encodePathSegment(String(pageNumber))}`;
+    return await this.requestBytes("GET", path);
+  }
+
+  /** Submit text for enrichment (`POST /v1/enrich`). */
+  public async submitEnrich(body: EnrichTextRequest): Promise<EnrichJobSubmitted> {
+    return await this.requestJson<EnrichJobSubmitted>("POST", ENRICH_PATH, { json: body });
+  }
+
+  /** Fetch an enrichment job's status (`GET /v1/enrich/{job_id}`). */
+  public async getEnrichStatus(jobId: string): Promise<EnrichJobStatus> {
+    return await this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodePathSegment(jobId)}`);
+  }
+
+  /**
+   * Stream a crawl job's events (`GET /v1/crawl-jobs/{crawl_job_id}/events`,
+   * Server-Sent Events).
+   *
+   * Returns an `AsyncIterable` of the `kind`-discriminated {@link CrawlEvent}
+   * union; the server closes the stream after the `complete` event.
+   *
+   * ```ts
+   * for await (const event of client.streamCrawlEvents(crawlJobId)) {
+   *   if (event.kind === "page") {
+   *     console.log(event.url, event.status_code);
+   *   }
+   * }
+   * ```
+   *
+   * Nothing is requested until iteration begins, and the response body is
+   * cancelled when iteration ends: on `complete`, on `break`/`return` out of the
+   * loop, on a thrown error, or when `options.signal` aborts. A stream is idle
+   * between events by design, so unlike every other method here it carries no
+   * request timeout and is not routed through the retry engine — a retried
+   * subscription would redeliver every event the caller had already handled.
+   */
+  public streamCrawlEvents(crawlJobId: string, options: StreamCrawlEventsOptions = {}): AsyncIterable<CrawlEvent> {
+    const path = `${CRAWL_JOBS_PATH}/${encodePathSegment(crawlJobId)}/events`;
+    const open = (): Promise<Response> => this.openEventStream(path, options.signal);
+    return { [Symbol.asyncIterator]: (): AsyncIterator<CrawlEvent> => iterateCrawlEvents(open) };
+  }
+
   // -- Pro-only surface --------------------------------------------------
 
   /** Pro only: fetch the instance's accepted auth methods (`GET /auth/config`). */
@@ -1128,6 +1253,35 @@ export class XbergClient {
   public async login(body: LoginRequest): Promise<LoginResponse> {
     await this.requireTier("pro", "login");
     return this.requestJson<LoginResponse>("POST", "/auth/login", { json: body });
+  }
+
+  /**
+   * Pro only: read the running instance's license detail (`GET /v1/license`) —
+   * licensee, plan, expiry, grace window and days remaining. Requires an admin
+   * API key or an admin session.
+   */
+  public async getLicenseInfo(): Promise<LicenseInfoResponse> {
+    await this.requireTier("pro", "getLicenseInfo");
+    return this.requestJson<LicenseInfoResponse>("GET", "/v1/license");
+  }
+
+  /**
+   * Pro only: upload a document's bytes against a presigned local capability
+   * (`PUT /v1/uploads/local/{project_id}/{token}`).
+   *
+   * `projectId` and `token` come from the `upload_url` {@link presignUpload}
+   * returns when the instance stages uploads locally. The capability is one-use,
+   * expiring, and bounded by the size limit recorded when it was issued; the
+   * body is sent as raw bytes.
+   */
+  public async putLocalUpload(projectId: string, token: string, file: FileLike): Promise<void> {
+    await this.requireTier("pro", "putLocalUpload");
+    const { blob } = toBlob(file);
+    const path = `/v1/uploads/local/${encodePathSegment(projectId)}/${encodePathSegment(token)}`;
+    await this.requestJson("PUT", path, {
+      body: new Uint8Array(await blob.arrayBuffer()),
+      headers: { "Content-Type": OCTET_STREAM_MEDIA_TYPE },
+    });
   }
 
   /** Pro only: fetch a project's RAG config (`GET /v1/projects/{projectId}/rag-config`). */
@@ -1238,7 +1392,8 @@ export class XbergClient {
         params: {
           mime_types: params.mimeTypes,
           folder_id: params.folderId,
-          max_results: params.maxResults,
+          limit: params.limit,
+          offset: params.offset,
         },
       },
     );
@@ -1328,77 +1483,32 @@ export class XbergClient {
   }
 
   /**
-   * Enterprise only: download one rendered page of an extraction job
-   * (`GET /v1/jobs/{jobId}/pages/{pageNumber}`). The response is a PNG image —
-   * raw bytes, not JSON. `pageNumber` is 1-indexed.
+   * Enterprise only: list a webhook subscription's delivery attempts
+   * (`GET /v1/webhooks/{webhook_id}/deliveries`). Metadata only — call
+   * {@link getSubscriptionDelivery} for an attempt's payload previews.
+   *
+   * ~keep Distinct from {@link listWebhookDeliveries}, which reads the same
+   * history through the control plane's project-scoped route.
    */
-  public async getJobPage(jobId: string, pageNumber: number): Promise<Uint8Array> {
-    await this.requireTier("enterprise", "getJobPage");
-    const path = `${JOBS_PATH}/${encodePathSegment(jobId)}/pages/${encodePathSegment(String(pageNumber))}`;
-    return this.requestBytes("GET", path);
-  }
-
-  /** Enterprise only: submit text for enrichment (`POST /v1/enrich`). */
-  public async submitEnrich(body: EnrichTextRequest): Promise<EnrichJobSubmitted> {
-    await this.requireTier("enterprise", "submitEnrich");
-    return this.requestJson<EnrichJobSubmitted>("POST", ENRICH_PATH, { json: body });
-  }
-
-  /** Enterprise only: fetch an enrichment job's status (`GET /v1/enrich/{jobId}`). */
-  public async getEnrichStatus(jobId: string): Promise<EnrichJobStatus> {
-    await this.requireTier("enterprise", "getEnrichStatus");
-    return this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodePathSegment(jobId)}`);
+  public async listSubscriptionDeliveries(
+    webhookId: string,
+    params: PaginationParams = {},
+  ): Promise<ListWebhookDeliveriesResponse> {
+    await this.requireTier("enterprise", "listSubscriptionDeliveries");
+    return this.requestJson<ListWebhookDeliveriesResponse>("GET", this.webhookDeliveriesPath(webhookId), {
+      params: { limit: params.limit, offset: params.offset },
+    });
   }
 
   /**
-   * Enterprise only: stream a crawl job's events
-   * (`GET /v1/crawl-jobs/{crawlJobId}/events`, Server-Sent Events).
-   *
-   * Returns an `AsyncIterable` of the `kind`-discriminated {@link CrawlEvent}
-   * union; the server closes the stream after the `complete` event.
-   *
-   * ```ts
-   * for await (const event of client.streamCrawlEvents(crawlJobId)) {
-   *   if (event.kind === "page") {
-   *     console.log(event.url, event.status_code);
-   *   }
-   * }
-   * ```
-   *
-   * Nothing is requested — not even the `/healthz` tier probe — until
-   * iteration begins, and the response body is cancelled when iteration ends:
-   * on `complete`, on `break`/`return` out of the loop, on a thrown error, or
-   * when `options.signal` aborts. A stream is idle between events by design,
-   * so unlike every other method here it carries no request timeout and is not
-   * routed through the retry engine — a retried subscription would redeliver
-   * every event the caller had already handled.
+   * Enterprise only: fetch one delivery attempt with its bounded request and
+   * response previews (`GET /v1/webhooks/{webhook_id}/deliveries/{delivery_id}`).
+   * The previews can carry project document content.
    */
-  public streamCrawlEvents(crawlJobId: string, options: StreamCrawlEventsOptions = {}): AsyncIterable<CrawlEvent> {
-    const path = `${CRAWL_JOBS_PATH}/${encodePathSegment(crawlJobId)}/events`;
-    const open = async (): Promise<Response> => {
-      await this.requireTier("enterprise", "streamCrawlEvents");
-      return this.openEventStream(path, options.signal);
-    };
-    return { [Symbol.asyncIterator]: (): AsyncIterator<CrawlEvent> => iterateCrawlEvents(open) };
-  }
-
-  /** Enterprise only: request a presigned upload URL (`POST /v1/uploads/presign`). */
-  public async presignUpload(body: PresignUploadRequest): Promise<PresignUploadResponse> {
-    await this.requireTier("enterprise", "presignUpload");
-    return this.requestJson<PresignUploadResponse>("POST", "/v1/uploads/presign", { json: body });
-  }
-
-  /** Enterprise only: confirm a presigned upload (`POST /v1/uploads/confirm`). */
-  public async confirmUpload(body: ConfirmUploadRequest): Promise<ConfirmUploadResponse> {
-    await this.requireTier("enterprise", "confirmUpload");
-    return this.requestJson<ConfirmUploadResponse>("POST", "/v1/uploads/confirm", { json: body });
-  }
-
-  /** Enterprise only: fetch usage/metering data (`GET /v1/usage`). */
-  public async usage(params?: QueryParams): Promise<UsageResponse> {
-    await this.requireTier("enterprise", "usage");
-    const init: RequestParts = params !== undefined ? { params } : {};
-    return this.requestJson<UsageResponse>("GET", "/v1/usage", init);
+  public async getSubscriptionDelivery(webhookId: string, deliveryId: string): Promise<WebhookDeliveryDetailResponse> {
+    await this.requireTier("enterprise", "getSubscriptionDelivery");
+    const path = `${this.webhookDeliveriesPath(webhookId)}/${encodePathSegment(deliveryId)}`;
+    return this.requestJson<WebhookDeliveryDetailResponse>("GET", path);
   }
 
   // -- Internals ---------------------------------------------------------
@@ -1418,6 +1528,11 @@ export class XbergClient {
     return `${DOCUMENTS_PATH}/${encodePathSegment(documentId)}`;
   }
 
+  /** Build `/v1/saved_presets/{preset_id}` with the id percent-encoded. */
+  private savedPresetPath(presetId: string): string {
+    return `${SAVED_PRESETS_PATH}/${encodePathSegment(presetId)}`;
+  }
+
   /** Build `/v1/auto-tune/{id}` with the id percent-encoded. */
   private autoTunePath(autoTuneJobId: string): string {
     return `${AUTO_TUNE_PATH}/${encodePathSegment(autoTuneJobId)}`;
@@ -1428,15 +1543,9 @@ export class XbergClient {
     return `${TUNING_PROFILES_PATH}/${encodePathSegment(profileId)}`;
   }
 
-  /**
-   * Resolve the tier and render the saved-preset path in that tier's spelling:
-   * `/v1/saved-presets` on Pro, `/v1/saved_presets` everywhere else. Pass a
-   * `presetId` for the single-preset routes.
-   */
-  private async savedPresetsPath(presetId?: string): Promise<string> {
-    const tier = await this.resolveTier();
-    const base = tier === "pro" ? SAVED_PRESETS_PATH_PRO : SAVED_PRESETS_PATH_ENTERPRISE;
-    return presetId === undefined ? base : `${base}/${encodePathSegment(presetId)}`;
+  /** Build `/v1/webhooks/{webhook_id}/deliveries` with the id percent-encoded. */
+  private webhookDeliveriesPath(webhookId: string): string {
+    return `${WEBHOOKS_PATH}/${encodePathSegment(webhookId)}/deliveries`;
   }
 
   /**
