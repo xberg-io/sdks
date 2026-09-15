@@ -252,7 +252,8 @@ def test_list_integration_documents_sync_forwards_filters(api_key: str) -> None:
             INTEGRATION_ID,
             mime_types="application/pdf",
             folder_id="folder-9",
-            max_results=50,
+            limit=50,
+            offset=10,
         )
 
     assert [document.name for document in response.documents] == ["invoice.pdf"]
@@ -260,7 +261,8 @@ def test_list_integration_documents_sync_forwards_filters(api_key: str) -> None:
     assert dict(route.calls.last.request.url.params) == {
         "mime_types": "application/pdf",
         "folder_id": "folder-9",
-        "max_results": "50",
+        "limit": "50",
+        "offset": "10",
     }
 
 
@@ -327,10 +329,10 @@ async def test_list_projects_async(api_key: str) -> None:
 async def test_create_project_async(api_key: str) -> None:
     route = respx.post(f"{PRO_URL}/v1/projects").mock(return_value=httpx.Response(201, json=PROJECT))
     async with _async_pro_client(api_key) as client:
-        project = await client.create_project(CreateProjectRequest(name="Acme"))
+        project = await client.create_project(CreateProjectRequest(name="Acme", slug="acme"))
 
     assert project.name == "Acme"
-    assert json.loads(route.calls.last.request.content) == {"name": "Acme"}
+    assert json.loads(route.calls.last.request.content) == {"name": "Acme", "slug": "acme"}
 
 
 # -- API keys — async ----------------------------------------------------------
@@ -466,10 +468,10 @@ async def test_list_integration_documents_async(api_key: str) -> None:
         ),
     )
     async with _async_pro_client(api_key) as client:
-        response = await client.list_integration_documents(PROJECT_ID, INTEGRATION_ID, max_results=5)
+        response = await client.list_integration_documents(PROJECT_ID, INTEGRATION_ID, limit=5)
 
     assert [document.id for document in response.documents] == ["drive-doc-2"]
-    assert dict(route.calls.last.request.url.params) == {"max_results": "5"}
+    assert dict(route.calls.last.request.url.params) == {"limit": "5"}
 
 
 @pytest.mark.asyncio

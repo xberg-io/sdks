@@ -16,13 +16,19 @@ def make_job_payload(
     job_id: str | None = None,
     status: str = "pending",
     filename: str = "invoice.pdf",
+    mime_type: str = "application/pdf",
     result: dict[str, Any] | None = None,
     processing_time_ms: int | None = None,
 ) -> dict[str, Any]:
-    """Build a JobResponse-shaped payload for stubbed responses."""
+    """Build an ExtractionJobResponse-shaped payload for stubbed responses.
+
+    ``mime_type`` is required by the schema on both tiers, so the fixture always
+    sends it -- a payload without it is a shape no instance serves.
+    """
     payload: dict[str, Any] = {
         "id": job_id or str(uuid.uuid4()),
         "filename": filename,
+        "mime_type": mime_type,
         "status": status,
         "created_at": "2026-05-09T10:00:00Z",
     }
@@ -63,6 +69,7 @@ def make_job_result_payload(
     *,
     job_id: str = "aaaaaaaa-0000-4000-8000-000000000001",
     status: str = "completed",
+    cached: bool = False,
     results: list[dict[str, Any]] | None = None,
     child_job_ids: list[str] | None = None,
     errors: list[dict[str, Any]] | None = None,
@@ -72,6 +79,7 @@ def make_job_result_payload(
     return {
         "job_id": job_id,
         "status": status,
+        "cached": cached,
         "results": [make_extraction_result()] if results is None else results,
         "child_job_ids": child_job_ids if child_job_ids is not None else [],
         "errors": errors if errors is not None else [],

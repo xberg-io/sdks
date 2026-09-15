@@ -59,8 +59,8 @@ const pro = new XbergClient({ apiKey: process.env.XBERG_API_KEY!, target: "pro",
 ```
 
 When `target` is omitted the tier is discovered lazily from `GET /healthz`.
-Calling a method not available on the connected tier (e.g. `usage()` on Pro, or
-`login()` on Enterprise) throws a clear "not available on this tier" error.
+Calling a method not available on the connected tier (e.g. `versions()` on Pro,
+or `login()` on Enterprise) throws a clear "not available on this tier" error.
 
 ## Quickstart — single file
 
@@ -122,18 +122,23 @@ Shared surface (both tiers):
 extraction result (`GET /v1/jobs/{id}/result`). They are different schemas — the
 polling helpers return the former, `getJobResult` the latter.
 
-Saved presets are shared but the two products spell the route differently —
-Enterprise serves `/v1/saved_presets`, Pro `/v1/saved-presets`, with identical
-schemas. The client resolves the tier and picks the spelling for you.
+Saved presets are shared, and both products serve them at `/v1/saved_presets`
+with identical schemas.
 
-Xberg Pro only: `login`, `authConfig`, `getRagConfig` / `setRagConfig`, and the
+Xberg Pro only: `login`, `authConfig`, `getRagConfig` / `setRagConfig`,
+`getLicenseInfo`, `putLocalUpload`, and the
 control plane — `listProjects` / `createProject`, `listApiKeys` / `createApiKey` /
 `revokeApiKey`, `listIntegrations` / `createIntegration` / `getIntegration` /
 `deleteIntegration`, `connectIntegration` / `disconnectIntegration`,
 `listIntegrationDocuments` / `fetchIntegrationDocument`.
 
 Xberg Enterprise only: `getDocument`, `versions`, `diff` / `getDiffJob`,
-`presignUpload` / `confirmUpload`, `usage`, `listExtractionEvents`, `getJobPage`,
+`listExtractionEvents`, `listSubscriptionDeliveries` / `getSubscriptionDelivery`.
+
+Both tiers also carry `stopAutoTuneJob` and `listManagedEmbeddingPresets`.
+
+Available on both tiers, though earlier releases wrongly gated them to
+Enterprise: `presignUpload` / `confirmUpload`, `usage`, `getJobPage`,
 `submitEnrich` / `getEnrichStatus`, `streamCrawlEvents` (an `AsyncIterable` over
 a Server-Sent Events stream).
 

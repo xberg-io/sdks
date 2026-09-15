@@ -31,11 +31,11 @@ func jobPath(jobID, suffix string) string {
 // GetJob fetches the current status of a single job by ID.
 //
 // Part of the shared surface (Enterprise + Pro).
-func (c *Client) GetJob(ctx context.Context, jobID string) (*JobResponse, error) {
+func (c *Client) GetJob(ctx context.Context, jobID string) (*ExtractionJobResponse, error) {
 	if jobID == "" {
 		return nil, fmt.Errorf("xberg: GetJob requires a non-empty jobID")
 	}
-	var job JobResponse
+	var job ExtractionJobResponse
 	if err := c.getJSON(ctx, jobPath(jobID, ""), &job); err != nil {
 		return nil, err
 	}
@@ -77,11 +77,10 @@ func (c *Client) GetJobResult(ctx context.Context, jobID string) (*JobResult, er
 // GetJobPage downloads one page raster persisted during a structured
 // extraction (GET /v1/jobs/{jobID}/pages/{pageNumber}). Page numbers are
 // 1-indexed and the endpoint serves image/png, so the body is returned
-// undecoded. Enterprise only.
+// undecoded.
+//
+// Part of the shared surface (Enterprise + Pro).
 func (c *Client) GetJobPage(ctx context.Context, jobID string, pageNumber int) ([]byte, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "GetJobPage"); err != nil {
-		return nil, err
-	}
 	if jobID == "" {
 		return nil, fmt.Errorf("xberg: GetJobPage requires a non-empty jobID")
 	}
@@ -119,7 +118,7 @@ func (c *Client) Audit(ctx context.Context, action string, limit, offset int) (*
 }
 
 // WaitForJob polls GET /v1/jobs/{id} until the job reaches a terminal status or
-// the configured timeout elapses. It returns the terminal [JobResponse] on a
+// the configured timeout elapses. It returns the terminal [ExtractionJobResponse] on a
 // successful state (completed / partial_success); a failed or cancelled job
 // yields an error wrapping the server-supplied message.
 //
@@ -128,7 +127,7 @@ func (c *Client) WaitForJob(
 	ctx context.Context,
 	jobID string,
 	opts *WaitOptions,
-) (*JobResponse, error) {
+) (*ExtractionJobResponse, error) {
 	options := normaliseWaitOptions(opts)
 	start := time.Now()
 	deadline := start.Add(options.Timeout)
@@ -168,11 +167,11 @@ func (c *Client) WaitForJobs(
 	ctx context.Context,
 	jobIDs []string,
 	opts *WaitOptions,
-) ([]*JobResponse, error) {
+) ([]*ExtractionJobResponse, error) {
 	if len(jobIDs) == 0 {
 		return nil, nil
 	}
-	results := make([]*JobResponse, len(jobIDs))
+	results := make([]*ExtractionJobResponse, len(jobIDs))
 	errs := make([]error, len(jobIDs))
 	groupCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -204,7 +203,7 @@ func (c *Client) WaitForJobs(
 }
 
 // ExtractAndWait is a convenience wrapper that submits a single document and
-// blocks until extraction completes, returning the terminal [JobResponse]. The
+// blocks until extraction completes, returning the terminal [ExtractionJobResponse]. The
 // extraction options and wait policy can be overridden via opts; either field
 // may be nil to accept defaults.
 //
@@ -213,7 +212,7 @@ func (c *Client) ExtractAndWait(
 	ctx context.Context,
 	file FileSource,
 	opts *ExtractAndWaitOptions,
-) (*JobResponse, error) {
+) (*ExtractionJobResponse, error) {
 	var extract *ExtractOptions
 	var wait *WaitOptions
 	if opts != nil {
@@ -256,7 +255,7 @@ func nextPollInterval(current time.Duration) time.Duration {
 
 // jobFromTerminal returns a terminal job or maps a failed/cancelled state to an
 // error carrying the server-supplied detail when present.
-func jobFromTerminal(jobID string, job *JobResponse) (*JobResponse, error) {
+func jobFromTerminal(jobID string, job *ExtractionJobResponse) (*ExtractionJobResponse, error) {
 	switch job.Status {
 	case JobStatusCompleted, JobStatusPartialSuccess:
 		return job, nil
@@ -276,7 +275,7 @@ func jobFromTerminal(jobID string, job *JobResponse) (*JobResponse, error) {
 
 // jobFailureDetail best-effort extracts a human-readable failure message from a
 // terminal job's inlined extraction result.
-func jobFailureDetail(job *JobResponse) string {
+func jobFailureDetail(job *ExtractionJobResponse) string {
 	if job.Result != nil && job.Result.Content != "" {
 		return job.Result.Content
 	}

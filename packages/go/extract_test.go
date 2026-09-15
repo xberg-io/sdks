@@ -15,7 +15,7 @@ import (
 	xberg "github.com/xberg-io/sdks/packages/go"
 )
 
-// UUID fixtures for extract tests — the generated JobResponse types its id as a
+// UUID fixtures for extract tests — the generated ExtractionJobResponse types its id as a
 // UUID, and Extract fetches each returned job via GetJob.
 const (
 	extractJobA = "aaaaaaaa-1111-1111-1111-111111111111"

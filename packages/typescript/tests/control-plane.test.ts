@@ -205,10 +205,11 @@ describe("pro control plane — integrations", () => {
     const result = await makeClient().listIntegrationDocuments(PROJECT, INTEGRATION, {
       mimeTypes: "application/pdf",
       folderId: "folder-9",
-      maxResults: 25,
+      limit: 25,
+      offset: 5,
     });
     expect(result.documents).toEqual([{ id: "d1", name: "Report.pdf" }]);
-    expect(receivedSearch).toBe("?mime_types=application%2Fpdf&folder_id=folder-9&max_results=25");
+    expect(receivedSearch).toBe("?mime_types=application%2Fpdf&folder_id=folder-9&limit=25&offset=5");
   });
 
   it("fetchIntegrationDocument returns the raw document bytes", async () => {

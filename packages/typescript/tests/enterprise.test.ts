@@ -241,13 +241,115 @@ describe("enterprise-only surface", () => {
   });
 });
 
+describe("enterprise-only webhook delivery history", () => {
+  it("listSubscriptionDeliveries issues GET /v1/webhooks/{webhookId}/deliveries with pagination", async () => {
+    const got = seen();
+    server.use(
+      http.get(url("/v1/webhooks/:webhookId/deliveries"), ({ request }) => {
+        record(got, request);
+        return HttpResponse.json({ deliveries: [], total: 0, page: 0, limit: 100 }, { status: 200 });
+      }),
+    );
+    const result = await makeClient().listSubscriptionDeliveries("wh 1", { limit: 5, offset: 10 });
+    expect(result).toEqual({ deliveries: [], total: 0, page: 0, limit: 100 });
+    expect(got.method).toBe("GET");
+    expect(got.path).toBe("/v1/webhooks/wh%201/deliveries");
+    expect(got.search).toBe("?limit=5&offset=10");
+  });
+
+  it("getSubscriptionDelivery issues GET /v1/webhooks/{webhookId}/deliveries/{deliveryId}", async () => {
+    const got = seen();
+    server.use(
+      http.get(url("/v1/webhooks/:webhookId/deliveries/:deliveryId"), ({ request }) => {
+        record(got, request);
+        return HttpResponse.json({ id: "d-1", status_code: 200 }, { status: 200 });
+      }),
+    );
+    const result = await makeClient().getSubscriptionDelivery("wh-1", "d 1");
+    expect(result).toEqual({ id: "d-1", status_code: 200 });
+    expect(got.method).toBe("GET");
+    expect(got.path).toBe("/v1/webhooks/wh-1/deliveries/d%201");
+  });
+});
+
 describe("enterprise-only tier gating", () => {
   it("rejects each enterprise-only method on the pro tier without an HTTP call", async () => {
     const client = proClient();
     await expect(client.getDocument("doc-1")).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.versions("doc-1")).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.diff("doc-1")).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.getDiffJob("doc-1", "job-1")).rejects.toThrow(/not available on the 'pro' tier/);
     await expect(client.listExtractionEvents()).rejects.toThrow(/not available on the 'pro' tier/);
-    await expect(client.getJobPage("job-1", 1)).rejects.toThrow(/not available on the 'pro' tier/);
-    await expect(client.submitEnrich({ text: "hello" })).rejects.toThrow(/not available on the 'pro' tier/);
-    await expect(client.getEnrichStatus("enrich-1")).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.listSubscriptionDeliveries("wh-1")).rejects.toThrow(/not available on the 'pro' tier/);
+    await expect(client.getSubscriptionDelivery("wh-1", "d-1")).rejects.toThrow(/not available on the 'pro' tier/);
+  });
+});
+
+/**
+ * ~keep These seven are declared by `spec/pro/openapi.yaml` and always were; the
+ * client used to gate them to Enterprise, so Pro callers got a thrown tier error
+ * instead of a working endpoint. Assert reachability, not just the absence of a throw.
+ */
+describe("routes Pro serves that were wrongly gated to enterprise", () => {
+  it("reaches each one on the pro tier", async () => {
+    const paths: string[] = [];
+    const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    server.use(
+      http.get(`${PRO_URL}/v1/usage`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.json({ total_pages: 3 }, { status: 200 });
+      }),
+      http.post(`${PRO_URL}/v1/uploads/presign`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.json({ batch_id: "b-1", uploads: [] }, { status: 200 });
+      }),
+      http.post(`${PRO_URL}/v1/uploads/confirm`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.json({ job_ids: ["j-1"], status: "processing" }, { status: 200 });
+      }),
+      http.get(`${PRO_URL}/v1/jobs/:jobId/pages/:pageNumber`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.arrayBuffer(pngBytes.buffer, { status: 200 });
+      }),
+      http.post(`${PRO_URL}/v1/enrich`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.json({ job_id: "e-1" }, { status: 202 });
+      }),
+      http.get(`${PRO_URL}/v1/enrich/:jobId`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return HttpResponse.json({ job_id: "e-1", status: "completed" }, { status: 200 });
+      }),
+      http.get(`${PRO_URL}/v1/crawl-jobs/:crawlJobId/events`, ({ request }) => {
+        paths.push(new URL(request.url).pathname);
+        return new HttpResponse(`data: ${JSON.stringify({ kind: "complete", crawl_job_id: "c-1" })}\n\n`, {
+          status: 200,
+          headers: { "content-type": "text/event-stream" },
+        });
+      }),
+    );
+
+    const client = proClient();
+    expect(await client.usage()).toEqual({ total_pages: 3 });
+    expect(await client.presignUpload({ documents: [] })).toEqual({ batch_id: "b-1", uploads: [] });
+    expect(await client.confirmUpload({ batch_id: "b-1" })).toEqual({ job_ids: ["j-1"], status: "processing" });
+    expect([...(await client.getJobPage("job-1", 2))]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+    expect(await client.submitEnrich({ text: "hello" })).toEqual({ job_id: "e-1" });
+    expect(await client.getEnrichStatus("e-1")).toEqual({ job_id: "e-1", status: "completed" });
+
+    const events = [];
+    for await (const event of client.streamCrawlEvents("c-1")) {
+      events.push(event.kind);
+    }
+    expect(events).toEqual(["complete"]);
+
+    expect(paths).toEqual([
+      "/v1/usage",
+      "/v1/uploads/presign",
+      "/v1/uploads/confirm",
+      "/v1/jobs/job-1/pages/2",
+      "/v1/enrich",
+      "/v1/enrich/e-1",
+      "/v1/crawl-jobs/c-1/events",
+    ]);
   });
 });

@@ -59,23 +59,26 @@ preset registry (`Presets`, `GetPreset`, `GetPresetSample`), saved presets
 (`ListSavedPresets`, `CreateSavedPreset`, `GetSavedPreset`, `UpdateSavedPreset`,
 `DeleteSavedPreset`), auto-tune (`ListAutoTuneJobs`, `SubmitAutoTune`,
 `GetAutoTuneCapabilities`, `GetAutoTuneStatus`, `DeleteAutoTuneJob`,
-`PromoteAutoTuneProfile`, `GetAutoTuneResult`) and its tuning-profile registry
-(`ListTuningProfiles`, `GetTuningProfile`, `DeleteTuningProfile`), and the RAG
-surface (`ListRagCollections`, `RagRetrieve`, `DeleteRagCollection`,
-`DeleteRagDocuments`, …). Pro-only: `AuthConfig`, `Login`,
-`GetRagConfig`/`SetRagConfig`, and the control plane — projects
+`StopAutoTuneJob`, `PromoteAutoTuneProfile`, `GetAutoTuneResult`) and its
+tuning-profile registry (`ListTuningProfiles`, `GetTuningProfile`,
+`DeleteTuningProfile`), and the RAG surface (`ListRagCollections`,
+`RagRetrieve`, `DeleteRagCollection`, `DeleteRagDocuments`,
+`ListManagedEmbeddingPresets`, …). Pro-only: `AuthConfig`, `Login`,
+`GetLicenseInfo`, `PutLocalUpload`, `GetRagConfig`/`SetRagConfig`, and the
+control plane — projects
 (`ListProjects`, `CreateProject`), API keys (`ListAPIKeys`, `CreateAPIKey`,
 `RevokeAPIKey`) and integrations (`ListIntegrations`, `CreateIntegration`,
 `GetIntegration`, `DeleteIntegration`, `ConnectIntegration`,
 `DisconnectIntegration`, `ListIntegrationDocuments`, `FetchIntegrationDocument`).
-Enterprise-only: `GetDocument`, `Versions`, `Diff`, `GetDiffJob`, `GetJobPage`,
-`ListExtractionEvents`, enrichment (`SubmitEnrich`, `GetEnrichStatus`), uploads
-(`PresignUpload`/`ConfirmUpload`), `Usage`.
+Enterprise-only: `GetDocument`, `Versions`, `Diff`, `GetDiffJob`,
+`ListExtractionEvents`, and the webhook-subscription delivery history
+(`ListSubscriptionDeliveries`, `GetSubscriptionDelivery`). Available on both
+tiers, though earlier releases wrongly gated them to Enterprise: `GetJobPage`,
+enrichment (`SubmitEnrich`, `GetEnrichStatus`), uploads
+(`PresignUpload`/`ConfirmUpload`), `Usage`, and `StreamCrawlEvents`.
 
-Saved presets are served by both products under different spellings —
-`/v1/saved_presets` on Enterprise, `/v1/saved-presets` on Pro. The client
-resolves the tier and picks the spelling for you; the method names and payloads
-are identical either way.
+Saved presets are served by both products at `/v1/saved_presets`; the method
+names and payloads are identical either way.
 
 ### Deliberate exclusions
 

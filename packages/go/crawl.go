@@ -99,12 +99,15 @@ func (e CrawlEvent) AsComplete() (CrawlEventV13, error) { return e.AsCrawlEventV
 
 // StreamCrawlEvents subscribes to a crawl job's Server-Sent Events feed
 // (GET /v1/crawl-jobs/{crawlJobID}/events) and returns an iterator over the
-// events it publishes. Enterprise only.
+// events it publishes.
 //
-// The returned error covers only what can be decided before any bytes move:
-// the Enterprise tier gate. Everything after it — opening the connection,
-// framing, decoding — surfaces as the iterator's second value, and the first
-// non-nil error ends the sequence.
+// Part of the shared surface (Enterprise + Pro).
+//
+// Everything that can fail — opening the connection, framing, decoding —
+// surfaces as the iterator's second value, and the first non-nil error ends the
+// sequence. The returned error is reserved for what could be decided before any
+// bytes move; it is currently always nil, and the second return value is kept
+// so a future precondition need not be a breaking change.
 //
 //	events, err := client.StreamCrawlEvents(ctx, crawlJobID)
 //	if err != nil {
@@ -137,9 +140,6 @@ func (e CrawlEvent) AsComplete() (CrawlEventV13, error) { return e.AsCrawlEventV
 // and would therefore sever a healthy subscription mid-crawl — a stream is idle
 // between events by design. ctx is the only deadline; cancel it to hang up.
 func (c *Client) StreamCrawlEvents(ctx context.Context, crawlJobID string) (iter.Seq2[CrawlEvent, error], error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "StreamCrawlEvents"); err != nil {
-		return nil, err
-	}
 	path := crawlJobsPath + "/" + escapePathSegment(crawlJobID) + "/events"
 	return func(yield func(CrawlEvent, error) bool) {
 		body, err := c.openEventStream(ctx, path)

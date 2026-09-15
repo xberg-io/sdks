@@ -22,9 +22,10 @@ entirely means "use the batch default" for every field.
 
 `FileExtractionConfig` carries the same per-file knobs as `options.extraction_config` — `ocr`,
 `pages`, `chunking`, `content_filter`, `layout`, `keywords`, `language_detection`,
-`structured_extraction`, `postprocessor`, `images`, `pdf_options`, `disable_ocr`, `force_ocr`,
-`force_ocr_pages`, `extraction_timeout_secs` (1–600, default 600, clamped down rather than
-rejected above the ceiling), `output_format`, `result_format` and `include_document_structure`.
+`structured_extraction`, `postprocessor`, `images`, `pdf_options`, `html_options`, `disable_ocr`,
+`force_ocr`, `force_ocr_pages`, `enable_quality_processing`, `token_reduction`,
+`extraction_timeout_secs` (1–600, default 600, clamped down rather than rejected above the
+ceiling), `output_format`, `result_format` and `include_document_structure` — 21 in all.
 Batch-only fields — `use_cache`, `cache_namespace`, `cache_ttl_secs`,
 `max_concurrent_extractions`, `security_limits`, `max_archive_depth`,
 `max_embedded_file_bytes` — are not valid here; they apply to the whole request and have no

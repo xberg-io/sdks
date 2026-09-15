@@ -1,4 +1,4 @@
-"""Wire contracts for all 48 Enterprise backend operations, distinct from Pro."""
+"""Wire contracts for all 49 Enterprise backend operations, distinct from Pro."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def response_for(case: dict[str, Any]) -> httpx.Response:
 async def test_backend_operation_wire_contract(
     base_url: str, api_key: str, asynchronous: bool, case: dict[str, Any]
 ) -> None:
-    assert len(CASES) == 48
+    assert len(CASES) == 49
     route = respx.request(case["verb"], CONTROL_URL + case_path(case)).mock(return_value=response_for(case))
     arguments = dict(case["arguments"])
     if case.get("multipart"):

@@ -31,7 +31,7 @@ func (c *Client) GetDocument(ctx context.Context, documentID string) (json.RawMe
 	if err := c.requireTier(ctx, TargetEnterprise, "GetDocument"); err != nil {
 		return nil, err
 	}
-	return c.enterpriseGet(ctx, documentPath(documentID, ""))
+	return c.rawGet(ctx, documentPath(documentID, ""))
 }
 
 // Versions lists a document's versions (GET /v1/documents/{id}/versions).
@@ -40,7 +40,7 @@ func (c *Client) Versions(ctx context.Context, documentID string) (json.RawMessa
 	if err := c.requireTier(ctx, TargetEnterprise, "Versions"); err != nil {
 		return nil, err
 	}
-	return c.enterpriseGet(ctx, documentPath(documentID, "/versions"))
+	return c.rawGet(ctx, documentPath(documentID, "/versions"))
 }
 
 // Diff diffs document versions (GET /v1/documents/{id}/diff). Query parameters
@@ -49,7 +49,7 @@ func (c *Client) Diff(ctx context.Context, documentID string, params map[string]
 	if err := c.requireTier(ctx, TargetEnterprise, "Diff"); err != nil {
 		return nil, err
 	}
-	return c.enterpriseGet(ctx, documentPath(documentID, "/diff")+encodeParams(params))
+	return c.rawGet(ctx, documentPath(documentID, "/diff")+encodeParams(params))
 }
 
 // GetDiffJob polls a diff job (GET /v1/documents/{id}/diff/{diffJobID}).
@@ -58,7 +58,7 @@ func (c *Client) GetDiffJob(ctx context.Context, documentID, diffJobID string) (
 	if err := c.requireTier(ctx, TargetEnterprise, "GetDiffJob"); err != nil {
 		return nil, err
 	}
-	return c.enterpriseGet(ctx, documentPath(documentID, "/diff/"+escapePathSegment(diffJobID)))
+	return c.rawGet(ctx, documentPath(documentID, "/diff/"+escapePathSegment(diffJobID)))
 }
 
 // ListExtractionEvents lists the project's extraction events
@@ -83,76 +83,53 @@ func (c *Client) ListExtractionEvents(
 	return &out, nil
 }
 
-// SubmitEnrich submits text for asynchronous enrichment (POST /v1/enrich) and
-// returns the queued job's ID. Poll it with [Client.GetEnrichStatus].
-// Enterprise only.
-func (c *Client) SubmitEnrich(ctx context.Context, body EnrichTextRequest) (*EnrichJobSubmitted, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "SubmitEnrich"); err != nil {
+// webhookDeliveriesPath renders a subscription's delivery collection route on
+// the data plane, escaping the webhook ID.
+func webhookDeliveriesPath(webhookID string) string {
+	return "/v1/webhooks/" + escapePathSegment(webhookID) + "/deliveries"
+}
+
+// ListSubscriptionDeliveries lists a webhook subscription's delivery attempts
+// (GET /v1/webhooks/{webhookID}/deliveries, paginated). Attempt metadata only,
+// without payload previews — call [Client.GetSubscriptionDelivery] for those.
+// A non-positive limit or offset is omitted from the query string, leaving the
+// server's default. Enterprise only.
+//
+// ~keep Distinct from [Client.ListWebhookDeliveries], which reads the same
+// history through the control plane's project-scoped route.
+func (c *Client) ListSubscriptionDeliveries(
+	ctx context.Context,
+	webhookID string,
+	limit, offset int,
+) (*ListWebhookDeliveriesResponse, error) {
+	if err := c.requireTier(ctx, TargetEnterprise, "ListSubscriptionDeliveries"); err != nil {
 		return nil, err
 	}
-	var out EnrichJobSubmitted
-	if err := c.callJSON(ctx, methodPost, "/v1/enrich", body, &out); err != nil {
+	var out ListWebhookDeliveriesResponse
+	if err := c.getJSON(ctx, webhookDeliveriesPath(webhookID)+pageQuery(limit, offset), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
 }
 
-// GetEnrichStatus polls an enrichment job (GET /v1/enrich/{jobID}). The
-// returned union carries the result once the job completes, or the failure
-// message when it failed — discriminate with its AsEnrichJobStatus* methods.
-// Enterprise only.
-func (c *Client) GetEnrichStatus(ctx context.Context, jobID string) (*EnrichJobStatus, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "GetEnrichStatus"); err != nil {
+// GetSubscriptionDelivery fetches one delivery attempt with its bounded request
+// and response previews
+// (GET /v1/webhooks/{webhookID}/deliveries/{deliveryID}). The previews are
+// truncated by the server, which flags which ones are incomplete, and can carry
+// project document content. Enterprise only.
+func (c *Client) GetSubscriptionDelivery(
+	ctx context.Context,
+	webhookID, deliveryID string,
+) (*WebhookDeliveryDetailResponse, error) {
+	if err := c.requireTier(ctx, TargetEnterprise, "GetSubscriptionDelivery"); err != nil {
 		return nil, err
 	}
-	var out EnrichJobStatus
-	if err := c.getJSON(ctx, "/v1/enrich/"+escapePathSegment(jobID), &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// PresignUpload requests a presigned upload URL (POST /v1/uploads/presign).
-// Enterprise only.
-func (c *Client) PresignUpload(ctx context.Context, body any) (json.RawMessage, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "PresignUpload"); err != nil {
-		return nil, err
-	}
-	return c.enterpriseSend(ctx, methodPost, "/v1/uploads/presign", body)
-}
-
-// ConfirmUpload confirms a presigned upload (POST /v1/uploads/confirm).
-// Enterprise only.
-func (c *Client) ConfirmUpload(ctx context.Context, body any) (json.RawMessage, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "ConfirmUpload"); err != nil {
-		return nil, err
-	}
-	return c.enterpriseSend(ctx, methodPost, "/v1/uploads/confirm", body)
-}
-
-// Usage fetches usage/metering data (GET /v1/usage). Query parameters are
-// passed through verbatim. Enterprise only.
-func (c *Client) Usage(ctx context.Context, params map[string]string) (json.RawMessage, error) {
-	if err := c.requireTier(ctx, TargetEnterprise, "Usage"); err != nil {
-		return nil, err
-	}
-	return c.enterpriseGet(ctx, "/v1/usage"+encodeParams(params))
-}
-
-func (c *Client) enterpriseGet(ctx context.Context, path string) (json.RawMessage, error) {
-	var out json.RawMessage
+	path := webhookDeliveriesPath(webhookID) + "/" + escapePathSegment(deliveryID)
+	var out WebhookDeliveryDetailResponse
 	if err := c.getJSON(ctx, path, &out); err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *Client) enterpriseSend(ctx context.Context, method, path string, body any) (json.RawMessage, error) {
-	var out json.RawMessage
-	if err := c.callJSON(ctx, method, path, body, &out); err != nil {
-		return nil, err
-	}
-	return out, nil
+	return &out, nil
 }
 
 // encodeParams renders a sorted "?k=v" query suffix, or "" when params is empty.

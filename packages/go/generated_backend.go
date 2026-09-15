@@ -70,17 +70,53 @@ type BackendCreateIntegrationRequest struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
-// BackendHealthResponse Liveness response body: process status plus a service-supplied deployment tier.
+// BackendCreateProjectRequest Request to create a new project.
 //
-// The `tier` seam lets each service report its own value — `api` reads it
-// from `AppState.tier`, `backend` reads the `DEPLOYMENT_TIER` env var — while
-// both share the identical JSON shape and (with the `openapi` feature)
-// `utoipa` schema.
+// `name` is the only field the Enterprise backend accepts — it derives a
+// unique slug server-side. Pro's control plane requires the caller to supply
+// `slug` directly and additionally accepts per-project quota overrides;
+// those fields are optional here and are Pro-only until Enterprise grows the
+// same override capability.
+type BackendCreateProjectRequest struct {
+	// MaxFileSizeMb Maximum upload file size (MB) override. Pro-only; Enterprise applies a
+	// service-wide default instead.
+	MaxFileSizeMb *int32 `json:"max_file_size_mb,omitempty"`
+
+	// MaxMonthlyJobs Monthly job quota override. Pro-only; Enterprise applies a
+	// service-wide default instead.
+	MaxMonthlyJobs *int32 `json:"max_monthly_jobs,omitempty"`
+
+	// MaxMonthlyPages Monthly page quota override. Pro-only; Enterprise applies a
+	// service-wide default instead.
+	MaxMonthlyPages *int32 `json:"max_monthly_pages,omitempty"`
+
+	// Name Project name.
+	Name string `json:"name"`
+
+	// Slug URL-safe project slug. Enterprise-only omission: Enterprise derives a
+	// unique slug from `name` server-side and rejects this field being
+	// meaningfully used; Pro requires the caller to supply it.
+	Slug *string `json:"slug,omitempty"`
+}
+
+// BackendHealthResponse Backend liveness and deployment capabilities used by the dashboard.
 type BackendHealthResponse struct {
-	// Status Service status
+	// AutoTune Enterprise AutoTune availability; project entitlement is checked on submission.
+	AutoTune *struct {
+		// Enabled Instance availability, not a grant of project access or billing entitlement.
+		Enabled bool `json:"enabled"`
+	} `json:"auto_tune,omitempty"`
+
+	// Rag Enterprise RAG availability; project configuration is checked on each request.
+	Rag *struct {
+		// Enabled Instance availability, not a grant of project access or billing entitlement.
+		Enabled bool `json:"enabled"`
+	} `json:"rag,omitempty"`
+
+	// Status Process liveness status.
 	Status string `json:"status"`
 
-	// Tier Deployment tier the frontend uses for runtime feature gating (ADR-0047).
+	// Tier Deployment tier.
 	Tier string `json:"tier"`
 }
 
@@ -233,6 +269,45 @@ type CreateWebhookRequest struct {
 	Url string `json:"url"`
 }
 
+// CreateWebhookResponse Newly created webhook and its signing secret. Store the secret securely: only creation returns it.
+type CreateWebhookResponse struct {
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt string `json:"created_at"`
+
+	// Events Subscribed event types (e.g. `"job.completed"`, `"job.failed"`).
+	Events []string `json:"events"`
+
+	// FailedDeliveries Number of failed delivery attempts.
+	FailedDeliveries int32 `json:"failed_deliveries"`
+
+	// Id Unique webhook identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// IsActive Whether the webhook is currently active.
+	IsActive bool `json:"is_active"`
+
+	// LastDeliveryAt ISO 8601 timestamp of the last delivery attempt.
+	LastDeliveryAt *string `json:"last_delivery_at,omitempty"`
+
+	// LastDeliveryStatus Status of the last delivery attempt (e.g. `"success"`, `"failed"`).
+	LastDeliveryStatus *string `json:"last_delivery_status,omitempty"`
+
+	// Name Webhook display name.
+	Name string `json:"name"`
+
+	// Secret Signing secret disclosed only in the creation response, including when supplied by the caller.
+	Secret string `json:"secret"`
+
+	// TotalDeliveries Total number of delivery attempts.
+	TotalDeliveries int32 `json:"total_deliveries"`
+
+	// UpdatedAt ISO 8601 last update timestamp.
+	UpdatedAt string `json:"updated_at"`
+
+	// Url Webhook delivery URL.
+	Url string `json:"url"`
+}
+
 // DailyAnalyticsEntry Daily analytics record
 type DailyAnalyticsEntry struct {
 	// Date Date (ISO 8601 format)
@@ -315,13 +390,15 @@ type ListDocumentsQuery struct {
 	// If not provided, lists documents from the root/default location.
 	FolderId *string `json:"folder_id,omitempty"`
 
-	// MaxResults Maximum number of documents to return. Clamped to 1000 maximum.
-	// If not provided, uses the connector's default.
-	MaxResults *int `json:"max_results,omitempty"`
+	// Limit Maximum number of documents to return.
+	Limit *int64 `json:"limit,omitempty"`
 
 	// MimeTypes Comma-separated MIME types to filter by (e.g., "text/plain,application/pdf").
 	// If not provided, all document types are returned.
 	MimeTypes *string `json:"mime_types,omitempty"`
+
+	// Offset Number of matching documents to skip.
+	Offset *int64 `json:"offset,omitempty"`
 }
 
 // ListInvitationsResponse Response for the paginated pending-invitation list endpoint.
@@ -351,21 +428,6 @@ type ListMembersResponse struct {
 	Offset int64 `json:"offset"`
 
 	// Total Total number of members in the project.
-	Total int64 `json:"total"`
-}
-
-// ListWebhookDeliveriesResponse Response for the paginated webhook delivery-history endpoint.
-type ListWebhookDeliveriesResponse struct {
-	// Deliveries Delivery attempts in the current page, newest first.
-	Deliveries []WebhookDeliveryResponse `json:"deliveries"`
-
-	// Limit Page size used.
-	Limit int64 `json:"limit"`
-
-	// Offset Offset used for pagination.
-	Offset int64 `json:"offset"`
-
-	// Total Total number of delivery attempts recorded for the webhook.
 	Total int64 `json:"total"`
 }
 
@@ -590,50 +652,6 @@ type UsageSummary struct {
 	TotalResponseBytes int64 `json:"total_response_bytes"`
 }
 
-// WebhookDeliveryResponse One past delivery attempt for a webhook subscription.
-//
-// **Payload bodies are deliberately not included here.** A delivery's
-// request and response bodies can carry document extraction content — the
-// same `results` payload `WebhookEvent` embeds — which is exactly the class
-// of data `WEBHOOK_RESULTS_MAX_BYTES` already treats as too sensitive/large
-// to always inline. A list endpoint that paginates delivery *metadata*
-// should not also be the place a caller incidentally pages through
-// potentially large document content: that argues for a separate
-// `GET .../deliveries/{delivery_id}` detail endpoint fetched on demand (not
-// declared by this pass — only the list and retry operations are), the same
-// "small by default, fetch the rest separately" shape the job-result and
-// webhook-event payloads already use.
-type WebhookDeliveryResponse struct {
-	// AttemptNumber 1-based attempt number within the redelivery sequence for this event
-	// (bounded by `WEBHOOK_MAX_ATTEMPTS` in `common::webhook`).
-	AttemptNumber int32 `json:"attempt_number"`
-
-	// DurationMs How long the delivery attempt took, in milliseconds.
-	DurationMs int64 `json:"duration_ms"`
-
-	// Error Error message, present when the attempt did not succeed.
-	Error *string `json:"error,omitempty"`
-
-	// EventType The event type delivered (e.g. `"job.completed"`, `"job.failed"`).
-	EventType string `json:"event_type"`
-
-	// Id Unique identifier of this delivery attempt.
-	Id openapi_types.UUID `json:"id"`
-
-	// JobId The job this delivery attempt carries the event for.
-	JobId string `json:"job_id"`
-
-	// OccurredAt ISO 8601 timestamp the attempt occurred at.
-	OccurredAt string `json:"occurred_at"`
-
-	// StatusCode HTTP status code returned by the endpoint, when a response was
-	// received at all (absent on a connection/timeout failure).
-	StatusCode *int32 `json:"status_code,omitempty"`
-
-	// Success Whether the endpoint accepted the delivery.
-	Success bool `json:"success"`
-}
-
 // WebhookResponse Webhook resource details.
 type WebhookResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
@@ -704,13 +722,13 @@ type GetAnalyticsParams struct {
 
 // ListProjectAuditParams defines parameters for ListProjectAudit.
 type ListProjectAuditParams struct {
-	// Action Optional action filter, e.g. api_key.create
+	// Action Filter to entries matching this action exactly (e.g. `"job.submit"`).
 	Action *string `form:"action,omitempty" json:"action,omitempty"`
 
-	// Limit Page size (default 50, max 100)
+	// Limit Page size. Values outside 1..=100 are rejected.
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Pagination offset (default 0)
+	// Offset Number of items to skip. Values outside 0..=1,000,000 are rejected.
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
@@ -753,16 +771,10 @@ type ListWebhooksParams struct {
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
-// ListWebhookDeliveriesParams defines parameters for ListWebhookDeliveries.
-type ListWebhookDeliveriesParams struct {
-	// Limit Page size. A value outside 1..=1000 is rejected with a 400, on both
-	// tiers.
-	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Offset Number of items to skip. A negative value is rejected with a 400; a
-	// value above 1,000,000 is accepted but clamped to 1,000,000, which
-	// selects an empty page rather than erroring.
-	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+// RetryWebhookDeliveryParams defines parameters for RetryWebhookDelivery.
+type RetryWebhookDeliveryParams struct {
+	// IdempotencyKey Optional project-scoped replay identity, at most 128 ASCII bytes
+	IdempotencyKey *string `json:"Idempotency-Key,omitempty"`
 }
 
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.

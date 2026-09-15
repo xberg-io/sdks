@@ -93,6 +93,27 @@ func (c *Client) getBytes(ctx context.Context, path string) ([]byte, error) {
 	return data, nil
 }
 
+// rawGet issues a GET to path and returns the 2xx JSON body undecoded. Used by
+// the endpoints whose spec response is an inline (unnamed) schema, for which
+// there is no generated model to decode into.
+func (c *Client) rawGet(ctx context.Context, path string) (json.RawMessage, error) {
+	var out json.RawMessage
+	if err := c.getJSON(ctx, path, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// rawSend issues method to path with an optional JSON body and returns the 2xx
+// JSON body undecoded, for the same reason as [Client.rawGet].
+func (c *Client) rawSend(ctx context.Context, method, path string, body any) (json.RawMessage, error) {
+	var out json.RawMessage
+	if err := c.callJSON(ctx, method, path, body, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // callJSON issues method to path with an optional JSON-encoded body and decodes
 // the 2xx JSON response into out. A nil body sends no request payload; a nil out
 // discards the response body. Bodies are buffered so retries can rewind them.

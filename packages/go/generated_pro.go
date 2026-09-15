@@ -4,23 +4,103 @@
 package xberg
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for ApiKeyScope.
 const (
-	Read  ApiKeyScope = "read"
-	Write ApiKeyScope = "write"
+	ApiKeyScopeRead  ApiKeyScope = "read"
+	ApiKeyScopeWrite ApiKeyScope = "write"
 )
 
 // Valid indicates whether the value is a known member of the ApiKeyScope enum.
 func (e ApiKeyScope) Valid() bool {
 	switch e {
-	case Read:
+	case ApiKeyScopeRead:
 		return true
-	case Write:
+	case ApiKeyScopeWrite:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuthMode.
+const (
+	AuthModeDisabled AuthMode = "disabled"
+	AuthModeRequired AuthMode = "required"
+)
+
+// Valid indicates whether the value is a known member of the AuthMode enum.
+func (e AuthMode) Valid() bool {
+	switch e {
+	case AuthModeDisabled:
+		return true
+	case AuthModeRequired:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProGetJobResponse0JobType.
+const (
+	ProGetJobResponse0JobTypeExtraction ProGetJobResponse0JobType = "extraction"
+)
+
+// Valid indicates whether the value is a known member of the ProGetJobResponse0JobType enum.
+func (e ProGetJobResponse0JobType) Valid() bool {
+	switch e {
+	case ProGetJobResponse0JobTypeExtraction:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProGetJobResponse1JobType.
+const (
+	ProGetJobResponse1JobTypeCrawl ProGetJobResponse1JobType = "crawl"
+)
+
+// Valid indicates whether the value is a known member of the ProGetJobResponse1JobType enum.
+func (e ProGetJobResponse1JobType) Valid() bool {
+	switch e {
+	case ProGetJobResponse1JobTypeCrawl:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProJobStatus.
+const (
+	ProJobStatusCancelled      ProJobStatus = "cancelled"
+	ProJobStatusCompleted      ProJobStatus = "completed"
+	ProJobStatusFailed         ProJobStatus = "failed"
+	ProJobStatusPartialSuccess ProJobStatus = "partial_success"
+	ProJobStatusPending        ProJobStatus = "pending"
+	ProJobStatusProcessing     ProJobStatus = "processing"
+)
+
+// Valid indicates whether the value is a known member of the ProJobStatus enum.
+func (e ProJobStatus) Valid() bool {
+	switch e {
+	case ProJobStatusCancelled:
+		return true
+	case ProJobStatusCompleted:
+		return true
+	case ProJobStatusFailed:
+		return true
+	case ProJobStatusPartialSuccess:
+		return true
+	case ProJobStatusPending:
+		return true
+	case ProJobStatusProcessing:
 		return true
 	default:
 		return false
@@ -67,13 +147,21 @@ type ApiKeyScope string
 
 // AuthConfigResponse `GET /auth/config` response: which auth methods this instance accepts.
 type AuthConfigResponse struct {
+	Identity *LocalIdentity `json:"identity,omitempty"`
+
 	// Methods Accepted authentication methods (`"api_key"`, optionally `"oidc"`).
 	Methods []string `json:"methods"`
+
+	// Mode Explicit instance authentication policy; older servers require authentication.
+	Mode *AuthMode `json:"mode,omitempty"`
 
 	// Oidc OIDC-specific detail, used by the frontend to decide whether to render
 	// a "Sign in with Google" button.
 	Oidc OidcInfo `json:"oidc"`
 }
+
+// AuthMode Authentication policy advertised by the instance.
+type AuthMode string
 
 // BeginOAuthResponse OAuth connection response.
 type BeginOAuthResponse struct {
@@ -145,13 +233,7 @@ type CreateIntegrationRequest struct {
 	Name        string                 `json:"name"`
 }
 
-// CreateProjectRequest Request to create a new project.
-//
-// `name` is the only field the Enterprise backend accepts — it derives a
-// unique slug server-side. Pro's control plane requires the caller to supply
-// `slug` directly and additionally accepts per-project quota overrides;
-// those fields are optional here and are Pro-only until Enterprise grows the
-// same override capability.
+// CreateProjectRequest Create a Pro project with a name, a required URL-safe slug and optional quota overrides.
 type CreateProjectRequest struct {
 	// MaxFileSizeMb Maximum upload file size (MB) override. Pro-only; Enterprise applies a
 	// service-wide default instead.
@@ -168,10 +250,8 @@ type CreateProjectRequest struct {
 	// Name Project name.
 	Name string `json:"name"`
 
-	// Slug URL-safe project slug. Enterprise-only omission: Enterprise derives a
-	// unique slug from `name` server-side and rejects this field being
-	// meaningfully used; Pro requires the caller to supply it.
-	Slug *string `json:"slug,omitempty"`
+	// Slug Required URL-safe project slug.
+	Slug string `json:"slug"`
 }
 
 // DocumentResponse Single document's metadata, as reported by a connected integration.
@@ -191,53 +271,6 @@ type DocumentResponse struct {
 
 	// SizeBytes Size in bytes, when reported by the source.
 	SizeBytes *int64 `json:"size_bytes,omitempty"`
-}
-
-// GetJobResponse Job metadata returned by `GET /v1/jobs/{id}`.
-type GetJobResponse struct {
-	Cached      bool      `json:"cached"`
-	CompletedAt *string   `json:"completed_at,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-
-	// Error Failure reason for a failed job, from the most recent recorded error.
-	Error           *string            `json:"error,omitempty"`
-	Filename        string             `json:"filename"`
-	Id              openapi_types.UUID `json:"id"`
-	ImagesExtracted *int32             `json:"images_extracted,omitempty"`
-	MimeType        string             `json:"mime_type"`
-	PagesExtracted  *int32             `json:"pages_extracted,omitempty"`
-
-	// ProcessingTimeMs Wall-clock processing time. Named as on Enterprise's job response.
-	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
-
-	// Status Lifecycle status of an extraction job.
-	//
-	// Mirrors `domain::jobs::DomainJobStatus` and the Enterprise-local
-	// `services/api::rest::jobs::JobStatus` enum. Defined independently here
-	// rather than depending on `crates/domain`: `domain` pulls in the database,
-	// storage, and NATS stacks, which would be an inappropriate dependency
-	// weight for a thin wire-types crate.
-	//
-	// Wire form is `snake_case` (`"completed"`, `"partial_success"`), matching
-	// Enterprise's current serialization. **Pro migration note:** Pro currently
-	// emits UPPERCASE status strings, so adopting this enum lower-cases them — a
-	// breaking wire change for existing Pro clients (see ADR-0066).
-	Status          JobStatus `json:"status"`
-	TablesExtracted *int32    `json:"tables_extracted,omitempty"`
-}
-
-// HealthResponse Liveness + tier probe. The frontend reads `tier` for runtime feature gating.
-type HealthResponse struct {
-	// AutoTune Auto-tune readiness summary for the health response.
-	AutoTune AutoTuneHealth `json:"auto_tune"`
-
-	// License License info summary for the health response.
-	License LicenseHealth `json:"license"`
-
-	// Rag RAG readiness summary for the health response.
-	Rag    RagHealth `json:"rag"`
-	Status string    `json:"status"`
-	Tier   string    `json:"tier"`
 }
 
 // IntegrationResponse Integration details for get/list/create responses. Never includes
@@ -263,15 +296,36 @@ type IntegrationResponse struct {
 	Provider string `json:"provider"`
 }
 
-// LicenseHealth License info summary for the health response.
+// LicenseHealth Coarse license state for the unauthenticated health probe.
+//
+// Deliberately minimal: `/healthz` is reachable by anyone who can reach the
+// port, unauthenticated, so it reports enough for a liveness probe to act on
+// (is the license in a state that keeps this instance serving) and nothing
+// an operator would consider an inventory — no expiry timestamp, no
+// `features[]`. See `GET /v1/license` for the full, admin-only detail.
 type LicenseHealth struct {
-	// ExpiresAt Optional: expiry timestamp if available
-	ExpiresAt *string `json:"expires_at,omitempty"`
+	// State "licensed", "grace", "expired", "invalid", or "unlicensed"
+	State string `json:"state"`
+}
 
-	// Features Optional: features list if licensed
-	Features *[]string `json:"features,omitempty"`
+// LicenseInfoResponse Full license detail for `GET /v1/license` — admin-only (ADR-0087 §5). Unlike
+// `LicenseHealth`, this is behind authentication, so it can afford to name the licensee,
+// license id, plan, expiry, grace window, and days remaining.
+type LicenseInfoResponse struct {
+	// DaysRemaining Days remaining before this state moves to the next harsher one — see
+	// `LicenseState.days_remaining`. Absent for `expired`, `invalid`, and `unlicensed`.
+	DaysRemaining *int64  `json:"days_remaining,omitempty"`
+	ExpiresAt     *string `json:"expires_at,omitempty"`
+	GraceDays     *int32  `json:"grace_days,omitempty"`
 
-	// State "licensed", "expired", "invalid", or "unlicensed"
+	// LicenseId Present for every state with claims to report (`licensed`, `grace`, `expired`).
+	LicenseId *string `json:"license_id,omitempty"`
+	Licensee  *string `json:"licensee,omitempty"`
+
+	// Plan Display and support only — this build does not gate anything on `plan`.
+	Plan *string `json:"plan,omitempty"`
+
+	// State "licensed", "grace", "expired", "invalid", or "unlicensed"
 	State string `json:"state"`
 }
 
@@ -329,6 +383,27 @@ type ListProjectsResponse struct {
 	Total int64 `json:"total"`
 }
 
+// LocalIdentity Persisted local operator exposed only when authentication is disabled.
+type LocalIdentity struct {
+	// DefaultProjectId Persisted default workspace identifier.
+	DefaultProjectId openapi_types.UUID `json:"default_project_id"`
+
+	// Email No external identity provider supplies an email in this mode.
+	Email *string `json:"email,omitempty"`
+
+	// Name Display name of the local operator.
+	Name string `json:"name"`
+
+	// ProjectName Default workspace display name.
+	ProjectName string `json:"project_name"`
+
+	// Role Workspace role of the local operator.
+	Role string `json:"role"`
+
+	// UserId Local audit and project ownership principal.
+	UserId string `json:"user_id"`
+}
+
 // LoginRequest Login request with an OIDC ID token (e.g. from Google/Firebase sign-in).
 type LoginRequest struct {
 	// IdToken ID token from the configured OIDC identity provider.
@@ -369,10 +444,249 @@ type OidcInfo struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
+// ProExtractionJobResponse Metadata for one extraction job returned by `GET /v1/jobs/{id}`.
+type ProExtractionJobResponse struct {
+	// Cached Whether the result came from the server-side cache, when known.
+	Cached *bool `json:"cached,omitempty"`
+
+	// ChildJobIds Child extraction jobs created by document splitting.
+	ChildJobIds *[]string `json:"child_job_ids,omitempty"`
+
+	// CompletedAt ISO 8601 completion timestamp, when available.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Error Failure reason for a failed job.
+	Error *string `json:"error,omitempty"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Id Unique job identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// ImagesExtracted Images extracted, when recorded by the tier's persistence layer.
+	ImagesExtracted *int32 `json:"images_extracted,omitempty"`
+
+	// MimeType MIME type of the submitted document.
+	MimeType string `json:"mime_type"`
+
+	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
+	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
+
+	// ProcessingTimeMs Server-side processing duration in milliseconds.
+	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
+	Result           *ExtractedDocument `json:"result,omitempty"`
+
+	// Status Current job status.
+	Status ProJobStatus `json:"status"`
+
+	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
+	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProGetJobResponse Canonical response for `GET /v1/jobs/{id}` on both product tiers.
+//
+// `job_type` is the stable wire discriminator. Keeping selection explicit
+// lets clients accept future fields without making the variants ambiguous.
+type ProGetJobResponse struct {
+	union json.RawMessage
+}
+
+// ProGetJobResponse0 An extraction job.
+type ProGetJobResponse0 struct {
+	// Cached Whether the result came from the server-side cache, when known.
+	Cached *bool `json:"cached,omitempty"`
+
+	// ChildJobIds Child extraction jobs created by document splitting.
+	ChildJobIds *[]string `json:"child_job_ids,omitempty"`
+
+	// CompletedAt ISO 8601 completion timestamp, when available.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Error Failure reason for a failed job.
+	Error *string `json:"error,omitempty"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Id Unique job identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// ImagesExtracted Images extracted, when recorded by the tier's persistence layer.
+	ImagesExtracted *int32                    `json:"images_extracted,omitempty"`
+	JobType         ProGetJobResponse0JobType `json:"job_type"`
+
+	// MimeType MIME type of the submitted document.
+	MimeType string `json:"mime_type"`
+
+	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
+	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
+
+	// ProcessingTimeMs Server-side processing duration in milliseconds.
+	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
+	Result           *ExtractedDocument `json:"result,omitempty"`
+
+	// Status Current job status.
+	Status ProJobStatus `json:"status"`
+
+	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
+	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProGetJobResponse0JobType defines model for ProGetJobResponse.0.JobType.
+type ProGetJobResponse0JobType string
+
+// ProGetJobResponse1 A crawl job.
+type ProGetJobResponse1 struct {
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Crawl job identifier.
+	Id      openapi_types.UUID        `json:"id"`
+	JobType ProGetJobResponse1JobType `json:"job_type"`
+
+	// Jobs Child extraction jobs.
+	Jobs *[]CrawlChildJob `json:"jobs,omitempty"`
+
+	// OutputMode Requested output mode.
+	OutputMode string `json:"output_mode"`
+
+	// Pages Retained raw pages.
+	Pages *[]CrawledPage `json:"pages,omitempty"`
+
+	// Progress Current progress counters.
+	Progress CrawlProgress `json:"progress"`
+
+	// SeedUrls Submitted seed URLs.
+	SeedUrls []string `json:"seed_urls"`
+
+	// Status Current crawl status.
+	Status CrawlJobStatus `json:"status"`
+}
+
+// ProGetJobResponse1JobType defines model for ProGetJobResponse.1.JobType.
+type ProGetJobResponse1JobType string
+
+// ProHealthResponse Liveness + tier probe. The frontend reads `tier` for runtime feature gating.
+type ProHealthResponse struct {
+	// AutoTune Auto-tune readiness summary for the health response.
+	AutoTune AutoTuneHealth `json:"auto_tune"`
+
+	// License Coarse license state for the unauthenticated health probe.
+	//
+	// Deliberately minimal: `/healthz` is reachable by anyone who can reach the
+	// port, unauthenticated, so it reports enough for a liveness probe to act on
+	// (is the license in a state that keeps this instance serving) and nothing
+	// an operator would consider an inventory — no expiry timestamp, no
+	// `features[]`. See `GET /v1/license` for the full, admin-only detail.
+	License LicenseHealth `json:"license"`
+
+	// Rag RAG readiness summary for the health response.
+	Rag    RagHealth `json:"rag"`
+	Status string    `json:"status"`
+	Tier   string    `json:"tier"`
+}
+
+// ProIntegrationListResponse Pro integration page and the instance's OAuth connection capability.
+type ProIntegrationListResponse struct {
+	// Integrations Integrations in the current page.
+	Integrations []IntegrationResponse `json:"integrations"`
+
+	// Limit Page size used.
+	Limit int64 `json:"limit"`
+
+	// OauthConfigured Whether the integration hub is configured to establish OAuth connections.
+	OauthConfigured bool `json:"oauth_configured"`
+
+	// Offset Offset used for pagination.
+	Offset int64 `json:"offset"`
+
+	// Total Total number of integrations for the project.
+	Total int64 `json:"total"`
+}
+
+// ProJobResult Result envelope returned by GET /v1/jobs/{id}/result. The results array contains the extracted documents produced by this Pro job, in discovery order. The endpoint returns 409 until the job reaches completed or partial_success.
+type ProJobResult struct {
+	// Cached ~keep This job's recorded extraction-cache hit, independent of child jobs and billing.
+	// ~keep False means no recorded hit; a pending job has not necessarily attempted extraction.
+	Cached bool `json:"cached"`
+
+	// CompletedAt ISO 8601 completion timestamp, when available.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// Errors Non-fatal per-document errors.
+	Errors *[]JobResultError `json:"errors,omitempty"`
+
+	// JobId The job this result belongs to.
+	JobId openapi_types.UUID `json:"job_id"`
+
+	// Results Extracted documents, present once the job reaches a terminal
+	// successful state (`completed` or `partial_success`).
+	//
+	// Opaque JSON on purpose: each document is `xberg::types::ExtractedDocument`
+	// plus the keys the structured pipeline merges in (`structured_output`,
+	// `structured_output_flat`). Passing the stored document through untouched
+	// is what keeps those keys on the wire; a typed round trip through the
+	// engine's document type dropped every key that type does not declare.
+	Results *[]JobResultDocument `json:"results,omitempty"`
+
+	// Status Job status at the time the result was read.
+	Status          ProJobStatus     `json:"status"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProJobStatus Lifecycle status of a Pro extraction job, serialized as snake_case.
+type ProJobStatus string
+
+// ProJobSummary Summary of a job, as returned by `GET /v1/jobs` (list).
+type ProJobSummary struct {
+	// CompletedAt ISO 8601 completion timestamp, present once the job reaches a
+	// terminal state.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Id Unique job identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// MimeType MIME type of the submitted document.
+	MimeType string `json:"mime_type"`
+
+	// Status Current job status.
+	Status          ProJobStatus     `json:"status"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProListJobsResponse Response for `GET /v1/jobs` (paginated job list).
+type ProListJobsResponse struct {
+	// Jobs Jobs in the current page, most recent first.
+	Jobs []ProJobSummary `json:"jobs"`
+
+	// Limit Page size used.
+	Limit int64 `json:"limit"`
+
+	// Offset Offset used for pagination.
+	Offset int64 `json:"offset"`
+
+	// Total Total number of jobs for the project.
+	Total int64 `json:"total"`
+}
+
 // ProPresignUploadRequest Request body for presigning upload URLs.
 type ProPresignUploadRequest struct {
 	// Config Batch-level extraction configuration (applied to all documents).
-	// Opaque JSON — see the module doc comment for why.
 	Config *map[string]interface{} `json:"config,omitempty"`
 
 	// Documents Document metadata (no file data)
@@ -419,7 +733,7 @@ type ProjectInfo struct {
 	Name string `json:"name"`
 
 	// Role User role for this session (`OWNER` or `MEMBER`). See
-	// [`compute_role`] for how this is derived.
+	// `compute_role` for how this is derived.
 	Role string `json:"role"`
 }
 
@@ -480,7 +794,7 @@ type RagConfigResponse struct {
 // RagHealth RAG readiness summary for the health response.
 type RagHealth struct {
 	// Enabled Whether the in-process RAG runtime is wired. Mirrors
-	// `crate::rag::rag_feature_licensed` at boot time — `false` means every
+	// `crate::rag::rag_runtime_enabled` at boot time — `false` means every
 	// `/v1/rag/*` request 404s with `rag.disabled` regardless of any
 	// individual project's own RAG config.
 	Enabled bool `json:"enabled"`
@@ -508,20 +822,6 @@ type UserInfo struct {
 
 	// UserId User id from the identity provider (OIDC `sub`).
 	UserId string `json:"user_id"`
-}
-
-// ListAuditLogsParams defines parameters for ListAuditLogs.
-type ListAuditLogsParams struct {
-	// Action Filter to entries matching this action exactly (e.g. `"job.submit"`).
-	Action *string `form:"action,omitempty" json:"action,omitempty"`
-
-	// Limit Page size. Values outside 1..=100 are clamped into range rather than
-	// rejected.
-	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to
-	// 1,000,000, which selects an empty page.
-	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // OauthCallbackParams defines parameters for OauthCallback.
@@ -574,14 +874,17 @@ type ListIntegrationsParams struct {
 
 // ListIntegrationDocumentsParams defines parameters for ListIntegrationDocuments.
 type ListIntegrationDocumentsParams struct {
-	// MimeTypes Comma-separated MIME types to keep; empty keeps all
+	// MimeTypes Comma-separated MIME types to filter by (empty = all types).
 	MimeTypes *string `form:"mime_types,omitempty" json:"mime_types,omitempty"`
 
-	// FolderId Source-specific folder ID to list
+	// FolderId Source-specific folder ID to scope listing.
 	FolderId *string `form:"folder_id,omitempty" json:"folder_id,omitempty"`
 
-	// MaxResults Maximum number of documents (clamped to 1000)
-	MaxResults *int `form:"max_results,omitempty" json:"max_results,omitempty"`
+	// Limit Maximum number of documents to return.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of matching documents to skip.
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
@@ -598,3 +901,65 @@ type CreateIntegrationJSONRequestBody = CreateIntegrationRequest
 
 // SetRagConfigJSONRequestBody defines body for SetRagConfig for application/json ContentType.
 type SetRagConfigJSONRequestBody = SetRagConfigRequest
+
+// AsProGetJobResponse0 returns the union data inside the ProGetJobResponse as a ProGetJobResponse0
+func (t ProGetJobResponse) AsProGetJobResponse0() (ProGetJobResponse0, error) {
+	var body ProGetJobResponse0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromProGetJobResponse0 overwrites any union data inside the ProGetJobResponse as the provided ProGetJobResponse0
+func (t *ProGetJobResponse) FromProGetJobResponse0(v ProGetJobResponse0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeProGetJobResponse0 performs a merge with any union data inside the ProGetJobResponse, using the provided ProGetJobResponse0
+func (t *ProGetJobResponse) MergeProGetJobResponse0(v ProGetJobResponse0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsProGetJobResponse1 returns the union data inside the ProGetJobResponse as a ProGetJobResponse1
+func (t ProGetJobResponse) AsProGetJobResponse1() (ProGetJobResponse1, error) {
+	var body ProGetJobResponse1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromProGetJobResponse1 overwrites any union data inside the ProGetJobResponse as the provided ProGetJobResponse1
+func (t *ProGetJobResponse) FromProGetJobResponse1(v ProGetJobResponse1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeProGetJobResponse1 performs a merge with any union data inside the ProGetJobResponse, using the provided ProGetJobResponse1
+func (t *ProGetJobResponse) MergeProGetJobResponse1(v ProGetJobResponse1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ProGetJobResponse) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ProGetJobResponse) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}

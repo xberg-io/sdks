@@ -2076,7 +2076,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: Unauthorized - OAuth connection missing/revoked
+          description: Session authentication failed
           content:
             application/json:
               schema:
@@ -2089,6 +2089,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Project or integration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The source connection is missing or revoked and must be connected again
           content:
             application/json:
               schema:
@@ -2167,7 +2173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: Unauthorized - OAuth connection missing/revoked
+          description: Session authentication failed
           content:
             application/json:
               schema:
@@ -2180,6 +2186,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Project, integration, or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The source connection is missing or revoked and must be connected again
           content:
             application/json:
               schema:

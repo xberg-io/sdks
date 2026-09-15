@@ -81,10 +81,8 @@ with XbergClient(api_key="kz_...", base_url="https://pro.internal", target="pro"
     presets = client.list_saved_presets()  # both tiers; the path spelling follows the tier
 ```
 
-Saved presets are served by both products under different spellings —
-`/v1/saved_presets` on Enterprise, `/v1/saved-presets` on Pro. The client
-renders the right one from the resolved tier, so the same call works against
-either target.
+Saved presets are served by both products at `/v1/saved_presets`, so the same
+call works against either target.
 
 ### Async — batch extract with parallel waits
 
@@ -125,7 +123,14 @@ Shared methods (both tiers):
 | `list_rag_collections()`, `rag_retrieve(name, body)`, `get_rag_job(job_id)`, … | RAG collections/documents/retrieval. |
 | `delete_rag_documents(name, body)` | Delete documents from a collection by ID list or metadata filter. |
 | `presets()`, `get_preset(id)`, `get_preset_sample(id, name)` | Curated managed presets. |
-| `list_saved_presets(...)`, `create_saved_preset(body)`, `get_saved_preset(id)`, `update_saved_preset(id, body)`, `delete_saved_preset(id)` | Project-owned saved presets (path spelling follows the tier). |
+| `usage(...)` | Per-project usage totals for a date window. |
+| `presign_upload(body)`, `confirm_upload(body)` | Stage a large document in object storage, then submit it. |
+| `get_job_page(job_id, page_number)` | A rendered page image, as raw `image/png` bytes. |
+| `submit_enrich(body)`, `get_enrich_status(job_id)` | Keyword, entity and label enrichment over extracted text. |
+| `stream_crawl_events(crawl_job_id)` | A generator of Server-Sent Events for a running crawl. |
+| `stop_auto_tune_job(id)` | Stop a running auto-tune job. |
+| `list_managed_embedding_presets()` | The deployment's available embedding presets. |
+| `list_saved_presets(...)`, `create_saved_preset(body)`, `get_saved_preset(id)`, `update_saved_preset(id, body)`, `delete_saved_preset(id)` | Project-owned saved presets. |
 | `list_auto_tune_jobs(...)`, `submit_auto_tune(request, files)`, `get_auto_tune_status(id)`, `get_auto_tune_result(id)`, `delete_auto_tune_job(id)` | Auto-tune runs (`submit_auto_tune` is multipart). |
 | `get_auto_tune_capabilities()`, `promote_auto_tune_profile(id, body)` | Discover tunable knobs; promote a run to a named profile. |
 | `list_tuning_profiles(...)`, `get_tuning_profile(id)`, `delete_tuning_profile(id)` | Promoted tuning profiles. |
@@ -133,9 +138,9 @@ Shared methods (both tiers):
 Tier-specific methods are capability-gated — calling one against the wrong tier
 raises a clear error instead of a raw 404:
 
-- **Pro only:** `login`, `auth_config`, `get_rag_config`/`set_rag_config`
+- **Pro only:** `login`, `auth_config`, `get_rag_config`/`set_rag_config`, `get_license_info`, `put_local_upload`
 - **Pro only (control plane):** `list_projects`/`create_project`, `list_api_keys`/`create_api_key`/`revoke_api_key`, `list_integrations`/`create_integration`/`get_integration`/`delete_integration`, `connect_integration`/`disconnect_integration`, `list_integration_documents`/`fetch_integration_document`
-- **Enterprise only:** `versions`, `get_document`, `diff`/`get_diff_job`, `presign_upload`/`confirm_upload`, `usage`, `list_extraction_events`, `get_job_page` (raw `image/png` bytes), `submit_enrich`/`get_enrich_status`, `stream_crawl_events` (a generator of Server-Sent Events)
+- **Enterprise only:** `versions`, `get_document`, `diff`/`get_diff_job`, `list_extraction_events`, `list_subscription_deliveries`/`get_subscription_delivery`
 
 ### Deliberately not exposed
 

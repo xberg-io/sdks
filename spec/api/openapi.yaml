@@ -537,8 +537,8 @@ paths:
       summary: Delete an auto-tune job
       description: |-
         Irreversible: there is no soft-delete. Rejected with `409` while the job
-        is still running — cancel is not implemented as a separate operation, so
-        a running job must reach a terminal state before it can be deleted.
+        is still running: stop it first with `POST /v1/auto-tune/{id}/stop`, which
+        drives it to a terminal state, or wait for it to finish.
         Rejected with `403` for a read-only API key.
       operationId: delete_auto_tune_job
       parameters:
@@ -822,6 +822,108 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
           description: Persistence error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/auto-tune/{id}/stop:
+    post:
+      tags:
+        - auto-tune
+      summary: Stop a running auto-tune job
+      description: |-
+        The run finishes the trial in flight and then completes with the partial
+        leaderboard, exactly as a run that reaches its wall-clock budget does, so
+        `GET /v1/auto-tune/{id}/result` still serves the best configuration the
+        search found. Idempotent: a job that already reached a terminal state
+        answers `204` and nothing changes. Once the run is terminal, the `DELETE`
+        that answers `409` while it runs succeeds.
+      operationId: stop_auto_tune_job
+      parameters:
+        - name: id
+          in: path
+          description: Auto-tune job ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Stop requested, or the job had already finished
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The API key is read-only and cannot use this method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The job cannot be stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Persistence error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "501":
+          description: The deployment cannot stop a running job
           content:
             application/json:
               schema:
@@ -3398,6 +3500,80 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/rag/embedding-presets:
+    get:
+      tags:
+        - rag
+      summary: List managed RAG embedding presets
+      operationId: list_managed_embedding_presets
+      responses:
+        "200":
+          description: Managed embedding presets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListManagedEmbeddingPresetsResponse'
+        "400":
+          description: Invalid, conflicting or API-key foreign project selector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project access is forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The current session has no membership in the requested project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Invalid server preset configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/rag/jobs/{job_id}:
     get:
       tags:
@@ -3637,6 +3813,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: A preset with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -3870,9 +4052,9 @@ paths:
         - saved-presets
       summary: Update a saved preset
       description: |-
-        A full replacement, not a partial merge: `name`, `schema`, and
-        `preferred_call_mode` are all required in the body and are all validated
-        exactly as on create. `404` when `preset_id` does not name a preset in the
+        Omitted fields are preserved. Explicit null clears description, system prompt,
+        or context template; non-nullable fields reject null. Provided fields are
+        validated exactly as on create. `404` when `preset_id` does not name a preset in the
         caller's project. Rejected with `403` for a read-only API key.
       operationId: update_saved_preset
       parameters:
@@ -3916,6 +4098,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Preset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: A preset with this name already exists
           content:
             application/json:
               schema:
@@ -5086,6 +5274,8 @@ components:
         Auto-tune capabilities (OCR backends and tunable knobs) reported for a deployment. Powers a
         deployment-aware wizard rather than hardcoding backend/knob names on the frontend.
       required:
+        - max_trials
+        - max_wall_clock_secs
         - ocr_backends
         - default_ocr_ladder
         - tunable_knobs
@@ -5095,6 +5285,16 @@ components:
           items:
             type: string
           description: Backend names composing the default OCR search ladder, in search order.
+        max_trials:
+          type: integer
+          format: int32
+          description: Maximum number of trials accepted for one run by this deployment.
+          minimum: 0
+        max_wall_clock_secs:
+          type: integer
+          format: int64
+          description: Maximum wall-clock budget accepted for one run, in seconds.
+          minimum: 0
         ocr_backends:
           type: array
           items:
@@ -5182,6 +5382,11 @@ components:
             partially successful, failed and cancelled trials. In-flight trials are excluded.
             Zero before any terminal trial is metered; null on Pro, where auto-tune trial-page spending is unavailable.
           minimum: 0
+        error:
+          type:
+            - string
+            - "null"
+          description: Why the run failed. Set only when `status` is `failed`, and null otherwise.
         status:
           type: string
           description: Current job status (e.g. `queued`, `running`, `completed`, `failed`).
@@ -5271,9 +5476,7 @@ components:
             - number
             - "null"
           format: double
-          description: |-
-            Confidence score computed against a held-out validation split, if
-            one was used.
+          description: Gain from routing over the global configuration on held-out documents.
         leaderboard:
           type: array
           items:
@@ -5284,6 +5487,13 @@ components:
           description: |-
             The winning tuning profile artifact. The concrete `TuningProfile`
             shape is defined in `autotune-core`; here it is opaque JSON.
+        routing_outcome:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/RoutingOutcome'
+              description: |-
+                Whether routing was requested, kept routes, or fell back to the global configuration.
+                Absent on results recorded before this field was introduced.
         search_space_total:
           type:
             - integer
@@ -5327,6 +5537,8 @@ components:
             - "null"
           format: double
           description: Tolerance band used when ranking near-tied configurations.
+          maximum: 1
+          minimum: 0
     AutoTuneSearchParams:
       type: object
       description: |-
@@ -6252,6 +6464,14 @@ components:
           example: 1
           maximum: 3
           minimum: 0
+        download_documents:
+          type:
+            - boolean
+            - "null"
+          description: |-
+            Retain downloaded document bytes on crawl pages (default: true).
+            Set to false when the response does not need document content.
+          example: true
         exclude_paths:
           type: array
           items:
@@ -6418,6 +6638,9 @@ components:
               type: string
               enum:
                 - error
+            terminal:
+              type: boolean
+              description: Whether this error is the job's terminal event. ~keep
             ts:
               type: string
               format: date-time
@@ -6945,43 +7168,50 @@ components:
           description: Ingestion timestamp (RFC3339)
     CreateDocumentSource:
       oneOf:
-        - type: object
-          description: Full-text document — server runs chunking + enrichment + embedding (async)
-          required:
-            - text
-            - kind
-          properties:
-            enrichment_overrides:
-              $ref: '#/components/schemas/EnrichmentOverridesRequest'
-              description: Pre-computed enrichments (keywords, entities, labels) to skip server's pass
-            kind:
-              type: string
-              enum:
-                - text
-            text:
-              type: string
-              description: Raw text content
-        - type: object
-          description: Pre-chunked document — chunks may or may not have embeddings
-          required:
-            - chunks
-            - kind
-          properties:
-            chunks:
-              type: array
-              items:
-                $ref: '#/components/schemas/CreateDocumentChunkInput'
-              description: List of pre-split chunks
-            enrichment_overrides:
-              $ref: '#/components/schemas/EnrichmentOverridesRequest'
-              description: Pre-computed enrichments to skip server's pass
-            kind:
-              type: string
-              enum:
-                - chunks
+        - $ref: '#/components/schemas/CreateDocumentSourceText'
+        - $ref: '#/components/schemas/CreateDocumentSourceChunks'
       description: Document source variant for ingest
       discriminator:
         propertyName: kind
+        mapping:
+          chunks: '#/components/schemas/CreateDocumentSourceChunks'
+          text: '#/components/schemas/CreateDocumentSourceText'
+    CreateDocumentSourceChunks:
+      type: object
+      description: Pre-chunked document — chunks may or may not have embeddings
+      required:
+        - chunks
+        - kind
+      properties:
+        chunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateDocumentChunkInput'
+          description: List of pre-split chunks
+        enrichment_overrides:
+          $ref: '#/components/schemas/EnrichmentOverridesRequest'
+          description: Pre-computed enrichments to skip server's pass
+        kind:
+          type: string
+          enum:
+            - chunks
+    CreateDocumentSourceText:
+      type: object
+      description: Full-text document — server runs chunking + enrichment + embedding (async)
+      required:
+        - text
+        - kind
+      properties:
+        enrichment_overrides:
+          $ref: '#/components/schemas/EnrichmentOverridesRequest'
+          description: Pre-computed enrichments (keywords, entities, labels) to skip server's pass
+        kind:
+          type: string
+          enum:
+            - text
+        text:
+          type: string
+          description: Raw text content
     CreateSavedPresetRequest:
       type: object
       description: Request to create a saved preset.
@@ -8082,7 +8312,11 @@ components:
           type: array
           items:
             type: string
-          description: Custom labels to assign (passthrough).
+          description: |-
+            Candidate labels for classification.
+
+            Xberg Pro refuses non-empty values with
+            `rag.label_classification.unsupported` because it ships no classifier.
       additionalProperties: false
     EnrichResult:
       type: object
@@ -8102,7 +8336,7 @@ components:
             type: string
           description: Extracted keywords.
         labels:
-          description: Assigned labels (JSON value).
+          description: Labels selected by a classifier, or null when classification was not requested or available.
     EnrichTextRequest:
       type: object
       title: EnrichTextRequest
@@ -9357,6 +9591,11 @@ components:
             - "null"
           format: int32
           description: Tables extracted, when recorded by the tier's persistence layer.
+        webhook_delivery:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/WebhookDelivery'
+              description: Inline webhook delivery state, when this job configured one.
     ExtractionMethod:
       type: string
       description: How the extracted text was produced.
@@ -10516,6 +10755,11 @@ components:
         status:
           $ref: '#/components/schemas/JobStatus'
           description: Job status at the time the result was read.
+        webhook_delivery:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/WebhookDelivery'
+              description: Inline webhook delivery state, when this job configured one.
     JobResultCounts:
       type: object
       description: Structural counts for a `JobResultDocument`, always present.
@@ -10732,6 +10976,11 @@ components:
         status:
           $ref: '#/components/schemas/JobStatus'
           description: Current job status.
+        webhook_delivery:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/WebhookDelivery'
+              description: Inline webhook delivery state, when this job configured one.
     KeyValueAttribute:
       type: object
       required:
@@ -11242,6 +11491,18 @@ components:
           type: integer
           format: int64
           description: Total number of jobs for the project.
+    ListManagedEmbeddingPresetsResponse:
+      type: object
+      description: Bounded list of managed embedding presets shipped by this server build.
+      required:
+        - presets
+      properties:
+        presets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManagedEmbeddingPreset'
+          description: Available presets, in the canonical backend order.
+          maxItems: 32
     ListSavedPresetsResponse:
       type: object
       description: Response from listing saved presets.
@@ -11428,6 +11689,33 @@ components:
           format: int64
           description: Total tokens (input + output).
           minimum: 0
+    ManagedEmbeddingPreset:
+      type: object
+      description: One server-managed embedding preset available to RAG collections.
+      required:
+        - name
+        - embedding_source
+        - embedding_dim
+        - description
+        - is_default
+      properties:
+        description:
+          type: string
+          description: Human-readable intended use.
+        embedding_dim:
+          type: integer
+          format: int32
+          description: Vector width emitted by the preset.
+          minimum: 0
+        embedding_source:
+          type: string
+          description: Canonical value accepted by collection create and migration requests.
+        is_default:
+          type: boolean
+          description: Whether this is the default managed preset for omitted sources.
+        name:
+          type: string
+          description: Stable preset name.
     MarkdownCodeBlock:
       type: object
       required:
@@ -11707,6 +11995,11 @@ components:
             - string
             - "null"
           description: Error message (only when failed).
+        error_code:
+          type:
+            - string
+            - "null"
+          description: Machine-readable cause when the failed job has a known classification.
         job_id:
           type: string
           description: Job ID (ULID).
@@ -13593,7 +13886,17 @@ components:
     PrimaryScore:
       oneOf:
         - type: object
-          description: Vector similarity score.
+          description: |-
+            Vector similarity score, where a higher value is the better match.
+
+            The collection's distance metric decides the scale: cosine gives the
+            cosine similarity in `[-1, 1]`, inner product gives the unbounded inner
+            product, and L2 gives `1 / (1 + distance)` in `(0, 1]`. Scores are
+            comparable within a collection, not across collections.
+
+            Every score in one response rises with relevance, but the scales differ,
+            so a vector score and a full-text score are not comparable with each
+            other even inside one breakdown.
           required:
             - score
             - kind
@@ -13873,6 +14176,11 @@ components:
             - string
             - "null"
           description: Error message if state = failed
+        error_code:
+          type:
+            - string
+            - "null"
+          description: Machine-readable cause when the failed job has a known classification.
         job_id:
           type: string
           description: Job identifier (ULID) for this async operation
@@ -14446,6 +14754,47 @@ components:
         - deletion
         - format_change
         - comment
+    RoutingFallbackReason:
+      type: string
+      description: Why a routing-enabled run produced a global-only profile.
+      enum:
+        - no_valid_route
+        - insufficient_holdout
+        - confidence_below_threshold
+    RoutingOutcome:
+      oneOf:
+        - type: object
+          description: Per-document routing was disabled for the run.
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - not_requested
+        - type: object
+          description: Learned routes improved on the global configuration and were kept.
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - routes_kept
+        - type: object
+          description: The run requested routing but retained only the global configuration.
+          required:
+            - reason
+            - status
+          properties:
+            reason:
+              $ref: '#/components/schemas/RoutingFallbackReason'
+              description: Why the learned routes were not retained.
+            status:
+              type: string
+              enum:
+                - global_only
+      description: Outcome of per-document routing for an auto-tune run.
     SavedPresetDetail:
       type: object
       description: Response when retrieving a saved preset.
@@ -15242,12 +15591,21 @@ components:
         - knob
         - description
       properties:
+        candidates:
+          type: array
+          items: {}
+          description: Candidate values offered by this deployment, preserving their JSON types and search order.
         description:
           type: string
           description: Human-readable description of what this knob controls.
         knob:
           type: string
           description: Wire name of the knob, matching `autotune_core::search::Knob`'s serialized name.
+        unavailable_reason:
+          type:
+            - string
+            - "null"
+          description: Why this knob has no usable candidate values, when it is unavailable.
     TuningProfileDetail:
       type: object
       description: Full detail of a promoted tuning profile.
@@ -15299,11 +15657,6 @@ components:
     UpdateSavedPresetRequest:
       type: object
       description: Request to update a saved preset.
-      required:
-        - name
-        - schema
-        - preferred_call_mode
-        - emit_citations
       properties:
         context_template:
           type:
@@ -15348,6 +15701,7 @@ components:
             - string
             - "null"
           description: Optional custom system prompt override.
+      additionalProperties: false
     UpdateSavedPresetResponse:
       type: object
       description: Response from updating a saved preset.
@@ -15530,6 +15884,27 @@ components:
           format: uri
           description: URL to deliver results to.
           minLength: 1
+    WebhookDelivery:
+      type: object
+      description: Delivery diagnostics for a job's inline webhook.
+      required:
+        - status
+        - attempt_count
+      properties:
+        attempt_count:
+          type: integer
+          format: int32
+          description: Number of delivery attempts made so far.
+          minimum: 0
+        last_error:
+          type:
+            - string
+            - "null"
+          description: Bounded, sanitized diagnostic from the most recent failed attempt.
+          maxLength: 2048
+        status:
+          $ref: '#/components/schemas/WebhookDeliveryStatus'
+          description: Current delivery state.
     WebhookDeliveryDetailResponse:
       type: object
       description: |-
@@ -15633,6 +16008,13 @@ components:
         success:
           type: boolean
           description: Whether the endpoint accepted the delivery.
+    WebhookDeliveryStatus:
+      type: string
+      description: Current outcome of an inline webhook configured for a job.
+      enum:
+        - pending
+        - delivered
+        - failed
     WebhookEvent:
       type: object
       description: |-

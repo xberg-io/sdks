@@ -4,17 +4,31 @@ from __future__ import annotations
 
 import pytest
 
+import xberg_io_sdk
 from xberg_io_sdk import (
     AsyncXbergClient,
     ExtractedDocument,
+    ExtractionJobResponse,
     ExtractionResult,
+    Job,
     JobResponse,
     JobResult,
     JobResultError,
     XbergClient,
     XbergError,
 )
+from xberg_io_sdk._generated_api.models.extraction_job_response import (
+    ExtractionJobResponse as GeneratedExtractionJobResponse,
+)
 from xberg_io_sdk._generated_api.models.job_result import JobResult as GeneratedJobResult
+
+
+def test_job_response_alias_survives_the_upstream_schema_rename() -> None:
+    # Upstream renamed `JobResponse` to `ExtractionJobResponse`; the old public name is an alias.
+    assert ExtractionJobResponse is GeneratedExtractionJobResponse
+    assert JobResponse is ExtractionJobResponse
+    assert Job is ExtractionJobResponse
+    assert {"ExtractionJobResponse", "Job", "JobResponse"} <= set(xberg_io_sdk.__all__)
 
 
 def test_job_result_is_the_spec_schema_not_an_extraction_result_alias() -> None:

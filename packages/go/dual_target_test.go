@@ -125,7 +125,7 @@ func TestTierGate_EnterpriseOnlyMethodOnProTarget(t *testing.T) {
 	}))
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithTarget(xberg.TargetPro))
-	_, err := client.Usage(context.Background(), nil)
+	err := enterpriseOnlyCall(client)
 	var tierErr *xberg.TierError
 	if !asError(err, &tierErr) {
 		t.Fatalf("expected TierError, got %T: %v", err, err)
@@ -160,26 +160,54 @@ func TestProMethod_LoginReachesEndpoint(t *testing.T) {
 	}
 }
 
-func TestEnterpriseMethod_UsageReachesEndpoint(t *testing.T) {
+// TestSharedMethod_UsageReachesEndpointOnBothTiers pins that `/v1/usage` is
+// reached on Pro as well as Enterprise. Both specs declare it, so the client
+// must not gate it — a Pro caller used to get a TierError for an endpoint its
+// own server was serving.
+func TestSharedMethod_UsageReachesEndpointOnBothTiers(t *testing.T) {
 	t.Parallel()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/usage" {
-			t.Errorf("path = %q, want /v1/usage", r.URL.Path)
-		}
-		_, _ = w.Write([]byte(`{"pages":42}`))
-	}))
-	defer server.Close()
-	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithTarget(xberg.TargetEnterprise))
-	body, err := client.Usage(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("Usage: %v", err)
-	}
-	if !strings.Contains(string(body), `"pages":42`) {
-		t.Errorf("body = %s, want it to contain pages=42", body)
+	for _, target := range []xberg.Target{xberg.TargetEnterprise, xberg.TargetPro} {
+		t.Run(string(target), func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/v1/usage" {
+					t.Errorf("path = %q, want /v1/usage", r.URL.Path)
+				}
+				_, _ = w.Write([]byte(`{"pages":42}`))
+			}))
+			defer server.Close()
+			client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithTarget(target))
+			body, err := client.Usage(context.Background(), nil)
+			if err != nil {
+				t.Fatalf("Usage on %s: %v", target, err)
+			}
+			if !strings.Contains(string(body), `"pages":42`) {
+				t.Errorf("body = %s, want it to contain pages=42", body)
+			}
+		})
 	}
 }
 
 // -- tier gating (capability probe via /healthz) ------------------------------
+
+// The tier-probe tests below need SOME Enterprise-only call as a vehicle for the
+// gate; what the call does is irrelevant, only that Pro does not serve it.
+//
+// ~keep Usage used to play this role. Both specs declare `/v1/usage`, so it is
+// no longer tier-gated and can no longer prove anything about the gate — every
+// probe test built on it would pass vacuously. Versions
+// (`/v1/documents/{id}/versions`) is absent from the Pro spec, so it is a sound
+// stand-in; keep this vehicle Enterprise-only if it is ever swapped again.
+const (
+	tierProbeDocumentID   = "550e8400-e29b-41d4-a716-446655440000"
+	tierProbeVersionsPath = "/v1/documents/" + tierProbeDocumentID + "/versions"
+)
+
+// enterpriseOnlyCall issues the Enterprise-only vehicle described above.
+func enterpriseOnlyCall(client *xberg.Client) error {
+	_, err := client.Versions(context.Background(), tierProbeDocumentID)
+	return err
+}
 
 func TestTierProbe_DiscoversTierAndCaches(t *testing.T) {
 	t.Parallel()
@@ -189,8 +217,8 @@ func TestTierProbe_DiscoversTierAndCaches(t *testing.T) {
 		case "/healthz":
 			healthzCalls.Add(1)
 			_, _ = w.Write([]byte(`{"status":"ok","tier":"enterprise"}`))
-		case "/v1/usage":
-			_, _ = w.Write([]byte(`{"pages":7}`))
+		case tierProbeVersionsPath:
+			_, _ = w.Write([]byte(`[]`))
 		default:
 			t.Errorf("unexpected request %s", r.URL.Path)
 		}
@@ -199,8 +227,8 @@ func TestTierProbe_DiscoversTierAndCaches(t *testing.T) {
 	// target omitted -> tier discovered from /healthz, then cached.
 	client := mustClient(t, xberg.WithBaseURL(server.URL))
 	for i := 0; i < 2; i++ {
-		if _, err := client.Usage(context.Background(), nil); err != nil {
-			t.Fatalf("Usage call %d: %v", i, err)
+		if err := enterpriseOnlyCall(client); err != nil {
+			t.Fatalf("enterprise-only call %d: %v", i, err)
 		}
 	}
 	if got := healthzCalls.Load(); got != 1 {
@@ -211,14 +239,14 @@ func TestTierProbe_DiscoversTierAndCaches(t *testing.T) {
 func TestTierProbe_GatesWhenProbedTierMismatches(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/v1/usage" {
-			t.Errorf("usage endpoint must not be hit when the probed tier is pro")
+		if r.URL.Path == tierProbeVersionsPath {
+			t.Errorf("the enterprise-only endpoint must not be hit when the probed tier is pro")
 		}
 		_, _ = w.Write([]byte(`{"status":"ok","tier":"pro"}`))
 	}))
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL))
-	_, err := client.Usage(context.Background(), nil)
+	err := enterpriseOnlyCall(client)
 	var tierErr *xberg.TierError
 	if !asError(err, &tierErr) {
 		t.Fatalf("expected TierError, got %T: %v", err, err)
@@ -240,8 +268,8 @@ func TestTierProbe_MissingTierIsRetryable(t *testing.T) {
 		switch r.URL.Path {
 		case "/healthz":
 			fmt.Fprintf(w, `{"status":"ok","tier":%q}`, reportedTier.Load().(string))
-		case "/v1/usage":
-			_, _ = w.Write([]byte(`{"pages":1}`))
+		case tierProbeVersionsPath:
+			_, _ = w.Write([]byte(`[]`))
 		default:
 			t.Errorf("unexpected request %s", r.URL.Path)
 		}
@@ -249,12 +277,12 @@ func TestTierProbe_MissingTierIsRetryable(t *testing.T) {
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL))
 
-	if _, err := client.Usage(context.Background(), nil); err == nil {
-		t.Fatalf("Usage() with no tier in /healthz returned nil error, want an error")
+	if err := enterpriseOnlyCall(client); err == nil {
+		t.Fatalf("enterprise-only call with no tier in /healthz returned nil error, want an error")
 	}
 	reportedTier.Store("enterprise")
-	if _, err := client.Usage(context.Background(), nil); err != nil {
-		t.Fatalf("Usage() after /healthz reports a tier: %v, want the probe to retry and succeed", err)
+	if err := enterpriseOnlyCall(client); err != nil {
+		t.Fatalf("enterprise-only call after /healthz reports a tier: %v, want the probe to retry and succeed", err)
 	}
 }
 
@@ -269,8 +297,8 @@ func TestTierProbe_UnknownTierIsRetryable(t *testing.T) {
 		switch r.URL.Path {
 		case "/healthz":
 			fmt.Fprintf(w, `{"status":"ok","tier":%q}`, reportedTier.Load().(string))
-		case "/v1/usage":
-			_, _ = w.Write([]byte(`{"pages":1}`))
+		case tierProbeVersionsPath:
+			_, _ = w.Write([]byte(`[]`))
 		default:
 			t.Errorf("unexpected request %s", r.URL.Path)
 		}
@@ -278,12 +306,12 @@ func TestTierProbe_UnknownTierIsRetryable(t *testing.T) {
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL))
 
-	if _, err := client.Usage(context.Background(), nil); err == nil {
-		t.Fatalf("Usage() with an unrecognized tier returned nil error, want an error")
+	if err := enterpriseOnlyCall(client); err == nil {
+		t.Fatalf("enterprise-only call with an unrecognized tier returned nil error, want an error")
 	}
 	reportedTier.Store("enterprise")
-	if _, err := client.Usage(context.Background(), nil); err != nil {
-		t.Fatalf("Usage() after /healthz reports a recognized tier: %v, want the probe to retry and succeed", err)
+	if err := enterpriseOnlyCall(client); err != nil {
+		t.Fatalf("enterprise-only call after /healthz reports a recognized tier: %v, want the probe to retry and succeed", err)
 	}
 }
 
@@ -300,8 +328,8 @@ func TestTierProbe_ConcurrentCallersIssueOneRequest(t *testing.T) {
 			healthzCalls.Add(1)
 			<-release // hold the single request open so racing callers pile up
 			_, _ = w.Write([]byte(`{"status":"ok","tier":"enterprise"}`))
-		case "/v1/usage":
-			_, _ = w.Write([]byte(`{"pages":1}`))
+		case tierProbeVersionsPath:
+			_, _ = w.Write([]byte(`[]`))
 		default:
 			t.Errorf("unexpected request %s", r.URL.Path)
 		}
@@ -318,8 +346,7 @@ func TestTierProbe_ConcurrentCallersIssueOneRequest(t *testing.T) {
 		go func(idx int) {
 			defer waitGroup.Done()
 			<-start
-			_, err := client.Usage(context.Background(), nil)
-			errs[idx] = err
+			errs[idx] = enterpriseOnlyCall(client)
 		}(i)
 	}
 	close(start)
@@ -331,7 +358,7 @@ func TestTierProbe_ConcurrentCallersIssueOneRequest(t *testing.T) {
 
 	for i, err := range errs {
 		if err != nil {
-			t.Errorf("goroutine %d: Usage() returned error: %v", i, err)
+			t.Errorf("goroutine %d: enterprise-only call returned error: %v", i, err)
 		}
 	}
 	if got := healthzCalls.Load(); got != 1 {

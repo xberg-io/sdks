@@ -543,12 +543,12 @@
       "integration_id": "integration_id/?#",
       "mime_types": "fixture",
       "folder_id": "fixture",
-      "max_results": 1
+      "limit": 1
     },
     "query": {
       "mime_types": "fixture",
       "folder_id": "fixture",
-      "max_results": 1
+      "limit": 1
     },
     "status": 200,
     "response": {
@@ -912,6 +912,36 @@
       "offset": 1
     },
     "model": "ListWebhookDeliveriesResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_webhook_delivery",
+    "name": "get_webhook_delivery",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "webhook_id": "webhook_id/?#",
+      "delivery_id": "delivery_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "delivery": {
+        "id": "22222222-2222-2222-2222-222222222222",
+        "event_id": "33333333-3333-3333-3333-333333333333",
+        "event_type": "job.completed",
+        "job_id": "fixture",
+        "attempt_number": 1,
+        "success": true,
+        "duration_ms": 1,
+        "occurred_at": "fixture"
+      },
+      "request_preview": "fixture",
+      "request_truncated": false,
+      "response_truncated": false
+    },
+    "model": "WebhookDeliveryDetailResponse",
     "public": false
   },
   {

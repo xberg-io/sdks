@@ -11,9 +11,8 @@ gets a normal authorization error, not a tier error.
 ## Saved presets
 
 A saved preset is a project-scoped, user-authored extraction configuration, distinct from the
-curated read-only presets `presets()`/`presets`/`Presets` lists. The two tiers spell the route
-differently — `/v1/saved_presets` on Enterprise, `/v1/saved-presets` on Pro — but all three clients
-resolve that for you.
+curated read-only presets `presets()`/`presets`/`Presets` lists. Both tiers serve it at
+`/v1/saved_presets`.
 
 ```python title="Python"
 created = client.create_saved_preset({"name": "invoices", "extraction_config": {"preset": "invoice"}})

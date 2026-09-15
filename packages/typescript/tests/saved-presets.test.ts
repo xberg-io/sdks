@@ -10,8 +10,8 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const PRO_URL = "https://pro.example.test";
-const ENTERPRISE_COLLECTION = "/v1/saved_presets";
-const PRO_COLLECTION = "/v1/saved-presets";
+/** ~keep Both specs serve this one spelling; `saved-presets` is a tag name, not a route. */
+const COLLECTION = "/v1/saved_presets";
 
 interface TierCase {
   /** Human-readable tier label used in the test title. */
@@ -22,8 +22,8 @@ interface TierCase {
 }
 
 const TIERS: readonly TierCase[] = [
-  { label: "enterprise", baseUrl: TEST_BASE_URL, collection: ENTERPRISE_COLLECTION },
-  { label: "pro", baseUrl: PRO_URL, collection: PRO_COLLECTION },
+  { label: "enterprise", baseUrl: TEST_BASE_URL, collection: COLLECTION },
+  { label: "pro", baseUrl: PRO_URL, collection: COLLECTION },
 ];
 
 function makeClient(tier: TierCase): XbergClient {
@@ -139,39 +139,49 @@ describe.each(TIERS)("saved presets on the $label tier", (tier) => {
   });
 });
 
-describe("saved-preset path selection", () => {
-  it("uses the underscore spelling when the tier is probed as enterprise", async () => {
+describe("saved-preset routing", () => {
+  it("uses the underscore spelling on pro without probing the tier at all", async () => {
     const got = seen();
+    let healthzCalls = 0;
     server.use(
-      http.get(`${TEST_BASE_URL}/healthz`, () => HttpResponse.json({ status: "ok", tier: "enterprise" })),
-      http.get(`${TEST_BASE_URL}${ENTERPRISE_COLLECTION}`, ({ request }) => {
+      http.get(`${PRO_URL}/healthz`, () => {
+        healthzCalls += 1;
+        return HttpResponse.json({ status: "ok", tier: "pro" });
+      }),
+      http.get(`${PRO_URL}${COLLECTION}`, ({ request }) => {
         record(got, request);
         return HttpResponse.json({ presets: [], total: 0, page: 0, limit: 50 }, { status: 200 });
       }),
     );
-    // target omitted -> the spelling follows the probed tier, not a hardcoded default.
-    const client = new XbergClient({ apiKey: "k", baseUrl: TEST_BASE_URL, sleep: async () => {} });
-    await client.listSavedPresets();
-    expect(got.path).toBe(ENTERPRISE_COLLECTION);
-  });
-
-  it("uses the hyphen spelling when the tier is probed as pro", async () => {
-    const got = seen();
-    server.use(
-      http.get(`${PRO_URL}/healthz`, () => HttpResponse.json({ status: "ok", tier: "pro" })),
-      http.get(`${PRO_URL}${PRO_COLLECTION}`, ({ request }) => {
-        record(got, request);
-        return HttpResponse.json({ presets: [], total: 0, page: 0, limit: 50 }, { status: 200 });
-      }),
-    );
+    // target omitted: the path is fixed, so no /healthz round trip is needed to pick it.
     const client = new XbergClient({ apiKey: "k", baseUrl: PRO_URL, sleep: async () => {} });
     await client.listSavedPresets();
-    expect(got.path).toBe(PRO_COLLECTION);
+    expect(got.path).toBe(COLLECTION);
+    expect(healthzCalls).toBe(0);
+  });
+
+  it("never calls the hyphenated path, which neither spec serves", async () => {
+    const paths: string[] = [];
+    const client = new XbergClient({
+      apiKey: "k",
+      baseUrl: PRO_URL,
+      target: "pro",
+      fetch: async (input) => {
+        paths.push(new URL(String(input)).pathname);
+        return Response.json({ presets: [] });
+      },
+    });
+    await client.listSavedPresets();
+    await client.getSavedPreset("p1");
+    await client.createSavedPreset({ name: "n" });
+    await client.updateSavedPreset("p1", { name: "n" });
+    await client.deleteSavedPreset("p1");
+    expect(paths).toEqual([COLLECTION, `${COLLECTION}/p1`, COLLECTION, `${COLLECTION}/p1`, `${COLLECTION}/p1`]);
   });
 
   it("is not tier-gated — the enterprise tier reaches the endpoint instead of throwing", async () => {
     server.use(
-      http.get(`${TEST_BASE_URL}${ENTERPRISE_COLLECTION}/p1`, () =>
+      http.get(`${TEST_BASE_URL}${COLLECTION}/p1`, () =>
         HttpResponse.json({ id: "p1", name: "Shared" }, { status: 200 }),
       ),
     );

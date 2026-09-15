@@ -364,7 +364,7 @@ const cases: BackendCase[] = [
     query: {
       mime_types: "value /?",
       folder_id: "value /?",
-      max_results: "2",
+      limit: "2",
     },
     status: 200,
     public: false,
@@ -374,7 +374,7 @@ const cases: BackendCase[] = [
       client.backendListIntegrationDocuments(PATH_ID, PATH_ID, {
         mimeTypes: "value /?",
         folderId: "value /?",
-        maxResults: 2,
+        limit: 2,
       }),
   },
   {
@@ -598,6 +598,17 @@ const cases: BackendCase[] = [
     call: (client) => client.listWebhookDeliveries(PATH_ID, PATH_ID, { limit: 2, offset: 2 }),
   },
   {
+    name: "getWebhookDelivery",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/webhooks/project%20%2F%3F%23/deliveries/project%20%2F%3F%23",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.getWebhookDelivery(PATH_ID, PATH_ID, PATH_ID),
+  },
+  {
     name: "retryWebhookDelivery",
     method: "POST",
     path: "/v1/projects/project%20%2F%3F%23/webhooks/project%20%2F%3F%23/deliveries/project%20%2F%3F%23/retry",
@@ -633,7 +644,7 @@ const cases: BackendCase[] = [
 ];
 
 describe("Enterprise backend operations", () => {
-  it("covers every one of the 48 operations", () => expect(cases).toHaveLength(48));
+  it("covers every one of the 49 operations", () => expect(cases).toHaveLength(49));
   for (const scenario of cases) {
     it(`${scenario.name} uses the declared control-plane wire contract`, async () => {
       let calls = 0;

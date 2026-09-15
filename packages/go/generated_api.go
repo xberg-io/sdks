@@ -392,13 +392,13 @@ func (e CrawlEventV10Kind) Valid() bool {
 
 // Defines values for CrawlEventV11Kind.
 const (
-	Error CrawlEventV11Kind = "error"
+	CrawlEventV11KindError CrawlEventV11Kind = "error"
 )
 
 // Valid indicates whether the value is a known member of the CrawlEventV11Kind enum.
 func (e CrawlEventV11Kind) Valid() bool {
 	switch e {
-	case Error:
+	case CrawlEventV11KindError:
 		return true
 	default:
 		return false
@@ -468,30 +468,30 @@ func (e CrawlJobStatus) Valid() bool {
 	}
 }
 
-// Defines values for CreateDocumentSource0Kind.
+// Defines values for CreateDocumentSourceChunksKind.
 const (
-	CreateDocumentSource0KindText CreateDocumentSource0Kind = "text"
+	Chunks CreateDocumentSourceChunksKind = "chunks"
 )
 
-// Valid indicates whether the value is a known member of the CreateDocumentSource0Kind enum.
-func (e CreateDocumentSource0Kind) Valid() bool {
+// Valid indicates whether the value is a known member of the CreateDocumentSourceChunksKind enum.
+func (e CreateDocumentSourceChunksKind) Valid() bool {
 	switch e {
-	case CreateDocumentSource0KindText:
+	case Chunks:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for CreateDocumentSource1Kind.
+// Defines values for CreateDocumentSourceTextKind.
 const (
-	Chunks CreateDocumentSource1Kind = "chunks"
+	CreateDocumentSourceTextKindText CreateDocumentSourceTextKind = "text"
 )
 
-// Valid indicates whether the value is a known member of the CreateDocumentSource1Kind enum.
-func (e CreateDocumentSource1Kind) Valid() bool {
+// Valid indicates whether the value is a known member of the CreateDocumentSourceTextKind enum.
+func (e CreateDocumentSourceTextKind) Valid() bool {
 	switch e {
-	case Chunks:
+	case CreateDocumentSourceTextKindText:
 		return true
 	default:
 		return false
@@ -855,6 +855,36 @@ func (e FormFieldType) Valid() bool {
 	case FormFieldTypeText:
 		return true
 	case FormFieldTypeUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetJobResponse0JobType.
+const (
+	Extraction GetJobResponse0JobType = "extraction"
+)
+
+// Valid indicates whether the value is a known member of the GetJobResponse0JobType enum.
+func (e GetJobResponse0JobType) Valid() bool {
+	switch e {
+	case Extraction:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetJobResponse1JobType.
+const (
+	Crawl GetJobResponse1JobType = "crawl"
+)
+
+// Valid indicates whether the value is a known member of the GetJobResponse1JobType enum.
+func (e GetJobResponse1JobType) Valid() bool {
+	switch e {
+	case Crawl:
 		return true
 	default:
 		return false
@@ -1989,6 +2019,69 @@ func (e RelationshipKind) Valid() bool {
 	}
 }
 
+// Defines values for RerankFallbackReason.
+const (
+	RerankFallbackReasonError   RerankFallbackReason = "error"
+	RerankFallbackReasonTimeout RerankFallbackReason = "timeout"
+)
+
+// Valid indicates whether the value is a known member of the RerankFallbackReason enum.
+func (e RerankFallbackReason) Valid() bool {
+	switch e {
+	case RerankFallbackReasonError:
+		return true
+	case RerankFallbackReasonTimeout:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RerankOutcomeReport0Status.
+const (
+	RerankOutcomeReport0StatusNotRequested RerankOutcomeReport0Status = "not_requested"
+)
+
+// Valid indicates whether the value is a known member of the RerankOutcomeReport0Status enum.
+func (e RerankOutcomeReport0Status) Valid() bool {
+	switch e {
+	case RerankOutcomeReport0StatusNotRequested:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RerankOutcomeReport1Status.
+const (
+	Applied RerankOutcomeReport1Status = "applied"
+)
+
+// Valid indicates whether the value is a known member of the RerankOutcomeReport1Status enum.
+func (e RerankOutcomeReport1Status) Valid() bool {
+	switch e {
+	case Applied:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RerankOutcomeReport2Status.
+const (
+	FellBack RerankOutcomeReport2Status = "fell_back"
+)
+
+// Valid indicates whether the value is a known member of the RerankOutcomeReport2Status enum.
+func (e RerankOutcomeReport2Status) Valid() bool {
+	switch e {
+	case FellBack:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RerankerKind.
 const (
 	RerankerKindLlm    RerankerKind = "llm"
@@ -2157,6 +2250,72 @@ func (e RevisionKind) Valid() bool {
 	}
 }
 
+// Defines values for RoutingFallbackReason.
+const (
+	ConfidenceBelowThreshold RoutingFallbackReason = "confidence_below_threshold"
+	InsufficientHoldout      RoutingFallbackReason = "insufficient_holdout"
+	NoValidRoute             RoutingFallbackReason = "no_valid_route"
+)
+
+// Valid indicates whether the value is a known member of the RoutingFallbackReason enum.
+func (e RoutingFallbackReason) Valid() bool {
+	switch e {
+	case ConfidenceBelowThreshold:
+		return true
+	case InsufficientHoldout:
+		return true
+	case NoValidRoute:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RoutingOutcome0Status.
+const (
+	RoutingOutcome0StatusNotRequested RoutingOutcome0Status = "not_requested"
+)
+
+// Valid indicates whether the value is a known member of the RoutingOutcome0Status enum.
+func (e RoutingOutcome0Status) Valid() bool {
+	switch e {
+	case RoutingOutcome0StatusNotRequested:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RoutingOutcome1Status.
+const (
+	RoutesKept RoutingOutcome1Status = "routes_kept"
+)
+
+// Valid indicates whether the value is a known member of the RoutingOutcome1Status enum.
+func (e RoutingOutcome1Status) Valid() bool {
+	switch e {
+	case RoutesKept:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RoutingOutcome2Status.
+const (
+	GlobalOnly RoutingOutcome2Status = "global_only"
+)
+
+// Valid indicates whether the value is a known member of the RoutingOutcome2Status enum.
+func (e RoutingOutcome2Status) Valid() bool {
+	switch e {
+	case GlobalOnly:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SchemaCompliance.
 const (
 	AllInvalid   SchemaCompliance = "all_invalid"
@@ -2313,6 +2472,27 @@ func (e VlmFallbackPolicy2Mode) Valid() bool {
 	}
 }
 
+// Defines values for WebhookDeliveryStatus.
+const (
+	WebhookDeliveryStatusDelivered WebhookDeliveryStatus = "delivered"
+	WebhookDeliveryStatusFailed    WebhookDeliveryStatus = "failed"
+	WebhookDeliveryStatusPending   WebhookDeliveryStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the WebhookDeliveryStatus enum.
+func (e WebhookDeliveryStatus) Valid() bool {
+	switch e {
+	case WebhookDeliveryStatusDelivered:
+		return true
+	case WebhookDeliveryStatusFailed:
+		return true
+	case WebhookDeliveryStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WebhookEventType.
 const (
 	JobCancelled WebhookEventType = "job.cancelled"
@@ -2453,18 +2633,6 @@ type AnnotationKind11 struct {
 // AnnotationKind11AnnotationType defines model for AnnotationKind.11.AnnotationType.
 type AnnotationKind11AnnotationType string
 
-// ApiHealthResponse Liveness + tier + auto-tune-readiness probe.
-type ApiHealthResponse struct {
-	// AutoTune Auto-tune readiness, read by the frontend to gate the auto-tune UI.
-	AutoTune AutoTuneHealth `json:"auto_tune"`
-
-	// Status Service status
-	Status string `json:"status"`
-
-	// Tier Deployment tier the frontend uses for runtime feature gating (ADR-0047).
-	Tier string `json:"tier"`
-}
-
 // ArchiveEntry A single file extracted from an archive.
 //
 // When archives (ZIP, TAR, 7Z, GZIP) are extracted with recursive extraction
@@ -2583,8 +2751,17 @@ type AutoTuneCapabilitiesResponse struct {
 	// DefaultOcrLadder Backend names composing the default OCR search ladder, in search order.
 	DefaultOcrLadder []string `json:"default_ocr_ladder"`
 
+	// MaxTrials Maximum number of trials accepted for one run by this deployment.
+	MaxTrials int32 `json:"max_trials"`
+
+	// MaxWallClockSecs Maximum wall-clock budget accepted for one run, in seconds.
+	MaxWallClockSecs int64 `json:"max_wall_clock_secs"`
+
 	// OcrBackends OCR backends available to this deployment.
 	OcrBackends []OcrBackendCapabilityInfo `json:"ocr_backends"`
+
+	// StructuredGroundTruthAvailable Whether the deployment can score structured ground truth with its configured language model.
+	StructuredGroundTruthAvailable *bool `json:"structured_ground_truth_available,omitempty"`
 
 	// TunableKnobs Knobs that auto-tune can search over.
 	TunableKnobs []TunableKnobInfo `json:"tunable_knobs"`
@@ -2630,9 +2807,13 @@ type AutoTuneJobStatus struct {
 	// BestScore Best primary score observed so far, if any trial has completed.
 	BestScore *float64 `json:"best_score,omitempty"`
 
-	// BudgetSpent Budget units spent so far (interpretation depends on the active
-	// budget dimension, e.g. billable pages).
+	// BudgetSpent Billable pages metered across this run's terminal trials on Enterprise, including completed,
+	// partially successful, failed and cancelled trials. In-flight trials are excluded.
+	// Zero before any terminal trial is metered; null on Pro, where auto-tune trial-page spending is unavailable.
 	BudgetSpent *int64 `json:"budget_spent,omitempty"`
+
+	// Error Why the run failed. Set only when `status` is `failed`, and null otherwise.
+	Error *string `json:"error,omitempty"`
 
 	// Status Current job status (e.g. `queued`, `running`, `completed`, `failed`).
 	Status string `json:"status"`
@@ -2668,14 +2849,14 @@ type AutoTuneJobSummary struct {
 // AutoTuneMultipartForm Multipart (`multipart/form-data`) variant of the submit-auto-tune request body.
 //
 // Send a text part named `request` carrying a JSON-encoded
-// [`CreateAutoTuneJobRequest`], plus one binary part per document whose
+// `CreateAutoTuneJobRequest`, plus one binary part per document whose
 // part name (or filename) matches a `documents[].filename` entry in the
 // request.
 type AutoTuneMultipartForm struct {
 	// File A document file. Repeat with one binary part per file.
 	File []int `json:"file"`
 
-	// Request The JSON-encoded `request` part — a [`CreateAutoTuneJobRequest`].
+	// Request The JSON-encoded `request` part — a `CreateAutoTuneJobRequest`.
 	Request CreateAutoTuneJobRequest `json:"request"`
 }
 
@@ -2684,8 +2865,7 @@ type AutoTuneResult struct {
 	// AutoTuneJobId Unique ID of the auto-tune job (ULID).
 	AutoTuneJobId string `json:"auto_tune_job_id"`
 
-	// HeldOutConfidence Confidence score computed against a held-out validation split, if
-	// one was used.
+	// HeldOutConfidence Gain from routing over the global configuration on held-out documents.
 	HeldOutConfidence *float64 `json:"held_out_confidence,omitempty"`
 
 	// Leaderboard Ranked leaderboard of trialed configurations.
@@ -2693,7 +2873,14 @@ type AutoTuneResult struct {
 
 	// Profile The winning tuning profile artifact. The concrete `TuningProfile`
 	// shape is defined in `autotune-core`; here it is opaque JSON.
-	Profile map[string]interface{} `json:"profile"`
+	Profile        map[string]interface{} `json:"profile"`
+	RoutingOutcome *RoutingOutcome        `json:"routing_outcome,omitempty"`
+
+	// SearchSpaceTotal Combinations the search space held. Compare it with the leaderboard
+	// length to see how much of the space the trial budget reached: a run
+	// that explored a fraction of it otherwise reads like one that explored
+	// all of it. Absent on results recorded before this was reported.
+	SearchSpaceTotal *int64 `json:"search_space_total,omitempty"`
 }
 
 // AutoTuneSearchConfig Search configuration for an auto-tune run.
@@ -2716,17 +2903,17 @@ type AutoTuneSearchConfig struct {
 	Tolerance *float64 `json:"tolerance,omitempty"`
 }
 
-// AutoTuneSearchParams Wizard-friendly, structured alternative to [`AutoTuneSearchConfig::search_space`]: which OCR
+// AutoTuneSearchParams Wizard-friendly, structured alternative to `AutoTuneSearchConfig.search_space`: which OCR
 // backends to sweep and per-knob candidate values, without a client having to construct a full
 // `autotune_core::search::SearchSpace`.
 type AutoTuneSearchParams struct {
 	// Candidates Per-knob candidate-value overrides, keyed by the knob's wire name (see
-	// [`TunableKnobInfo::knob`] / `autotune_core::search::Knob` for the full set of names). Each
+	// `TunableKnobInfo.knob` / `autotune_core::search::Knob` for the full set of names). Each
 	// knob's values are opaque JSON so this crate has no dependency on `autotune-core`.
 	Candidates map[string][]interface{} `json:"candidates"`
 
 	// OcrBackends OCR backends to sweep, in dominance order. `None` falls back to the deployment's default
-	// OCR ladder (see [`AutoTuneCapabilitiesResponse::default_ocr_ladder`]).
+	// OCR ladder (see `AutoTuneCapabilitiesResponse.default_ocr_ladder`).
 	OcrBackends *[]string `json:"ocr_backends,omitempty"`
 }
 
@@ -2861,7 +3048,7 @@ type ChunkMetadata struct {
 	// Classifications Multi-label classification result for this chunk.
 	//
 	// Populated by the chunk-classification post-processor when
-	// [`ExtractionConfig::chunk_classification`](crate::core::config::ExtractionConfig::chunk_classification)
+	// `ExtractionConfig.chunk_classification`
 	// is set. A chunk may match zero, one, or many of the configured label
 	// definitions. Empty when chunk classification was not configured.
 	Classifications *[]ClassificationLabel `json:"classifications,omitempty"`
@@ -2875,9 +3062,9 @@ type ChunkMetadata struct {
 	// HeadingPath Flattened heading trail from document root to this chunk's section.
 	//
 	// Each element is a heading's text, outermost first. Derived from
-	// [`heading_context`](Self::heading_context) when present; empty otherwise.
+	// `heading_context` when present; empty otherwise.
 	// Provides a binding-friendly, RAG-shaped breadcrumb without requiring
-	// callers to walk the nested [`HeadingContext`] structure.
+	// callers to walk the nested `HeadingContext` structure.
 	HeadingPath *[]string `json:"heading_path,omitempty"`
 
 	// ImageIndices Indices into `ExtractedDocument.images` for images on pages covered by this chunk.
@@ -2892,11 +3079,11 @@ type ChunkMetadata struct {
 	// Only populated when page tracking is enabled in extraction configuration.
 	LastPage *int32 `json:"last_page,omitempty"`
 
-	// NodeIds Ids of the [`DocumentNode`](super::document_structure::DocumentNode)s
+	// NodeIds Ids of the `DocumentNode`s
 	// this chunk was derived from.
 	//
 	// Joins a chunk back to the structured document tree via
-	// [`DocumentNode::id`](super::document_structure::DocumentNode::id).
+	// `DocumentNode.id`.
 	// Populated from exact node provenance when available, with a textual
 	// containment fallback for rendered chunks that do not retain byte offsets.
 	NodeIds *[]string `json:"node_ids,omitempty"`
@@ -2904,10 +3091,10 @@ type ChunkMetadata struct {
 	// PageSpans Per-page bounding-box spans this chunk covers, for viewer highlighting (#1295).
 	//
 	// One entry per page the chunk overlaps, in page order — the first and last entries'
-	// `page` fields equal [`first_page`](Self::first_page)/[`last_page`](Self::last_page).
+	// `page` fields equal `first_page`/`last_page`.
 	// Populated whenever page-boundary provenance is available (the same condition under
 	// which `first_page`/`last_page` are populated); each entry's `bbox` is additionally
-	// populated when the document's structured node tree ([`ExtractedDocument::document`]) is
+	// populated when the document's structured node tree (`ExtractedDocument.document`) is
 	// available, as the union of that page's body-layer node bounding boxes found within this
 	// chunk. Empty when page-boundary provenance is unavailable (mirrors `first_page`/
 	// `last_page` being `None`).
@@ -2931,7 +3118,8 @@ type ChunkType string
 
 // ChunkingConfig Text chunking configuration.
 type ChunkingConfig struct {
-	// ChunkerType Chunker type: "text", "markdown", "yaml"
+	// ChunkerType Chunker strategy: `text`, `markdown`, `yaml`, or `semantic`. Default
+	// `text`. Any other value is refused with a 400.
 	ChunkerType *string `json:"chunker_type,omitempty"`
 
 	// Embedding Embedding generation configuration
@@ -3003,7 +3191,7 @@ type CodeChunkInfo struct {
 	Text string `json:"text"`
 }
 
-// CodeDataAttribute An XML-style attribute attached to an [`Element`](CodeDataNodeKind::Element) node.
+// CodeDataAttribute An XML-style attribute attached to an `Element` node.
 //
 // Populated only for `CodeDataNodeKind::Element`; always empty for `KeyValue` and
 // `Sequence` nodes.
@@ -3053,7 +3241,7 @@ type CodeDataNode struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// CodeDataNodeKind Discriminates the shape of a [`CodeDataNode`].
+// CodeDataNodeKind Discriminates the shape of a `CodeDataNode`.
 //
 // Purpose-built mirror of `tree_sitter_language_pack::DataNodeKind` — kept as an
 // xberg-owned type so binding generators never need to resolve the upstream crate's
@@ -3062,7 +3250,7 @@ type CodeDataNodeKind string
 
 // CodeMetadata Code-format metadata: the structural chunks produced by tree-sitter parsing.
 //
-// Wrapped by [`FormatMetadata::Code`]. Kept as a named struct (rather than an inline
+// Wrapped by `FormatMetadata.Code`. Kept as a named struct (rather than an inline
 // enum-variant body) so serde can tag it under internal tagging and utoipa can emit a
 // referenceable `CodeMetadata` component in the OpenAPI schema.
 type CodeMetadata struct {
@@ -3187,31 +3375,25 @@ type ContributorRole struct {
 	Role *string `json:"role,omitempty"`
 }
 
-// CrawlChildJob A child extraction job spawned by a crawl job.
+// CrawlChildJob One extraction job spawned by a crawl job.
 type CrawlChildJob struct {
-	// BodyBytes Raw body size in bytes of the source document fed to extraction.
-	// For HTML pages this is the rendered HTML length; for binary
-	// documents it is the downloaded file size. Lets callers detect
-	// suspiciously small responses (e.g. WAF challenge pages captured
-	// as the "document" — typically 5–30 KB).
+	// BodyBytes Source response-body size.
 	BodyBytes *int64 `json:"body_bytes,omitempty"`
 
-	// Filename Filename
+	// Filename Original filename.
 	Filename string `json:"filename"`
 
-	// Id Job ID (queryable via GET /v1/jobs/{id})
+	// Id Child job identifier.
 	Id openapi_types.UUID `json:"id"`
 
-	// ProcessingTimeMs Processing time in ms (when completed)
-	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+	// ProcessingTimeMs Processing duration in milliseconds.
+	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
+	Result           *ExtractedDocument `json:"result,omitempty"`
 
-	// Result Extraction result (when completed)
-	Result *ExtractedDocument `json:"result,omitempty"`
-
-	// SourceUrl Source URL where this document was found
+	// SourceUrl URL that produced the document.
 	SourceUrl *string `json:"source_url,omitempty"`
 
-	// Status Job status
+	// Status Current child-job status.
 	Status string `json:"status"`
 }
 
@@ -3233,6 +3415,10 @@ type CrawlConfig struct {
 
 	// DocumentUrlDepth Max depth for URL-following from documents (default: 1, max: 3)
 	DocumentUrlDepth *int32 `json:"document_url_depth,omitempty"`
+
+	// DownloadDocuments Retain downloaded document bytes on crawl pages (default: true).
+	// Set to false when the response does not need document content.
+	DownloadDocuments *bool `json:"download_documents,omitempty"`
 
 	// ExcludePaths Regex patterns — skip URLs matching these
 	ExcludePaths *[]string `json:"exclude_paths,omitempty"`
@@ -3329,6 +3515,9 @@ type CrawlEventV11 struct {
 	Error string            `json:"error"`
 	Kind  CrawlEventV11Kind `json:"kind"`
 
+	// Terminal Whether this error is the job's terminal event. ~keep
+	Terminal *bool `json:"terminal,omitempty"`
+
 	// Ts Event timestamp (UTC)
 	Ts time.Time `json:"ts"`
 
@@ -3374,65 +3563,72 @@ type CrawlEventV13 struct {
 // CrawlEventV13Kind defines model for CrawlEventV1.3.Kind.
 type CrawlEventV13Kind string
 
-// CrawlJobResponse Response for crawl job status query
+// CrawlJobResponse Metadata and progress for one crawl job.
 type CrawlJobResponse struct {
-	// CreatedAt Creation timestamp (RFC3339)
+	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt time.Time `json:"created_at"`
 
-	// Id Crawl job ID
+	// Id Crawl job identifier.
 	Id openapi_types.UUID `json:"id"`
 
-	// Jobs Child extraction jobs (populated when output_mode=extract)
+	// Jobs Child extraction jobs.
 	Jobs *[]CrawlChildJob `json:"jobs,omitempty"`
 
-	// OutputMode Output mode this job was submitted with (scrape, crawl, or extract)
+	// OutputMode Requested output mode.
 	OutputMode string `json:"output_mode"`
 
-	// Pages Crawled raw pages (populated when output_mode=scrape|crawl)
+	// Pages Retained raw pages.
 	Pages *[]CrawledPage `json:"pages,omitempty"`
 
-	// Progress Crawl progress counters
+	// Progress Current progress counters.
 	Progress CrawlProgress `json:"progress"`
 
-	// SeedUrls Seed URLs that were submitted
+	// SeedUrls Submitted seed URLs.
 	SeedUrls []string `json:"seed_urls"`
 
-	// Status Crawl job status
+	// Status Current crawl status.
 	Status CrawlJobStatus `json:"status"`
 }
 
-// CrawlJobStatus Crawl job status
+// CrawlJobStatus Crawl job lifecycle status.
 type CrawlJobStatus string
 
-// CrawlProgress Crawl progress counters
+// CrawlProgress Progress counters for a crawl job.
 type CrawlProgress struct {
+	// DocumentsDiscovered Documents discovered so far.
 	DocumentsDiscovered int32 `json:"documents_discovered"`
-	DocumentsExtracted  int32 `json:"documents_extracted"`
-	DocumentsFailed     int32 `json:"documents_failed"`
-	PagesCrawled        int32 `json:"pages_crawled"`
+
+	// DocumentsExtracted Documents extracted successfully.
+	DocumentsExtracted int32 `json:"documents_extracted"`
+
+	// DocumentsFailed Documents that failed extraction.
+	DocumentsFailed int32 `json:"documents_failed"`
+
+	// PagesCrawled Pages fetched so far.
+	PagesCrawled int32 `json:"pages_crawled"`
 }
 
-// CrawledPage A raw crawled page persisted for output_mode=scrape|crawl.
+// CrawledPage One raw page retained by a scrape or crawl output job.
 type CrawledPage struct {
-	// ContentUrl Presigned URL for downloading the raw content
+	// ContentUrl Presigned URL for the retained response body.
 	ContentUrl *string `json:"content_url,omitempty"`
 
-	// Error Error message (when status=failed)
+	// Error Fetch error, when the page failed.
 	Error *string `json:"error,omitempty"`
 
-	// FetchedAt Fetch timestamp (RFC3339)
+	// FetchedAt ISO 8601 fetch timestamp.
 	FetchedAt time.Time `json:"fetched_at"`
 
-	// MimeType MIME type
+	// MimeType Response MIME type.
 	MimeType *string `json:"mime_type,omitempty"`
 
-	// SizeBytes Size in bytes
+	// SizeBytes Response body size.
 	SizeBytes *int64 `json:"size_bytes,omitempty"`
 
-	// Status Fetch status: "completed" | "failed"
+	// Status Fetch status.
 	Status string `json:"status"`
 
-	// Url Source URL
+	// Url Source URL.
 	Url string `json:"url"`
 }
 
@@ -3512,6 +3708,17 @@ type CreateCollectionRequest struct {
 	// retrieve request overrides it. Can be a Preset (ONNX cross-encoder)
 	// or Llm (platform-managed LLM).
 	RerankDefault *RerankerSpec `json:"rerank_default,omitempty"`
+
+	// RerankTimeoutMs Milliseconds a rerank may take before the primary order is returned
+	// instead. Omit to take the deployment default.
+	//
+	// The budget is per collection because a reranker's cost is a property of
+	// the model and the hardware, not of one request: several shipped presets
+	// do not finish inside the default on a CPU-only deployment. A retrieve
+	// that exceeds it reports `rerank.status = "fell_back"` with
+	// `reason = "timeout"`, so raising it is a decision the caller can make on
+	// evidence rather than a number they cannot see.
+	RerankTimeoutMs *int32 `json:"rerank_timeout_ms,omitempty"`
 }
 
 // CreateCollectionResponse Response for collection creation
@@ -3579,10 +3786,10 @@ type CreateDocumentChunkInput struct {
 	Ordinal *int32 `json:"ordinal,omitempty"`
 }
 
-// CreateDocumentRequest OpenAPI schema for [`CreateDocumentRequest`].
+// CreateDocumentRequest OpenAPI schema for `CreateDocumentRequest`.
 //
 // This DTO keeps the published request schema as the flat JSON object accepted
-// by the handler while runtime deserialization still uses [`CreateDocumentRequest`].
+// by the handler while runtime deserialization still uses `CreateDocumentRequest`.
 type CreateDocumentRequest struct {
 	// Chunks Pre-split chunks for `kind: "chunks"`
 	Chunks *[]CreateDocumentChunkInput `json:"chunks,omitempty"`
@@ -3641,31 +3848,31 @@ type CreateDocumentSource struct {
 	union json.RawMessage
 }
 
-// CreateDocumentSource0 Full-text document — server runs chunking + enrichment + embedding (async)
-type CreateDocumentSource0 struct {
+// CreateDocumentSourceChunks Pre-chunked document — chunks may or may not have embeddings
+type CreateDocumentSourceChunks struct {
+	// Chunks List of pre-split chunks
+	Chunks []CreateDocumentChunkInput `json:"chunks"`
+
+	// EnrichmentOverrides Pre-computed enrichments to skip server's pass
+	EnrichmentOverrides *EnrichmentOverridesRequest    `json:"enrichment_overrides,omitempty"`
+	Kind                CreateDocumentSourceChunksKind `json:"kind"`
+}
+
+// CreateDocumentSourceChunksKind defines model for CreateDocumentSourceChunks.Kind.
+type CreateDocumentSourceChunksKind string
+
+// CreateDocumentSourceText Full-text document — server runs chunking + enrichment + embedding (async)
+type CreateDocumentSourceText struct {
 	// EnrichmentOverrides Pre-computed enrichments (keywords, entities, labels) to skip server's pass
-	EnrichmentOverrides *EnrichmentOverridesRequest `json:"enrichment_overrides,omitempty"`
-	Kind                CreateDocumentSource0Kind   `json:"kind"`
+	EnrichmentOverrides *EnrichmentOverridesRequest  `json:"enrichment_overrides,omitempty"`
+	Kind                CreateDocumentSourceTextKind `json:"kind"`
 
 	// Text Raw text content
 	Text string `json:"text"`
 }
 
-// CreateDocumentSource0Kind defines model for CreateDocumentSource.0.Kind.
-type CreateDocumentSource0Kind string
-
-// CreateDocumentSource1 Pre-chunked document — chunks may or may not have embeddings
-type CreateDocumentSource1 struct {
-	// Chunks List of pre-split chunks
-	Chunks []CreateDocumentChunkInput `json:"chunks"`
-
-	// EnrichmentOverrides Pre-computed enrichments to skip server's pass
-	EnrichmentOverrides *EnrichmentOverridesRequest `json:"enrichment_overrides,omitempty"`
-	Kind                CreateDocumentSource1Kind   `json:"kind"`
-}
-
-// CreateDocumentSource1Kind defines model for CreateDocumentSource.1.Kind.
-type CreateDocumentSource1Kind string
+// CreateDocumentSourceTextKind defines model for CreateDocumentSourceText.Kind.
+type CreateDocumentSourceTextKind string
 
 // CreateSavedPresetRequest Request to create a saved preset.
 type CreateSavedPresetRequest struct {
@@ -3757,7 +3964,7 @@ type DbfMetadata struct {
 	RecordCount int `json:"record_count"`
 }
 
-// DeleteDocumentsRequest OpenAPI schema for [`DeleteDocumentsRequest`].
+// DeleteDocumentsRequest OpenAPI schema for `DeleteDocumentsRequest`.
 type DeleteDocumentsRequest struct {
 	// Filter Vectorstore filter expression.
 	Filter *map[string]interface{} `json:"filter,omitempty"`
@@ -3828,11 +4035,30 @@ type DiffLine2Kind string
 
 // DiffQuery Query parameters for diff computation.
 type DiffQuery struct {
-	// From Version sequence or job ID for the "from" extraction.
-	From string `json:"from"`
+	From DiffQuery_From `json:"from"`
+	To   DiffQuery_To   `json:"to"`
+}
 
-	// To Version sequence or job ID for the "to" extraction.
-	To string `json:"to"`
+// DiffQueryFrom0 defines model for DiffQuery.From.0.
+type DiffQueryFrom0 = int32
+
+// DiffQueryFrom1 defines model for DiffQuery.From.1.
+type DiffQueryFrom1 = openapi_types.UUID
+
+// DiffQuery_From defines model for DiffQuery.From.
+type DiffQuery_From struct {
+	union json.RawMessage
+}
+
+// DiffQueryTo0 defines model for DiffQuery.To.0.
+type DiffQueryTo0 = int32
+
+// DiffQueryTo1 defines model for DiffQuery.To.1.
+type DiffQueryTo1 = openapi_types.UUID
+
+// DiffQuery_To defines model for DiffQuery.To.
+type DiffQuery_To struct {
+	union json.RawMessage
 }
 
 // DiffResponse Response envelope for a computed diff between two extraction results.
@@ -3950,7 +4176,7 @@ type DjotLink struct {
 
 // DocumentCounts Cheap structural counts for an extracted document.
 //
-// Populated on every [`ExtractedDocument`] returned by `extract` /
+// Populated on every `ExtractedDocument` returned by `extract` /
 // `extract_batch`, regardless of whether the heavy `pages` / `images`
 // collections are materialized. A caller that only needs "how many pages /
 // tables / images did this document have?" (reporting, cost estimation,
@@ -3978,7 +4204,7 @@ type DocumentCounts struct {
 // two must be present; supplying both or neither is a validation error.
 //
 // A single-document extraction is simply a `documents` vector of length one
-// on [`ExtractRequest`]; both tiers also accept a batch of up to
+// on `ExtractRequest`; both tiers also accept a batch of up to
 // `MAX_DOCUMENTS_PER_REQUEST` entries (10 on both Pro and Enterprise).
 type DocumentInput struct {
 	// Config Per-file extraction config override.
@@ -4000,7 +4226,7 @@ type DocumentInput struct {
 	// DocumentId Optional client-supplied document identifier. When provided, this
 	// extraction is recorded as a version of that logical document and the
 	// response carries `document_id` + `version_sequence` on the matching
-	// [`DocumentSubmission`]. Enterprise-only lineage feature; Pro leaves
+	// `DocumentSubmission`. Enterprise-only lineage feature; Pro leaves
 	// this unset. Server mints a new identifier when absent. Typed as a string
 	// to span Pro (ULID) and Enterprise (UUID) identifier forms; the concrete
 	// format is validated per service.
@@ -4130,9 +4356,9 @@ type DocumentStructure struct {
 	// NodeTypes Sorted, deduplicated list of node type names present in this document.
 	//
 	// Each value is the snake_case `node_type` tag of the corresponding
-	// [`NodeContent`] variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …).
+	// `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …).
 	//
-	// Computed from `nodes` via [`DocumentStructure::finalize_node_types`].
+	// Computed from `nodes` via node-type derivation.
 	// Empty until that method is called (internal construction paths call it
 	// at the end of derivation).
 	NodeTypes *[]string `json:"node_types,omitempty"`
@@ -4153,7 +4379,7 @@ type DocumentStructure struct {
 	SourceFormat *string `json:"source_format,omitempty"`
 }
 
-// DocumentSubmission Per-document submission detail included in [`ExtractResponse::documents`].
+// DocumentSubmission Per-document submission detail included in `ExtractResponse.documents`.
 type DocumentSubmission struct {
 	// DocumentId Document lineage identifier, when the submission set `document_id`
 	// or one was minted server-side. `None` for non-lineage jobs.
@@ -4361,6 +4587,9 @@ type EnrichJobSubmitted struct {
 }
 
 // EnrichRequestOptions Enrichment processing options.
+//
+// Unknown keys are refused: an option this type does not carry is one the
+// caller asked for and will not get, and a 202 would report otherwise.
 type EnrichRequestOptions struct {
 	// Entities Extract named entities via NER.
 	Entities *bool `json:"entities,omitempty"`
@@ -4368,7 +4597,10 @@ type EnrichRequestOptions struct {
 	// Keywords Extract keywords from the text.
 	Keywords *bool `json:"keywords,omitempty"`
 
-	// Labels Custom labels to assign (passthrough).
+	// Labels Candidate labels for classification.
+	//
+	// Xberg Pro refuses non-empty values with
+	// `rag.label_classification.unsupported` because it ships no classifier.
 	Labels *[]string `json:"labels,omitempty"`
 }
 
@@ -4380,7 +4612,7 @@ type EnrichResult struct {
 	// Keywords Extracted keywords.
 	Keywords *[]string `json:"keywords,omitempty"`
 
-	// Labels Assigned labels (JSON value).
+	// Labels Labels selected by a classifier, or null when classification was not requested or available.
 	Labels interface{} `json:"labels,omitempty"`
 }
 
@@ -4563,15 +4795,13 @@ type ExtractMultipartForm struct {
 
 // ExtractRequest Request body for `POST /v1/extract`.
 //
-// A superset of document-batch (both tiers) and crawl (Enterprise-only)
-// submission: both tiers fill `documents` with up to 10 entries; Enterprise
-// alone also fills `urls`/`crawl_config` for crawl-based extraction — Pro
-// leaves those empty (ADR-0066, amended 2026-09-05). `options` and `webhook`
-// apply to every document/URL in the request.
+// Carries a document batch, a set of seed URLs to crawl, or both. `options`
+// and `webhook` apply to every document and URL in the request (ADR-0066,
+// amended 2026-09-05).
 type ExtractRequest struct {
-	// CrawlConfig Crawl configuration applied to all `urls` (overridable per-URL).
-	// Enterprise-only; Pro leaves this unset. Kept as opaque JSON — see
-	// [`UrlInput::crawl_config`].
+	// CrawlConfig Crawl configuration applied to every entry in `urls`, overridable
+	// per-URL. Kept as opaque JSON — see `UrlInput.crawl_config`. Sending
+	// it without any `urls` is a validation error rather than a no-op.
 	CrawlConfig *map[string]interface{} `json:"crawl_config,omitempty"`
 
 	// Documents Documents to extract inline or via an integration reference.
@@ -4593,8 +4823,8 @@ type ExtractRequest struct {
 	// than the one the credential carries.
 	ProjectId *openapi_types.UUID `json:"project_id,omitempty"`
 
-	// Urls URLs to crawl and extract documents from. Enterprise-only; Pro leaves
-	// this empty.
+	// Urls URLs to crawl and extract documents from. Seed URLs that share one
+	// effective configuration become one crawl job.
 	Urls *[]UrlInput `json:"urls,omitempty"`
 
 	// Webhook Webhook configuration for async result delivery.
@@ -4603,13 +4833,13 @@ type ExtractRequest struct {
 
 // ExtractResponse Response body for `POST /v1/extract` (HTTP 202 Accepted).
 //
-// `job_ids` and `documents` are always populated by both tiers — one entry
-// per submitted document (Pro's `DocumentSubmission::document_id` and
-// `version_sequence` stay `None`: lineage is an Enterprise-only feature).
-// `crawl_job_ids` is Enterprise-only crawl detail and is omitted from the
-// wire entirely when empty, so Pro's payload stays lean.
+// `job_ids` and `documents` carry one entry per directly submitted document,
+// and `crawl_job_ids` one per group of seed URLs sharing a configuration.
+// Each list is omitted from the wire entirely when empty, so a request that
+// submitted only documents carries no `crawl_job_ids` and vice versa.
 type ExtractResponse struct {
-	// CrawlJobIds Crawl job IDs, one per URL group. Enterprise-only; empty on Pro.
+	// CrawlJobIds Crawl job IDs, one per group of seed URLs sharing a configuration.
+	// Each is the `crawl_job_id` of the crawl-event stream.
 	CrawlJobIds *[]string `json:"crawl_job_ids,omitempty"`
 
 	// Documents Detailed per-document submissions, including lineage when present.
@@ -4667,7 +4897,7 @@ type ExtractedDocument struct {
 	// Counts Cheap structural counts (pages, tables, images).
 	//
 	// Always populated by the extraction pipeline, even when the `pages` /
-	// `images` collections are `None`. See [`DocumentCounts`].
+	// `images` collections are `None`. See `DocumentCounts`.
 	Counts *DocumentCounts `json:"counts,omitempty"`
 
 	// DetectedLanguageConfidences Structured per-language detection results: confidence, document share, script,
@@ -5084,6 +5314,50 @@ type ExtractionEventSummary struct {
 	VisionCallCount int32 `json:"vision_call_count"`
 }
 
+// ExtractionJobResponse Metadata for one extraction job returned by `GET /v1/jobs/{id}`.
+type ExtractionJobResponse struct {
+	// Cached Whether the result came from the server-side cache, when known.
+	Cached *bool `json:"cached,omitempty"`
+
+	// ChildJobIds Child extraction jobs created by document splitting.
+	ChildJobIds *[]string `json:"child_job_ids,omitempty"`
+
+	// CompletedAt ISO 8601 completion timestamp, when available.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Error Failure reason for a failed job.
+	Error *string `json:"error,omitempty"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Id Unique job identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// ImagesExtracted Images extracted, when recorded by the tier's persistence layer.
+	ImagesExtracted *int32 `json:"images_extracted,omitempty"`
+
+	// MimeType MIME type of the submitted document.
+	MimeType string `json:"mime_type"`
+
+	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
+	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
+
+	// ProcessingTimeMs Server-side processing duration in milliseconds.
+	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
+	Result           *ExtractedDocument `json:"result,omitempty"`
+
+	// Status Current job status.
+	Status JobStatus `json:"status"`
+
+	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
+	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
 // ExtractionMethod How the extracted text was produced.
 type ExtractionMethod string
 
@@ -5117,9 +5391,22 @@ type ExtractionOptions struct {
 
 	// SplitDocuments When true and a document is a PDF, enable multi-document boundary
 	// detection and fan-out orchestration. Enterprise-only. Xberg Pro has no
-	// splitter and answers 400 when a request sets it, the way it already
-	// answers 400 for `urls` and `crawl_config`.
+	// splitter and returns 400 when `split_documents` is true.
 	SplitDocuments *bool `json:"split_documents,omitempty"`
+
+	// TuningProfileId Apply a promoted Auto-Tune profile to Pro document extraction, by its id
+	// from `GET /v1/tuning-profiles`. Enterprise and Pro requests containing
+	// crawl URLs reject this option instead of silently ignoring it.
+	//
+	// The profile supplies each document's starting configuration, routed by
+	// that document's own features, so a profile learned with routing on
+	// applies its routes rather than only its global config. A per-document
+	// `config` override still wins, as it does over every other source.
+	//
+	// Mutually exclusive with `preset`, `saved_preset_id` and a request-level
+	// `extraction_config`: each of those is another answer to the same
+	// question, and silently picking one would make the winner invisible.
+	TuningProfileId *string `json:"tuning_profile_id,omitempty"`
 }
 
 // FictionBookMetadata FictionBook (FB2) metadata.
@@ -5184,8 +5471,11 @@ type FileExtractionConfig struct {
 	Layout *LayoutDetectionConfig `json:"layout,omitempty"`
 
 	// Ocr OCR backend and language configuration.
-	Ocr          *OcrConfig `json:"ocr,omitempty"`
-	OutputFormat *string    `json:"output_format,omitempty"`
+	Ocr *OcrConfig `json:"ocr,omitempty"`
+
+	// OutputFormat Rendered output format: `plain` or `text`, `markdown` or `md`, `djot`,
+	// `html`, `json`, or `doctags`. Any other value is refused with a 400.
+	OutputFormat *string `json:"output_format,omitempty"`
 
 	// Pages Page extraction configuration.
 	Pages *PageConfig `json:"pages,omitempty"`
@@ -5277,6 +5567,93 @@ type Formula struct {
 	Page *int32 `json:"page,omitempty"`
 }
 
+// GetJobResponse Canonical response for `GET /v1/jobs/{id}` on both product tiers.
+//
+// `job_type` is the stable wire discriminator. Keeping selection explicit
+// lets clients accept future fields without making the variants ambiguous.
+type GetJobResponse struct {
+	union json.RawMessage
+}
+
+// GetJobResponse0 An extraction job.
+type GetJobResponse0 struct {
+	// Cached Whether the result came from the server-side cache, when known.
+	Cached *bool `json:"cached,omitempty"`
+
+	// ChildJobIds Child extraction jobs created by document splitting.
+	ChildJobIds *[]string `json:"child_job_ids,omitempty"`
+
+	// CompletedAt ISO 8601 completion timestamp, when available.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Error Failure reason for a failed job.
+	Error *string `json:"error,omitempty"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Id Unique job identifier.
+	Id openapi_types.UUID `json:"id"`
+
+	// ImagesExtracted Images extracted, when recorded by the tier's persistence layer.
+	ImagesExtracted *int32                 `json:"images_extracted,omitempty"`
+	JobType         GetJobResponse0JobType `json:"job_type"`
+
+	// MimeType MIME type of the submitted document.
+	MimeType string `json:"mime_type"`
+
+	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
+	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
+
+	// ProcessingTimeMs Server-side processing duration in milliseconds.
+	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
+	Result           *ExtractedDocument `json:"result,omitempty"`
+
+	// Status Current job status.
+	Status JobStatus `json:"status"`
+
+	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
+	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// GetJobResponse0JobType defines model for GetJobResponse.0.JobType.
+type GetJobResponse0JobType string
+
+// GetJobResponse1 A crawl job.
+type GetJobResponse1 struct {
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Crawl job identifier.
+	Id      openapi_types.UUID     `json:"id"`
+	JobType GetJobResponse1JobType `json:"job_type"`
+
+	// Jobs Child extraction jobs.
+	Jobs *[]CrawlChildJob `json:"jobs,omitempty"`
+
+	// OutputMode Requested output mode.
+	OutputMode string `json:"output_mode"`
+
+	// Pages Retained raw pages.
+	Pages *[]CrawledPage `json:"pages,omitempty"`
+
+	// Progress Current progress counters.
+	Progress CrawlProgress `json:"progress"`
+
+	// SeedUrls Submitted seed URLs.
+	SeedUrls []string `json:"seed_urls"`
+
+	// Status Current crawl status.
+	Status CrawlJobStatus `json:"status"`
+}
+
+// GetJobResponse1JobType defines model for GetJobResponse.1.JobType.
+type GetJobResponse1JobType string
+
 // GridCell Individual grid cell with position and span metadata.
 type GridCell struct {
 	Bbox *BoundingBox `json:"bbox,omitempty"`
@@ -5290,6 +5667,17 @@ type GridCell struct {
 	// Content Cell text content.
 	Content string `json:"content"`
 
+	// HeadingLevel Outline level (1-6) of the heading style this cell's text carries, when it has one.
+	//
+	// A DOCX banner row -- row 0, one cell spanning the grid, styled `Heading1`..`Heading6` --
+	// is what Word's navigation pane and a `TOC` field treat as the document's outline, but as
+	// a table cell it reached consumers as anonymous text (GH#1587). `content` is deliberately
+	// left as the bare cell text: prefixing it with `#` would put a markdown heading inside a
+	// table cell, which is invalid where it lands and changes text every existing consumer
+	// already reads. This field is the signal instead, so a caller can decide for itself
+	// whether a `heading 2` in a banner row is a section title or a column label. ~keep
+	HeadingLevel *int32 `json:"heading_level,omitempty"`
+
 	// IsHeader Whether this is a header cell.
 	IsHeader *bool `json:"is_header,omitempty"`
 
@@ -5298,6 +5686,12 @@ type GridCell struct {
 
 	// RowSpan Number of rows this cell spans.
 	RowSpan *int32 `json:"row_span,omitempty"`
+
+	// StyleName Human-readable name of the paragraph style applied to this cell's text (`heading 2`).
+	//
+	// Carries the style even when it resolves to no outline level, so a caller can key on a
+	// named style this crate does not map to a heading. See `GridCell.heading_level`. ~keep
+	StyleName *string `json:"style_name,omitempty"`
 }
 
 // GroundTruthKind Kind of ground truth supplied for a document in an auto-tune run.
@@ -5337,6 +5731,32 @@ type HeadingLevel struct {
 
 	// Text The text content of the heading.
 	Text string `json:"text"`
+}
+
+// HealthResponse Liveness and deployment feature availability.
+type HealthResponse struct {
+	// AutoTune Auto-tune readiness, read by the frontend to gate the auto-tune UI.
+	AutoTune AutoTuneHealth `json:"auto_tune"`
+
+	// Rag RAG API availability, not a grant of access to a project.
+	Rag HealthResponse_Rag `json:"rag"`
+
+	// Status Service status
+	Status string `json:"status"`
+
+	// Tier Deployment tier the frontend uses for runtime feature gating (ADR-0047).
+	Tier string `json:"tier"`
+}
+
+// HealthResponseRag0 Enterprise RAG availability; project configuration remains authoritative.
+type HealthResponseRag0 struct {
+	// Enabled Always true because Enterprise mounts the RAG API unconditionally.
+	Enabled bool `json:"enabled"`
+}
+
+// HealthResponse_Rag RAG API availability, not a grant of access to a project.
+type HealthResponse_Rag struct {
+	union json.RawMessage
 }
 
 // HierarchicalBlock defines model for HierarchicalBlock.
@@ -5381,7 +5801,7 @@ type HierarchyConfig struct {
 	// KClusters Number of font-size clusters for heading levels. Defaults to 3 when omitted.
 	KClusters *int32 `json:"k_clusters,omitempty"`
 
-	// OcrCoverageThreshold OCR coverage threshold
+	// OcrCoverageThreshold Unsupported compatibility field. Non-null values are not supported by the extraction engine; omit or send null.
 	OcrCoverageThreshold *float32 `json:"ocr_coverage_threshold,omitempty"`
 }
 
@@ -5640,35 +6060,6 @@ type JatsMetadata struct {
 	License *string `json:"license,omitempty"`
 }
 
-// JobLookupResponse Response for either an extraction job or a crawl job.
-type JobLookupResponse struct {
-	union json.RawMessage
-}
-
-// JobResponse Response for job status query
-type JobResponse struct {
-	// ChildJobIds Child job IDs created from multi-document splitting (empty if not split or parent job)
-	ChildJobIds *[]string `json:"child_job_ids,omitempty"`
-
-	// CreatedAt Job creation timestamp (RFC3339)
-	CreatedAt time.Time `json:"created_at"`
-
-	// Filename Original filename
-	Filename string `json:"filename"`
-
-	// Id Unique job identifier (UUID)
-	Id openapi_types.UUID `json:"id"`
-
-	// ProcessingTimeMs Server-side processing duration in milliseconds (only present when completed)
-	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
-
-	// Result Extraction result (only present when status is completed/partial_success)
-	Result *ExtractedDocument `json:"result,omitempty"`
-
-	// Status Job status
-	Status JobStatus `json:"status"`
-}
-
 // JobResult The result envelope `GET /v1/jobs/{id}/result` serves on both tiers.
 //
 // `results` holds the extracted document(s) produced by this job, in
@@ -5681,9 +6072,13 @@ type JobResponse struct {
 // Each tier stores the result in its own layout (Pro: an object per job;
 // Enterprise: a NATS KV envelope with a 12 hour TTL, offloaded to object
 // storage above a size threshold). Both translate to this envelope at the
-// HTTP boundary, and both answer 409 with [`JobResult::not_ready_message`]
+// HTTP boundary, and both answer 409 with `JobResult.not_ready_message`
 // while the job is not in a terminal successful state.
 type JobResult struct {
+	// Cached ~keep This job's recorded extraction-cache hit, independent of child jobs and billing.
+	// ~keep False means no recorded hit; a pending job has not necessarily attempted extraction.
+	Cached bool `json:"cached"`
+
 	// ChildJobIds Child job IDs when this job was split into multiple jobs (Enterprise
 	// boundary splitting). Each is retrievable via `GET /v1/jobs/{id}`. Empty
 	// when the job produced no child jobs (always empty on Pro).
@@ -5709,10 +6104,11 @@ type JobResult struct {
 	Results *[]JobResultDocument `json:"results,omitempty"`
 
 	// Status Job status at the time the result was read.
-	Status JobStatus `json:"status"`
+	Status          JobStatus        `json:"status"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
-// JobResultCounts Structural counts for a [`JobResultDocument`], always present.
+// JobResultCounts Structural counts for a `JobResultDocument`, always present.
 type JobResultCounts struct {
 	// Images Number of images extracted.
 	Images int32 `json:"images"`
@@ -5724,7 +6120,7 @@ type JobResultCounts struct {
 	Tables int32 `json:"tables"`
 }
 
-// JobResultDocument One extracted document inside [`JobResult::results`].
+// JobResultDocument One extracted document inside `JobResult.results`.
 //
 // A **projection** of the engine's `xberg::types::ExtractedDocument`, not a
 // separate wire type: the service serializes the engine type itself, and this
@@ -5765,7 +6161,7 @@ type JobResultDocument struct {
 	// ProcessingWarnings Non-fatal warnings from the extraction pipeline — the signal that an
 	// otherwise successful job produced degraded output. Absent when the
 	// document raised none.
-	ProcessingWarnings *[]JobResultWarning `json:"processing_warnings,omitempty"`
+	ProcessingWarnings *[]ProcessingWarning `json:"processing_warnings,omitempty"`
 
 	// QualityScore Cleanliness/readability score in `[0.0, 1.0]` for the text that was
 	// retained. Not a completeness score: read `processing_warnings` to learn
@@ -5783,7 +6179,7 @@ type JobResultDocument struct {
 	Tables []interface{} `json:"tables"`
 }
 
-// JobResultError A non-fatal error attached to one document within a [`JobResult`].
+// JobResultError A non-fatal error attached to one document within a `JobResult`.
 //
 // Used when a job processed multiple documents (e.g. via `split_documents`)
 // and some, but not all, failed. Fields mirror `xberg`'s per-item error shape
@@ -5806,22 +6202,6 @@ type JobResultError struct {
 
 	// Source Origin of the error (e.g. the failing stage or component).
 	Source *string `json:"source,omitempty"`
-}
-
-// JobResultWarning A non-fatal warning raised by one stage of the extraction pipeline, attached
-// to the document it degraded.
-//
-// Independent of [`JobResultDocument::quality_score`], which scores only the
-// text that was retained: a document can score well and still have lost
-// content. A noisy OCR page, a chunker that gave up, a language detector that
-// found nothing — each surfaces here rather than failing the job.
-type JobResultWarning struct {
-	// Message Human-readable description of what degraded.
-	Message string `json:"message"`
-
-	// Source Pipeline stage or feature that raised the warning (e.g. `"ocr"`,
-	// `"embedding"`, `"chunking"`, `"language_detection"`, `"output_format"`).
-	Source string `json:"source"`
 }
 
 // JobStatus Lifecycle status of an extraction job.
@@ -5857,7 +6237,8 @@ type JobSummary struct {
 	MimeType string `json:"mime_type"`
 
 	// Status Current job status.
-	Status JobStatus `json:"status"`
+	Status          JobStatus        `json:"status"`
+	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
 // KeyValueAttribute defines model for KeyValueAttribute.
@@ -6167,6 +6548,12 @@ type ListJobsResponse struct {
 	Total int64 `json:"total"`
 }
 
+// ListManagedEmbeddingPresetsResponse Bounded list of managed embedding presets shipped by this server build.
+type ListManagedEmbeddingPresetsResponse struct {
+	// Presets Available presets, in the canonical backend order.
+	Presets []ManagedEmbeddingPreset `json:"presets"`
+}
+
 // ListSavedPresetsResponse Response from listing saved presets.
 type ListSavedPresetsResponse struct {
 	// Limit Page size used.
@@ -6198,6 +6585,21 @@ type ListVersionsQuery struct {
 
 	// Offset Number of versions to skip (default 0, clamped to a maximum of 1,000,000).
 	Offset *int32 `json:"offset,omitempty"`
+}
+
+// ListWebhookDeliveriesResponse Response for the paginated webhook delivery-history endpoint.
+type ListWebhookDeliveriesResponse struct {
+	// Deliveries Delivery attempts in the current page, newest first.
+	Deliveries []WebhookDeliveryResponse `json:"deliveries"`
+
+	// Limit Page size used.
+	Limit int64 `json:"limit"`
+
+	// Offset Offset used for pagination.
+	Offset int64 `json:"offset"`
+
+	// Total Total number of delivery attempts recorded for the webhook.
+	Total int64 `json:"total"`
 }
 
 // LlmConfig LLM provider configuration routed through liter-llm.
@@ -6256,6 +6658,24 @@ type LlmUsage struct {
 
 	// TotalTokens Total tokens (input + output).
 	TotalTokens *int64 `json:"total_tokens,omitempty"`
+}
+
+// ManagedEmbeddingPreset One server-managed embedding preset available to RAG collections.
+type ManagedEmbeddingPreset struct {
+	// Description Human-readable intended use.
+	Description string `json:"description"`
+
+	// EmbeddingDim Vector width emitted by the preset.
+	EmbeddingDim int32 `json:"embedding_dim"`
+
+	// EmbeddingSource Canonical value accepted by collection create and migration requests.
+	EmbeddingSource string `json:"embedding_source"`
+
+	// IsDefault Whether this is the default managed preset for omitted sources.
+	IsDefault bool `json:"is_default"`
+
+	// Name Stable preset name.
+	Name string `json:"name"`
 }
 
 // MarkdownCodeBlock defines model for MarkdownCodeBlock.
@@ -6353,7 +6773,7 @@ type MigrateEmbeddingsRequest struct {
 	// `managed_local:quality` or `provider:<name>`.
 	//
 	// The legacy `preset:<name>` spelling is still accepted. It is not what
-	// comes back: see [`MigrateEmbeddingsResponse::to_source`].
+	// comes back: see `MigrateEmbeddingsResponse.to_source`.
 	TargetEmbeddingSource string `json:"target_embedding_source"`
 
 	// TargetEmbeddingVersion Target embedding version (must be > collection's current embedding_version).
@@ -6417,6 +6837,9 @@ type MigrateStatusResponse struct {
 	// Error Error message (only when failed).
 	Error *string `json:"error,omitempty"`
 
+	// ErrorCode Machine-readable cause when the failed job has a known classification.
+	ErrorCode *string `json:"error_code,omitempty"`
+
 	// JobId Job ID (ULID).
 	JobId string `json:"job_id"`
 
@@ -6432,7 +6855,7 @@ type MigrateStatusResponse struct {
 // `data` is a flat, row-major buffer of length `num_tokens * dim` — row `i`
 // (the embedding for token `i`) occupies `data[i*dim .. (i+1)*dim]`. Flat
 // storage keeps the type FFI-friendly across binding boundaries; use
-// [`MultiVectorEmbedding::rows`] internally to iterate per-token slices.
+// `MultiVectorEmbedding.rows` internally to iterate per-token slices.
 type MultiVectorEmbedding struct {
 	// Data Flat row-major buffer, length `num_tokens * dim`.
 	Data []float32 `json:"data"`
@@ -6441,7 +6864,7 @@ type MultiVectorEmbedding struct {
 	Dim int32 `json:"dim"`
 
 	// NumTokens Number of attention-live token rows (padding rows are dropped, not
-	// zeroed — see [`engine::normalize_tokens`]).
+	// zeroed — see token normalization).
 	NumTokens int32 `json:"num_tokens"`
 }
 
@@ -6587,7 +7010,7 @@ type NodeContent10NodeType string
 
 // NodeContent11 Reviewer/editor comment content (e.g. DOCX comments).
 //
-// Distinct from [`NodeContent::Footnote`] (xberg-io/xberg#300): comments and
+// Distinct from `NodeContent.Footnote` (xberg-io/xberg#300): comments and
 // footnotes both reach the internal document via a marker/definition pair, but
 // a consumer needs to tell a reviewer comment apart from an authored footnote.
 type NodeContent11 struct {
@@ -7060,7 +7483,8 @@ type PageContent struct {
 	//
 	// Contains detected layout regions with class, confidence, bounding box,
 	// and area fraction. Only populated when layout detection is configured.
-	LayoutRegions *[]LayoutRegion `json:"layout_regions,omitempty"`
+	LayoutRegions *[]LayoutRegion    `json:"layout_regions,omitempty"`
+	OcrConfidence *PageOcrConfidence `json:"ocr_confidence,omitempty"`
 
 	// PageNumber Page number (1-indexed)
 	PageNumber int32 `json:"page_number"`
@@ -7149,9 +7573,35 @@ type PageInfo struct {
 	Title *string `json:"title,omitempty"`
 }
 
+// PageOcrConfidence Aggregate OCR legibility score for a page, reported by the backend that produced its text.
+//
+// This is distinct from `OcrConfidence`, which scores a single detected element (a word or
+// line) using detection/recognition confidence from the OCR engine itself. `PageOcrConfidence`
+// is a page-level summary computed after noise filtering, intended for triage of which pages
+// are worth a closer look, not for comparing OCR engines against each other.
+type PageOcrConfidence struct {
+	// Backend Name of the OCR backend that produced the page text.
+	Backend string `json:"backend"`
+
+	// Score Aggregate legibility score in `0.0..=1.0`, or `None` when the backend that
+	// produced this page does not report a calibrated legibility scale.
+	//
+	// Backends differ in what their confidence numbers mean (see `OcrConfidence`'s
+	// per-backend normalization), and not every backend maps onto a 0.0-1.0 legibility
+	// scale at all. When a backend has no such calibrated scale, this is `None` rather
+	// than a misleading number, and scores must never be compared across backends.
+	Score *float64 `json:"score,omitempty"`
+
+	// WordCount Number of words the score was averaged over, AFTER noise filtering.
+	//
+	// A small `word_count` means the average is based on little evidence, so a high
+	// `score` next to a small `word_count` is not representative of the whole page.
+	WordCount int32 `json:"word_count"`
+}
+
 // PageSpan A single page covered by a chunk, with an optional bounding box on that page.
 //
-// See [`ChunkMetadata::page_spans`] (#1295) for population semantics.
+// See `ChunkMetadata.page_spans` (#1295) for population semantics.
 type PageSpan struct {
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 
@@ -7201,7 +7651,7 @@ type PdfAnnotation struct {
 	// Content Text content of the annotation (e.g., comment text, link URL).
 	Content *string `json:"content,omitempty"`
 
-	// MarkedText The document text covered by [`Self::quad_points`], recovered from the
+	// MarkedText The document text covered by `quad_points`, recovered from the
 	// page content underneath the marked-up region. Populated for
 	// Highlight, Underline, StrikeOut, and Squiggly annotations when the
 	// underlying text could be recovered.
@@ -7387,8 +7837,8 @@ type PiiCategory11 string
 // PiiCategory12 Caller-supplied custom category (e.g. internal employee IDs).
 //
 // Surfaced by the redaction engine when a hit comes from
-// [`RedactionConfig::custom_terms`](crate::core::config::redaction::RedactionConfig::custom_terms)
-// or [`RedactionConfig::custom_patterns`](crate::core::config::redaction::RedactionConfig::custom_patterns).
+// custom term rules
+// or custom pattern rules.
 // The string is the label passed alongside the term/pattern. Use those
 // fields rather than constructing `Custom` directly via the
 // `categories` filter — the pattern engine cannot detect arbitrary text
@@ -7397,8 +7847,8 @@ type PiiCategory12 struct {
 	// Custom Caller-supplied custom category (e.g. internal employee IDs).
 	//
 	// Surfaced by the redaction engine when a hit comes from
-	// [`RedactionConfig::custom_terms`](crate::core::config::redaction::RedactionConfig::custom_terms)
-	// or [`RedactionConfig::custom_patterns`](crate::core::config::redaction::RedactionConfig::custom_patterns).
+	// custom term rules
+	// or custom pattern rules.
 	// The string is the label passed alongside the term/pattern. Use those
 	// fields rather than constructing `Custom` directly via the
 	// `categories` filter — the pattern engine cannot detect arbitrary text
@@ -7559,7 +8009,16 @@ type PrimaryScore struct {
 	union json.RawMessage
 }
 
-// PrimaryScore0 Vector similarity score.
+// PrimaryScore0 Vector similarity score, where a higher value is the better match.
+//
+// The collection's distance metric decides the scale: cosine gives the
+// cosine similarity in `[-1, 1]`, inner product gives the unbounded inner
+// product, and L2 gives `1 / (1 + distance)` in `(0, 1]`. Scores are
+// comparable within a collection, not across collections.
+//
+// Every score in one response rises with relevance, but the scales differ,
+// so a vector score and a full-text score are not comparable with each
+// other even inside one breakdown.
 type PrimaryScore0 struct {
 	Kind PrimaryScore0Kind `json:"kind"`
 
@@ -7725,6 +8184,9 @@ type RagJobStatusResponse struct {
 	// Error Error message if state = failed
 	Error *string `json:"error,omitempty"`
 
+	// ErrorCode Machine-readable cause when the failed job has a known classification.
+	ErrorCode *string `json:"error_code,omitempty"`
+
 	// JobId Job identifier (ULID) for this async operation
 	JobId string `json:"job_id"`
 
@@ -7820,6 +8282,52 @@ type ReindexRequest struct {
 // RelationshipKind Semantic kind of a relationship between document elements.
 type RelationshipKind string
 
+// RerankFallbackReason Why a requested rerank did not order the results.
+type RerankFallbackReason string
+
+// RerankOutcomeReport What happened to the rerank stage of a retrieve.
+//
+// One field with three exclusive states, because the field this replaces
+// reported the same absence for "no rerank was asked for" and for "a rerank
+// was asked for and did not serve the request". A caller could tell those
+// apart only by asking for `include.score_breakdown` and reading a per-chunk
+// string, so a request that was not served returned success and looked
+// ordinary.
+type RerankOutcomeReport struct {
+	union json.RawMessage
+}
+
+// RerankOutcomeReport0 Neither the caller nor the collection asked for a rerank.
+type RerankOutcomeReport0 struct {
+	Status RerankOutcomeReport0Status `json:"status"`
+}
+
+// RerankOutcomeReport0Status defines model for RerankOutcomeReport.0.Status.
+type RerankOutcomeReport0Status string
+
+// RerankOutcomeReport1 A rerank ran and the results carry its order.
+type RerankOutcomeReport1 struct {
+	// Kind The reranker that produced the order.
+	Kind   RerankerKind               `json:"kind"`
+	Status RerankOutcomeReport1Status `json:"status"`
+}
+
+// RerankOutcomeReport1Status defines model for RerankOutcomeReport.1.Status.
+type RerankOutcomeReport1Status string
+
+// RerankOutcomeReport2 A rerank was asked for and the results carry the primary order instead.
+type RerankOutcomeReport2 struct {
+	// Kind The reranker that was asked for.
+	Kind RerankerKind `json:"kind"`
+
+	// Reason Why its order is not the one returned.
+	Reason RerankFallbackReason       `json:"reason"`
+	Status RerankOutcomeReport2Status `json:"status"`
+}
+
+// RerankOutcomeReport2Status defines model for RerankOutcomeReport.2.Status.
+type RerankOutcomeReport2Status string
+
 // RerankerKind Wire-shape mirror of the internal `RerankerKind` — the response shape stays
 // stable even when we add variants internally.
 type RerankerKind string
@@ -7900,11 +8408,8 @@ type RetrieveResponse struct {
 	// Mode Mode used.
 	Mode RetrieveMode `json:"mode"`
 
-	// RerankApplied Which reranker (if any) was actually applied. `None` if rerank
-	// was off; also `None` if rerank was active but fell back to the
-	// primary order — in that case `chunks[i].score_breakdown.rerank_fallback`
-	// records the reason.
-	RerankApplied *RerankerKind `json:"rerank_applied,omitempty"`
+	// Rerank What happened to the rerank stage. Always present.
+	Rerank RerankOutcomeReport `json:"rerank"`
 }
 
 // RetrievedChunk Single retrieved chunk in the response.
@@ -7937,13 +8442,13 @@ type RetrievedChunk struct {
 	ScoreBreakdown *ScoreBreakdown `json:"score_breakdown,omitempty"`
 }
 
-// RetrievedDocumentSummary Wire shape of [`RetrievedChunk::document`] — the parent document summary
+// RetrievedDocumentSummary Wire shape of `RetrievedChunk.document` — the parent document summary
 // returned when `include.document` is set.
 //
 // Mirrors `vectorstore::DocumentSummary`'s wire shape for documentation
 // purposes only, without adding a dependency on `crates/vectorstore` (see
 // the module-level doc on the `api-types`/`vectorstore` boundary above).
-// [`RetrievedChunk::document`] stays `serde_json::Value` at rest; this type
+// `RetrievedChunk.document` stays `serde_json::Value` at rest; this type
 // is used solely via `#[schema(value_type = ...)]` to give it a shape.
 type RetrievedDocumentSummary struct {
 	// Entities Named entities. Opaque item shape here; the engine type is
@@ -8059,6 +8564,40 @@ type RevisionDelta struct {
 
 // RevisionKind Semantic classification of a tracked change.
 type RevisionKind string
+
+// RoutingFallbackReason Why a routing-enabled run produced a global-only profile.
+type RoutingFallbackReason string
+
+// RoutingOutcome Outcome of per-document routing for an auto-tune run.
+type RoutingOutcome struct {
+	union json.RawMessage
+}
+
+// RoutingOutcome0 Per-document routing was disabled for the run.
+type RoutingOutcome0 struct {
+	Status RoutingOutcome0Status `json:"status"`
+}
+
+// RoutingOutcome0Status defines model for RoutingOutcome.0.Status.
+type RoutingOutcome0Status string
+
+// RoutingOutcome1 Learned routes improved on the global configuration and were kept.
+type RoutingOutcome1 struct {
+	Status RoutingOutcome1Status `json:"status"`
+}
+
+// RoutingOutcome1Status defines model for RoutingOutcome.1.Status.
+type RoutingOutcome1Status string
+
+// RoutingOutcome2 The run requested routing but retained only the global configuration.
+type RoutingOutcome2 struct {
+	// Reason Why the learned routes were not retained.
+	Reason RoutingFallbackReason `json:"reason"`
+	Status RoutingOutcome2Status `json:"status"`
+}
+
+// RoutingOutcome2Status defines model for RoutingOutcome.2.Status.
+type RoutingOutcome2Status string
 
 // SavedPresetDetail Response when retrieving a saved preset.
 type SavedPresetDetail struct {
@@ -8232,7 +8771,7 @@ type SparseEmbedding struct {
 	// Indices Vocabulary token ids with non-zero weight, ascending.
 	Indices []int32 `json:"indices"`
 
-	// Values Weights parallel to [`SparseEmbedding::indices`].
+	// Values Weights parallel to `SparseEmbedding.indices`.
 	Values []float32 `json:"values"`
 }
 
@@ -8287,6 +8826,19 @@ type SummaryStrategy string
 type Table struct {
 	BoundingBox *BoundingBox `json:"bounding_box,omitempty"`
 
+	// CellStyles Paragraph styles carried by individual cells, for the cells that have one.
+	//
+	// Sparse and flat on purpose. A DOCX banner row -- row 0, one cell spanning the grid,
+	// styled `Heading1`..`Heading6` -- is what Word's navigation pane and a `TOC` field treat
+	// as the document outline, but as a table cell it reached consumers as anonymous text
+	// (GH#1587). `cells` keeps the bare text: prefixing it with `#` would put a markdown
+	// heading inside a table cell, which is invalid where it lands and would change text every
+	// existing consumer already reads. This list is the signal instead.
+	//
+	// Entries are only emitted for cells that actually carry a style, so an ordinary table
+	// serialises exactly as it did before. Indices are into `cells`. ~keep
+	CellStyles *[]TableCellStyle `json:"cell_styles,omitempty"`
+
 	// Cells Table cells as a 2D vector (rows × columns)
 	Cells [][]string `json:"cells"`
 
@@ -8323,6 +8875,24 @@ type Table struct {
 	// Sharing one id across page-boundary fragments is a known possible
 	// future extension, not implemented yet.
 	TableId *string `json:"table_id,omitempty"`
+}
+
+// TableCellStyle The paragraph style a single table cell's text carries, located by grid position.
+//
+// Flat rather than a nested `Vec<Vec<Option<..>>>`: the nested shape marshals badly across the
+// FFI bindings, and the data is sparse anyway. See `Table.cell_styles`. ~keep
+type TableCellStyle struct {
+	// Col Zero-indexed column of the cell this style belongs to.
+	Col int32 `json:"col"`
+
+	// HeadingLevel Outline level 1-6 when the style resolves to a heading, otherwise `None`.
+	HeadingLevel *int32 `json:"heading_level,omitempty"`
+
+	// Row Zero-indexed row of the cell this style belongs to.
+	Row int32 `json:"row"`
+
+	// StyleName Human-readable style name, e.g. `heading 2`.
+	StyleName *string `json:"style_name,omitempty"`
 }
 
 // TableGrid Structured table grid with cell-level metadata.
@@ -8376,7 +8946,7 @@ type TesseractConfig struct {
 
 	// LanguageModelNgramOn Enable N-gram language model.
 	//
-	// Kept on by default (see [`Self::default`] and
+	// Kept on by default (see default settings and
 	// `ocr::types::TesseractConfig::language_model_ngram_on` for the rationale);
 	// keep this field's default in sync with the internal struct's.
 	LanguageModelNgramOn *bool `json:"language_model_ngram_on,omitempty"`
@@ -8398,11 +8968,22 @@ type TesseractConfig struct {
 	OutputFormat  *string                   `json:"output_format,omitempty"`
 	Preprocessing *ImagePreprocessingConfig `json:"preprocessing,omitempty"`
 
-	// Psm Page Segmentation Mode (0-13).
+	// Psm Page Segmentation Mode (1-13).
 	//
-	// Common values:
-	// - 3: Fully automatic page segmentation (native default)
-	// - 6: Assume a single uniform block of text (WASM default — avoids layout-analysis hang)
+	// PSM 0 is rejected: Tesseract's `PSM_OSD_ONLY` performs orientation and script
+	// detection with no character recognition, so it cannot satisfy a text-extraction
+	// request and previously yielded an empty document (GH#1586).
+	//
+	// `None` (the default) means the caller made no explicit choice: the extraction
+	// pipeline applies its own context-appropriate PSM (whole-image PSM 11, vertical-
+	// language PSM 5, layout-region PSM 6, or the sparse-text retry's PSM 3) exactly as
+	// it would with no `TesseractConfig` at all — see issue #1573. Setting any other
+	// field on this struct no longer changes that behaviour.
+	//
+	// Common explicit values:
+	// - 3: Fully automatic page segmentation (native engine default)
+	// - 6: Assume a single uniform block of text (WASM engine default — avoids
+	//   layout-analysis hang)
 	// - 11: Sparse text with no particular order
 	Psm *int32 `json:"psm,omitempty"`
 
@@ -8518,11 +9099,17 @@ type Translation struct {
 
 // TunableKnobInfo One knob that auto-tune can search over, for capability discovery.
 type TunableKnobInfo struct {
+	// Candidates Candidate values offered by this deployment, preserving their JSON types and search order.
+	Candidates *[]interface{} `json:"candidates,omitempty"`
+
 	// Description Human-readable description of what this knob controls.
 	Description string `json:"description"`
 
 	// Knob Wire name of the knob, matching `autotune_core::search::Knob`'s serialized name.
 	Knob string `json:"knob"`
+
+	// UnavailableReason Why this knob has no usable candidate values, when it is unavailable.
+	UnavailableReason *string `json:"unavailable_reason,omitempty"`
 }
 
 // TuningProfileDetail Full detail of a promoted tuning profile.
@@ -8570,10 +9157,10 @@ type UpdateSavedPresetRequest struct {
 	// Stored and returned verbatim, but **not applied at extraction time** —
 	// see `preferred_call_mode`. Results produced from a saved preset carry no
 	// citations regardless of this value.
-	EmitCitations bool `json:"emit_citations"`
+	EmitCitations *bool `json:"emit_citations,omitempty"`
 
 	// Name Preset name.
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 
 	// PreferredCallMode Preferred orchestration path (`text_only`, `vision_only`, or
 	// `text_plus_vision`).
@@ -8584,10 +9171,10 @@ type UpdateSavedPresetRequest struct {
 	// registry (`options.preset`); a saved preset never routes there. On Xberg
 	// Pro a saved preset contributes its `schema`, `system_prompt` and
 	// `context_template`, and nothing else.
-	PreferredCallMode string `json:"preferred_call_mode"`
+	PreferredCallMode *string `json:"preferred_call_mode,omitempty"`
 
 	// Schema JSON Schema (Draft 2020-12) for the extraction result.
-	Schema map[string]interface{} `json:"schema"`
+	Schema *map[string]interface{} `json:"schema,omitempty"`
 
 	// SystemPrompt Optional custom system prompt override.
 	SystemPrompt *string `json:"system_prompt,omitempty"`
@@ -8605,14 +9192,12 @@ type UpdateSavedPresetResponse struct {
 // UriKind Semantic classification of an extracted URI.
 type UriKind string
 
-// UrlInput A seed URL for crawl-based extraction. Enterprise-only; Pro leaves
-// [`ExtractRequest::urls`] empty.
+// UrlInput A seed URL for crawl-based extraction.
 type UrlInput struct {
-	// CrawlConfig Per-URL crawl configuration override, merged with the request-level
-	// `crawl_config`. Kept as opaque JSON here: the concrete crawl
-	// configuration schema is service-local
-	// (`services/api::rest::types::CrawlConfig`) and is out of scope for
-	// this convergence pass.
+	// CrawlConfig Per-URL crawl configuration override. Its non-null keys are merged
+	// over the request-level `crawl_config`, one level deep, and the result
+	// is the configuration this URL is crawled under. Kept as opaque JSON:
+	// the concrete crawl configuration schema is deployment-specific.
 	CrawlConfig *map[string]interface{} `json:"crawl_config,omitempty"`
 
 	// Url URL to crawl and extract documents from.
@@ -8636,7 +9221,9 @@ type UsageResponse struct {
 	// ByMimeType Usage breakdown by MIME type
 	ByMimeType map[string]UsageByMimeType `json:"by_mime_type"`
 
-	// PeriodEnd End of the reporting period (ISO 8601 date)
+	// PeriodEnd Inclusive final UTC date of a nonempty requested reporting window (ISO 8601).
+	// Zero-width requested windows retain the start date, so equal response dates
+	// can describe either one included UTC date or an empty requested window.
 	PeriodEnd string `json:"period_end"`
 
 	// PeriodStart Start of the reporting period (ISO 8601 date)
@@ -8708,6 +9295,97 @@ type WebhookConfig struct {
 	// Url URL to deliver results to.
 	Url string `json:"url"`
 }
+
+// WebhookDelivery Delivery diagnostics for a job's inline webhook.
+type WebhookDelivery struct {
+	// AttemptCount Number of delivery attempts made so far.
+	AttemptCount int32 `json:"attempt_count"`
+
+	// LastError Bounded, sanitized diagnostic from the most recent failed attempt.
+	LastError *string `json:"last_error,omitempty"`
+
+	// Status Current delivery state.
+	Status WebhookDeliveryStatus `json:"status"`
+}
+
+// WebhookDeliveryDetailResponse Diagnostic payload previews for one authorized delivery; eligible for cleanup after seven days.
+// Previews are capped at 4096 UTF-8 bytes and can contain tenant document content.
+type WebhookDeliveryDetailResponse struct {
+	// Delivery One past delivery attempt for a webhook subscription.
+	//
+	// **Payload bodies are deliberately not included here.** A delivery's
+	// request and response bodies can carry document extraction content — the
+	// same `results` payload `WebhookEvent` embeds — which is exactly the class
+	// of data `WEBHOOK_RESULTS_MAX_BYTES` already treats as too sensitive/large
+	// to always inline. A list endpoint that paginates delivery *metadata*
+	// should not also be the place a caller incidentally pages through
+	// potentially large document content: that argues for a separate
+	// `GET .../deliveries/{delivery_id}` detail endpoint fetched on demand (not
+	// declared by this pass — only the list and retry operations are), the same
+	// "small by default, fetch the rest separately" shape the job-result and
+	// webhook-event payloads already use.
+	Delivery         WebhookDeliveryResponse `json:"delivery"`
+	RequestPreview   string                  `json:"request_preview"`
+	RequestTruncated bool                    `json:"request_truncated"`
+
+	// ResponseError A failure to capture the response body, separate from the HTTP delivery outcome.
+	ResponseError     *string `json:"response_error,omitempty"`
+	ResponsePreview   *string `json:"response_preview,omitempty"`
+	ResponseTruncated bool    `json:"response_truncated"`
+}
+
+// WebhookDeliveryResponse One past delivery attempt for a webhook subscription.
+//
+// **Payload bodies are deliberately not included here.** A delivery's
+// request and response bodies can carry document extraction content — the
+// same `results` payload `WebhookEvent` embeds — which is exactly the class
+// of data `WEBHOOK_RESULTS_MAX_BYTES` already treats as too sensitive/large
+// to always inline. A list endpoint that paginates delivery *metadata*
+// should not also be the place a caller incidentally pages through
+// potentially large document content: that argues for a separate
+// `GET .../deliveries/{delivery_id}` detail endpoint fetched on demand (not
+// declared by this pass — only the list and retry operations are), the same
+// "small by default, fetch the rest separately" shape the job-result and
+// webhook-event payloads already use.
+type WebhookDeliveryResponse struct {
+	// AttemptNumber 1-based attempt number within the redelivery sequence for this event
+	// Automatic retries follow the configured delivery limit.
+	AttemptNumber int64 `json:"attempt_number"`
+
+	// CompletedAt Completion time; absent if the sender was interrupted before recording an outcome.
+	CompletedAt *string `json:"completed_at,omitempty"`
+
+	// DurationMs How long the delivery attempt took, in milliseconds.
+	DurationMs int64 `json:"duration_ms"`
+
+	// Error Error message, present when the attempt did not succeed.
+	Error *string `json:"error,omitempty"`
+
+	// EventId Stable event identifier shared by automatic redeliveries.
+	EventId openapi_types.UUID `json:"event_id"`
+
+	// EventType The event type delivered (e.g. `"job.completed"`, `"job.failed"`).
+	EventType string `json:"event_type"`
+
+	// Id Unique identifier of this delivery attempt.
+	Id openapi_types.UUID `json:"id"`
+
+	// JobId The job this delivery attempt carries the event for.
+	JobId string `json:"job_id"`
+
+	// OccurredAt ISO 8601 timestamp the attempt occurred at.
+	OccurredAt string `json:"occurred_at"`
+
+	// StatusCode HTTP status code returned by the endpoint, when a response was
+	// received at all (absent on a connection/timeout failure).
+	StatusCode *int32 `json:"status_code,omitempty"`
+
+	// Success Whether the endpoint accepted the delivery.
+	Success bool `json:"success"`
+}
+
+// WebhookDeliveryStatus Current outcome of an inline webhook configured for a job.
+type WebhookDeliveryStatus string
 
 // WebhookEvent Webhook event payload delivered to customer endpoints when a job reaches
 // a terminal status.
@@ -8797,32 +9475,46 @@ type ListAuditEntriesParams struct {
 	// Action Filter to entries matching this action exactly (e.g. `"job.submit"`).
 	Action *string `form:"action,omitempty" json:"action,omitempty"`
 
-	// Limit Page size. Values outside 1..=100 are clamped into range rather than
-	// rejected.
+	// Limit Page size. Values outside 1..=100 are rejected.
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to
-	// 1,000,000, which selects an empty page.
+	// Offset Number of items to skip. Values outside 0..=1,000,000 are rejected.
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // ListAutoTuneJobsParams defines parameters for ListAutoTuneJobs.
 type ListAutoTuneJobsParams struct {
-	// Limit Page size. Values outside 1..=100 are clamped into range rather than rejected.
+	// Limit Page size (default 50, accepted range 1..=100).
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to 1,000,000.
+	// Offset Pagination offset (default 0, accepted range 0..=1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetDiffParams defines parameters for GetDiff.
 type GetDiffParams struct {
 	// From Source version (sequence integer or job UUID)
-	From string `form:"from" json:"from"`
+	From struct {
+		union json.RawMessage
+	} `form:"from" json:"from"`
 
 	// To Target version (sequence integer or job UUID)
-	To string `form:"to" json:"to"`
+	To struct {
+		union json.RawMessage
+	} `form:"to" json:"to"`
 }
+
+// GetDiffParamsFrom0 defines parameters for GetDiff.
+type GetDiffParamsFrom0 = int32
+
+// GetDiffParamsFrom1 defines parameters for GetDiff.
+type GetDiffParamsFrom1 = openapi_types.UUID
+
+// GetDiffParamsTo0 defines parameters for GetDiff.
+type GetDiffParamsTo0 = int32
+
+// GetDiffParamsTo1 defines parameters for GetDiff.
+type GetDiffParamsTo1 = openapi_types.UUID
 
 // ListVersionsParams defines parameters for ListVersions.
 type ListVersionsParams struct {
@@ -8831,6 +9523,12 @@ type ListVersionsParams struct {
 
 	// Offset Versions to skip. A negative value is clamped to 0; a value above 1,000,000 is clamped to 1,000,000.
 	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ExtractParams defines parameters for Extract.
+type ExtractParams struct {
+	// XProjectID Selected project; sessions require current membership, API keys remain scoped to their own project
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
 }
 
 // ListExtractionEventsParams defines parameters for ListExtractionEvents.
@@ -8847,56 +9545,78 @@ type ListExtractionEventsParams struct {
 
 // ListJobsParams defines parameters for ListJobs.
 type ListJobsParams struct {
-	// Limit Page size. A value outside 1..=100 is rejected with a 400.
+	// Limit Page size (default 50, max 100).
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A negative value is rejected with a 400; a value above 1,000,000 is accepted but clamped to 1,000,000.
+	// Offset Pagination offset (default 0, clamped to a maximum of 1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 
-	// ProjectId Project to read; must be the credential's own project
+	// ProjectId Project to read. Sessions require current membership; API keys cannot select another project. A conflicting
+	// project is refused rather than silently ignored.
 	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
 // GetJobParams defines parameters for GetJob.
 type GetJobParams struct {
-	// ProjectId Project to read; must be the credential's own project
+	// ProjectId Project to read; sessions require current membership, API keys remain scoped to their own project
 	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
 // ListCollectionsParams defines parameters for ListCollections.
 type ListCollectionsParams struct {
-	// Limit Maximum results per page. Values outside 1..=100 are clamped into range rather than rejected.
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Offset Number of results to skip. A value above 1,000,000 is clamped to 1,000,000.
-	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // ListSavedPresetsParams defines parameters for ListSavedPresets.
 type ListSavedPresetsParams struct {
-	// Limit Page size. Values outside 1..=100 are clamped into range rather than rejected.
+	// Limit Page size (default 50, accepted range 1..=100).
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to 1,000,000.
+	// Offset Pagination offset (default 0, accepted range 0..=1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // ListTuningProfilesParams defines parameters for ListTuningProfiles.
 type ListTuningProfilesParams struct {
-	// Limit Page size. Values outside 1..=100 are clamped into range rather than rejected.
+	// Limit Page size (default 50, accepted range 1..=100).
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to 1,000,000.
+	// Offset Pagination offset (default 0, accepted range 0..=1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ConfirmUploadParams defines parameters for ConfirmUpload.
+type ConfirmUploadParams struct {
+	// XProjectID Selected project; sessions require current membership, API keys remain scoped to their own project
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
+}
+
+// PresignUploadParams defines parameters for PresignUpload.
+type PresignUploadParams struct {
+	// XProjectID Selected project; sessions require current membership, API keys remain scoped to their own project
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
 }
 
 // GetUsageParams defines parameters for GetUsage.
 type GetUsageParams struct {
 	// Start Start date (ISO 8601, e.g. "2026-03-01"). Defaults to first day of current month.
-	Start *string `form:"start,omitempty" json:"start,omitempty"`
+	Start *openapi_types.Date `form:"start,omitempty" json:"start,omitempty"`
 
-	// End End date (ISO 8601, e.g. "2026-04-01"). Defaults to first day of next month.
-	End *string `form:"end,omitempty" json:"end,omitempty"`
+	// End Exclusive UTC end date (ISO 8601, e.g. "2026-04-01"). Defaults to first day of next month.
+	End *openapi_types.Date `form:"end,omitempty" json:"end,omitempty"`
+}
+
+// ListWebhookDeliveriesParams defines parameters for ListWebhookDeliveries.
+type ListWebhookDeliveriesParams struct {
+	// Limit Page size. A value outside 1..=1000 is rejected with a 400, on both
+	// tiers.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of items to skip. A negative value is rejected with a 400; a
+	// value above 1,000,000 is accepted but clamped to 1,000,000, which
+	// selects an empty page rather than erroring.
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // SubmitAutoTuneMultipartRequestBody defines body for SubmitAutoTune for multipart/form-data ContentType.
@@ -9380,23 +10100,31 @@ func (t *CrawlEventV1) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsCreateDocumentSource0 returns the union data inside the CreateDocumentSource as a CreateDocumentSource0
-func (t CreateDocumentSource) AsCreateDocumentSource0() (CreateDocumentSource0, error) {
-	var body CreateDocumentSource0
+// AsCreateDocumentSourceText returns the union data inside the CreateDocumentSource as a CreateDocumentSourceText
+func (t CreateDocumentSource) AsCreateDocumentSourceText() (CreateDocumentSourceText, error) {
+	var body CreateDocumentSourceText
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromCreateDocumentSource0 overwrites any union data inside the CreateDocumentSource as the provided CreateDocumentSource0
-func (t *CreateDocumentSource) FromCreateDocumentSource0(v CreateDocumentSource0) error {
+// FromCreateDocumentSourceText overwrites any union data inside the CreateDocumentSource as the provided CreateDocumentSourceText
+func (t *CreateDocumentSource) FromCreateDocumentSourceText(v CreateDocumentSourceText) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"text"}`))
 	t.union = b
 	return err
 }
 
-// MergeCreateDocumentSource0 performs a merge with any union data inside the CreateDocumentSource, using the provided CreateDocumentSource0
-func (t *CreateDocumentSource) MergeCreateDocumentSource0(v CreateDocumentSource0) error {
+// MergeCreateDocumentSourceText performs a merge with any union data inside the CreateDocumentSource, using the provided CreateDocumentSourceText
+func (t *CreateDocumentSource) MergeCreateDocumentSourceText(v CreateDocumentSourceText) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"text"}`))
 	if err != nil {
 		return err
 	}
@@ -9406,23 +10134,31 @@ func (t *CreateDocumentSource) MergeCreateDocumentSource0(v CreateDocumentSource
 	return err
 }
 
-// AsCreateDocumentSource1 returns the union data inside the CreateDocumentSource as a CreateDocumentSource1
-func (t CreateDocumentSource) AsCreateDocumentSource1() (CreateDocumentSource1, error) {
-	var body CreateDocumentSource1
+// AsCreateDocumentSourceChunks returns the union data inside the CreateDocumentSource as a CreateDocumentSourceChunks
+func (t CreateDocumentSource) AsCreateDocumentSourceChunks() (CreateDocumentSourceChunks, error) {
+	var body CreateDocumentSourceChunks
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromCreateDocumentSource1 overwrites any union data inside the CreateDocumentSource as the provided CreateDocumentSource1
-func (t *CreateDocumentSource) FromCreateDocumentSource1(v CreateDocumentSource1) error {
+// FromCreateDocumentSourceChunks overwrites any union data inside the CreateDocumentSource as the provided CreateDocumentSourceChunks
+func (t *CreateDocumentSource) FromCreateDocumentSourceChunks(v CreateDocumentSourceChunks) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"chunks"}`))
 	t.union = b
 	return err
 }
 
-// MergeCreateDocumentSource1 performs a merge with any union data inside the CreateDocumentSource, using the provided CreateDocumentSource1
-func (t *CreateDocumentSource) MergeCreateDocumentSource1(v CreateDocumentSource1) error {
+// MergeCreateDocumentSourceChunks performs a merge with any union data inside the CreateDocumentSource, using the provided CreateDocumentSourceChunks
+func (t *CreateDocumentSource) MergeCreateDocumentSourceChunks(v CreateDocumentSourceChunks) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"chunks"}`))
 	if err != nil {
 		return err
 	}
@@ -9430,6 +10166,29 @@ func (t *CreateDocumentSource) MergeCreateDocumentSource1(v CreateDocumentSource
 	merged, err := runtime.JSONMerge(t.union, b)
 	t.union = merged
 	return err
+}
+
+func (t CreateDocumentSource) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateDocumentSource) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "chunks":
+		return t.AsCreateDocumentSourceChunks()
+	case "text":
+		return t.AsCreateDocumentSourceText()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
 func (t CreateDocumentSource) MarshalJSON() ([]byte, error) {
@@ -9526,6 +10285,130 @@ func (t DiffLine) MarshalJSON() ([]byte, error) {
 }
 
 func (t *DiffLine) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsDiffQueryFrom0 returns the union data inside the DiffQuery_From as a DiffQueryFrom0
+func (t DiffQuery_From) AsDiffQueryFrom0() (DiffQueryFrom0, error) {
+	var body DiffQueryFrom0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDiffQueryFrom0 overwrites any union data inside the DiffQuery_From as the provided DiffQueryFrom0
+func (t *DiffQuery_From) FromDiffQueryFrom0(v DiffQueryFrom0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDiffQueryFrom0 performs a merge with any union data inside the DiffQuery_From, using the provided DiffQueryFrom0
+func (t *DiffQuery_From) MergeDiffQueryFrom0(v DiffQueryFrom0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsDiffQueryFrom1 returns the union data inside the DiffQuery_From as a DiffQueryFrom1
+func (t DiffQuery_From) AsDiffQueryFrom1() (DiffQueryFrom1, error) {
+	var body DiffQueryFrom1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDiffQueryFrom1 overwrites any union data inside the DiffQuery_From as the provided DiffQueryFrom1
+func (t *DiffQuery_From) FromDiffQueryFrom1(v DiffQueryFrom1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDiffQueryFrom1 performs a merge with any union data inside the DiffQuery_From, using the provided DiffQueryFrom1
+func (t *DiffQuery_From) MergeDiffQueryFrom1(v DiffQueryFrom1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t DiffQuery_From) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DiffQuery_From) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsDiffQueryTo0 returns the union data inside the DiffQuery_To as a DiffQueryTo0
+func (t DiffQuery_To) AsDiffQueryTo0() (DiffQueryTo0, error) {
+	var body DiffQueryTo0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDiffQueryTo0 overwrites any union data inside the DiffQuery_To as the provided DiffQueryTo0
+func (t *DiffQuery_To) FromDiffQueryTo0(v DiffQueryTo0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDiffQueryTo0 performs a merge with any union data inside the DiffQuery_To, using the provided DiffQueryTo0
+func (t *DiffQuery_To) MergeDiffQueryTo0(v DiffQueryTo0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsDiffQueryTo1 returns the union data inside the DiffQuery_To as a DiffQueryTo1
+func (t DiffQuery_To) AsDiffQueryTo1() (DiffQueryTo1, error) {
+	var body DiffQueryTo1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDiffQueryTo1 overwrites any union data inside the DiffQuery_To as the provided DiffQueryTo1
+func (t *DiffQuery_To) FromDiffQueryTo1(v DiffQueryTo1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDiffQueryTo1 performs a merge with any union data inside the DiffQuery_To, using the provided DiffQueryTo1
+func (t *DiffQuery_To) MergeDiffQueryTo1(v DiffQueryTo1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t DiffQuery_To) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DiffQuery_To) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -10699,22 +11582,22 @@ func (t *FormatMetadata) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsJobResponse returns the union data inside the JobLookupResponse as a JobResponse
-func (t JobLookupResponse) AsJobResponse() (JobResponse, error) {
-	var body JobResponse
+// AsGetJobResponse0 returns the union data inside the GetJobResponse as a GetJobResponse0
+func (t GetJobResponse) AsGetJobResponse0() (GetJobResponse0, error) {
+	var body GetJobResponse0
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromJobResponse overwrites any union data inside the JobLookupResponse as the provided JobResponse
-func (t *JobLookupResponse) FromJobResponse(v JobResponse) error {
+// FromGetJobResponse0 overwrites any union data inside the GetJobResponse as the provided GetJobResponse0
+func (t *GetJobResponse) FromGetJobResponse0(v GetJobResponse0) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeJobResponse performs a merge with any union data inside the JobLookupResponse, using the provided JobResponse
-func (t *JobLookupResponse) MergeJobResponse(v JobResponse) error {
+// MergeGetJobResponse0 performs a merge with any union data inside the GetJobResponse, using the provided GetJobResponse0
+func (t *GetJobResponse) MergeGetJobResponse0(v GetJobResponse0) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -10725,22 +11608,22 @@ func (t *JobLookupResponse) MergeJobResponse(v JobResponse) error {
 	return err
 }
 
-// AsCrawlJobResponse returns the union data inside the JobLookupResponse as a CrawlJobResponse
-func (t JobLookupResponse) AsCrawlJobResponse() (CrawlJobResponse, error) {
-	var body CrawlJobResponse
+// AsGetJobResponse1 returns the union data inside the GetJobResponse as a GetJobResponse1
+func (t GetJobResponse) AsGetJobResponse1() (GetJobResponse1, error) {
+	var body GetJobResponse1
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromCrawlJobResponse overwrites any union data inside the JobLookupResponse as the provided CrawlJobResponse
-func (t *JobLookupResponse) FromCrawlJobResponse(v CrawlJobResponse) error {
+// FromGetJobResponse1 overwrites any union data inside the GetJobResponse as the provided GetJobResponse1
+func (t *GetJobResponse) FromGetJobResponse1(v GetJobResponse1) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeCrawlJobResponse performs a merge with any union data inside the JobLookupResponse, using the provided CrawlJobResponse
-func (t *JobLookupResponse) MergeCrawlJobResponse(v CrawlJobResponse) error {
+// MergeGetJobResponse1 performs a merge with any union data inside the GetJobResponse, using the provided GetJobResponse1
+func (t *GetJobResponse) MergeGetJobResponse1(v GetJobResponse1) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -10751,12 +11634,48 @@ func (t *JobLookupResponse) MergeCrawlJobResponse(v CrawlJobResponse) error {
 	return err
 }
 
-func (t JobLookupResponse) MarshalJSON() ([]byte, error) {
+func (t GetJobResponse) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *JobLookupResponse) UnmarshalJSON(b []byte) error {
+func (t *GetJobResponse) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsHealthResponseRag0 returns the union data inside the HealthResponse_Rag as a HealthResponseRag0
+func (t HealthResponse_Rag) AsHealthResponseRag0() (HealthResponseRag0, error) {
+	var body HealthResponseRag0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromHealthResponseRag0 overwrites any union data inside the HealthResponse_Rag as the provided HealthResponseRag0
+func (t *HealthResponse_Rag) FromHealthResponseRag0(v HealthResponseRag0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeHealthResponseRag0 performs a merge with any union data inside the HealthResponse_Rag, using the provided HealthResponseRag0
+func (t *HealthResponse_Rag) MergeHealthResponseRag0(v HealthResponseRag0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t HealthResponse_Rag) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *HealthResponse_Rag) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -11815,6 +12734,94 @@ func (t *PrimaryScore) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsRerankOutcomeReport0 returns the union data inside the RerankOutcomeReport as a RerankOutcomeReport0
+func (t RerankOutcomeReport) AsRerankOutcomeReport0() (RerankOutcomeReport0, error) {
+	var body RerankOutcomeReport0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRerankOutcomeReport0 overwrites any union data inside the RerankOutcomeReport as the provided RerankOutcomeReport0
+func (t *RerankOutcomeReport) FromRerankOutcomeReport0(v RerankOutcomeReport0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRerankOutcomeReport0 performs a merge with any union data inside the RerankOutcomeReport, using the provided RerankOutcomeReport0
+func (t *RerankOutcomeReport) MergeRerankOutcomeReport0(v RerankOutcomeReport0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRerankOutcomeReport1 returns the union data inside the RerankOutcomeReport as a RerankOutcomeReport1
+func (t RerankOutcomeReport) AsRerankOutcomeReport1() (RerankOutcomeReport1, error) {
+	var body RerankOutcomeReport1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRerankOutcomeReport1 overwrites any union data inside the RerankOutcomeReport as the provided RerankOutcomeReport1
+func (t *RerankOutcomeReport) FromRerankOutcomeReport1(v RerankOutcomeReport1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRerankOutcomeReport1 performs a merge with any union data inside the RerankOutcomeReport, using the provided RerankOutcomeReport1
+func (t *RerankOutcomeReport) MergeRerankOutcomeReport1(v RerankOutcomeReport1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRerankOutcomeReport2 returns the union data inside the RerankOutcomeReport as a RerankOutcomeReport2
+func (t RerankOutcomeReport) AsRerankOutcomeReport2() (RerankOutcomeReport2, error) {
+	var body RerankOutcomeReport2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRerankOutcomeReport2 overwrites any union data inside the RerankOutcomeReport as the provided RerankOutcomeReport2
+func (t *RerankOutcomeReport) FromRerankOutcomeReport2(v RerankOutcomeReport2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRerankOutcomeReport2 performs a merge with any union data inside the RerankOutcomeReport, using the provided RerankOutcomeReport2
+func (t *RerankOutcomeReport) MergeRerankOutcomeReport2(v RerankOutcomeReport2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t RerankOutcomeReport) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RerankOutcomeReport) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsRerankerSpec0 returns the union data inside the RerankerSpec as a RerankerSpec0
 func (t RerankerSpec) AsRerankerSpec0() (RerankerSpec0, error) {
 	var body RerankerSpec0
@@ -12013,6 +13020,94 @@ func (t RevisionAnchor) MarshalJSON() ([]byte, error) {
 }
 
 func (t *RevisionAnchor) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRoutingOutcome0 returns the union data inside the RoutingOutcome as a RoutingOutcome0
+func (t RoutingOutcome) AsRoutingOutcome0() (RoutingOutcome0, error) {
+	var body RoutingOutcome0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRoutingOutcome0 overwrites any union data inside the RoutingOutcome as the provided RoutingOutcome0
+func (t *RoutingOutcome) FromRoutingOutcome0(v RoutingOutcome0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRoutingOutcome0 performs a merge with any union data inside the RoutingOutcome, using the provided RoutingOutcome0
+func (t *RoutingOutcome) MergeRoutingOutcome0(v RoutingOutcome0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRoutingOutcome1 returns the union data inside the RoutingOutcome as a RoutingOutcome1
+func (t RoutingOutcome) AsRoutingOutcome1() (RoutingOutcome1, error) {
+	var body RoutingOutcome1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRoutingOutcome1 overwrites any union data inside the RoutingOutcome as the provided RoutingOutcome1
+func (t *RoutingOutcome) FromRoutingOutcome1(v RoutingOutcome1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRoutingOutcome1 performs a merge with any union data inside the RoutingOutcome, using the provided RoutingOutcome1
+func (t *RoutingOutcome) MergeRoutingOutcome1(v RoutingOutcome1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRoutingOutcome2 returns the union data inside the RoutingOutcome as a RoutingOutcome2
+func (t RoutingOutcome) AsRoutingOutcome2() (RoutingOutcome2, error) {
+	var body RoutingOutcome2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRoutingOutcome2 overwrites any union data inside the RoutingOutcome as the provided RoutingOutcome2
+func (t *RoutingOutcome) FromRoutingOutcome2(v RoutingOutcome2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRoutingOutcome2 performs a merge with any union data inside the RoutingOutcome, using the provided RoutingOutcome2
+func (t *RoutingOutcome) MergeRoutingOutcome2(v RoutingOutcome2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t RoutingOutcome) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RoutingOutcome) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

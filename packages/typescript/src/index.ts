@@ -85,6 +85,7 @@ export {
   type JobResult,
   type JobResultError,
   type JobStatus,
+  type LicenseInfoResponse,
   type ListApiKeysResponse,
   type ListAuditEntriesResponse,
   type ListAutoTuneJobsResponse,
@@ -92,11 +93,14 @@ export {
   type ListExtractionEventsResponse,
   type ListIntegrationsResponse,
   type ListJobsResponse,
+  type ListManagedEmbeddingPresetsResponse,
   type ListProjectsResponse,
   type ListSavedPresetsResponse,
   type ListTuningProfilesResponse,
+  type ListWebhookDeliveriesResponse,
   type LoginRequest,
   type LoginResponse,
+  type ManagedEmbeddingPreset,
   type PresetDetail,
   type PresetSummary,
   type PresignUploadRequest,
@@ -113,6 +117,7 @@ export {
   type UpdateSavedPresetResponse,
   type UsageResponse,
   type WebhookConfig,
+  type WebhookDeliveryDetailResponse,
 } from "./types.js";
 export type { components, paths } from "./_generated/api.js";
 export type { components as proComponents, paths as proPaths } from "./_generated/pro.js";
@@ -157,6 +162,7 @@ export type {
   BackendUpdateProjectRequest,
   BackendUpdateWebhookRequest,
   BackendUsageResponse,
+  BackendWebhookDeliveryDetailResponse,
   BackendWebhookResponse,
   BackendWebhookTestResponse,
 } from "./types.js";

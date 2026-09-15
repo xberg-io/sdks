@@ -341,12 +341,16 @@ describe("streamCrawlEvents", () => {
     await expect(collect(makeClient().streamCrawlEvents(CRAWL_JOB_ID))).rejects.toThrow(NotFoundError);
   });
 
-  it("refuses on the pro tier without opening the stream", async () => {
+  // ~keep Pro declares this operation too; the client used to refuse it outright.
+  it("streams on the pro tier instead of refusing", async () => {
     let requested = false;
     server.use(
       http.get(`${PRO_URL}${EVENTS_PATH}`, () => {
         requested = true;
-        return HttpResponse.json({}, { status: 200 });
+        return new HttpResponse(eventStream([frame(COMPLETE_EVENT)]).stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
       }),
     );
     const client = new XbergClient({
@@ -356,10 +360,8 @@ describe("streamCrawlEvents", () => {
       sleep: async () => {},
     });
 
-    await expect(collect(client.streamCrawlEvents(CRAWL_JOB_ID))).rejects.toThrow(
-      /streamCrawlEvents\(\) is not available on the 'pro' tier/,
-    );
-    expect(requested).toBe(false);
+    expect(await collect(client.streamCrawlEvents(CRAWL_JOB_ID))).toEqual([COMPLETE_EVENT]);
+    expect(requested).toBe(true);
   });
 
   it("requests nothing until iteration begins", async () => {

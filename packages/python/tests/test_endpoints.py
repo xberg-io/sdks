@@ -466,13 +466,16 @@ async def test_pro_only_method_rejected_on_enterprise_async(base_url: str, api_k
 @pytest.mark.asyncio
 @respx.mock
 async def test_capability_probe_async_reads_healthz_tier_and_caches(base_url: str, api_key: str) -> None:
+    # `versions` is still Enterprise-only, so it is what forces the probe; `usage` no longer is.
     health = respx.get(f"{base_url}/healthz").mock(
         return_value=httpx.Response(200, json={"status": "ok", "tier": "enterprise"}),
     )
-    respx.get(f"{base_url}/v1/usage").mock(return_value=httpx.Response(200, json={"pages": 1}))
+    respx.get(f"{base_url}/v1/documents/doc-1/versions").mock(
+        return_value=httpx.Response(200, json={"versions": [1, 2]}),
+    )
 
     async with AsyncXbergClient(api_key=api_key, base_url=base_url) as client:
-        assert await client.usage() == {"pages": 1}
-        assert await client.usage() == {"pages": 1}
+        assert await client.versions("doc-1") == {"versions": [1, 2]}
+        assert await client.versions("doc-1") == {"versions": [1, 2]}
 
     assert health.call_count == 1

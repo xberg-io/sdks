@@ -35,3 +35,14 @@ generate:
   models: true
 output-options:
   skip-prune: true
+
+# ~keep Enum constants are named after their VALUE, not their type, so two schema
+# sets in this one package can each emit a `Disabled`, `Extraction` or `Crawl`
+# const and collide — which is exactly what a spec sync produced once Pro's job
+# response grew a `job_type` discriminator. oapi-schemaset-config dedupes SCHEMA
+# names but cannot see enum constants. Prefixing is enabled here and in the
+# backend set, never in the Enterprise set: the Enterprise set is generated first
+# and owns 141 of the 147 constants, so leaving it unprefixed keeps the public Go
+# enum surface stable while the later sets move out of its way.
+compatibility:
+  always-prefix-enum-values: true

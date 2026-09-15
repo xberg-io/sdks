@@ -14,9 +14,9 @@ Submit documents and wait for results.
 
 | Method | Description |
 | --- | --- |
-| `Extract` | Extract submits a single document for asynchronous extraction and returns the queued [JobResponse] |
+| `Extract` | Extract submits a single document for asynchronous extraction and returns the queued [ExtractionJobResponse] |
 | `ExtractBatch` | ExtractBatch submits multiple documents in a single multipart request |
-| `ExtractAndWait` | ExtractAndWait is a convenience wrapper that submits a single document and blocks until extraction completes, returning the terminal [JobResponse] |
+| `ExtractAndWait` | ExtractAndWait is a convenience wrapper that submits a single document and blocks until extraction completes, returning the terminal [ExtractionJobResponse] |
 
 ## Jobs
 
@@ -57,11 +57,11 @@ Project-scoped presets you create and update.
 
 | Method | Description |
 | --- | --- |
-| `ListSavedPresets` | ListSavedPresets lists the caller's saved presets (GET /v1/saved_presets on Enterprise, GET /v1/saved-presets on Pro, paginated) |
-| `CreateSavedPreset` | CreateSavedPreset creates a saved preset (POST /v1/saved_presets on Enterprise, POST /v1/saved-presets on Pro) |
-| `GetSavedPreset` | GetSavedPreset fetches one saved preset (GET /v1/saved_presets/{presetID} on Enterprise, GET /v1/saved-presets/{presetID} on Pro) |
-| `UpdateSavedPreset` | UpdateSavedPreset updates a saved preset (PATCH /v1/saved_presets/{presetID} on Enterprise, PATCH /v1/saved-presets/{presetID} on Pro) |
-| `DeleteSavedPreset` | DeleteSavedPreset deletes a saved preset (DELETE /v1/saved_presets/{presetID} on Enterprise, DELETE /v1/saved-presets/{presetID} on Pro) |
+| `ListSavedPresets` | ListSavedPresets lists the caller's saved presets (GET /v1/saved_presets, paginated) |
+| `CreateSavedPreset` | CreateSavedPreset creates a saved preset (POST /v1/saved_presets) |
+| `GetSavedPreset` | GetSavedPreset fetches one saved preset (GET /v1/saved_presets/{presetID}) |
+| `UpdateSavedPreset` | UpdateSavedPreset updates a saved preset (PATCH /v1/saved_presets/{presetID}) |
+| `DeleteSavedPreset` | DeleteSavedPreset deletes a saved preset (DELETE /v1/saved_presets/{presetID}) |
 
 ## RAG
 
@@ -133,9 +133,9 @@ Enterprise-only upload staging and metering.
 
 | Method | Description |
 | --- | --- |
-| `PresignUpload` | PresignUpload requests a presigned upload URL (POST /v1/uploads/presign) |
-| `ConfirmUpload` | ConfirmUpload confirms a presigned upload (POST /v1/uploads/confirm) |
-| `Usage` | Usage fetches usage/metering data (GET /v1/usage) |
+| `PresignUpload` | PresignUpload requests presigned upload URLs (POST /v1/uploads/presign) and returns the decoded body, which carries a batch ID and one entry per object |
+| `ConfirmUpload` | ConfirmUpload confirms a presigned upload batch and enqueues extraction (POST /v1/uploads/confirm, 202) |
+| `Usage` | Usage fetches aggregate extraction usage for a date range (GET /v1/usage) |
 | `ListExtractionEvents` | ListExtractionEvents lists the project's extraction events (GET /v1/extractions) |
 
 ## Control plane
@@ -232,3 +232,15 @@ Read back what the client was configured with. Go only; the other two expose the
 | `ControlPlaneBaseURL` | ControlPlaneBaseURL returns the origin of Enterprise control-plane requests |
 | `HTTPClient` | HTTPClient returns the underlying *http.Client |
 | `Target` | Target returns the explicitly configured target, or the empty [Target] when the tier is discovered lazily from GET /healthz. |
+
+## Other
+
+| Method | Description |
+| --- | --- |
+| `GetLicenseInfo` | GetLicenseInfo reports the instance's license state (GET /v1/license): licensee, license ID, plan, expiry, grace window and days remaining |
+| `GetSubscriptionDelivery` | GetSubscriptionDelivery fetches one delivery attempt with its bounded request and response previews (GET /v1/webhooks/{webhookID}/deliveries/{deliveryID}) |
+| `GetWebhookDelivery` | GetWebhookDelivery calls GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id} on the Enterprise control plane. |
+| `ListManagedEmbeddingPresets` | ListManagedEmbeddingPresets lists the curated embedding presets a RAG collection may name (GET /v1/rag/embedding-presets) |
+| `ListSubscriptionDeliveries` | ListSubscriptionDeliveries lists a webhook subscription's delivery attempts (GET /v1/webhooks/{webhookID}/deliveries, paginated) |
+| `PutLocalUpload` | PutLocalUpload writes raw document bytes against a presigned capability (PUT /v1/uploads/local/{projectID}/{token}, 204) |
+| `StopAutoTuneJob` | StopAutoTuneJob stops a running auto-tune job, keeping its artifacts (POST /v1/auto-tune/{autoTuneJobID}/stop) |

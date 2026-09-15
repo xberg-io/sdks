@@ -110,6 +110,19 @@ func (c *Client) DeleteAutoTuneJob(ctx context.Context, autoTuneJobID string) er
 	return c.callJSON(ctx, methodDelete, autoTuneJobPath(autoTuneJobID, ""), nil, nil)
 }
 
+// StopAutoTuneJob stops a running auto-tune job, keeping its artifacts
+// (POST /v1/auto-tune/{autoTuneJobID}/stop). The endpoint answers 204 with no
+// body. The run finishes the trial in flight and then completes with the
+// partial leaderboard, exactly as a run that exhausts its wall-clock budget
+// does, so [Client.GetAutoTuneResult] still serves the best configuration the
+// search found. It is idempotent: a job already in a terminal state answers 204
+// and nothing changes.
+//
+// Part of the shared surface (Enterprise + Pro).
+func (c *Client) StopAutoTuneJob(ctx context.Context, autoTuneJobID string) error {
+	return c.callJSON(ctx, methodPost, autoTuneJobPath(autoTuneJobID, "/stop"), nil, nil)
+}
+
 // PromoteAutoTuneProfile promotes a completed run's winning configuration into
 // a named, reusable tuning profile
 // (POST /v1/auto-tune/{autoTuneJobID}/promote).

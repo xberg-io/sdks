@@ -47,6 +47,8 @@ JOB_STATUS = {
 
 CAPABILITIES = {
     "default_ocr_ladder": ["tesseract", "paddle-ocr"],
+    "max_trials": 32,
+    "max_wall_clock_secs": 1800,
     "ocr_backends": [{"name": "tesseract", "cost": "local", "in_default_ladder": True}],
     "tunable_knobs": [{"knob": "ocr_backend", "description": "Which OCR backend to run."}],
 }
@@ -419,3 +421,49 @@ async def test_delete_tuning_profile_async(base_url: str, api_key: str) -> None:
         assert await client.delete_tuning_profile(PROFILE_ID) is None
 
     assert route.calls.last.request.method == "DELETE"
+
+
+# -- POST /v1/auto-tune/{id}/stop ----------------------------------------------
+
+
+@respx.mock
+def test_stop_auto_tune_job_sync_returns_none_on_204(base_url: str, api_key: str) -> None:
+    route = respx.post(f"{base_url}{AUTO_TUNE_PATH}/{JOB_ID}/stop").mock(return_value=httpx.Response(204))
+    with XbergClient(api_key=api_key, base_url=base_url) as client:
+        assert client.stop_auto_tune_job(JOB_ID) is None
+
+    assert route.calls.last.request.method == "POST"
+    assert route.calls.last.request.url.path == f"{AUTO_TUNE_PATH}/{JOB_ID}/stop"
+
+
+@respx.mock
+def test_stop_auto_tune_job_sync_is_ungated_on_pro(api_key: str) -> None:
+    route = respx.post(f"{PRO_URL}{AUTO_TUNE_PATH}/{JOB_ID}/stop").mock(return_value=httpx.Response(204))
+    with XbergClient(api_key=api_key, base_url=PRO_URL, target="pro") as client:
+        assert client.stop_auto_tune_job(JOB_ID) is None
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_stop_auto_tune_job_sync_propagates_a_conflict(base_url: str, api_key: str) -> None:
+    respx.post(f"{base_url}{AUTO_TUNE_PATH}/{JOB_ID}/stop").mock(
+        return_value=httpx.Response(409, json={"error": "job already finished"}),
+    )
+    with (
+        XbergClient(api_key=api_key, base_url=base_url) as client,
+        pytest.raises(XbergError) as error,
+    ):
+        client.stop_auto_tune_job(JOB_ID)
+
+    assert error.value.status_code == 409
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_stop_auto_tune_job_async_returns_none_on_204(base_url: str, api_key: str) -> None:
+    route = respx.post(f"{base_url}{AUTO_TUNE_PATH}/{JOB_ID}/stop").mock(return_value=httpx.Response(204))
+    async with AsyncXbergClient(api_key=api_key, base_url=base_url) as client:
+        assert await client.stop_auto_tune_job(JOB_ID) is None
+
+    assert route.calls.last.request.url.path == f"{AUTO_TUNE_PATH}/{JOB_ID}/stop"
