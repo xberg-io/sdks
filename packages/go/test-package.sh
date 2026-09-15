@@ -6,7 +6,7 @@ trap 'rm -rf "$package_dir"' EXIT
 mkdir "$package_dir/sdk" "$package_dir/consumer"
 git -C "$root" archive HEAD packages/go | tar -x -C "$package_dir/sdk" --strip-components=2
 for generated in generated_api.go generated_pro.go generated_backend.go; do
-	test -s "$package_dir/sdk/$generated"
+  test -s "$package_dir/sdk/$generated"
 done
 cd "$package_dir/consumer"
 export GOWORK=off
