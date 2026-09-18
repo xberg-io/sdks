@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-18
+
+### Changed
+
+- **Breaking.** Every client now requires an explicit `base_url`. The Enterprise clients defaulted
+  to `https://api.xberg.io`, a hosted endpoint that has been decommissioned; both products are
+  self-hosted, so constructing a client without the deployment's URL raises with a message naming
+  the product instead of sending requests to a host that no longer answers. The vendored Enterprise
+  specification drops its `servers` block and hosted `externalDocs` to match, and the spec
+  re-sync task no longer fetches from those hosts.
+
 ## [0.6.0] - 2026-09-15
 
 ### Added
