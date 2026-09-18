@@ -9,9 +9,11 @@ expect_stdout: "Extraction verified"
 import { readFile } from "node:fs/promises";
 import { XbergClient } from "@xberg-io/sdk";
 
+const baseUrl = process.env.XBERG_BASE_URL;
+if (!baseUrl) throw new Error("Set XBERG_BASE_URL to your deployment URL");
 const client = new XbergClient({
   apiKey: process.env.XBERG_API_KEY,
-  baseUrl: process.env.XBERG_BASE_URL,
+  baseUrl,
   target: process.env.XBERG_TARGET === "pro" ? "pro" : "enterprise",
 });
 const document = process.env.XBERG_DOCUMENT;

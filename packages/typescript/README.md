@@ -48,9 +48,8 @@ pnpm add @xberg-io/sdk
 
 ## Targets
 
-`XbergClient` defaults to Xberg Enterprise (`baseUrl` defaults to
-`https://api.xberg.io`). To talk to a self-hosted Xberg Pro instance, pass
-`target: "pro"` with an explicit `baseUrl`:
+Both products are self-hosted, so `XbergClient` requires the deployment's
+`baseUrl`. Pass `target: "pro"` when the target is already known:
 
 ```ts
 import { XbergClient } from "@xberg-io/sdk";
@@ -68,7 +67,7 @@ or `login()` on Enterprise) throws a clear "not available on this tier" error.
 import { XbergClient } from "@xberg-io/sdk";
 import { readFile } from "node:fs/promises";
 
-const client = new XbergClient({ apiKey: process.env.XBERG_API_KEY! });
+const client = new XbergClient({ baseUrl: "https://xberg.example.com", apiKey: process.env.XBERG_API_KEY! });
 
 const data = await readFile("invoice.pdf");
 const result = await client.extractAndWait({
@@ -83,7 +82,7 @@ console.log(result.result?.content);
 import { XbergClient } from "@xberg-io/sdk";
 import { readFile } from "node:fs/promises";
 
-const client = new XbergClient({ apiKey: process.env.XBERG_API_KEY! });
+const client = new XbergClient({ baseUrl: "https://xberg.example.com", apiKey: process.env.XBERG_API_KEY! });
 
 const files = await Promise.all(
   ["a.pdf", "b.pdf", "c.pdf"].map(async (name) => ({

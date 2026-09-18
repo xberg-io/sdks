@@ -786,6 +786,7 @@ describe("backend credential and redirect boundaries", () => {
   it("rejects absent public sandbox input before network access", async () => {
     let calls = 0;
     const client = new XbergClient({
+      baseUrl: DATA_URL,
       fetch: async () => {
         calls += 1;
         return Response.json({});
@@ -800,6 +801,7 @@ describe("backend credential and redirect boundaries", () => {
     it(`rejects a 303 callback with ${location === null ? "missing" : "empty"} Location and cancels its body`, async () => {
       let canceled = 0;
       const client = new XbergClient({
+        baseUrl: DATA_URL,
         fetch: async () =>
           new Response(
             new ReadableStream({
@@ -817,6 +819,7 @@ describe("backend credential and redirect boundaries", () => {
 
   it("does not expose OAuth code or state from a network exception", async () => {
     const client = new XbergClient({
+      baseUrl: DATA_URL,
       controlPlaneBaseUrl: CONTROL_URL,
       fetch: async (input) => {
         throw new Error(`failed request ${input}`);
@@ -848,7 +851,10 @@ it("rejects dot member identifiers before WHATWG URL normalization can target th
   try {
     const address = server.address();
     if (address === null || typeof address === "string") throw new Error("server has no TCP address");
-    const client = new XbergClient({ controlPlaneBaseUrl: `http://127.0.0.1:${address.port}` });
+    const client = new XbergClient({
+      baseUrl: "http://127.0.0.1:1",
+      controlPlaneBaseUrl: `http://127.0.0.1:${address.port}`,
+    });
     for (const userId of [".", ".."]) {
       const result = await client.removeMember("project", userId).then(
         () => "accepted",
@@ -869,6 +875,7 @@ it("rejects dot member identifiers before WHATWG URL normalization can target th
 
 it("keeps credentials in a configured origin out of backend network errors", async () => {
   const client = new XbergClient({
+    baseUrl: DATA_URL,
     controlPlaneBaseUrl: "https://private-user:private-password@control.test",
     fetch: async () => {
       throw new Error("connection rejected");
@@ -881,6 +888,7 @@ it("sets one JSON content type even when custom headers use different casing", a
   let contentType: string | null = null;
   let body: unknown;
   const client = new XbergClient({
+    baseUrl: DATA_URL,
     headers: { "cOnTeNt-TyPe": "text/plain" },
     fetch: async (input, init) => {
       const request = new Request(input, init);
@@ -897,6 +905,7 @@ it("sets one JSON content type even when custom headers use different casing", a
 it("omits explicitly empty backend and public sandbox tokens", async () => {
   const authorizations: (string | null)[] = [];
   const client = new XbergClient({
+    baseUrl: DATA_URL,
     apiKey: "data-key",
     controlPlaneToken: "",
     fetch: async (input, init) => {

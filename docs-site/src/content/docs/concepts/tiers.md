@@ -29,5 +29,4 @@ jobs will not call `/healthz` at all.
 
 ## Base URLs
 
-Enterprise is hosted, so the base URL defaults to `https://api.xberg.io`. Pro is self-hosted and
-has no sensible default, so it must be supplied.
+Enterprise and Pro are self-hosted, so the deployment base URL must be supplied.

@@ -9,8 +9,7 @@
  * invoked against the wrong tier.
  *
  * Both products authenticate identically: `Authorization: Bearer {apiKey}`.
- * Enterprise defaults `baseUrl` to `https://api.xberg.io`; Pro has no default
- * (its spec ships no servers block) and requires an explicit one.
+ * Both products are self-hosted and require the deployment's `baseUrl`.
  *
  * Enterprise splits into two binaries — the data plane `baseUrl` addresses and a
  * control plane (projects, API keys, integrations) on its own origin — while Pro
@@ -23,7 +22,6 @@ import createOpenApiClient, { type Client } from "openapi-fetch";
 import type { paths } from "./_generated/api.js";
 import {
   DEFAULT_BACKOFF_FACTOR,
-  DEFAULT_ENTERPRISE_BASE_URL,
   DEFAULT_RETRY_BACKOFF_CAP_MS,
   EventStreamDecoder,
   encodePathSegment,
@@ -181,7 +179,7 @@ const CRAWL_EVENT_KINDS: ReadonlySet<string> = new Set(["page", "discovered", "c
 
 export interface XbergClientOptions {
   apiKey?: string;
-  baseUrl?: string;
+  baseUrl: string;
   /**
    * Origin of the Enterprise control plane, which runs as a second binary
    * alongside the data plane. Defaults to `baseUrl` — Pro serves both planes
@@ -326,7 +324,7 @@ export interface PublicSandboxExtractParams {
 export type XbergRawClient = Client<paths>;
 
 /**
- * High-level dual-target client. Construct with `new XbergClient({ apiKey })`.
+ * High-level dual-target client. Construct with `new XbergClient({ baseUrl, apiKey })`.
  */
 export class XbergClient {
   private readonly baseUrl: string;
@@ -349,7 +347,7 @@ export class XbergClient {
   /** Underlying `openapi-fetch` client — exposed for advanced use. */
   public readonly raw: XbergRawClient;
 
-  public constructor(options: XbergClientOptions = {}) {
+  public constructor(options: XbergClientOptions) {
     if (options.target !== undefined) {
       this.target = options.target;
     }
@@ -1917,13 +1915,13 @@ async function* iterateCrawlEvents(open: () => Promise<Response>): AsyncGenerato
 
 /** Backwards-compatible factory returning the low-level `openapi-fetch` client. */
 export interface CreateClientOptions {
-  baseUrl?: string;
+  baseUrl: string;
   apiKey?: string;
   headers?: Record<string, string>;
   fetch?: typeof fetch;
 }
 
-export function createClient(options: CreateClientOptions = {}): XbergRawClient {
+export function createClient(options: CreateClientOptions): XbergRawClient {
   const headers: Record<string, string> = {
     "User-Agent": USER_AGENT,
     ...options.headers,
@@ -1932,7 +1930,7 @@ export function createClient(options: CreateClientOptions = {}): XbergRawClient 
     headers["Authorization"] = `Bearer ${options.apiKey}`;
   }
   return createOpenApiClient<paths>({
-    baseUrl: options.baseUrl ?? DEFAULT_ENTERPRISE_BASE_URL,
+    baseUrl: resolveBaseUrl(options.baseUrl, undefined),
     headers,
     ...(options.fetch !== undefined ? { fetch: options.fetch } : {}),
   });

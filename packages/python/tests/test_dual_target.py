@@ -25,14 +25,14 @@ GATED_BODY = {"versions": [1, 2]}
 # -- base-url policy -----------------------------------------------------------
 
 
-def test_enterprise_target_defaults_base_url() -> None:
-    with XbergClient(target="enterprise") as client:
-        assert client._base_url == "https://api.xberg.io"
+def test_enterprise_target_requires_base_url() -> None:
+    with pytest.raises(XbergError, match="no default base_url"):
+        XbergClient(target="enterprise")
 
 
-def test_none_target_defaults_to_enterprise_base_url() -> None:
-    with XbergClient() as client:
-        assert client._base_url == "https://api.xberg.io"
+def test_none_target_requires_base_url() -> None:
+    with pytest.raises(XbergError, match="no default base_url"):
+        XbergClient()
 
 
 def test_pro_target_requires_explicit_base_url() -> None:

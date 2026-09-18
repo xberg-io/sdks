@@ -16,25 +16,25 @@ import (
 
 // -- base-url policy ----------------------------------------------------------
 
-func TestNew_EnterpriseDefaultsBaseURL(t *testing.T) {
+func TestNew_EnterpriseRequiresBaseURL(t *testing.T) {
 	t.Parallel()
-	client, err := xberg.New(xberg.WithTarget(xberg.TargetEnterprise))
-	if err != nil {
-		t.Fatalf("New: %v", err)
+	_, err := xberg.New(xberg.WithTarget(xberg.TargetEnterprise))
+	if err == nil {
+		t.Fatalf("New(WithTarget(Enterprise)) returned nil error, want a base-URL error")
 	}
-	if got := client.BaseURL(); got != xberg.DefaultEnterpriseBaseURL {
-		t.Errorf("BaseURL = %q, want %q", got, xberg.DefaultEnterpriseBaseURL)
+	if !strings.Contains(err.Error(), "no default base URL") {
+		t.Errorf("error = %q, want it to mention 'no default base URL'", err.Error())
 	}
 }
 
-func TestNew_NoTargetDefaultsToEnterpriseBaseURL(t *testing.T) {
+func TestNew_NoTargetRequiresBaseURL(t *testing.T) {
 	t.Parallel()
-	client, err := xberg.New()
-	if err != nil {
-		t.Fatalf("New: %v", err)
+	_, err := xberg.New()
+	if err == nil {
+		t.Fatalf("New() returned nil error, want a base-URL error")
 	}
-	if got := client.BaseURL(); got != xberg.DefaultEnterpriseBaseURL {
-		t.Errorf("BaseURL = %q, want %q", got, xberg.DefaultEnterpriseBaseURL)
+	if !strings.Contains(err.Error(), "no default base URL") {
+		t.Errorf("error = %q, want it to mention 'no default base URL'", err.Error())
 	}
 }
 

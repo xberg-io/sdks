@@ -38,12 +38,14 @@ methods are capability-gated: they probe the connected instance (`GET
 /healthz`'s `tier`, or an explicit target set via `WithTarget`) and return a
 typed `*TierError` instead of a raw 404 when invoked against the wrong tier.
 
-- **Enterprise** defaults the base URL to `https://api.xberg.io`.
-- **Pro** ships no default base URL and requires `WithBaseURL`.
+- **Enterprise and Pro** are self-hosted and require `WithBaseURL`.
 
 ```go
-// Enterprise (default base URL):
-client, _ := xberg.New(xberg.WithAPIKey(os.Getenv("XBERG_API_KEY")))
+// Enterprise:
+client, _ := xberg.New(
+    xberg.WithBaseURL(os.Getenv("XBERG_BASE_URL")),
+    xberg.WithAPIKey(os.Getenv("XBERG_API_KEY")),
+)
 
 // Pro (explicit base URL required):
 pro, _ := xberg.New(
@@ -109,6 +111,7 @@ import (
 func main() {
     ctx := context.Background()
     client, err := xberg.New(
+        xberg.WithBaseURL(os.Getenv("XBERG_BASE_URL")),
         xberg.WithAPIKey(os.Getenv("XBERG_API_KEY")),
     )
     if err != nil {
@@ -151,6 +154,7 @@ import (
 func main() {
     ctx := context.Background()
     client, err := xberg.New(
+        xberg.WithBaseURL(os.Getenv("XBERG_BASE_URL")),
         xberg.WithAPIKey(os.Getenv("XBERG_API_KEY")),
     )
     if err != nil {

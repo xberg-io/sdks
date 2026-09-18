@@ -74,7 +74,7 @@ def test_empty_directory_and_empty_target_selection_fail(tmp_path: Path) -> None
 @pytest.mark.parametrize(
     "url",
     [
-        "https://api.xberg.io",
+        "https://example.com",
         "http://localhost.evil.test",
         "http://user:secret@localhost",
         "http://127.0.0.1/path?secret=x",

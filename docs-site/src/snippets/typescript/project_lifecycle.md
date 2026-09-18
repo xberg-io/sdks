@@ -9,9 +9,11 @@ expect_stdout: "Project lifecycle verified"
 import { randomUUID } from "node:crypto";
 import { XbergClient } from "@xberg-io/sdk";
 
+const baseUrl = process.env.XBERG_BASE_URL;
+if (!baseUrl) throw new Error("Set XBERG_BASE_URL to your deployment URL");
 const client = new XbergClient({
   apiKey: process.env.XBERG_API_KEY,
-  baseUrl: process.env.XBERG_BASE_URL,
+  baseUrl,
   controlPlaneBaseUrl: process.env.XBERG_CONTROL_PLANE_URL,
   controlPlaneToken: process.env.XBERG_CONTROL_PLANE_TOKEN,
   target: "enterprise",

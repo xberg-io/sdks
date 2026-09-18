@@ -43,12 +43,12 @@ def test_job_result_is_the_spec_schema_not_an_extraction_result_alias() -> None:
 
 
 def test_sync_client_constructs_with_api_key() -> None:
-    with XbergClient(api_key="secret-test") as client:
+    with XbergClient(api_key="secret-test", base_url="https://api.example.test") as client:
         assert client._headers["Authorization"] == "Bearer secret-test"
 
 
 def test_sync_client_constructs_without_api_key() -> None:
-    with XbergClient() as client:
+    with XbergClient(base_url="https://api.example.test") as client:
         assert "Authorization" not in client._headers
 
 
@@ -59,7 +59,7 @@ def test_sync_client_uses_custom_base_url() -> None:
 
 @pytest.mark.asyncio
 async def test_async_client_constructs_with_api_key() -> None:
-    async with AsyncXbergClient(api_key="secret-test") as client:
+    async with AsyncXbergClient(api_key="secret-test", base_url="https://api.example.test") as client:
         assert client._headers["Authorization"] == "Bearer secret-test"
 
 

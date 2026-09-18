@@ -9,9 +9,8 @@
 // an explicit target set via [WithTarget]) and return a clear [TierError]
 // instead of a raw 404 when invoked against the wrong tier.
 //
-// Both products authenticate identically via a Bearer token. Enterprise
-// defaults the base URL to [DefaultEnterpriseBaseURL]; Pro ships no default and
-// requires [WithBaseURL].
+// Both products authenticate identically via a Bearer token. Enterprise and
+// Pro are self-hosted and require [WithBaseURL].
 //
 // Enterprise splits into two binaries — the data plane the base URL addresses
 // and a control plane (projects, API keys, integrations) on its own origin —

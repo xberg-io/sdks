@@ -42,8 +42,7 @@ The package name is `xberg`, so import it as
 
 ## Choosing a target
 
-Enterprise is hosted, so `base_url` defaults to `https://api.xberg.io`. Pro is self-hosted and has
-no default — pass the deployment's URL.
+Enterprise and Pro are self-hosted and have no default URL — pass the deployment's URL.
 
 You can also pass `target` explicitly (`"enterprise"` or `"pro"`). Omit it and the client reads
 the tier once from `GET /healthz` the first time a tier-specific method is called, then caches it
