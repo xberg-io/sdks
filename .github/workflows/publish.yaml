@@ -75,7 +75,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - name: Verify all manifests match the tag
@@ -156,7 +156,7 @@ jobs:
     if: needs.prepare.outputs.release_python == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-python-env@v1
@@ -180,7 +180,7 @@ jobs:
     if: needs.prepare.outputs.release_node == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-node-workspace@v1
@@ -201,10 +201,10 @@ jobs:
     needs: [prepare, validate-versions]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: "1.26"
       - uses: xberg-io/actions/install-task@v1
@@ -224,7 +224,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: python-dist
           path: dist/
@@ -250,10 +250,10 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: typescript-dist
           path: dist-pack/
@@ -290,7 +290,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
           fetch-depth: 0
@@ -331,7 +331,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/publish-github-release@v1
