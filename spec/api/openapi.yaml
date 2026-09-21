@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Xberg Enterprise API
-  description: Cloud document extraction API powered by Xberg. Supports asynchronous extraction with webhook delivery.
+  description: Document extraction API for Xberg Enterprise. Supports asynchronous extraction with webhook delivery. Audio/video transcription is currently available only through Xberg Core/CLI; this API rejects those inputs.
   contact:
     name: Xberg Enterprise
     url: https://example.com
@@ -86,10 +86,49 @@ paths:
       parameters:
         - name: action
           in: query
-          description: Filter to entries matching this action exactly (e.g. `"job.submit"`).
+          description: |-
+            Filter to entries matching a known audit action exactly (e.g. `"job.submit"`).
+            Unknown actions are rejected with a 400 response.
           required: false
           schema:
             type: string
+            enum:
+              - rag_collection.create
+              - rag_collection.migrate
+              - rag_document.delete
+              - rag_collection.delete
+              - project.create
+              - project.delete
+              - api_key.create
+              - api_key.revoke
+              - api_key.regenerate
+              - integration.create
+              - integration.delete
+              - integration.disconnect
+              - job.submit
+              - crawl.submit
+              - project.rag_config_update
+              - auth.login
+              - auth.failure
+              - invitation.create
+              - invitation.revoke
+              - invitation.accept
+              - member.role_update
+              - member.remove
+              - member.leave
+              - webhook.create
+              - webhook.delete
+              - preset.create
+              - preset.update
+              - preset.delete
+              - db.api_keys.insert
+              - db.api_keys.delete
+              - db.api_keys.update
+              - db.integrations.insert
+              - db.integrations.delete
+              - db.oauth_connections.update
+              - db.audit_log.backfill
+            maxLength: 64
         - name: limit
           in: query
           description: Page size. Values outside 1..=100 are rejected.
@@ -118,13 +157,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListAuditEntriesResponse'
         "400":
-          description: Invalid pagination parameters
+          description: Invalid action or pagination parameters
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -213,6 +258,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -331,7 +382,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "429":
-          description: Auto-tune entitlement/quota exceeded or per-project active-job cap reached
+          description: Auto-tune admission limit exceeded
           headers:
             Retry-After:
               schema:
@@ -391,6 +442,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -473,6 +530,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -628,8 +691,10 @@ paths:
         Persists the job's best-found configuration under the name in
         `PromoteProfileRequest`, so it can be applied to future extractions
         without re-running the search. Rejected with `409` when the job has not
-        reached a successful terminal state; rejected with `403` for a read-only
-        API key.
+        reached a successful terminal state, when no trial in the run scored any
+        document (`allow_unscored` promotes such a run anyway), or when the project
+        already has a tuning profile with this name; rejected with `403` for a
+        read-only API key.
       operationId: promote_auto_tune_profile
       parameters:
         - name: id
@@ -676,7 +741,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "409":
-          description: Job exists but has not completed (or has failed)
+          description: The job has not completed, has failed, scored no document, or the name is already taken
           content:
             application/json:
               schema:
@@ -774,6 +839,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found
           content:
@@ -835,12 +906,11 @@ paths:
         - auto-tune
       summary: Stop a running auto-tune job
       description: |-
-        The run finishes the trial in flight and then completes with the partial
-        leaderboard, exactly as a run that reaches its wall-clock budget does, so
-        `GET /v1/auto-tune/{id}/result` still serves the best configuration the
-        search found. Idempotent: a job that already reached a terminal state
-        answers `204` and nothing changes. Once the run is terminal, the `DELETE`
-        that answers `409` while it runs succeeds.
+        The stop is cooperative: work already in flight may finish before the run
+        observes the request at a progress boundary and completes with its partial
+        leaderboard. `GET /v1/auto-tune/{id}/result` still serves the best
+        configuration found. A terminal job answers `204` unchanged, so callers
+        may safely retry.
       operationId: stop_auto_tune_job
       parameters:
         - name: id
@@ -917,12 +987,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        "501":
-          description: The deployment cannot stop a running job
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         "503":
           description: Session authentication is temporarily unavailable
           content:
@@ -943,7 +1007,7 @@ paths:
 
         Each data frame is a default `message` event carrying JSON. The `kind` discriminator is derived from the NATS subject
         before serialization. A 15-second SSE comment heartbeat keeps the stream alive.
-        <!-- ~keep: public SSE wire contract -->
+        <!-- public SSE wire contract -->
 
         # Response format
         - **200 OK** with `text/event-stream` media type and events in JSON with `kind` field
@@ -1071,6 +1135,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Document not found
           content:
@@ -1179,6 +1249,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Version not found
           content:
@@ -1281,6 +1357,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Diff job not found
           content:
@@ -1358,7 +1440,6 @@ paths:
           schema:
             type: integer
             format: int32
-            maximum: 200
             minimum: 0
         - name: offset
           in: query
@@ -1367,7 +1448,6 @@ paths:
           schema:
             type: integer
             format: int32
-            minimum: 0
       responses:
         "200":
           description: Document versions
@@ -1385,6 +1465,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -1460,13 +1546,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnrichJobSubmitted'
         "400":
-          description: Text or labels exceed their limits
+          description: Text or labels exceed their limits, or the request asks for classification, chunk_classification, or captioning, none of which this tier implements (Enterprise's async worker runs only keywords, entities, and labels; those three run synchronously on Pro)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -1571,6 +1663,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found
           content:
@@ -1626,6 +1724,12 @@ paths:
 
         **Multipart**: file parts (binary) + `webhook` part (JSON string) + optional `options` part (JSON string)
 
+        A request accepts at most 10 documents because this path can decode inline
+        bytes and retains the full batch while creating jobs. The cap bounds request
+        memory and immediate job dispatch. Use presigned uploads to stage up to 100
+        document metadata entries and upload their bytes directly to storage.
+        <!-- public batch-limit contract -->
+
         Returns 202 Accepted with job IDs. Results are delivered via the configured webhook.
 
         Sessions may select a project through `X-Project-ID` after current membership is verified.
@@ -1637,9 +1741,7 @@ paths:
           description: Selected project; sessions require current membership, API keys remain scoped to their own project
           required: false
           schema:
-            type:
-              - string
-              - "null"
+            type: string
             format: uuid
       requestBody:
         content:
@@ -1791,8 +1893,6 @@ paths:
           schema:
             type: integer
             format: int64
-            maximum: 365
-            minimum: 1
         - name: limit
           in: query
           description: Page size. Values outside 1..=100 are clamped into range rather than rejected.
@@ -1800,16 +1900,13 @@ paths:
           schema:
             type: integer
             format: int64
-            maximum: 100
-            minimum: 1
         - name: offset
           in: query
-          description: Number of items to skip. A value above 1,000,000 is clamped to 1,000,000.
+          description: Number of items to skip. A value above 1,000,000 is clamped to 1,000,000; a negative value is clamped to 0.
           required: false
           schema:
             type: integer
             format: int64
-            minimum: 0
       responses:
         "200":
           description: Extraction events for the project
@@ -1825,6 +1922,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -1905,7 +2008,6 @@ paths:
             type: integer
             format: int64
             default: 0
-            maximum: 1000000
             minimum: 0
         - name: project_id
           in: query
@@ -1931,6 +2033,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -2040,6 +2148,12 @@ paths:
                 error:
                   code: unauthorized
                   message: Missing or invalid API key
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found
           content:
@@ -2128,6 +2242,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found in the caller's project
           content:
@@ -2201,6 +2321,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -2295,6 +2421,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -2490,6 +2622,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: RAG is not enabled for this project
           content:
@@ -2676,6 +2814,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -2924,7 +3068,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
-          description: Database or NATS error
+          description: Persistence or dispatch error
           content:
             application/json:
               schema:
@@ -3154,7 +3298,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
-          description: Database or NATS error
+          description: Persistence or dispatch error
           content:
             application/json:
               schema:
@@ -3318,6 +3462,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found
           content:
@@ -3379,9 +3529,10 @@ paths:
         `top_k` (1..=200) bounds the returned chunk count; `candidate_multiplier`
         (1..=20), when set, widens the pre-rerank candidate pool. `501` when the
         collection's configured reranker is not available in this deployment.
-        Requests wait for per-project capacity; `503` indicates an unavailable
-        managed RAG service or a closed in-process limiter. Managed requests carry
-        a 30-second transport deadline and return `504` when it expires.
+        Requests wait for per-project capacity. A deployment with an external RAG
+        backend may return `503` when that backend is unavailable and `504` when
+        its transport deadline expires; an in-process deployment uses `503` when
+        its retrieve limiter is unavailable.
       operationId: retrieve
       parameters:
         - name: name
@@ -3482,13 +3633,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Managed RAG service unavailable or in-process retrieve limiter closed
+          description: RAG backend or in-process retrieve limiter unavailable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "504":
-          description: Managed RAG request exceeded its 30-second transport deadline
+          description: External RAG backend transport deadline exceeded
           content:
             application/json:
               schema:
@@ -3499,7 +3650,11 @@ paths:
     get:
       tags:
         - rag
-      summary: List managed RAG embedding presets
+      summary: List available RAG embedding presets
+      description: |-
+        Returns the compile-time `xberg::embeddings::EMBEDDING_PRESETS` registry, capped at
+        `MAX_MANAGED_EMBEDDING_PRESETS` entries, with each preset's `embedding_source` string and
+        whether it is the server's default. The set is the same for every project and request.
       operationId: list_managed_embedding_presets
       responses:
         "200":
@@ -3509,7 +3664,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListManagedEmbeddingPresetsResponse'
         "400":
-          description: Invalid, conflicting or API-key foreign project selector
+          description: Invalid or conflicting project selector
           content:
             application/json:
               schema:
@@ -3609,6 +3764,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job not found or access denied
           content:
@@ -3645,7 +3806,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
-          description: Database or NATS error
+          description: Persistence or dispatch error
           content:
             application/json:
               schema:
@@ -3705,6 +3866,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -3902,6 +4069,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -4209,6 +4382,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Auto-tune is disabled or the project is unavailable
           content:
@@ -4287,6 +4466,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -4440,9 +4625,7 @@ paths:
           description: Selected project; sessions require current membership, API keys remain scoped to their own project
           required: false
           schema:
-            type:
-              - string
-              - "null"
+            type: string
             format: uuid
       requestBody:
         content:
@@ -4539,8 +4722,11 @@ paths:
         - uploads
       summary: Generate presigned upload URLs
       description: |-
-        Returns upload URLs for each document. The client uploads files directly
-        to storage, then calls `/v1/uploads/confirm` to trigger processing.
+        Accepts up to 100 document metadata entries without carrying document bytes
+        or enqueueing extraction. The cap bounds the pending-job fan-out created
+        when the client calls `/v1/uploads/confirm`. The client uploads each file
+        directly to storage before confirmation.
+        <!-- public batch-limit contract -->
       operationId: presign_upload
       parameters:
         - name: X-Project-ID
@@ -4548,9 +4734,7 @@ paths:
           description: Selected project; sessions require current membership, API keys remain scoped to their own project
           required: false
           schema:
-            type:
-              - string
-              - "null"
+            type: string
             format: uuid
       requestBody:
         content:
@@ -4712,6 +4896,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: The current session has no membership in the requested project
           content:
@@ -4753,7 +4943,7 @@ paths:
     get:
       tags:
         - webhooks
-      summary: List delivery metadata for a subscription belonging to the authenticated project. ~keep
+      summary: List delivery metadata for a subscription belonging to the authenticated project.
       description: Returns retained attempt metadata without request or response payload previews, scoped to the authenticated project and paginated by limit and offset.
       operationId: list_webhook_deliveries
       parameters:
@@ -4809,6 +4999,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Webhook not found
           content:
@@ -4856,7 +5052,7 @@ paths:
     get:
       tags:
         - webhooks
-      summary: Read bounded request and response previews, which may contain project document content. ~keep
+      summary: Read bounded request and response previews, which may contain project document content.
       description: Returns one attempt with bounded request and response previews for a webhook in the authenticated project; truncation flags identify incomplete previews.
       operationId: get_webhook_delivery
       parameters:
@@ -4887,6 +5083,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
           content:
             application/json:
               schema:
@@ -5320,6 +5522,7 @@ components:
             tier (no backend resolves it yet). Upload the document bytes as a multipart file part instead.
             Intended future use: referencing previously stored bytes by a per-project storage key without
             re-uploading them.
+          readOnly: true
         filename:
           type: string
           description: Original filename of the document (used for format detection).
@@ -6242,6 +6445,7 @@ components:
         - embedding_dim
         - distance_metric
         - index_method
+        - index_status
       properties:
         chunking_config:
           $ref: '#/components/schemas/CollectionChunkingConfig'
@@ -6263,9 +6467,20 @@ components:
           type: string
           format: uuid
           description: Collection unique identifier
+        index_error:
+          type: string
+          description: Safe failure summary when `index_status` is `failed`
         index_method:
           type: string
           description: Vector index method
+        index_status:
+          type: string
+          description: Durable state of the collection's currently served vector index.
+          enum:
+            - pending
+            - building
+            - ready
+            - failed
         name:
           type: string
           description: Collection name
@@ -6635,7 +6850,7 @@ components:
                 - error
             terminal:
               type: boolean
-              description: Whether this error is the job's terminal event. ~keep
+              description: Whether this error is the job's terminal event.
             ts:
               type: string
               format: date-time
@@ -6840,7 +7055,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AutoTuneDocumentInput'
-          description: Documents and their ground truth for this run.
+          description: Documents and their ground truth for this run. At least one is required.
+          minItems: 1
         routing:
           type:
             - boolean
@@ -7235,9 +7451,12 @@ components:
             citations regardless of this value. Defaults to `true` when omitted.
         name:
           type: string
-          description: Preset name (must be unique per project).
+          description: |-
+            Preset name (must be unique per project). Trimmed before storage; a
+            name that is entirely whitespace is rejected once trimmed.
           maxLength: 255
           minLength: 1
+          pattern: \S
         preferred_call_mode:
           type: string
           description: |-
@@ -7250,6 +7469,7 @@ components:
             registry (`options.preset`); a saved preset never routes there. On Xberg
             Pro a saved preset contributes its `schema`, `system_prompt` and
             `context_template`, and nothing else.
+          pattern: ^(text_only|vision_only|text_plus_vision)$
         schema:
           type: object
           description: JSON Schema (Draft 2020-12) for the extraction result.
@@ -7727,6 +7947,8 @@ components:
         filename:
           type: string
           description: Original filename.
+          maxLength: 255
+          minLength: 1
         integration:
           $ref: '#/components/schemas/IntegrationInput'
           description: |-
@@ -8240,6 +8462,92 @@ components:
             - "null"
           description: Show model download progress
       additionalProperties: false
+    EnrichCaptioningOptions:
+      type: object
+      title: EnrichCaptioningOptions
+      description: 'Captioning options: caller-supplied images plus the VLM used to caption them.'
+      required:
+        - images
+        - llm
+      properties:
+        images:
+          type: array
+          items:
+            type: string
+          description: |-
+            Base64-encoded image bytes, in order. Each entry gets its own parallel
+            slot in `EnrichResult::captions`.
+        llm:
+          $ref: '#/components/schemas/EnrichLlmConfig'
+          description: VLM used for captioning.
+      additionalProperties: false
+    EnrichChunkClassificationDefinition:
+      type: object
+      title: EnrichChunkClassificationDefinition
+      description: |-
+        One label definition for chunk classification: a name plus a description of
+        when it applies, injected verbatim into the classification prompt.
+      required:
+        - label
+        - description
+      properties:
+        description:
+          type: string
+          description: Semantic description of when this label applies.
+        label:
+          type: string
+          description: Label name returned in the matching entry of `chunk_classifications`.
+      additionalProperties: false
+    EnrichChunkClassificationOptions:
+      type: object
+      title: EnrichChunkClassificationOptions
+      description: |-
+        Chunk-classification options. The caller supplies its own chunk texts:
+        `/v1/enrich` operates on a single text blob with no chunking pipeline of its
+        own, unlike the file-extraction pipeline's `ExtractedDocument::chunks`.
+      required:
+        - chunks
+        - definitions
+        - llm
+      properties:
+        chunks:
+          type: array
+          items:
+            type: string
+          description: |-
+            Chunk texts to classify, in order. Each entry gets its own parallel slot
+            in `EnrichResult::chunk_classifications`.
+        definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrichChunkClassificationDefinition'
+          description: |-
+            The set of label definitions the classifier may emit. Must contain at
+            least one entry.
+        llm:
+          $ref: '#/components/schemas/EnrichLlmConfig'
+          description: LLM used for classification.
+      additionalProperties: false
+    EnrichClassificationOptions:
+      type: object
+      title: EnrichClassificationOptions
+      description: Whole-text classification options.
+      required:
+        - labels
+        - llm
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+          description: The set of labels the classifier may emit. Must contain at least one entry.
+        llm:
+          $ref: '#/components/schemas/EnrichLlmConfig'
+          description: LLM used for classification.
+        multi_label:
+          type: boolean
+          description: Allow multiple labels for the text. Single-label mode returns at most one label.
+      additionalProperties: false
     EnrichJobStatus:
       oneOf:
         - type: object
@@ -8277,7 +8585,18 @@ components:
               type: string
               enum:
                 - failed
-      description: Status response for an enrichment job.
+      description: |-
+        Status response for an enrichment job.
+
+        `Completed` is far larger than the other two variants now that
+        `EnrichResult` carries classification, chunk classifications and captions
+        (#1568). Boxing it would satisfy the lint but is the wrong trade here: the
+        wire shape is fixed by the API, and `Box<EnrichResult>` would churn every
+        construction site on both tiers to save a stack copy. Pro's per-job status
+        cache (`services/pro/src/jobs/enrich.rs`) does hold these in a collection
+        now, but weighs entries by encoded size rather than by count, so the large
+        variant costs proportionally more of the cache's budget instead of being
+        undercounted as "one entry" the way boxing-for-a-collection would invite.
     EnrichJobSubmitted:
       type: object
       title: EnrichJobSubmitted
@@ -8288,6 +8607,70 @@ components:
         job_id:
           type: string
           description: Unique job identifier (ULID).
+    EnrichLlmConfig:
+      type: object
+      title: EnrichLlmConfig
+      description: |-
+        LLM/VLM provider configuration for an enrichment stage, routed through
+        liter-llm. A narrower, enrichment-scoped mirror of
+        `LlmConfig`'s wire shape.
+
+        `Debug` is implemented by hand: unlike `LlmConfig`, which prints `base_url`'s
+        *presence* through `Option`'s derived `Debug`, this type prints the same
+        `"<redacted>"` marker whether `base_url` is set or not. Whether a caller
+        routed a request at its own endpoint is, on its own, information about that
+        caller's infrastructure — not only the endpoint value itself (#1864 residual
+        tracked for the Pro enrichment provider paths in `services/pro/src/jobs/enrich_provider.rs`).
+      required:
+        - model
+      properties:
+        api_key:
+          type:
+            - string
+            - "null"
+          description: |-
+            API key for the provider. When omitted, liter-llm falls back to the
+            provider's standard environment variable on this deployment. Treated as
+            a secret — never logged.
+        base_url:
+          type:
+            - string
+            - "null"
+          description: |-
+            Override the provider base URL. Setting this never falls back to this
+            deployment's own provider credentials — see
+            `services/pro/src/jobs/enrich_provider.rs::to_xberg_llm_config`.
+        max_retries:
+          type:
+            - integer
+            - "null"
+          format: int32
+          description: Max retry attempts. Clamped to this deployment's ceiling.
+          minimum: 0
+        max_tokens:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Maximum tokens to generate.
+          minimum: 0
+        model:
+          type: string
+          description: liter-llm routing identifier, e.g. "openai/gpt-4o-mini".
+        temperature:
+          type:
+            - number
+            - "null"
+          format: double
+          description: Sampling temperature.
+        timeout_secs:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: Request timeout in seconds. Clamped to this deployment's ceiling.
+          minimum: 0
+      additionalProperties: false
     EnrichRequestOptions:
       type: object
       title: EnrichRequestOptions
@@ -8297,6 +8680,29 @@ components:
         Unknown keys are refused: an option this type does not carry is one the
         caller asked for and will not get, and a 202 would report otherwise.
       properties:
+        captioning:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/EnrichCaptioningOptions'
+              description: |-
+                VLM captioning of caller-supplied images. Enterprise refuses a
+                non-`None` value; only Xberg Pro implements it (#1568).
+        chunk_classification:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/EnrichChunkClassificationOptions'
+              description: |-
+                Multi-label classification of caller-supplied chunks against a described
+                label taxonomy. `/v1/enrich` has no chunking pipeline of its own, so the
+                caller supplies the chunk texts directly. Enterprise refuses a
+                non-`None` value; only Xberg Pro implements it (#1568).
+        classification:
+          oneOf:
+            - type: "null"
+            - $ref: '#/components/schemas/EnrichClassificationOptions'
+              description: |-
+                Whole-text zero-shot classification against a caller-supplied label set.
+                Enterprise refuses a non-`None` value; only Xberg Pro implements it (#1568).
         entities:
           type: boolean
           description: Extract named entities via NER.
@@ -8318,6 +8724,32 @@ components:
       title: EnrichResult
       description: Result of enrichment processing.
       properties:
+        captions:
+          type: array
+          items:
+            type: string
+          description: |-
+            Per-image captions, positionally parallel to the submitted
+            `captioning.images`. Empty when captioning was not requested.
+        chunk_classifications:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/ClassificationLabel'
+          description: |-
+            Per-chunk classification labels, positionally parallel to the submitted
+            `chunk_classification.chunks`. Empty when chunk classification was not
+            requested.
+        classification:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/ClassificationLabel'
+          description: |-
+            Whole-text classification labels, or `None` when classification was not
+            requested. `Some(vec![])` means it ran and matched no label.
         entities:
           type:
             - array
@@ -8988,6 +9420,11 @@ components:
             retained. This is not a completeness or recall score: clean text can score
             highly even when an extractor omitted or rejected other content. Inspect
             `processing_warnings` separately for known degraded or partial extraction.
+
+            When the text came from OCR and the result carries enough recognized words to
+            judge, this score is additionally capped by the mean OCR recognition confidence.
+            Text that looks clean but that OCR itself had little confidence in therefore
+            cannot score high. A native, non-OCR extraction is not capped.
             Previously stored in `metadata.additional["quality_score"]`.
         redaction_report:
           oneOf:
@@ -9257,7 +9694,9 @@ components:
             - number
             - "null"
           format: float
-          description: Mean OCR per-element recognition confidence when OCR ran; `None` when it did not.
+          description: |-
+            OCR recognition confidence, word-count-weighted across every recognized word, when OCR
+            ran; `None` when it did not.
         schema_compliance:
           $ref: '#/components/schemas/SchemaCompliance'
           description: Whether the merged output validates against the preset schema.
@@ -9564,6 +10003,12 @@ components:
             - "null"
           format: int32
           description: Pages extracted, when recorded by the tier's persistence layer.
+        parent_crawl_job_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: The crawl job that spawned this job as a child, when any.
         processing_time_ms:
           type:
             - integer
@@ -9577,6 +10022,13 @@ components:
               description: |-
                 Extraction result embedded by Enterprise for compatibility. Clients may
                 use `GET /v1/jobs/{id}/result` on either tier instead.
+        source_url:
+          type:
+            - string
+            - "null"
+          description: |-
+            The crawled page URL this document came from, when the job is a
+            crawl child (#1961). Absent for a direct upload.
         status:
           $ref: '#/components/schemas/JobStatus'
           description: Current job status.
@@ -10021,7 +10473,7 @@ components:
             left as the bare cell text: prefixing it with `#` would put a markdown heading inside a
             table cell, which is invalid where it lands and changes text every existing consumer
             already reads. This field is the signal instead, so a caller can decide for itself
-            whether a `heading 2` in a banner row is a section title or a column label. ~keep
+            whether a `heading 2` in a banner row is a section title or a column label.
           minimum: 0
         is_header:
           type: boolean
@@ -10044,7 +10496,7 @@ components:
             Human-readable name of the paragraph style applied to this cell's text (`heading 2`).
 
             Carries the style even when it resolves to no outline level, so a caller can key on a
-            named style this crate does not map to a heading. See `GridCell.heading_level`. ~keep
+            named style this crate does not map to a heading. See `GridCell.heading_level`.
     GroundTruthKind:
       type: string
       description: Kind of ground truth supplied for a document in an auto-tune run.
@@ -10710,8 +11162,8 @@ components:
         cached:
           type: boolean
           description: |-
-            ~keep This job's recorded extraction-cache hit, independent of child jobs and billing.
-            ~keep False means no recorded hit; a pending job has not necessarily attempted extraction.
+            This job's recorded extraction-cache hit, independent of child jobs and billing.
+            False means no recorded hit; a pending job has not necessarily attempted extraction.
         child_job_ids:
           type: array
           items:
@@ -10968,6 +11420,19 @@ components:
         mime_type:
           type: string
           description: MIME type of the submitted document.
+        parent_crawl_job_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: The crawl job that spawned this job as a child, when any.
+        source_url:
+          type:
+            - string
+            - "null"
+          description: |-
+            The crawled page URL this document came from, when the job is a
+            crawl child (#1961). Absent for a direct upload.
         status:
           $ref: '#/components/schemas/JobStatus'
           description: Current job status.
@@ -11361,11 +11826,7 @@ components:
         - other
     ListAuditEntriesResponse:
       type: object
-      description: |-
-        Response for the customer-facing audit read endpoint (`GET /v1/audit`).
-
-        The list field is named `entries` (Pro's current response names it
-        `events`) — a breaking rename for existing Pro consumers, per ADR-0066.
+      description: Response for the customer-facing audit read endpoint (`GET /v1/audit`).
       required:
         - entries
         - total
@@ -11388,10 +11849,7 @@ components:
         total:
           type: integer
           format: int64
-          description: |-
-            Total number of audit entries matching the query. Services that cannot
-            cheaply compute a distinct total may set this to the page length. (Pro
-            has no `total` field today; this is new behavior on convergence.)
+          description: Total number of audit entries matching the query.
     ListAutoTuneJobsResponse:
       type: object
       description: Response from listing auto-tune jobs.
@@ -11552,6 +12010,7 @@ components:
           type: integer
           format: int32
           description: Number of versions to skip (default 0, clamped to a maximum of 1,000,000).
+      additionalProperties: false
     ListWebhookDeliveriesResponse:
       type: object
       description: Response for the paginated webhook delivery-history endpoint.
@@ -11583,14 +12042,14 @@ components:
       description: LLM provider configuration routed through liter-llm.
       required:
         - model
+        - api_key
       properties:
         api_key:
-          type:
-            - string
-            - "null"
+          type: string
           description: |-
             API key for the provider. Mutually exclusive with `use_managed = true`.
-            Treated as a secret — never logged.
+            Treated as a secret — never logged. Omit to leave it unset; explicit
+            `null` is not a distinct value from omission and is rejected.
         base_url:
           type:
             - string
@@ -11613,6 +12072,7 @@ components:
         model:
           type: string
           description: liter-llm routing identifier, e.g. "openai/gpt-4o-mini".
+          pattern: ^(openai|anthropic|gemini|groq)/[A-Za-z0-9._:/-]+$
         temperature:
           type:
             - number
@@ -12421,6 +12881,14 @@ components:
         name:
           type: string
           description: Registered backend name (e.g. `tesseract`, `paddle-ocr`).
+        supported_languages:
+          type: array
+          items:
+            type: string
+          description: Known language identifiers advertised by this backend. The list can be non-exhaustive.
+        supported_languages_exhaustive:
+          type: boolean
+          description: Whether `supported_languages` contains every identifier accepted by the backend.
     OcrBackendCostKind:
       type: string
       description: Kind classification for the cost of running an OCR backend.
@@ -12530,6 +12998,19 @@ components:
             OCR backend name. Must be one this deployment has compiled in and
             registered; the accepted set is deployment-dependent and is rejected
             with a 400 when not recognized.
+        backend_options:
+          type: object
+          description: |-
+            Per-call options for the named OCR backend, as a JSON object.
+
+            The accepted keys depend on the backend. The candle backends accept a
+            `device` (`auto`, `cpu`, `cuda`, `metal`) plus their own keys:
+            `candle-deepseek-ocr` requires `model_path` and takes `version`;
+            `candle-paddleocr-vl` takes `task`, `model_path`, `model_id`,
+            `hf_revision` and `cache_dir`; `candle-glm-ocr` takes `task`,
+            `layout_mode`, `enable_chart_understanding` and `cache_dir`;
+            `candle-trocr` takes `variant`, `hf_revision` and `cache_dir`. An option
+            the named backend does not accept is rejected with a 400.
         element_config:
           $ref: '#/components/schemas/OcrElementConfig'
           description: Structured OCR element extraction
@@ -12552,7 +13033,7 @@ components:
             - "null"
           format: int32
           description: |-
-            Tesseract page-segmentation mode (0..=13).
+            Tesseract page-segmentation mode (1..=13).
 
             Present because this service's own auto-tune sweeps it (`Knob::Psm`) and
             returns it inside a winning profile. Without the field the DTO dropped it
@@ -12616,7 +13097,7 @@ components:
           description: |-
             Parent element ID for hierarchical relationships.
 
-            ~keep When hierarchy output is enabled, this resolves to another emitted element's
+            When hierarchy output is enabled, this resolves to another emitted element's
             `backend_metadata["element_id"]` value.
         rotation:
           oneOf:
@@ -12726,6 +13207,13 @@ components:
             Backend name for this pipeline stage. Must be one this deployment has
             compiled in and registered; the accepted set is deployment-dependent
             and is rejected with a 400 when not recognized.
+        backend_options:
+          type: object
+          description: |-
+            Per-call options for this stage's backend, as a JSON object.
+
+            The top-level `ocr.backend_options` has no effect once a pipeline is
+            set, so a stage carries its own.
         language:
           type:
             - string
@@ -13465,12 +13953,50 @@ components:
         `Metadata` structure. Common fields like title, authors, keywords, and dates
         are at the `Metadata` level.
       properties:
+        fabricated_text_pages:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Pages whose text was dominated by fabricated character mappings (1-indexed):
+            `MappingProvenance::Fallback`, a font whose glyph-to-Unicode mapping resolved to
+            a value the extractor chose rather than read from the file (issue #1254). This is
+            a fact about how the text was derived, independent of `scanned_pages`'s raster-based
+            scan detection, and independent of whether the resulting text happens to look
+            structurally like prose (issue #1667: a broken mapping that lands on ordinary
+            letters and punctuation passes every character-shape check but is still fabricated).
+
+            `None` when `OcrQualityThresholds::enable_provenance_ocr_routing` is `false`; empty
+            when no page qualifies.
         height:
           type:
             - integer
             - "null"
           format: int64
           description: First page height in points (1/72 inch)
+        implausible_text_pages:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Pages whose native text layer reads as no real detectable language (1-indexed): a
+            `/ToUnicode` CMap (or other mapping tier) that resolves every glyph to *a* character,
+            consistently the WRONG one (e.g. a ROT-shifted mapping), so the page is structurally
+            indistinguishable from real prose to `fabricated_text_pages`'s provenance check and to
+            every character-shape heuristic (issue #1696; issue #1667's `quality_score: 1.0` with
+            no warning on such a page is the same underlying gap). This is a content-plausibility
+            fact, independent of `fabricated_text_pages` and of `scanned_pages`.
+
+            `None` when `OcrQualityThresholds::enable_plausibility_ocr_routing` is `false`; empty
+            when no page qualifies.
         is_encrypted:
           type:
             - boolean
@@ -13823,6 +14349,7 @@ components:
         mime_type:
           type: string
           description: MIME type of the document
+      additionalProperties: false
     PresignUploadRequest:
       type: object
       description: Request body for presigning upload URLs
@@ -13837,9 +14364,26 @@ components:
           items:
             $ref: '#/components/schemas/PresignDocumentInput'
           description: Document metadata (no file data)
+        preset:
+          type:
+            - string
+            - "null"
+          description: |-
+            Curated preset identifier, resolved the same way as `/v1/extract`'s
+            `options.preset` (`api_types::ExtractionOptions::preset`). Mutually
+            exclusive with `saved_preset_id` and with an inline schema in `config`.
+        saved_preset_id:
+          type:
+            - string
+            - "null"
+          description: |-
+            Saved preset ID (project-scoped, user-created), resolved the same way
+            as `/v1/extract`'s `options.saved_preset_id`. Mutually exclusive with
+            `preset`.
         webhook:
           $ref: '#/components/schemas/WebhookConfig'
           description: Webhook configuration for async result delivery
+      additionalProperties: false
     PresignUploadResponse:
       type: object
       description: Response from presign endpoint
@@ -13983,6 +14527,14 @@ components:
       required:
         - name
       properties:
+        allow_unscored:
+          type: boolean
+          description: |-
+            Promote the run even when no trial in it scored any document.
+
+            Such a run's winning configuration extracted nothing, so the profile it produces is
+            unproven and promotion refuses it by default. Set this when you know why the run
+            scored nothing and you want its configuration anyway.
         name:
           type: string
           description: Name to give the promoted tuning profile.
@@ -14965,8 +15517,8 @@ components:
           minimum: 0
         max_content_size:
           type: integer
-          description: Maximum string growth and decoded image allocation per document (100 MB)
-          default: 104857600
+          description: Maximum string growth and decoded image allocation per document (512 MiB). This value may only be lowered.
+          default: 536870912
           minimum: 0
         max_entity_length:
           type: integer
@@ -15026,12 +15578,8 @@ components:
           minimum: 0
         max_table_cells:
           type: integer
-          description: |-
-            Maximum aggregate table cells per document (100,000).
-
-            Raise this for trusted large tabular inputs. Higher values permit
-            proportionally more parsing work and output allocation.
-          default: 100000
+          description: Maximum aggregate table cells per document (1000000). This value may only be lowered.
+          default: 1000000
           minimum: 0
         max_xml_depth:
           type: integer
@@ -15183,7 +15731,7 @@ components:
             existing consumer already reads. This list is the signal instead.
 
             Entries are only emitted for cells that actually carry a style, so an ordinary table
-            serialises exactly as it did before. Indices are into `cells`. ~keep
+            serialises exactly as it did before. Indices are into `cells`.
         cells:
           type: array
           items:
@@ -15241,7 +15789,7 @@ components:
         The paragraph style a single table cell's text carries, located by grid position.
 
         Flat rather than a nested `Vec<Vec<Option<..>>>`: the nested shape marshals badly across the
-        FFI bindings, and the data is sparse anyway. See `Table.cell_styles`. ~keep
+        FFI bindings, and the data is sparse anyway. See `Table.cell_styles`.
       required:
         - row
         - col
@@ -15679,9 +16227,12 @@ components:
             citations regardless of this value.
         name:
           type: string
-          description: Preset name.
+          description: |-
+            Preset name. Trimmed before storage; a name that is entirely
+            whitespace is rejected once trimmed.
           maxLength: 255
           minLength: 1
+          pattern: \S
         preferred_call_mode:
           type: string
           description: |-
@@ -15694,6 +16245,7 @@ components:
             registry (`options.preset`); a saved preset never routes there. On Xberg
             Pro a saved preset contributes its `schema`, `system_prompt` and
             `context_template`, and nothing else.
+          pattern: ^(text_only|vision_only|text_plus_vision)$
         schema:
           type: object
           description: JSON Schema (Draft 2020-12) for the extraction result.
@@ -15703,6 +16255,7 @@ components:
             - "null"
           description: Optional custom system prompt override.
       additionalProperties: false
+      minProperties: 1
     UpdateSavedPresetResponse:
       type: object
       description: Response from updating a saved preset.
@@ -15827,7 +16380,7 @@ components:
         - type: object
           description: |-
             Try the classical OCR backend first, then fall back to VLM below a quality
-            threshold. Not available on the managed API — rejected with a 400.
+            threshold. Enterprise rejects this policy; Pro supports it.
           required:
             - quality_threshold
             - mode
@@ -15841,8 +16394,8 @@ components:
               format: double
         - type: object
           description: |-
-            Send every page directly to VLM. Not available on the managed API —
-            rejected with a 400.
+            Send every page directly to VLM. Enterprise rejects this policy; Pro
+            supports it.
           required:
             - mode
           properties:
@@ -15854,8 +16407,8 @@ components:
         VLM fallback policy for OCR operations.
 
         Determines whether and when to fall back from classical OCR (tesseract) to
-        Vision Language Model (VLM) processing. VLM is not available on the managed
-        API — any non-`disabled` policy is rejected with a 400.
+        Vision Language Model (VLM) processing. Enterprise rejects non-disabled
+        policies; Pro accepts them when its configured provider supports VLM.
     WebhookConfig:
       type: object
       description: Webhook configuration for async delivery of job results.
@@ -16090,8 +16643,8 @@ components:
     WebhookEventType:
       type: string
       description: |-
-        The terminal job events a webhook can carry. The serialized names are the
-        `event` field of the body and the names a managed subscription registers.
+        The terminal job events a webhook can carry. The serialized names appear
+        in the body's `event` field and in subscription filters where supported.
       enum:
         - job.completed
         - job.failed
