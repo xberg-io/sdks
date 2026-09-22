@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Xberg Backend API
-  description: Backend API for Xberg Enterprise - document processing SaaS platform
+  description: Control-plane API for Xberg Enterprise deployments.
   contact:
     name: Xberg Enterprise
     url: https://example.com
@@ -162,6 +162,119 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /auth/profile:
+    get:
+      tags:
+        - auth
+      summary: Return the authenticated user's profile.
+      description: Reads the durable display name for the session's OIDC subject without requiring an active project.
+      operationId: get_user_profile
+      responses:
+        "200":
+          description: Authenticated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        "401":
+          description: A user session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - auth
+      summary: Replace the authenticated user's display name.
+      description: Trims and validates the supplied name, then stores it independently of project membership.
+      operationId: update_user_profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+        required: true
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        "400":
+          description: Display name is empty or too long
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: A user session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /healthz:
     get:
       tags:
@@ -1166,6 +1279,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: API key is revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           headers:
@@ -1214,10 +1333,13 @@ paths:
             format: uuid
         - name: action
           in: query
-          description: Filter to entries matching this action exactly (e.g. `"job.submit"`).
+          description: |-
+            Filter to entries matching a known audit action exactly (e.g. `"job.submit"`).
+            Unknown actions are rejected with a 400 response.
           required: false
           schema:
             type: string
+            maxLength: 64
         - name: limit
           in: query
           description: Page size. Values outside 1..=100 are rejected.
@@ -1246,7 +1368,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListAuditEntriesResponse'
         "400":
-          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          description: Invalid action or pagination parameters
           content:
             application/json:
               schema:
@@ -4195,8 +4317,8 @@ components:
             - string
             - "null"
           description: |-
-            Optional expiration date in ISO 8601 format. Enterprise-only; always
-            `None` on Pro.
+            Optional expiration date in ISO 8601 format. Both tiers reject the key
+            after this timestamp.
         id:
           type: string
           format: uuid
@@ -5091,8 +5213,8 @@ components:
             - string
             - "null"
           description: |-
-            Optional expiration date in ISO 8601 format. Enterprise-only; Pro
-            leaves this unset (Pro-issued keys never expire).
+            Optional expiration date in ISO 8601 format. Both tiers reject the key
+            after this timestamp.
         name:
           type:
             - string
@@ -5126,8 +5248,8 @@ components:
             - string
             - "null"
           description: |-
-            Optional expiration date in ISO 8601 format. Enterprise-only; always
-            `None` on Pro.
+            Optional expiration date in ISO 8601 format. Both tiers reject the key
+            after this timestamp.
         id:
           type: string
           format: uuid
@@ -6614,6 +6736,11 @@ components:
             retained. This is not a completeness or recall score: clean text can score
             highly even when an extractor omitted or rejected other content. Inspect
             `processing_warnings` separately for known degraded or partial extraction.
+
+            When the text came from OCR and the result carries enough recognized words to
+            judge, this score is additionally capped by the mean OCR recognition confidence.
+            Text that looks clean but that OCR itself had little confidence in therefore
+            cannot score high. A native, non-OCR extraction is not capped.
             Previously stored in `metadata.additional["quality_score"]`.
         redaction_report:
           oneOf:
@@ -6883,7 +7010,9 @@ components:
             - number
             - "null"
           format: float
-          description: Mean OCR per-element recognition confidence when OCR ran; `None` when it did not.
+          description: |-
+            OCR recognition confidence, word-count-weighted across every recognized word, when OCR
+            ran; `None` when it did not.
         schema_compliance:
           $ref: '#/components/schemas/SchemaCompliance'
           description: Whether the merged output validates against the preset schema.
@@ -7123,7 +7252,7 @@ components:
             left as the bare cell text: prefixing it with `#` would put a markdown heading inside a
             table cell, which is invalid where it lands and changes text every existing consumer
             already reads. This field is the signal instead, so a caller can decide for itself
-            whether a `heading 2` in a banner row is a section title or a column label. ~keep
+            whether a `heading 2` in a banner row is a section title or a column label.
           minimum: 0
         is_header:
           type: boolean
@@ -7146,7 +7275,7 @@ components:
             Human-readable name of the paragraph style applied to this cell's text (`heading 2`).
 
             Carries the style even when it resolves to no outline level, so a caller can key on a
-            named style this crate does not map to a heading. See `GridCell.heading_level`. ~keep
+            named style this crate does not map to a heading. See `GridCell.heading_level`.
     HeaderMetadata:
       type: object
       description: Header/heading element metadata.
@@ -7893,11 +8022,7 @@ components:
           description: Total number of API keys for the project.
     ListAuditEntriesResponse:
       type: object
-      description: |-
-        Response for the customer-facing audit read endpoint (`GET /v1/audit`).
-
-        The list field is named `entries` (Pro's current response names it
-        `events`) — a breaking rename for existing Pro consumers, per ADR-0066.
+      description: Response for the customer-facing audit read endpoint (`GET /v1/audit`).
       required:
         - entries
         - total
@@ -7920,10 +8045,7 @@ components:
         total:
           type: integer
           format: int64
-          description: |-
-            Total number of audit entries matching the query. Services that cannot
-            cheaply compute a distinct total may set this to the page length. (Pro
-            has no `total` field today; this is new behavior on convergence.)
+          description: Total number of audit entries matching the query.
     ListDocumentsQuery:
       type: object
       description: Query parameters for listing integration documents
@@ -8972,7 +9094,7 @@ components:
           description: |-
             Parent element ID for hierarchical relationships.
 
-            ~keep When hierarchy output is enabled, this resolves to another emitted element's
+            When hierarchy output is enabled, this resolves to another emitted element's
             `backend_metadata["element_id"]` value.
         rotation:
           oneOf:
@@ -9606,12 +9728,50 @@ components:
         `Metadata` structure. Common fields like title, authors, keywords, and dates
         are at the `Metadata` level.
       properties:
+        fabricated_text_pages:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Pages whose text was dominated by fabricated character mappings (1-indexed):
+            `MappingProvenance::Fallback`, a font whose glyph-to-Unicode mapping resolved to
+            a value the extractor chose rather than read from the file (issue #1254). This is
+            a fact about how the text was derived, independent of `scanned_pages`'s raster-based
+            scan detection, and independent of whether the resulting text happens to look
+            structurally like prose (issue #1667: a broken mapping that lands on ordinary
+            letters and punctuation passes every character-shape check but is still fabricated).
+
+            `None` when `OcrQualityThresholds::enable_provenance_ocr_routing` is `false`; empty
+            when no page qualifies.
         height:
           type:
             - integer
             - "null"
           format: int64
           description: First page height in points (1/72 inch)
+        implausible_text_pages:
+          type:
+            - array
+            - "null"
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: |-
+            Pages whose native text layer reads as no real detectable language (1-indexed): a
+            `/ToUnicode` CMap (or other mapping tier) that resolves every glyph to *a* character,
+            consistently the WRONG one (e.g. a ROT-shifted mapping), so the page is structurally
+            indistinguishable from real prose to `fabricated_text_pages`'s provenance check and to
+            every character-shape heuristic (issue #1696; issue #1667's `quality_score: 1.0` with
+            no warning on such a page is the same underlying gap). This is a content-plausibility
+            fact, independent of `fabricated_text_pages` and of `scanned_pages`.
+
+            `None` when `OcrQualityThresholds::enable_plausibility_ocr_routing` is `false`; empty
+            when no page qualifies.
         is_encrypted:
           type:
             - boolean
@@ -10530,7 +10690,7 @@ components:
             existing consumer already reads. This list is the signal instead.
 
             Entries are only emitted for cells that actually carry a style, so an ordinary table
-            serialises exactly as it did before. Indices are into `cells`. ~keep
+            serialises exactly as it did before. Indices are into `cells`.
         cells:
           type: array
           items:
@@ -10588,7 +10748,7 @@ components:
         The paragraph style a single table cell's text carries, located by grid position.
 
         Flat rather than a nested `Vec<Vec<Option<..>>>`: the nested shape marshals badly across the
-        FFI bindings, and the data is sparse anyway. See `Table.cell_styles`. ~keep
+        FFI bindings, and the data is sparse anyway. See `Table.cell_styles`.
       required:
         - row
         - col
@@ -10772,6 +10932,17 @@ components:
             - string
             - "null"
           description: Updated project name.
+    UpdateUserProfileRequest:
+      type: object
+      description: Fields the authenticated user may change on their profile.
+      required:
+        - display_name
+      properties:
+        display_name:
+          type: string
+          description: Non-empty display name of at most 255 characters.
+          example: Jane Doe
+      additionalProperties: false
     UpdateWebhookRequest:
       type: object
       description: |-
@@ -10996,6 +11167,28 @@ components:
         user_id:
           type: string
           description: User ID from identity provider
+          example: user-id-abc123
+    UserProfileResponse:
+      type: object
+      description: The authenticated user's durable profile.
+      required:
+        - user_id
+      properties:
+        display_name:
+          type:
+            - string
+            - "null"
+          description: User-chosen display name, initially seeded from OIDC claims.
+          example: Jane Doe
+        email:
+          type:
+            - string
+            - "null"
+          description: Most recently observed email from trusted OIDC claims.
+          example: user@example.com
+        user_id:
+          type: string
+          description: User ID from the identity provider.
           example: user-id-abc123
     WebhookDeliveryDetailResponse:
       type: object
