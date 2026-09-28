@@ -10942,6 +10942,7 @@ components:
           type: string
           description: Non-empty display name of at most 255 characters.
           example: Jane Doe
+          maxLength: 255
       additionalProperties: false
     UpdateWebhookRequest:
       type: object
