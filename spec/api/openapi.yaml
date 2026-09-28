@@ -2968,13 +2968,11 @@ paths:
       description: |-
         Supports two ingest paths:
         - **Text source** → server chunks, enriches, embeds → 202 async
-        - **Chunks source** → worker handles embedding and enrichment → 202 async
+        - **Chunks source with every embedding supplied** → 200 synchronous
+        - **Chunks source with any embedding missing** → worker handles embedding and enrichment → 202 async
 
         Quota checks apply: if the collection has `quota_max_documents` set and
         the active document count would exceed it, returns 429.
-
-        **Note:** The synchronous BYO-vector path (200 with all embeddings supplied) ships in Phase 6c.
-        Currently all ingest requests return 202 with a job_id for polling.
       operationId: create_document
       parameters:
         - name: name
@@ -2991,6 +2989,19 @@ paths:
               $ref: '#/components/schemas/CreateDocumentRequest'
         required: true
       responses:
+        "200":
+          description: Document ingested synchronously with caller-supplied embeddings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDocumentResponse'
+              example:
+                document_id: 550e8400-e29b-41d4-a716-446655440000
+                external_id: kb-article-42
+                collection: my-docs
+                chunk_count: 2
+                embedding_dim: 768
+                ingested_at: "2026-09-22T12:00:00Z"
         "202":
           description: Document ingest queued asynchronously
           content:
@@ -3439,10 +3450,13 @@ paths:
             type: string
         - name: job_id
           in: path
-          description: Migration job ID
+          description: Migration job ID (ULID)
           required: true
           schema:
             type: string
+            maxLength: 26
+            minLength: 26
+            pattern: ^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$
       responses:
         "200":
           description: Migration status
@@ -3744,6 +3758,9 @@ paths:
           required: true
           schema:
             type: string
+            maxLength: 26
+            minLength: 26
+            pattern: ^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$
           example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
       responses:
         "200":
@@ -5307,6 +5324,7 @@ components:
         - file_count
         - file_list
         - total_size
+        - format_type
       properties:
         compressed_size:
           type:
@@ -5328,6 +5346,10 @@ components:
         format:
           type: string
           description: Archive format ("ZIP", "TAR", "7Z", etc.)
+        format_type:
+          type: string
+          enum:
+            - archive
         total_size:
           type: integer
           format: int64
@@ -5362,6 +5384,8 @@ components:
 
         Populated from container tags (ID3v2, MP4 atoms, Vorbis comments, etc.) and
         PCM decode properties. Available when the `transcription-types` feature is enabled.
+      required:
+        - format_type
       properties:
         bitrate:
           type:
@@ -5394,6 +5418,10 @@ components:
           format: int64
           description: Duration in milliseconds derived from the decoded audio stream.
           minimum: 0
+        format_type:
+          type: string
+          enum:
+            - audio
         sample_rate_hz:
           type:
             - integer
@@ -5686,12 +5714,10 @@ components:
             The winning tuning profile artifact. The concrete `TuningProfile`
             shape is defined in `autotune-core`; here it is opaque JSON.
         routing_outcome:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/RoutingOutcome'
-              description: |-
-                Whether routing was requested, kept routes, or fell back to the global configuration.
-                Absent on results recorded before this field was introduced.
+          $ref: '#/components/schemas/RoutingOutcome'
+          description: |-
+            Whether routing was requested, kept routes, or fell back to the global configuration.
+            Absent on results recorded before this field was introduced.
         search_space_total:
           type:
             - integer
@@ -5771,6 +5797,7 @@ components:
       description: BibTeX bibliography metadata.
       required:
         - entry_count
+        - format_type
       properties:
         authors:
           type: array
@@ -5796,6 +5823,10 @@ components:
             minimum: 0
           propertyNames:
             type: string
+        format_type:
+          type: string
+          enum:
+            - bibtex
         year_range:
           oneOf:
             - type: "null"
@@ -6193,6 +6224,7 @@ components:
       description: Citation file metadata (RIS, PubMed, EndNote).
       required:
         - citation_count
+        - format_type
       properties:
         authors:
           type: array
@@ -6213,6 +6245,10 @@ components:
             - string
             - "null"
           description: Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`).
+        format_type:
+          type: string
+          enum:
+            - citation
         keywords:
           type: array
           items:
@@ -6378,6 +6414,7 @@ components:
         referenceable `CodeMetadata` component in the OpenAPI schema.
       required:
         - chunks
+        - format_type
       properties:
         chunks:
           type: array
@@ -6391,6 +6428,10 @@ components:
               description: |-
                 Hierarchical key/value data tree extracted from data-format source
                 (JSON, YAML, TOML, XML, CSV, etc.), when data extraction was enabled.
+        format_type:
+          type: string
+          enum:
+            - code
     CollectionChunkingConfig:
       type: object
       description: |-
@@ -6406,13 +6447,14 @@ components:
             - string
             - "null"
           description: 'Chunker strategy: `text`, `markdown`, `yaml`, or `semantic`. Default `text`.'
+          pattern: ^(text|markdown|yaml|semantic)$
         max_characters:
           type:
             - integer
             - "null"
           format: int32
           description: Maximum characters per chunk (must be greater than `overlap`). Default 1000.
-          minimum: 0
+          minimum: 100
         overlap:
           type:
             - integer
@@ -6430,6 +6472,8 @@ components:
           description: |-
             Cosine-similarity threshold (0.0–1.0) for the `semantic` chunker's topic
             boundary detection. Ignored by other chunker types.
+          maximum: 1
+          minimum: 0
         trim:
           type:
             - boolean
@@ -6625,10 +6669,8 @@ components:
           format: int64
           description: Processing duration in milliseconds.
         result:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ExtractedDocument'
-              description: Embedded extraction result, when available.
+          $ref: '#/components/schemas/ExtractedDocument'
+          description: Embedded extraction result, when available.
         source_url:
           type:
             - string
@@ -7003,6 +7045,63 @@ components:
           type: integer
           format: int32
           description: Pages fetched so far.
+    CrawlWebhookEvent:
+      type: object
+      description: Crawl-level webhook body. Unlike extraction job events, it never embeds results.
+      required:
+        - event
+        - event_id
+        - crawl_job_id
+        - timestamp
+        - status
+        - progress
+      properties:
+        crawl_job_id:
+          type: string
+          format: uuid
+          description: Crawl job that reached a terminal status.
+        error:
+          $ref: '#/components/schemas/WebhookEventError'
+          description: Error details, present only on `crawl.failed`.
+        event:
+          $ref: '#/components/schemas/CrawlWebhookEventType'
+          description: Terminal crawl event name.
+        event_id:
+          type: string
+          format: uuid
+          description: Stable identity shared by retries of this event.
+        metadata:
+          type:
+            - object
+            - "null"
+          description: Customer metadata, sorted for stable signed payload bytes.
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
+        progress:
+          $ref: '#/components/schemas/CrawlProgress'
+          description: The same four counters exposed by `CrawlJobResponse`.
+        status:
+          $ref: '#/components/schemas/CrawlWebhookStatus'
+          description: The terminal crawl status, including partial success when applicable.
+        timestamp:
+          type: string
+          format: date-time
+          description: RFC 3339 time when the crawl reached a terminal status.
+    CrawlWebhookEventType:
+      type: string
+      description: Terminal event names for crawl-level deliveries. Job event names remain separate.
+      enum:
+        - crawl.completed
+        - crawl.failed
+    CrawlWebhookStatus:
+      type: string
+      description: Terminal crawl status carried separately from the event name.
+      enum:
+        - completed
+        - partial_success
+        - failed
     CrawledPage:
       type: object
       description: One raw page retained by a scrape or crawl output job.
@@ -7097,11 +7196,13 @@ components:
         distance_metric:
           type: string
           description: Distance metric for similarity search ("cosine", "l2", "inner_product")
+          pattern: ^(cosine|l2|inner_product)$
         embedding_dim:
           type: integer
           format: int32
           description: Embedding dimension (e.g., 384 for mxbai-embed-large-v1)
-          minimum: 0
+          maximum: 2000
+          minimum: 1
         embedding_source:
           type:
             - string
@@ -7122,6 +7223,7 @@ components:
             (`XBERG_VECTORSTORE_DEFAULT_INDEX_METHOD` env var, Helm value
             `vectorstore.defaultIndexMethod`). The API layer is responsible for
             filling the default before persisting the collection.
+          pattern: ^(diskann|hnsw)$
         label_classifier_threshold:
           type:
             - number
@@ -7145,6 +7247,9 @@ components:
         name:
           type: string
           description: Collection name (unique per project)
+          maxLength: 255
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
         quota_max_documents:
           type:
             - integer
@@ -7175,7 +7280,8 @@ components:
             that exceeds it reports `rerank.status = "fell_back"` with
             `reason = "timeout"`, so raising it is a decision the caller can make on
             evidence rather than a number they cannot see.
-          minimum: 0
+          maximum: 30000
+          minimum: 1
       additionalProperties: false
     CreateCollectionResponse:
       type: object
@@ -7507,6 +7613,7 @@ components:
         - row_count
         - column_count
         - has_header
+        - format_type
       properties:
         column_count:
           type: integer
@@ -7525,6 +7632,10 @@ components:
             - string
             - "null"
           description: Field delimiter character (e.g. `","` or `"\t"`).
+        format_type:
+          type: string
+          enum:
+            - csv
         has_header:
           type: boolean
           description: Whether the first row was treated as a header.
@@ -7552,6 +7663,7 @@ components:
       required:
         - record_count
         - field_count
+        - format_type
       properties:
         field_count:
           type: integer
@@ -7562,6 +7674,10 @@ components:
           items:
             $ref: '#/components/schemas/DbfFieldInfo'
           description: Descriptor for each field in the table schema.
+        format_type:
+          type: string
+          enum:
+            - dbf
         record_count:
           type: integer
           description: Total number of data records in the DBF file.
@@ -8233,8 +8349,15 @@ components:
           format: int32
           description: Number of billable pages.
         content_hash:
-          type: string
-          description: SHA-256 hash of the extracted content.
+          type:
+            - string
+            - "null"
+          description: |-
+            SHA-256 hash of the original uploaded content, encoded as 64 lowercase hexadecimal characters.
+            Legacy versions without a stored hash return `null`.
+          maxLength: 64
+          minLength: 64
+          pattern: ^[0-9a-f]{64}$
         created_at:
           type: string
           format: date-time
@@ -8277,6 +8400,8 @@ components:
 
         Extracted from DOCX files using shared Office Open XML metadata extraction.
         Integrates with `office_metadata` module for core/app/custom properties.
+      required:
+        - format_type
       properties:
         app_properties:
           type:
@@ -8308,6 +8433,10 @@ components:
           additionalProperties: {}
           propertyNames:
             type: string
+        format_type:
+          type: string
+          enum:
+            - docx
     Element:
       type: object
       description: |-
@@ -8401,6 +8530,7 @@ components:
         - cc_emails
         - bcc_emails
         - attachments
+        - format_type
       properties:
         attachments:
           type: array
@@ -8417,6 +8547,10 @@ components:
           items:
             type: string
           description: CC recipients
+        format_type:
+          type: string
+          enum:
+            - email
         from_email:
           type:
             - string
@@ -8681,28 +8815,22 @@ components:
         caller asked for and will not get, and a 202 would report otherwise.
       properties:
         captioning:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/EnrichCaptioningOptions'
-              description: |-
-                VLM captioning of caller-supplied images. Enterprise refuses a
-                non-`None` value; only Xberg Pro implements it (#1568).
+          $ref: '#/components/schemas/EnrichCaptioningOptions'
+          description: |-
+            VLM captioning of caller-supplied images. Enterprise refuses a
+            non-`None` value; only Xberg Pro implements it (#1568).
         chunk_classification:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/EnrichChunkClassificationOptions'
-              description: |-
-                Multi-label classification of caller-supplied chunks against a described
-                label taxonomy. `/v1/enrich` has no chunking pipeline of its own, so the
-                caller supplies the chunk texts directly. Enterprise refuses a
-                non-`None` value; only Xberg Pro implements it (#1568).
+          $ref: '#/components/schemas/EnrichChunkClassificationOptions'
+          description: |-
+            Multi-label classification of caller-supplied chunks against a described
+            label taxonomy. `/v1/enrich` has no chunking pipeline of its own, so the
+            caller supplies the chunk texts directly. Enterprise refuses a
+            non-`None` value; only Xberg Pro implements it (#1568).
         classification:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/EnrichClassificationOptions'
-              description: |-
-                Whole-text zero-shot classification against a caller-supplied label set.
-                Enterprise refuses a non-`None` value; only Xberg Pro implements it (#1568).
+          $ref: '#/components/schemas/EnrichClassificationOptions'
+          description: |-
+            Whole-text zero-shot classification against a caller-supplied label set.
+            Enterprise refuses a non-`None` value; only Xberg Pro implements it (#1568).
         entities:
           type: boolean
           description: Extract named entities via NER.
@@ -8904,6 +9032,8 @@ components:
     EpubMetadata:
       type: object
       description: EPUB metadata (Dublin Core extensions).
+      required:
+        - format_type
       properties:
         cover_image:
           type:
@@ -8925,6 +9055,10 @@ components:
             - string
             - "null"
           description: Dublin Core `type` field (nature or genre of the resource).
+        format_type:
+          type: string
+          enum:
+            - epub
         relation:
           type:
             - string
@@ -8985,7 +9119,13 @@ components:
 
         Identifies the document as a spreadsheet source via the `FormatMetadata::Excel`
         discriminant. Sheet count and sheet names are stored inside this struct.
+      required:
+        - format_type
       properties:
+        format_type:
+          type: string
+          enum:
+            - excel
         sheet_count:
           type:
             - integer
@@ -9812,6 +9952,11 @@ components:
         ocr:
           $ref: '#/components/schemas/OcrConfig'
           description: OCR configuration
+        ocr_strategy:
+          $ref: '#/components/schemas/OcrStrategy'
+          description: |-
+            Which pages go to OCR when neither `force_ocr` nor `force_ocr_pages`
+            applies. Omitting it keeps xberg's default, `auto`.
         output_format:
           type:
             - string
@@ -10016,12 +10161,10 @@ components:
           format: int64
           description: Server-side processing duration in milliseconds.
         result:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ExtractedDocument'
-              description: |-
-                Extraction result embedded by Enterprise for compatibility. Clients may
-                use `GET /v1/jobs/{id}/result` on either tier instead.
+          $ref: '#/components/schemas/ExtractedDocument'
+          description: |-
+            Extraction result embedded by Enterprise for compatibility. Clients may
+            use `GET /v1/jobs/{id}/result` on either tier instead.
         source_url:
           type:
             - string
@@ -10039,10 +10182,8 @@ components:
           format: int32
           description: Tables extracted, when recorded by the tier's persistence layer.
         webhook_delivery:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/WebhookDelivery'
-              description: Inline webhook delivery state, when this job configured one.
+          $ref: '#/components/schemas/WebhookDelivery'
+          description: Inline webhook delivery state, when this job configured one.
     ExtractionMethod:
       type: string
       description: How the extracted text was produced.
@@ -10123,12 +10264,18 @@ components:
     FictionBookMetadata:
       type: object
       description: FictionBook (FB2) metadata.
+      required:
+        - format_type
       properties:
         annotation:
           type:
             - string
             - "null"
           description: Short annotation / summary from the FB2 `<annotation>` element.
+        format_type:
+          type: string
+          enum:
+            - fiction_book
         genres:
           type: array
           items:
@@ -10214,6 +10361,11 @@ components:
           $ref: '#/components/schemas/LayoutDetectionConfig'
         ocr:
           $ref: '#/components/schemas/OcrConfig'
+        ocr_strategy:
+          $ref: '#/components/schemas/OcrStrategy'
+          description: |-
+            Which pages go to OCR when neither `force_ocr` nor `force_ocr_pages`
+            applies. Omitting it keeps xberg's default, `auto`.
         output_format:
           type:
             - string
@@ -10684,6 +10836,8 @@ components:
 
         Includes document-level metadata, Open Graph data, Twitter Card metadata,
         and extracted structural elements (headers, links, images, structured data).
+      required:
+        - format_type
       properties:
         author:
           type:
@@ -10705,6 +10859,10 @@ components:
             - string
             - "null"
           description: Document description from `<meta name="description">` tag
+        format_type:
+          type: string
+          enum:
+            - html
         headers:
           type: array
           items:
@@ -10863,6 +11021,7 @@ components:
         - height
         - format
         - exif
+        - format_type
       properties:
         exif:
           type: object
@@ -10874,6 +11033,10 @@ components:
         format:
           type: string
           description: Image format (e.g., "PNG", "JPEG", "TIFF")
+        format_type:
+          type: string
+          enum:
+            - image
         height:
           type: integer
           format: int32
@@ -11114,6 +11277,8 @@ components:
     JatsMetadata:
       type: object
       description: JATS (Journal Article Tag Suite) metadata.
+      required:
+        - format_type
       properties:
         contributor_roles:
           type: array
@@ -11125,6 +11290,10 @@ components:
             - string
             - "null"
           description: Copyright statement from the article's `<permissions>` element.
+        format_type:
+          type: string
+          enum:
+            - jats
         history_dates:
           type: object
           description: Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`).
@@ -11203,10 +11372,8 @@ components:
           $ref: '#/components/schemas/JobStatus'
           description: Job status at the time the result was read.
         webhook_delivery:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/WebhookDelivery'
-              description: Inline webhook delivery state, when this job configured one.
+          $ref: '#/components/schemas/WebhookDelivery'
+          description: Inline webhook delivery state, when this job configured one.
     JobResultCounts:
       type: object
       description: Structural counts for a `JobResultDocument`, always present.
@@ -11437,10 +11604,8 @@ components:
           $ref: '#/components/schemas/JobStatus'
           description: Current job status.
         webhook_delivery:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/WebhookDelivery'
-              description: Inline webhook delivery state, when this job configured one.
+          $ref: '#/components/schemas/WebhookDelivery'
+          description: Inline webhook delivery state, when this job configured one.
     KeyValueAttribute:
       type: object
       required:
@@ -12349,11 +12514,13 @@ components:
 
             The legacy `preset:<name>` spelling is still accepted. It is not what
             comes back: see `MigrateEmbeddingsResponse.to_source`.
+          minLength: 1
         target_embedding_version:
           type: integer
           format: int32
           description: Target embedding version (must be > collection's current embedding_version).
-          minimum: 0
+          maximum: 2147483647
+          minimum: 1
         webhook:
           $ref: '#/components/schemas/WebhookConfig'
           description: Optional webhook for migration completion/failure delivery.
@@ -13005,7 +13172,10 @@ components:
 
             The accepted keys depend on the backend. The candle backends accept a
             `device` (`auto`, `cpu`, `cuda`, `metal`) plus their own keys:
-            `candle-deepseek-ocr` requires `model_path` and takes `version`;
+            `candle-deepseek-ocr` takes `model_id` (default
+            `deepseek-ai/DeepSeek-OCR`), an optional `model_path` that takes
+            precedence when set, `version`, `hf_revision` (required for a
+            non-default `model_id`), `cache_dir` and `dtype`;
             `candle-paddleocr-vl` takes `task`, `model_path`, `model_id`,
             `hf_revision` and `cache_dir`; `candle-glm-ocr` takes `task`,
             `layout_mode`, `enable_chart_understanding` and `cache_dir`;
@@ -13051,7 +13221,9 @@ components:
           description: VLM (Vision Language Model) configuration
         vlm_fallback:
           $ref: '#/components/schemas/VlmFallbackPolicy'
-          description: VLM fallback policy for OCR operations
+          description: |-
+            Request VLM fallback using the deployment's model.
+            An explicit OCR pipeline takes precedence, so it ignores this fallback policy.
         vlm_prompt:
           type:
             - string
@@ -13152,7 +13324,12 @@ components:
         - psm
         - output_format
         - table_count
+        - format_type
       properties:
+        format_type:
+          type: string
+          enum:
+            - ocr
         language:
           type: string
           description: OCR language code(s) used
@@ -13358,6 +13535,65 @@ components:
             - "null"
           format: double
           description: Confidence score for the rotation detection.
+    OcrStrategy:
+      oneOf:
+        - type: object
+          description: OCR only where the native text layer fails a quality check (default).
+          required:
+            - mode
+          properties:
+            mode:
+              type: string
+              enum:
+                - auto
+        - type: object
+          description: Also OCR every page that looks like a scan at or above `min_confidence`.
+          required:
+            - min_confidence
+            - mode
+          properties:
+            min_confidence:
+              type: number
+              format: double
+            mode:
+              type: string
+              enum:
+                - scanned_pages
+      description: |-
+        Which pages of a PDF go to OCR when neither `force_ocr` nor
+        `force_ocr_pages` applies.
+
+        Mirrors xberg's `OcrStrategy`, tag and variant names included, so a caller
+        who reads the library documentation can write the same object here.
+
+        `auto` OCRs a page only when its native text layer fails a quality check,
+        and a scanner's invisible text layer passes that check. `scanned_pages`
+        additionally OCRs every page that grades at or above `min_confidence` on
+        scan detection, which is the knob between "OCR everything" and "OCR
+        nothing": a lower threshold sends more pages to recognition, a higher one
+        sends fewer.
+
+        `min_confidence` is in `[0.0, 1.0]` and anything else is a 400. xberg's own
+        default is 0.70, and it is what an omitted `ocr_strategy` keeps.
+
+        Rejects an unrecognised key on either variant, unlike the wire type
+        it mirrors (`messages::jobs::OcrStrategy`): this DTO sits on the live
+        request path, which ADR-0082 keeps strict, so
+        `{"mode":"auto","min_confidence":0.3}` is a 400 naming the field
+        rather than a threshold parsed and silently dropped. The wire type
+        stays lenient on purpose — it is reachable from the worker's tolerant
+        decode paths, and ADR-0082's amendment measured that adding
+        `deny_unknown_fields` to a tagged enum reachable from there can
+        permanently strand a stored job instead of merely dropping a field.
+
+        `Deserialize` is hand-written rather than derived because serde's
+        `deny_unknown_fields` only rejects an extra field beside a fieldless
+        variant when that variant declares its (empty) field set with braces
+        (`Auto {}`), and a struct variant cannot carry `#[default]`. So the
+        public enum keeps `Auto` a plain unit variant — every call site
+        matches it that way — and deserializes through a private shadow enum
+        that uses the brace form purely to get the rejection. xberg's own
+        `OcrStrategy` uses the identical split for the identical reason.
     PageBoundary:
       type: object
       description: |-
@@ -13952,6 +14188,8 @@ components:
         Contains metadata fields specific to PDF documents that are not in the common
         `Metadata` structure. Common fields like title, authors, keywords, and dates
         are at the `Metadata` level.
+      required:
+        - format_type
       properties:
         fabricated_text_pages:
           type:
@@ -13972,6 +14210,10 @@ components:
 
             `None` when `OcrQualityThresholds::enable_provenance_ocr_routing` is `false`; empty
             when no page qualifies.
+        format_type:
+          type: string
+          enum:
+            - pdf
         height:
           type:
             - integer
@@ -14193,7 +14435,12 @@ components:
       required:
         - slide_count
         - slide_names
+        - format_type
       properties:
+        format_type:
+          type: string
+          enum:
+            - pptx
         image_count:
           type:
             - integer
@@ -14359,6 +14606,22 @@ components:
         config:
           $ref: '#/components/schemas/ExtractionConfig'
           description: Batch-level extraction configuration (applied to all documents)
+        context:
+          type:
+            - object
+            - "null"
+          description: |-
+            Free-form context, resolved the same way as `/v1/extract`'s
+            `options.context` (`api_types::ExtractionOptions::context`). It
+            renders into a curated or saved preset's context template when one
+            is set. With no preset it is still validated and written into
+            `structured_extraction.context` on the resolved config, unlike Xberg
+            Pro's presign handler, which validates a standalone context the same
+            way but discards it when no preset is set.
+          additionalProperties:
+            type: string
+          propertyNames:
+            type: string
         documents:
           type: array
           items:
@@ -14592,7 +14855,12 @@ components:
       description: Outlook PST archive metadata.
       required:
         - message_count
+        - format_type
       properties:
+        format_type:
+          type: string
+          enum:
+            - pst
         message_count:
           type: integer
           description: Total number of email messages found in the PST archive.
@@ -15007,7 +15275,8 @@ components:
             1..=20, default 4. Ignored when rerank is inactive. The store
             pulls `top_k * candidate_multiplier` candidates from the
             primary stage so the reranker has more to choose from.
-          minimum: 0
+          maximum: 20
+          minimum: 1
         filter:
           type: object
           description: Filter expression (deserialized by the vectorstore Filter IR).
@@ -15027,6 +15296,9 @@ components:
           description: |-
             Text query. Required for full_text and hybrid modes; optional
             for vector mode when `query_vector` is supplied.
+          maxLength: 8192
+          minLength: 1
+          pattern: .*\S.*
         query_vector:
           type:
             - array
@@ -15050,7 +15322,8 @@ components:
           type: integer
           format: int32
           description: Number of top results to return. `1..=200`, default 10.
-          minimum: 0
+          maximum: 200
+          minimum: 1
       additionalProperties: false
     RetrieveResponse:
       type: object
@@ -16048,6 +16321,7 @@ components:
         - line_count
         - word_count
         - character_count
+        - format_type
       properties:
         character_count:
           type: integer
@@ -16061,6 +16335,10 @@ components:
           items:
             $ref: '#/components/schemas/MarkdownCodeBlock'
           description: Code blocks (for Markdown files).
+        format_type:
+          type: string
+          enum:
+            - text
         headers:
           type:
             - array
@@ -16378,9 +16656,7 @@ components:
               enum:
                 - disabled
         - type: object
-          description: |-
-            Try the classical OCR backend first, then fall back to VLM below a quality
-            threshold. Enterprise rejects this policy; Pro supports it.
+          description: Try classical OCR first, then fall back to VLM below this quality threshold.
           required:
             - quality_threshold
             - mode
@@ -16393,9 +16669,7 @@ components:
               type: number
               format: double
         - type: object
-          description: |-
-            Send every page directly to VLM. Enterprise rejects this policy; Pro
-            supports it.
+          description: Use VLM instead of classical OCR on pages selected for OCR.
           required:
             - mode
           properties:
@@ -16406,9 +16680,9 @@ components:
       description: |-
         VLM fallback policy for OCR operations.
 
-        Determines whether and when to fall back from classical OCR (tesseract) to
-        Vision Language Model (VLM) processing. Enterprise rejects non-disabled
-        policies; Pro accepts them when its configured provider supports VLM.
+        Determines whether and when to use the deployment's VLM model for OCR.
+        Enterprise accepts active policies only when the operator configures a model;
+        an explicit OCR pipeline takes precedence and ignores this policy.
     WebhookConfig:
       type: object
       description: Webhook configuration for async delivery of job results.
@@ -16658,12 +16932,17 @@ components:
       required:
         - element_count
         - unique_elements
+        - format_type
       properties:
         element_count:
           type: integer
           format: int32
           description: Total number of XML elements processed
           minimum: 0
+        format_type:
+          type: string
+          enum:
+            - xml
         unique_elements:
           type: array
           items:
