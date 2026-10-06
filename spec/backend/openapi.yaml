@@ -4530,10 +4530,8 @@ components:
         - oidc
       properties:
         identity:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/LocalIdentity'
-              description: Local operator identity when authentication is disabled.
+          $ref: '#/components/schemas/LocalIdentity'
+          description: Local operator identity when authentication is disabled.
         methods:
           type: array
           items:
@@ -4594,10 +4592,8 @@ components:
           propertyNames:
             type: string
         year_range:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/YearRange'
-              description: Earliest and latest publication years found in the bibliography.
+          $ref: '#/components/schemas/YearRange'
+          description: Earliest and latest publication years found in the bibliography.
     BillingAccountInfo:
       type: object
       description: Stripe billing account information
@@ -4657,10 +4653,8 @@ components:
         - usage
       properties:
         billing_account:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BillingAccountInfo'
-              description: Stripe billing account information (null if not provisioned)
+          $ref: '#/components/schemas/BillingAccountInfo'
+          description: Stripe billing account information (omitted if not provisioned)
         period_end:
           type: string
           description: End of the current billing period (ISO 8601 date)
@@ -4796,37 +4790,33 @@ components:
             Only populated when `EmbeddingConfig` is provided in chunking configuration.
             The dimensionality depends on the chosen embedding model.
         late_interaction:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/MultiVectorEmbedding'
-              description: |-
-                Optional ColBERT-style multi-vector (late-interaction) embedding for this chunk.
+          $ref: '#/components/schemas/MultiVectorEmbedding'
+          description: |-
+            Optional ColBERT-style multi-vector (late-interaction) embedding for this chunk.
 
-                Only populated when late-interaction embedding generation is configured for
-                chunking. `None` otherwise, including on builds without the `late-interaction`
-                feature.
+            Only populated when late-interaction embedding generation is configured for
+            chunking. `None` otherwise, including on builds without the `late-interaction`
+            feature.
 
-                Uses the crate-root `MultiVectorEmbedding` alias for the same reason
-                `sparse_embedding` uses `SparseEmbedding` — see that field's docs.
+            Uses the crate-root `MultiVectorEmbedding` alias for the same reason
+            `sparse_embedding` uses `SparseEmbedding` — see that field's docs.
         metadata:
           $ref: '#/components/schemas/ChunkMetadata'
           description: Metadata about this chunk's position and properties.
         sparse_embedding:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/SparseEmbedding'
-              description: |-
-                Optional sparse (SPLADE) learned embedding for this chunk.
+          $ref: '#/components/schemas/SparseEmbedding'
+          description: |-
+            Optional sparse (SPLADE) learned embedding for this chunk.
 
-                Only populated when sparse-embedding generation is configured for chunking.
-                `None` otherwise, including on builds without the `sparse-embeddings` feature.
+            Only populated when sparse-embedding generation is configured for chunking.
+            `None` otherwise, including on builds without the `sparse-embeddings` feature.
 
-                Uses the crate-root `SparseEmbedding` alias rather than
-                `crate::sparse_embeddings::SparseEmbedding` directly: the `sparse_embeddings`
-                module itself only compiles under `sparse-embeddings`/`sparse-embedding-presets`,
-                while the crate-root alias is always defined (a field-compatible stub on builds
-                without either feature), so this field — and `Chunk` itself — compiles on every
-                feature combination, including the crate's default features.
+            Uses the crate-root `SparseEmbedding` alias rather than
+            `crate::sparse_embeddings::SparseEmbedding` directly: the `sparse_embeddings`
+            module itself only compiles under `sparse-embeddings`/`sparse-embedding-presets`,
+            while the crate-root alias is always defined (a field-compatible stub on builds
+            without either feature), so this field — and `Chunk` itself — compiles on every
+            feature combination, including the crate's default features.
     ChunkMetadata:
       type: object
       description: Metadata about a chunk's position in the original document.
@@ -4870,14 +4860,12 @@ components:
             Only populated when page tracking is enabled in extraction configuration.
           minimum: 0
         heading_context:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/HeadingContext'
-              description: |-
-                Heading context when using Markdown chunker.
+          $ref: '#/components/schemas/HeadingContext'
+          description: |-
+            Heading context when using Markdown chunker.
 
-                Contains the heading hierarchy this chunk falls under.
-                Only populated when `ChunkerType::Markdown` is used.
+            Contains the heading hierarchy this chunk falls under.
+            Only populated when `ChunkerType::Markdown` is used.
         heading_path:
           type: array
           items:
@@ -5007,10 +4995,8 @@ components:
             type: string
           description: Keywords collected from all citation records.
         year_range:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/YearRange'
-              description: Earliest and latest publication years found in the file.
+          $ref: '#/components/schemas/YearRange'
+          description: Earliest and latest publication years found in the file.
     ClassificationLabel:
       type: object
       description: A single label + confidence pair.
@@ -5173,12 +5159,10 @@ components:
             $ref: '#/components/schemas/CodeChunkInfo'
           description: Structural code chunks (function/class/module boundaries).
         data:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/CodeDataNode'
-              description: |-
-                Hierarchical key/value data tree extracted from data-format source
-                (JSON, YAML, TOML, XML, CSV, etc.), when data extraction was enabled.
+          $ref: '#/components/schemas/CodeDataNode'
+          description: |-
+            Hierarchical key/value data tree extracted from data-format source
+            (JSON, YAML, TOML, XML, CSV, etc.), when data extraction was enabled.
     ContentLayer:
       type: string
       description: |-
@@ -5523,9 +5507,9 @@ components:
           description: Total jobs submitted
         processing_stats:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/ProcessingStatsEntry'
               description: Processing time percentiles (if available for this date)
+            - type: "null"
         total_file_size_bytes:
           type: integer
           format: int64
@@ -5726,10 +5710,8 @@ components:
           type: string
           description: Alternative text
         attributes:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/Attributes'
-              description: Element attributes
+          $ref: '#/components/schemas/Attributes'
+          description: Element attributes
         src:
           type: string
           description: Image source URL or path
@@ -5746,10 +5728,8 @@ components:
         - text
       properties:
         attributes:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/Attributes'
-              description: Element attributes
+          $ref: '#/components/schemas/Attributes'
+          description: Element attributes
         text:
           type: string
           description: Link text content
@@ -5825,10 +5805,8 @@ components:
           propertyNames:
             type: string
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box in document coordinates.
+          $ref: '#/components/schemas/BoundingBox'
+          description: Bounding box in document coordinates.
         children:
           type: array
           items:
@@ -5874,10 +5852,8 @@ components:
           description: Page number where this node ends (for multi-page tables/sections).
           minimum: 0
         parent:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/NodeIndex'
-              description: Parent node index (`None` = root-level node).
+          $ref: '#/components/schemas/NodeIndex'
+          description: Parent node index (`None` = root-level node).
     DocumentRelationship:
       type: object
       description: A resolved relationship between two nodes in the document tree.
@@ -5942,7 +5918,6 @@ components:
       properties:
         anchor:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/RevisionAnchor'
               description: |-
                 Best-effort document location for this revision.
@@ -5950,6 +5925,7 @@ components:
                 Resolution is format-dependent and may be `None` when the location
                 cannot be determined (e.g. changes inside table cells before
                 table-cell anchor support is added).
+            - type: "null"
         author:
           type:
             - string
@@ -6131,9 +6107,9 @@ components:
             type: string
         coordinates:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/BoundingBox'
               description: Bounding box coordinates if available
+            - type: "null"
         element_index:
           type:
             - integer
@@ -6529,39 +6505,35 @@ components:
             type: string
           description: ISO 639-1 language codes detected in the document content.
         djot_content:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/DjotContent'
-              description: |-
-                Rich Djot content structure (when extracting Djot documents).
+          $ref: '#/components/schemas/DjotContent'
+          description: |-
+            Rich Djot content structure (when extracting Djot documents).
 
-                When extracting Djot documents with structured extraction enabled,
-                this field contains the full semantic structure including:
-                - Block-level elements with nesting
-                - Inline formatting with attributes
-                - Links, images, footnotes
-                - Math expressions
-                - Complete attribute information
+            When extracting Djot documents with structured extraction enabled,
+            this field contains the full semantic structure including:
+            - Block-level elements with nesting
+            - Inline formatting with attributes
+            - Links, images, footnotes
+            - Math expressions
+            - Complete attribute information
 
-                The `content` field still contains plain text for backward compatibility.
+            The `content` field still contains plain text for backward compatibility.
 
-                Always `None` for non-Djot documents.
+            Always `None` for non-Djot documents.
         document:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/DocumentStructure'
-              description: |-
-                Structured document tree (when document structure extraction is enabled).
+          $ref: '#/components/schemas/DocumentStructure'
+          description: |-
+            Structured document tree (when document structure extraction is enabled).
 
-                When `include_document_structure` is true in `ExtractionConfig`, this field
-                contains the full hierarchical representation of the document including:
-                - Heading-driven section nesting
-                - Table grids with cell-level metadata
-                - Content layer classification (body, header, footer, footnote)
-                - Inline text annotations (formatting, links)
-                - Bounding boxes and page numbers
+            When `include_document_structure` is true in `ExtractionConfig`, this field
+            contains the full hierarchical representation of the document including:
+            - Heading-driven section nesting
+            - Table grids with cell-level metadata
+            - Content layer classification (body, header, footer, footnote)
+            - Inline text annotations (formatting, links)
+            - Bounding boxes and page numbers
 
-                Independent of `result_format` — can be combined with Unified or ElementBased.
+            Independent of `result_format` — can be combined with Unified or ElementBased.
         elements:
           type:
             - array
@@ -6598,27 +6570,23 @@ components:
             the extracted keywords with scores, algorithm info, and position data.
             Previously stored in `metadata.additional["keywords"]`.
         extraction_confidence:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ExtractionConfidence'
-              description: |-
-                Confidence score computed by the heuristics pipeline.
+          $ref: '#/components/schemas/ExtractionConfidence'
+          description: |-
+            Confidence score computed by the heuristics pipeline.
 
-                Populated when the `heuristics` feature is enabled and confidence
-                scoring has been performed.  Combines text-coverage, OCR aggregate
-                confidence, and schema-compliance into a single `[0, 1]` value.
+            Populated when the `heuristics` feature is enabled and confidence
+            scoring has been performed.  Combines text-coverage, OCR aggregate
+            confidence, and schema-compliance into a single `[0, 1]` value.
 
-                `None` when confidence scoring is not configured or the feature is
-                absent.
+            `None` when confidence scoring is not configured or the feature is
+            absent.
         extraction_method:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ExtractionMethod'
-              description: |-
-                Extraction strategy used to produce the returned text.
+          $ref: '#/components/schemas/ExtractionMethod'
+          description: |-
+            Extraction strategy used to produce the returned text.
 
-                Populated when the extractor can reliably distinguish native text extraction,
-                OCR-only extraction, or mixed native/OCR output.
+            Populated when the extractor can reliably distinguish native text extraction,
+            OCR-only extraction, or mixed native/OCR output.
         form_fields:
           type: array
           items:
@@ -6743,16 +6711,14 @@ components:
             cannot score high. A native, non-OCR extraction is not capped.
             Previously stored in `metadata.additional["quality_score"]`.
         redaction_report:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/RedactionReport'
-              description: |-
-                Audit report of redactions applied by the redaction post-processor.
+          $ref: '#/components/schemas/RedactionReport'
+          description: |-
+            Audit report of redactions applied by the redaction post-processor.
 
-                The redaction processor rewrites `content`, `formatted_content`, every
-                chunk's text, and the textual fields of `entities` / `summary` / `translation` /
-                `page_classifications` in place. This report describes what was found and how it
-                was replaced. `None` when redaction is not configured.
+            The redaction processor rewrites `content`, `formatted_content`, every
+            chunk's text, and the textual fields of `entities` / `summary` / `translation` /
+            `page_classifications` in place. This report describes what was found and how it
+            was replaced. `None` when redaction is not configured.
         revisions:
           type:
             - array
@@ -6777,28 +6743,24 @@ components:
             extracted document content is sent to a VLM with the provided JSON schema.
             The response is parsed and stored here as a JSON value matching the schema.
         summary:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/DocumentSummary'
-              description: |-
-                Summary of `content` produced by the summarisation post-processor.
+          $ref: '#/components/schemas/DocumentSummary'
+          description: |-
+            Summary of `content` produced by the summarisation post-processor.
 
-                `None` when summarisation is not configured. Populated by the TextRank
-                extractive backend (deterministic, no external service) or by the
-                liter-llm-driven abstractive backend.
+            `None` when summarisation is not configured. Populated by the TextRank
+            extractive backend (deterministic, no external service) or by the
+            liter-llm-driven abstractive backend.
         tables:
           type: array
           items:
             $ref: '#/components/schemas/Table'
           description: Tables extracted from the document, each with structured cell data.
         translation:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/Translation'
-              description: |-
-                Translation of `content` produced by the translation post-processor.
+          $ref: '#/components/schemas/Translation'
+          description: |-
+            Translation of `content` produced by the translation post-processor.
 
-                `None` when translation is not configured.
+            `None` when translation is not configured.
         uris:
           type:
             - array
@@ -6832,12 +6794,10 @@ components:
           description: Bits per color component (e.g., 8, 16)
           minimum: 0
         bounding_box:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: |-
-                Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
-                Only populated for PDF-extracted images when position data is available from the PDF extractor.
+          $ref: '#/components/schemas/BoundingBox'
+          description: |-
+            Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+            Only populated for PDF-extracted images when position data is available from the PDF extractor.
         caption:
           type:
             - string
@@ -6902,12 +6862,10 @@ components:
           description: Zero-indexed position of this image in the document/page
           minimum: 0
         image_kind:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ImageKind'
-              description: |-
-                Heuristic classification of what this image likely depicts.
-                `None` if classification was disabled or inconclusive.
+          $ref: '#/components/schemas/ImageKind'
+          description: |-
+            Heuristic classification of what this image likely depicts.
+            `None` if classification was disabled or inconclusive.
         is_mask:
           type: boolean
           description: Whether this image is a mask image
@@ -6918,14 +6876,12 @@ components:
           format: float
           description: Confidence score for `image_kind`, in the range 0.0 to 1.0.
         ocr_result:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ExtractedDocument'
-              description: |-
-                Nested OCR extraction result (if image was OCRed)
+          $ref: '#/components/schemas/ExtractedDocument'
+          description: |-
+            Nested OCR extraction result (if image was OCRed)
 
-                When OCR is performed on this image, the result is embedded here
-                rather than in a separate collection, making the relationship explicit.
+            When OCR is performed on this image, the result is embedded here
+            rather than in a separate collection, making the relationship explicit.
         page_number:
           type:
             - integer
@@ -7135,10 +7091,8 @@ components:
         - inline_content
       properties:
         attributes:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/Attributes'
-              description: Element attributes (classes, IDs, key-value pairs)
+          $ref: '#/components/schemas/Attributes'
+          description: Element attributes (classes, IDs, key-value pairs)
         block_type:
           $ref: '#/components/schemas/BlockType'
           description: Type of block element
@@ -7183,17 +7137,15 @@ components:
         - latex
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: |-
-                Bounding box of the formula region on its page. `None` for markup sources.
+          $ref: '#/components/schemas/BoundingBox'
+          description: |-
+            Bounding box of the formula region on its page. `None` for markup sources.
 
-                PDF OCR sources report PDF point coordinates with the origin at the
-                bottom-left of the page, comparable to native PDF geometry. Image
-                sources, and PDF pages whose geometry is unavailable, report pixels of
-                the image the OCR backend saw. The C FFI reports an absent bbox as a
-                null pointer.
+            PDF OCR sources report PDF point coordinates with the origin at the
+            bottom-left of the page, comparable to native PDF geometry. Image
+            sources, and PDF pages whose geometry is unavailable, report pixels of
+            the image the OCR backend saw. The C FFI reports an absent bbox as a
+            null pointer.
         latex:
           type: string
           description: |-
@@ -7221,10 +7173,8 @@ components:
         - col
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box for this cell (if available).
+          $ref: '#/components/schemas/BoundingBox'
+          description: Bounding box for this cell (if available).
         col:
           type: integer
           format: int32
@@ -7348,7 +7298,6 @@ components:
       properties:
         auto_tune:
           oneOf:
-            - type: "null"
             - type: object
               description: Whether Enterprise mounts a feature API.
               required:
@@ -7357,10 +7306,10 @@ components:
                 enabled:
                   type: boolean
                   description: Instance availability, not a grant of project access or billing entitlement.
+            - type: "null"
           description: Enterprise AutoTune availability; project entitlement is checked on submission.
         rag:
           oneOf:
-            - type: "null"
             - type: object
               description: Whether Enterprise mounts a feature API.
               required:
@@ -7369,6 +7318,7 @@ components:
                 enabled:
                   type: boolean
                   description: Instance availability, not a grant of project access or billing entitlement.
+            - type: "null"
           description: Enterprise RAG availability; project configuration is checked on each request.
         status:
           type: string
@@ -7384,13 +7334,11 @@ components:
         - level
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/HierarchicalBoundingBox'
-              description: |-
-                Bounding box information for the block
+          $ref: '#/components/schemas/HierarchicalBoundingBox'
+          description: |-
+            Bounding box information for the block
 
-                Contains left, top, right, and bottom coordinates in PDF units.
+            Contains left, top, right, and bottom coordinates in PDF units.
         font_size:
           type: number
           format: float
@@ -7504,10 +7452,8 @@ components:
             $ref: '#/components/schemas/StructuredData'
           description: Extracted structured data blocks
         text_direction:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/TextDirection'
-              description: Document text direction from `dir` attribute
+          $ref: '#/components/schemas/TextDirection'
+          description: Document text direction from `dir` attribute
         title:
           type:
             - string
@@ -7610,9 +7556,9 @@ components:
           description: Additional attributes as key-value pairs.
         dimensions:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/ImageDimensions'
               description: Image dimensions if available.
+            - type: "null"
         image_type:
           $ref: '#/components/schemas/ImageType'
           description: Image type classification
@@ -7655,9 +7601,9 @@ components:
           description: Final DPI after processing
         new_dimensions:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/PixelDimensions'
               description: New dimensions after resizing (if resized).
+            - type: "null"
         original_dimensions:
           $ref: '#/components/schemas/PixelDimensions'
           description: Original image dimensions in pixels.
@@ -7702,10 +7648,8 @@ components:
         - content
       properties:
         attributes:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/Attributes'
-              description: Element attributes
+          $ref: '#/components/schemas/Attributes'
+          description: Element attributes
         content:
           type: string
           description: Text content
@@ -8476,10 +8420,8 @@ components:
             - "null"
           description: Document version string (from frontmatter).
         error:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ErrorMetadata'
-              description: Error metadata (for batch operations)
+          $ref: '#/components/schemas/ErrorMetadata'
+          description: Error metadata (for batch operations)
         extraction_duration_ms:
           type:
             - integer
@@ -8492,19 +8434,15 @@ components:
             information. It's `None` for single-file extraction (which uses external timing).
           minimum: 0
         format:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/FormatMetadata'
-              description: |-
-                Format-specific metadata (discriminated union)
+          $ref: '#/components/schemas/FormatMetadata'
+          description: |-
+            Format-specific metadata (discriminated union)
 
-                Contains detailed metadata specific to the document format.
-                Serialized as a nested `"format"` object with a `format_type` discriminator field.
+            Contains detailed metadata specific to the document format.
+            Serialized as a nested `"format"` object with a `format_type` discriminator field.
         image_preprocessing:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ImagePreprocessingMetadata'
-              description: Image preprocessing metadata (when OCR preprocessing was applied)
+          $ref: '#/components/schemas/ImagePreprocessingMetadata'
+          description: Image preprocessing metadata (when OCR preprocessing was applied)
         json_schema:
           description: JSON schema (for structured data extraction)
         keywords:
@@ -8547,10 +8485,8 @@ components:
             Set by the output format pipeline stage when format conversion is applied.
             Previously stored in `metadata.additional["output_format"]`.
         pages:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/PageStructure'
-              description: Page/slide/sheet structure with boundaries
+          $ref: '#/components/schemas/PageStructure'
+          description: Page/slide/sheet structure with boundaries
         subject:
           type:
             - string
@@ -9097,10 +9033,8 @@ components:
             When hierarchy output is enabled, this resolves to another emitted element's
             `backend_metadata["element_id"]` value.
         rotation:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/OcrRotation'
-              description: Rotation information (if detected).
+          $ref: '#/components/schemas/OcrRotation'
+          description: Rotation information (if detected).
         text:
           type: string
           description: The recognized text content.
@@ -9275,13 +9209,11 @@ components:
           type: string
           description: Text content for this page
         hierarchy:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/PageHierarchy'
-              description: |-
-                Hierarchy information for the page (when hierarchy extraction is enabled)
+          $ref: '#/components/schemas/PageHierarchy'
+          description: |-
+            Hierarchy information for the page (when hierarchy extraction is enabled)
 
-                Contains text hierarchy levels (H1-H6) extracted from the page content.
+            Contains text hierarchy levels (H1-H6) extracted from the page content.
         image_indices:
           type: array
           items:
@@ -9294,10 +9226,8 @@ components:
             Each value is a zero-based index into the top-level `images` collection.
             Only populated when `extract_images = true` in the extraction config.
         image_preprocessing:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/ImagePreprocessingMetadata'
-              description: OCR image preprocessing applied to this page's raster.
+          $ref: '#/components/schemas/ImagePreprocessingMetadata'
+          description: OCR image preprocessing applied to this page's raster.
         is_blank:
           type:
             - boolean
@@ -9320,10 +9250,8 @@ components:
             Contains detected layout regions with class, confidence, bounding box,
             and area fraction. Only populated when layout detection is configured.
         ocr_confidence:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/PageOcrConfidence'
-              description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
+          $ref: '#/components/schemas/PageOcrConfidence'
+          description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
         page_number:
           type: integer
           format: int32
@@ -9403,10 +9331,8 @@ components:
         - number
       properties:
         dimensions:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/PageDimensions'
-              description: Dimensions in points (PDF) or pixels (images).
+          $ref: '#/components/schemas/PageDimensions'
+          description: Dimensions in points (PDF) or pixels (images).
         has_vector_graphics:
           type: boolean
           description: |-
@@ -9507,10 +9433,8 @@ components:
         - page
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box on this page, if known.
+          $ref: '#/components/schemas/BoundingBox'
+          description: Bounding box on this page, if known.
         page:
           type: integer
           format: int32
@@ -9579,10 +9503,8 @@ components:
             - "null"
           description: Author/creator of the annotation (PDF `/T` entry).
         bounding_box:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: Bounding box of the annotation on the page.
+          $ref: '#/components/schemas/BoundingBox'
+          description: Bounding box of the annotation on the page.
         color:
           type:
             - string
@@ -9669,10 +9591,8 @@ components:
         - field_type
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: Widget bounding box on its page, if known.
+          $ref: '#/components/schemas/BoundingBox'
+          description: Widget bounding box on its page, if known.
         default_value:
           type:
             - string
@@ -10232,13 +10152,11 @@ components:
         - payload
       properties:
         bbox:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/QrBoundingBox'
-              description: |-
-                Bounding box of the QR code inside the source image, in pixel coordinates
-                (`x`, `y` of the top-left corner; `width`, `height` of the rectangle).
-                `None` if the decoder did not report a bounding box.
+          $ref: '#/components/schemas/QrBoundingBox'
+          description: |-
+            Bounding box of the QR code inside the source image, in pixel coordinates
+            (`x`, `y` of the top-left corner; `width`, `height` of the rectangle).
+            `None` if the decoder did not report a bounding box.
         confidence:
           type:
             - number
@@ -10552,9 +10470,9 @@ components:
           example: 1234
         result:
           oneOf:
-            - type: "null"
             - $ref: '#/components/schemas/ExtractedDocument'
               description: Extraction result (only present when completed)
+            - type: "null"
         status:
           type: string
           description: Job status
@@ -10651,30 +10569,28 @@ components:
         - page_number
       properties:
         bounding_box:
-          oneOf:
-            - type: "null"
-            - $ref: '#/components/schemas/BoundingBox'
-              description: |-
-                Bounding box of the table's position. Only populated when position data is
-                available from the producing extractor.
+          $ref: '#/components/schemas/BoundingBox'
+          description: |-
+            Bounding box of the table's position. Only populated when position data is
+            available from the producing extractor.
 
-                The coordinate space depends on how the table was produced, and callers must
-                know which route produced a given `Table` before interpreting this field:
+            The coordinate space depends on how the table was produced, and callers must
+            know which route produced a given `Table` before interpreting this field:
 
-                - Tables extracted from a PDF's native content, and tables recognized on a
-                  scanned PDF page that went through xberg's OCR pipeline (`--force-ocr` /
-                  `--ocr-scanned-pages`), are in **PDF points with a bottom-left origin**
-                  (x0=left, y0=bottom, x1=right, y1=top; y increases upward). For the OCR
-                  case, the pipeline rescales the backend's raw pixel output into this space
-                  before it reaches `Table::bounding_box` — see
-                  `rescale_ocr_bboxes_to_page_points` in `extractors::pdf::ocr`.
-                - Tables detected by OCR on a standalone image with no backing PDF page (for
-                  example extracting a bare PNG/JPEG/TIFF) are in **raster pixel coordinates
-                  with a top-left origin** (x0=left, y0=top, x1=right, y1=bottom; y increases
-                  downward) — the same convention the OCR backend (Tesseract, PaddleOCR,
-                  candle-based backends) or the layout detector reported them in. There is no
-                  PDF page geometry to rescale into for this case, so the raw pixel box is
-                  passed through unchanged.
+            - Tables extracted from a PDF's native content, and tables recognized on a
+              scanned PDF page that went through xberg's OCR pipeline (`--force-ocr` /
+              `--ocr-scanned-pages`), are in **PDF points with a bottom-left origin**
+              (x0=left, y0=bottom, x1=right, y1=top; y increases upward). For the OCR
+              case, the pipeline rescales the backend's raw pixel output into this space
+              before it reaches `Table::bounding_box` — see
+              `rescale_ocr_bboxes_to_page_points` in `extractors::pdf::ocr`.
+            - Tables detected by OCR on a standalone image with no backing PDF page (for
+              example extracting a bare PNG/JPEG/TIFF) are in **raster pixel coordinates
+              with a top-left origin** (x0=left, y0=top, x1=right, y1=bottom; y increases
+              downward) — the same convention the OCR backend (Tesseract, PaddleOCR,
+              candle-based backends) or the layout detector reported them in. There is no
+              PDF page geometry to rescale into for this case, so the raw pixel box is
+              passed through unchanged.
         cell_styles:
           type: array
           items:
@@ -10942,6 +10858,7 @@ components:
           type: string
           description: Non-empty display name of at most 255 characters.
           example: Jane Doe
+          maxLength: 255
       additionalProperties: false
     UpdateWebhookRequest:
       type: object
