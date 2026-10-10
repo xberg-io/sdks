@@ -3,7 +3,8 @@
   "version": "0.7.0",
   "description": "Official TypeScript client for the Xberg Enterprise and Xberg Pro document-processing APIs.",
   "license": "MIT",
-  "author": "Kreuzberg, Inc. <contact@xberg.io>",
+  "author": "Na'aman Hirschfeld <naaman@xberg.io>",
+  "contributors": ["Tobias Perlstein <tobias@xberg.io>"],
   "homepage": "https://xberg.io",
   "repository": {
     "type": "git",

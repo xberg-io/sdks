@@ -10,8 +10,14 @@ readme = "README.md"
 keywords = ["client", "cloud", "document-extraction", "openapi", "sdk", "xberg"]
 license = "MIT"
 license-files = ["LICENSE"]
-maintainers = [{ name = "Kreuzberg, Inc.", email = "contact@xberg.io" }]
-authors = [{ name = "Kreuzberg, Inc.", email = "contact@xberg.io" }]
+maintainers = [
+  { name = "Na'aman Hirschfeld", email = "naaman@xberg.io" },
+  { name = "Tobias Perlstein", email = "tobias@xberg.io" },
+]
+authors = [
+  { name = "Na'aman Hirschfeld", email = "naaman@xberg.io" },
+  { name = "Tobias Perlstein", email = "tobias@xberg.io" },
+]
 requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",
