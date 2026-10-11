@@ -37,7 +37,7 @@ tasks:
   lint:prose:
     desc: "Lint documentation prose with textlint"
     cmds:
-      - npx textlint 'docs-site/src/content/docs/**/*.{md,mdx}'
+      - pnpm exec textlint 'docs-site/src/content/docs/**/*.{md,mdx}'
 
   snippets:test:
     desc: "Build local packages and execute every documented snippet on both live tiers"

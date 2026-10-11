@@ -47,7 +47,7 @@ pip install xberg-io-sdk
 
 ```sh
 pnpm add @xberg-io/sdk
-# or npm install @xberg-io/sdk
+# or pnpm add @xberg-io/sdk
 # or yarn add @xberg-io/sdk
 ```
 
