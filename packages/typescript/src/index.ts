@@ -127,6 +127,8 @@ export type {
   BackendAcceptInvitationRequest,
   BackendAnalyticsResponse,
   BackendAuthConfigResponse,
+  BackendUserProfileResponse,
+  BackendUpdateUserProfileRequest,
   BackendBeginConnectResponse,
   BackendBillingResponse,
   BackendCheckoutResponse,

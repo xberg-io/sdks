@@ -33,7 +33,7 @@ import time
 from collections.abc import Mapping
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Protocol
+from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Protocol, TypeAlias
 from urllib.parse import quote
 from uuid import UUID
 
@@ -55,6 +55,8 @@ from xberg_io_sdk._generated_api.models.enrich_job_submitted import EnrichJobSub
 from xberg_io_sdk._generated_api.models.extraction_job_response import ExtractionJobResponse
 from xberg_io_sdk._generated_api.models.extraction_options import ExtractionOptions
 from xberg_io_sdk._generated_api.models.file_extraction_config import FileExtractionConfig
+from xberg_io_sdk._generated_api.models.get_job_response_variant_0 import GetJobResponseVariant0
+from xberg_io_sdk._generated_api.models.get_job_response_variant_1 import GetJobResponseVariant1
 from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.list_auto_tune_jobs_response import ListAutoTuneJobsResponse
 from xberg_io_sdk._generated_api.models.list_extraction_events_response import ListExtractionEventsResponse
@@ -127,6 +129,9 @@ from xberg_io_sdk._generated_backend.models.sandbox_extract_response import (
     SandboxExtractResponse as BackendSandboxExtractResponse,
 )
 from xberg_io_sdk._generated_backend.models.usage_response import UsageResponse as BackendUsageResponse
+from xberg_io_sdk._generated_backend.models.user_profile_response import (
+    UserProfileResponse as BackendUserProfileResponse,
+)
 from xberg_io_sdk._generated_backend.models.webhook_delivery_detail_response import (
     WebhookDeliveryDetailResponse as BackendWebhookDeliveryDetailResponse,
 )
@@ -144,7 +149,7 @@ from xberg_io_sdk._generated_pro.models.list_integrations_response import ListIn
 from xberg_io_sdk._generated_pro.models.list_projects_response import ListProjectsResponse
 from xberg_io_sdk._generated_pro.models.project_response import ProjectResponse
 from xberg_io_sdk.errors import TimeoutError as ClientTimeoutError
-from xberg_io_sdk.errors import XbergError, parse_retry_after, raise_for_status
+from xberg_io_sdk.errors import ValidationError, XbergError, parse_retry_after, raise_for_status
 
 if TYPE_CHECKING:
     import sys
@@ -183,6 +188,9 @@ if TYPE_CHECKING:
     )
     from xberg_io_sdk._generated_backend.models.update_project_request import (
         UpdateProjectRequest as BackendUpdateProjectRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.update_user_profile_request import (
+        UpdateUserProfileRequest as BackendUpdateUserProfileRequest,
     )
     from xberg_io_sdk._generated_backend.models.update_webhook_request import (
         UpdateWebhookRequest as BackendUpdateWebhookRequest,
@@ -235,10 +243,12 @@ _RETRY_BACKOFF_BASE = 0.2
 FileInput = Path | bytes | BinaryIO
 """Accepted shapes for a single file argument: filesystem path, raw bytes, or an open binary stream."""
 
-OptionsInput = ExtractionOptions | dict[str, Any] | None
+GetJobResponse: TypeAlias = GetJobResponseVariant0 | GetJobResponseVariant1
+
+OptionsInput: TypeAlias = ExtractionOptions | dict[str, Any] | None
 """Accepted shapes for the ``options`` argument: typed model, plain dict, or ``None``."""
 
-FileConfigInput = FileExtractionConfig | dict[str, Any] | None
+FileConfigInput: TypeAlias = FileExtractionConfig | dict[str, Any] | None
 """Accepted shapes for one per-file ``config`` override: typed model, plain dict, or ``None`` for no override."""
 
 BackoffStrategy = Literal["constant", "exponential"]
@@ -256,7 +266,7 @@ class _SupportsToDict(Protocol):
 BodyInput = _SupportsToDict | Mapping[str, Any]
 """Accepted shapes for a typed JSON request body: a generated request model or a plain mapping."""
 
-EnrichJobStatus = EnrichJobStatusType0 | EnrichJobStatusType1 | EnrichJobStatusType2
+EnrichJobStatus: TypeAlias = EnrichJobStatusType0 | EnrichJobStatusType1 | EnrichJobStatusType2
 """The three ``status``-discriminated variants ``GET /v1/enrich/{job_id}`` can return."""
 
 _EnrichJobStatusModel = type[EnrichJobStatusType0] | type[EnrichJobStatusType1] | type[EnrichJobStatusType2]
@@ -267,7 +277,7 @@ _ENRICH_STATUS_MODELS: dict[str, _EnrichJobStatusModel] = {
     "failed": EnrichJobStatusType2,
 }
 
-CrawlEvent = CrawlEventV1Type0 | CrawlEventV1Type1 | CrawlEventV1Type2 | CrawlEventV1Type3
+CrawlEvent: TypeAlias = CrawlEventV1Type0 | CrawlEventV1Type1 | CrawlEventV1Type2 | CrawlEventV1Type3
 """The four ``kind``-discriminated variants ``GET /v1/crawl-jobs/{id}/events`` streams.
 
 ``page`` (:class:`CrawlEventV1Type0`), ``error`` (:class:`CrawlEventV1Type1`),
@@ -603,10 +613,31 @@ def _parse_crawl_event(payload: str) -> CrawlEvent:
 
 
 def _parse_job(payload: Any) -> ExtractionJobResponse:
-    """Parse a ``GET /v1/jobs/{id}`` response body into a typed :class:`ExtractionJobResponse`."""
+    """Parse an extraction job record into a typed :class:`ExtractionJobResponse`."""
     if not isinstance(payload, dict):
         raise XbergError(f"unexpected job response shape: {payload!r}", status_code=None)
     return ExtractionJobResponse.from_dict(payload)
+
+
+def _parse_get_job(payload: Any) -> GetJobResponse:
+    """Choose a job record by its wire discriminator, accepting older untagged extraction records."""
+    if not isinstance(payload, dict):
+        raise XbergError(f"unexpected job response shape: {payload!r}", status_code=None)
+    if "job_type" not in payload and isinstance(payload.get("filename"), str):
+        payload = {**payload, "job_type": "extraction"}
+    kind = payload.get("job_type")
+    if kind == "extraction":
+        return GetJobResponseVariant0.from_dict(payload)
+    if kind == "crawl":
+        return GetJobResponseVariant1.from_dict(payload)
+    raise ValidationError(f"unexpected job_type: {kind!r}", status_code=200, payload=payload)
+
+
+def _extraction_job(job: GetJobResponse) -> ExtractionJobResponse:
+    """Keep extraction convenience operations limited to extraction records."""
+    if not isinstance(job, GetJobResponseVariant0):
+        raise ValidationError("expected extraction job, received crawl job", status_code=200, payload=job.to_dict())
+    return _parse_job(job.to_dict())
 
 
 def _parse_job_result(payload: Any) -> JobResult:
@@ -1019,11 +1050,11 @@ class XbergClient(_BaseClient):
         data.update(lineage)
         payload = self._request_json("POST", "/v1/extract", files=file_parts, data=data)
         job_ids = _job_ids_from_extract_response(payload)
-        return [self.get_job(job_id) for job_id in job_ids]
+        return [_extraction_job(self.get_job(job_id)) for job_id in job_ids]
 
-    def get_job(self, job_id: str) -> ExtractionJobResponse:
-        """Fetch a job's current status and (when terminal) its extraction result."""
-        return _parse_job(self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
+    def get_job(self, job_id: str) -> GetJobResponse:
+        """Fetch a tagged extraction or crawl job record (``GET /v1/jobs/{id}``)."""
+        return _parse_get_job(self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
 
     def get_job_result(self, job_id: str) -> JobResult:
         """Fetch a job's stored result envelope (``GET /v1/jobs/{id}/result``).
@@ -1059,7 +1090,7 @@ class XbergClient(_BaseClient):
         deadline = time.monotonic() + timeout
         interval = poll_interval
         while True:
-            job = self.get_job(job_id)
+            job = _extraction_job(self.get_job(job_id))
             if job.status in _TERMINAL_STATUSES:
                 _raise_if_failed(job)
                 return job
@@ -1532,6 +1563,18 @@ class XbergClient(_BaseClient):
         """Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``)."""
         payload = self._request_control_json("GET", "/auth/config", public=True)
         return BackendAuthConfigResponse.from_dict(_expect_object(payload, "get_auth_config"))
+
+    def get_user_profile(self) -> BackendUserProfileResponse:
+        """Enterprise backend: Get the authenticated user's durable profile (``GET /auth/profile``)."""
+        payload = self._request_control_json("GET", "/auth/profile")
+        return BackendUserProfileResponse.from_dict(_expect_object(payload, "get_user_profile"))
+
+    def update_user_profile(
+        self, body: BackendUpdateUserProfileRequest | Mapping[str, Any]
+    ) -> BackendUserProfileResponse:
+        """Enterprise backend: Update the authenticated user's display name (``PATCH /auth/profile``)."""
+        payload = self._request_control_json("PATCH", "/auth/profile", json_body=_coerce_body(body))
+        return BackendUserProfileResponse.from_dict(_expect_object(payload, "update_user_profile"))
 
     def backend_login(self, body: BackendLoginRequest | Mapping[str, Any]) -> BackendLoginResponse:
         """Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``)."""
@@ -2168,11 +2211,11 @@ class AsyncXbergClient(_BaseClient):
         data.update(lineage)
         payload = await self._request_json("POST", "/v1/extract", files=file_parts, data=data)
         job_ids = _job_ids_from_extract_response(payload)
-        return list(await asyncio.gather(*(self.get_job(job_id) for job_id in job_ids)))
+        return [_extraction_job(job) for job in await asyncio.gather(*(self.get_job(job_id) for job_id in job_ids))]
 
-    async def get_job(self, job_id: str) -> ExtractionJobResponse:
+    async def get_job(self, job_id: str) -> GetJobResponse:
         """Async equivalent of :meth:`XbergClient.get_job`."""
-        return _parse_job(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
+        return _parse_get_job(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
 
     async def get_job_result(self, job_id: str) -> JobResult:
         """Async equivalent of :meth:`XbergClient.get_job_result`."""
@@ -2199,7 +2242,7 @@ class AsyncXbergClient(_BaseClient):
         deadline = time.monotonic() + timeout
         interval = poll_interval
         while True:
-            job = await self.get_job(job_id)
+            job = _extraction_job(await self.get_job(job_id))
             if job.status in _TERMINAL_STATUSES:
                 _raise_if_failed(job)
                 return job
@@ -2663,6 +2706,18 @@ class AsyncXbergClient(_BaseClient):
         """Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``)."""
         payload = await self._request_control_json("GET", "/auth/config", public=True)
         return BackendAuthConfigResponse.from_dict(_expect_object(payload, "get_auth_config"))
+
+    async def get_user_profile(self) -> BackendUserProfileResponse:
+        """Enterprise backend: Get the authenticated user's durable profile (``GET /auth/profile``)."""
+        payload = await self._request_control_json("GET", "/auth/profile")
+        return BackendUserProfileResponse.from_dict(_expect_object(payload, "get_user_profile"))
+
+    async def update_user_profile(
+        self, body: BackendUpdateUserProfileRequest | Mapping[str, Any]
+    ) -> BackendUserProfileResponse:
+        """Enterprise backend: Update the authenticated user's display name (``PATCH /auth/profile``)."""
+        payload = await self._request_control_json("PATCH", "/auth/profile", json_body=_coerce_body(body))
+        return BackendUserProfileResponse.from_dict(_expect_object(payload, "update_user_profile"))
 
     async def backend_login(self, body: BackendLoginRequest | Mapping[str, Any]) -> BackendLoginResponse:
         """Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``)."""

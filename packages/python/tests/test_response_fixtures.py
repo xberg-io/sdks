@@ -78,13 +78,17 @@ def test_table_page_number_and_markdown_present() -> None:
 
 
 def test_pdf_format_metadata_is_deserialized() -> None:
+    from xberg_io_sdk._generated_api.models.ocr_metadata import OcrMetadata
     from xberg_io_sdk._generated_api.types import UNSET
 
     raw = load("extraction_result_pdf.json")
     result = ExtractionResult.from_dict(raw)
     assert result.metadata.format_ is not None
     assert result.metadata.format_ is not UNSET
-    assert result.metadata.format_["format_type"] == "ocr"  # type: ignore[index]
+    assert isinstance(result.metadata.format_, OcrMetadata)
+    assert result.metadata.format_.format_type == "ocr"
+    assert result.metadata.format_.language == "eng"
+    assert result.to_dict()["metadata"]["format"]["format_type"] == "ocr"
 
 
 def test_pdf_pages_are_deserialized() -> None:

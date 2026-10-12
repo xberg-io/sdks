@@ -83,7 +83,101 @@ def test_scope_mismatch_cannot_run_docker(tmp_path: Path) -> None:
     assert os.getuid() == state["uid"]
 
 
-def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
+def test_database_image_uses_shipping_default_unless_explicitly_overridden(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stack = load_stack()
+    directory = tmp_path / "state"
+    state = stack.initialize_state(directory, "enterprise")
+    monkeypatch.delenv("LOCAL_POSTGRES_IMAGE", raising=False)
+    assert "LOCAL_POSTGRES_IMAGE" not in stack.base_environment(directory, state)
+    monkeypatch.setenv("LOCAL_POSTGRES_IMAGE", "fixture-postgres:local")
+    assert stack.base_environment(directory, state)["LOCAL_POSTGRES_IMAGE"] == "fixture-postgres:local"
+
+
+def test_enterprise_provisions_nats_before_restricted_runtime_services(tmp_path: Path) -> None:
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    environment = dict.fromkeys(
+        (
+            "DATABASE_URL",
+            "MAINTENANCE_DATABASE_URL",
+            "VECTOR_INDEX_BROKER_DATABASE_URL",
+            "VECTOR_INDEX_QUEUE_DATABASE_URL",
+        ),
+        "postgresql://fixture:fixture@localhost:5432/db",
+    )
+    services = stack.runtime_services(state, environment, tmp_path, "runtime:test")
+    bootstrap = services["sdk-nats-bootstrap"]
+    assert bootstrap["entrypoint"] == ["/app/api"]
+    assert bootstrap["command"] == ["--bootstrap-nats", "/etc/xberg-nats/provisioning.json"]
+    assert bootstrap["environment"]["NATS_USER"] == "bootstrap"
+    assert bootstrap["environment"]["NATS_PASSWORD"] == state["nats_passwords"]["bootstrap"]
+    assert all("DATABASE" not in key for key in bootstrap["environment"])
+    for name in ("api", "backend", "worker", "rag"):
+        runtime = services["sdk-" + name]
+        assert runtime["environment"]["NATS_PROVISIONING_MANIFEST"] == "/etc/xberg-nats/provisioning.json"
+        assert runtime["depends_on"]["sdk-nats-bootstrap"] == {"condition": "service_completed_successfully"}
+        assert runtime["environment"]["NATS_PASSWORD"] != bootstrap["environment"]["NATS_PASSWORD"]
+        assert any(
+            volume["target"] == "/etc/xberg-nats/provisioning.json" and volume["read_only"]
+            for volume in runtime["volumes"]
+        )
+
+
+def test_enterprise_cold_boot_hardens_after_timescale_addon_installers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    for binary in (
+        "api",
+        "backend",
+        "worker",
+        "rag",
+        "vector-index-broker",
+        "vector-index-broker-launcher",
+        "vector-index-worker",
+    ):
+        (tmp_path / binary).touch()
+    monkeypatch.setenv("XBERG_ENTERPRISE_BINARY_DIR", str(tmp_path))
+    monkeypatch.setenv("XBERG_ENTERPRISE_RUNTIME_IMAGE", "runtime:test")
+    monkeypatch.setattr(stack, "gcs_signing_credential", lambda: "fixture-signing-identity")
+    configuration = {
+        "services": {
+            "postgres": {
+                "healthcheck": {"start_period": "10s"},
+                "volumes": [
+                    {
+                        "type": "bind",
+                        "source": "/fixture/bootstrap.sh",
+                        "target": "/docker-entrypoint-initdb.d/00-db-bootstrap.sh",
+                        "read_only": True,
+                    }
+                ],
+            },
+            "nats": {},
+            "gcs-emulator": {},
+        },
+        "networks": {"default": {"name": "fixture-network"}},
+    }
+    environment = dict.fromkeys(
+        (
+            "DATABASE_URL",
+            "MAINTENANCE_DATABASE_URL",
+            "VECTOR_INDEX_BROKER_DATABASE_URL",
+            "VECTOR_INDEX_QUEUE_DATABASE_URL",
+        ),
+        "postgresql://fixture:fixture@localhost:5432/db",
+    )
+    stack.configure_enterprise(configuration, state, environment, tmp_path)
+    database = configuration["services"]["postgres"]
+    assert database["volumes"][0]["target"] == "/docker-entrypoint-initdb.d/99-db-bootstrap.sh"
+    assert database["volumes"][0]["read_only"] is True
+    assert database["healthcheck"]["start_period"] == "120s"
+
+
+def test_crawl_fixtures_separate_terminal_detail_from_idle_cancellation() -> None:
     stack = load_stack()
     project = "11111111-1111-1111-1111-111111111111"
     crawl = "22222222-2222-2222-2222-222222222222"
@@ -93,8 +187,105 @@ def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
     assert project in sql
     assert crawl in sql
     assert "app.current_project_id" in sql
+    idle_sql = stack.crawl_fixture_sql(project, crawl, terminal=False)
+    assert "'PENDING'" in idle_sql
+    assert "'COMPLETED'" not in idle_sql
+    assert "ARRAY[]::text[]" in idle_sql
+    assert "NULL, NULL" in idle_sql
+    assert "app.current_project_id" in idle_sql
     with pytest.raises(ValueError, match="badly formed hexadecimal UUID"):
         stack.crawl_fixture_sql("invalid'project", crawl)
+
+
+@pytest.mark.parametrize("status", ["pending", "crawling", "failed"])
+def test_preparation_reuses_only_pending_idle_fixture_and_preserves_old_rows(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], status: str
+) -> None:
+    from types import SimpleNamespace
+
+    import httpx
+
+    stack = load_stack()
+    directory = tmp_path / "state"
+    state = stack.initialize_state(directory, "enterprise")
+    state.update(
+        api_key="fixture-key",
+        api_url="http://127.0.0.1:1234",
+        project_id="project",
+        crawl_job_id="terminal",
+        idle_crawl_job_id="old-idle",
+    )
+
+    class Client:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            pass
+
+        def get_job(self, job_id):
+            return SimpleNamespace(id=job_id, job_type="crawl", seed_urls=[], status=status)
+
+    monkeypatch.setattr(stack, "XbergClient", lambda **_: Client())
+    inserted = []
+
+    def insert(*_, terminal):
+        inserted.append(terminal)
+        return "new-idle"
+
+    monkeypatch.setattr(stack, "insert_crawl_fixture", insert)
+    http_client = httpx.Client
+    monkeypatch.setattr(
+        stack.httpx,
+        "Client",
+        lambda **kwargs: http_client(
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, headers={"content-type": "text/event-stream"})),
+            **kwargs,
+        ),
+    )
+    stack.prepare_idle_crawl(directory, state, tmp_path)
+    assert state["crawl_job_id"] == "terminal"
+    assert state["idle_crawl_job_id"] == ("old-idle" if status == "pending" else "new-idle")
+    assert inserted == ([] if status == "pending" else [False])
+    assert state["idle_crawl_fixture_kind"] == "pending-unqueued-v1"
+    output = capsys.readouterr().out
+    assert ("preserving old row" in output) == (status != "pending")
+
+
+def test_preparation_fails_if_current_unqueued_pending_fixture_terminalizes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    state.update(
+        api_key="fixture-key",
+        api_url="http://127.0.0.1:1234",
+        idle_crawl_job_id="idle",
+        idle_crawl_fixture_kind="pending-unqueued-v1",
+    )
+    job = SimpleNamespace(id="idle", job_type="crawl", seed_urls=[], status="failed")
+    monkeypatch.setattr(stack, "XbergClient", lambda **_: nullcontext(SimpleNamespace(get_job=lambda _: job)))
+    monkeypatch.setattr(stack, "insert_crawl_fixture", lambda *_, **__: pytest.fail("Unexpected fixture replacement"))
+    with pytest.raises(ValueError, match="changed status unexpectedly"):
+        stack.prepare_idle_crawl(tmp_path / "state", state, tmp_path)
+    assert state["idle_crawl_job_id"] == "idle"
+
+
+def test_documentation_gate_prepares_idle_fixture_after_state_checks_before_execution() -> None:
+    from ruamel.yaml import YAML
+
+    taskfile = YAML(typ="safe").load((ROOT / "tasks/docs.yml").read_text())
+    commands = taskfile["tasks"]["snippets:test"]["cmds"]
+    scripts = [command for command in commands if isinstance(command, str) and "scripts/test-snippets.py" in command]
+    assert len(scripts) == 1
+    script = scripts[0]
+    preparation = "task enterprise:prepare-idle-crawl"
+    assert script.count(preparation) == 1
+    assert script.index("${XBERG_ENTERPRISE_STATE_DIR:?") < script.index(preparation)
+    assert script.index(preparation) < script.index("uv run python scripts/test-snippets.py")
 
 
 def test_gcs_fixture_uses_distinct_ephemeral_signing_keys() -> None:

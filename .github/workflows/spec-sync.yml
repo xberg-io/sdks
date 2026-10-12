@@ -75,7 +75,7 @@ jobs:
           # yq drives the spec conversion below, so a formatting change upstream would
           # show up as spurious spec drift. Bump deliberately.
           sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_amd64
+            https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
       - name: Normalise all three upstream specs into the vendored copies
@@ -93,10 +93,25 @@ jobs:
             _xberg-enterprise/frontend/openapi-backend.yaml \
             > spec/backend/openapi.yaml
 
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.27.2"
+          cache: true
+
+      - name: Install task
+        uses: arduino/setup-task@v3
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Regenerate tracked Go clients
+        run: task go:generate
+
       - name: Detect drift
         id: diff
         run: |
-          if git diff --quiet -- spec/api/openapi.yaml spec/pro/openapi.yaml spec/backend/openapi.yaml; then
+          if git diff --quiet -- spec/api/openapi.yaml spec/pro/openapi.yaml spec/backend/openapi.yaml \
+            packages/go/generated_api.go packages/go/generated_pro.go packages/go/generated_backend.go; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -111,7 +126,8 @@ jobs:
           title: "chore(spec): sync openapi specs from xberg-enterprise (${{ steps.ref.outputs.version }})"
           body: |
             Automated sync of `spec/api/openapi.yaml`, `spec/pro/openapi.yaml` and
-            `spec/backend/openapi.yaml` from `xberg-io/xberg-enterprise@${{ steps.ref.outputs.ref }}`
+            `spec/backend/openapi.yaml` and regeneration of the committed Go clients
+            from `xberg-io/xberg-enterprise@${{ steps.ref.outputs.ref }}`
             (`services/api/spec/openapi.json` + `services/pro/spec/openapi.json` +
             `frontend/openapi-backend.yaml`).
 
@@ -126,3 +142,6 @@ jobs:
             spec/api/openapi.yaml
             spec/pro/openapi.yaml
             spec/backend/openapi.yaml
+            packages/go/generated_api.go
+            packages/go/generated_pro.go
+            packages/go/generated_backend.go

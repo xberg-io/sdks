@@ -14,6 +14,11 @@ failures the wait helpers raise on rather than return.
 `GET /v1/jobs/{id}` fetches the current status. `GET /v1/jobs/{id}/result` fetches the stored
 result document and answers **409** until the job reaches a terminal successful status.
 
+Job detail reads return an extraction or crawl record on both tiers. Python and TypeScript
+expose `job_type` for narrowing before accessing variant fields. Go returns `GetJobResponse`;
+decode its extraction or crawl variant with `AsGetJobResponse0` or `AsGetJobResponse1`.
+The wait and batch extraction helpers return extraction records and reject crawl IDs.
+
 ## Polling by hand
 
 ```python title="Python"
@@ -23,8 +28,9 @@ from xberg_io_sdk import XbergClient
 
 with XbergClient(api_key="kz_...", base_url="https://xberg.example.com") as client:
     job = client.extract(file=Path("invoice.pdf"))
-    job = client.get_job(job.id)
-    print(job.status)
+    current = client.get_job(str(job.id))
+    if current.job_type == "extraction":
+        print(current.filename, current.status)
 ```
 
 ```ts title="TypeScript"
@@ -34,7 +40,9 @@ const client = new XbergClient({ baseUrl: "https://xberg.example.com", apiKey: p
 
 const job = await client.extract({ file: { name: "invoice.pdf", data, mimeType: "application/pdf" } });
 const current = await client.getJob(job.id);
-console.log(current.status);
+if (current.job_type === "extraction") {
+  console.log(current.filename, current.status);
+}
 ```
 
 ```go title="Go"
@@ -43,6 +51,14 @@ if err != nil {
     log.Fatal(err)
 }
 current, err := client.GetJob(ctx, job.Id.String())
+if err != nil {
+    log.Fatal(err)
+}
+extraction, err := current.AsGetJobResponse0()
+if err != nil || extraction.JobType != "extraction" {
+    log.Fatal("Expected an extraction job")
+}
+fmt.Println(extraction.Filename, extraction.Status)
 ```
 
 ## The wait helpers

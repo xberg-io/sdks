@@ -5,6 +5,7 @@ package xberg
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/oapi-codegen/runtime"
@@ -113,8 +114,8 @@ type ApiKeyResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt time.Time `json:"created_at"`
 
-	// ExpiresAt Optional expiration date in ISO 8601 format. Enterprise-only; always
-	// `None` on Pro.
+	// ExpiresAt Optional expiration date in ISO 8601 format. Both tiers reject the key
+	// after this timestamp.
 	ExpiresAt *string `json:"expires_at,omitempty"`
 
 	// Id Unique API key identifier.
@@ -147,6 +148,7 @@ type ApiKeyScope string
 
 // AuthConfigResponse `GET /auth/config` response: which auth methods this instance accepts.
 type AuthConfigResponse struct {
+	// Identity Local operator identity when authentication is disabled.
 	Identity *LocalIdentity `json:"identity,omitempty"`
 
 	// Methods Accepted authentication methods (`"api_key"`, optionally `"oidc"`).
@@ -171,8 +173,8 @@ type BeginOAuthResponse struct {
 
 // CreateApiKeyRequest Request to create a new API key.
 type CreateApiKeyRequest struct {
-	// ExpiresAt Optional expiration date in ISO 8601 format. Enterprise-only; Pro
-	// leaves this unset (Pro-issued keys never expire).
+	// ExpiresAt Optional expiration date in ISO 8601 format. Both tiers reject the key
+	// after this timestamp.
 	ExpiresAt *string `json:"expires_at,omitempty"`
 
 	// Name Descriptive name for the API key. Optional on Pro (unnamed keys are
@@ -190,8 +192,8 @@ type CreateApiKeyResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt time.Time `json:"created_at"`
 
-	// ExpiresAt Optional expiration date in ISO 8601 format. Enterprise-only; always
-	// `None` on Pro.
+	// ExpiresAt Optional expiration date in ISO 8601 format. Both tiers reject the key
+	// after this timestamp.
 	ExpiresAt *string `json:"expires_at,omitempty"`
 
 	// Id Unique API key identifier.
@@ -444,6 +446,99 @@ type OidcInfo struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
+// ProDocumentInput A single document to extract.
+//
+// A document is sourced **either** inline (`data`, base64-encoded) **or** by
+// reference to a connected integration (`integration`). Exactly one of the
+// two must be present; supplying both or neither is a validation error.
+//
+// A single-document extraction is simply a `documents` vector of length one
+// on `ExtractRequest`; both tiers also accept a batch of up to
+// `MAX_DOCUMENTS_PER_REQUEST` entries (10 on both Pro and Enterprise).
+type ProDocumentInput struct {
+	// Config Per-file extraction config override.
+	//
+	// Precedence, highest to lowest: this override > the request's
+	// batch-level `options.extraction_config` > a curated/saved preset > the
+	// project default. The merge is shallow: a top-level field this override
+	// sets replaces the batch-level value outright, and a field it leaves
+	// unset falls through to whatever the batch level (already resolved
+	// against any preset and project default) carries for it. Omitting
+	// `config` entirely means "use the batch default" for every field. On a
+	// multipart request the equivalent is a `config-<filename>` JSON text
+	// part, mirroring the existing `document_id-<filename>` convention.
+	Config *ProFileExtractionConfig `json:"config,omitempty"`
+
+	// Data Base64-encoded document bytes. Mutually exclusive with `integration`.
+	Data *string `json:"data,omitempty"`
+
+	// DocumentId Optional client-supplied document identifier. When provided, this
+	// extraction is recorded as a version of that logical document and the
+	// response carries `document_id` + `version_sequence` on the matching
+	// `DocumentSubmission`. Enterprise-only lineage feature; Pro leaves
+	// this unset. Server mints a new identifier when absent. Typed as a string
+	// to span Pro (ULID) and Enterprise (UUID) identifier forms; the concrete
+	// format is validated per service.
+	DocumentId *string `json:"document_id,omitempty"`
+
+	// Filename Original filename.
+	Filename string `json:"filename"`
+
+	// Integration Reference to a document in a connected integration. Mutually exclusive
+	// with `data`.
+	Integration *IntegrationInput `json:"integration,omitempty"`
+
+	// MimeType MIME type of the document. For an integration-sourced document this is
+	// a hint only — the receiving service prefers the connector-reported
+	// type at fetch time.
+	MimeType string `json:"mime_type"`
+}
+
+// ProExtractRequest defines model for ProExtractRequest.
+type ProExtractRequest struct {
+	// CrawlConfig Crawl configuration applied to every entry in `urls`, overridable
+	// per-URL. Kept as opaque JSON — see `UrlInput.crawl_config`. Sending
+	// it without any `urls` is a validation error rather than a no-op.
+	CrawlConfig *map[string]interface{} `json:"crawl_config,omitempty"`
+
+	// Documents Documents to extract inline or via an integration reference.
+	Documents *[]ProDocumentInput `json:"documents,omitempty"`
+
+	// Options Extraction options shared by every document/URL in this request.
+	Options *ExtractionOptions `json:"options,omitempty"`
+
+	// ProjectId Project the job is written into. Absent writes into the project the
+	// credential carries.
+	//
+	// A session token freezes its project at login, so a user who belongs to
+	// several projects needs a way to name the one the dashboard shows. The
+	// Pro service authorizes any other project against the projects the
+	// caller can see, exactly as the job reads do.
+	//
+	// The Enterprise API service cannot make that check — its credential
+	// names no user — so it rejects a value that names any project other
+	// than the one the credential carries.
+	ProjectId *openapi_types.UUID `json:"project_id,omitempty"`
+
+	// Urls URLs to crawl and extract documents from. Seed URLs that share one
+	// effective configuration become one crawl job.
+	Urls *[]UrlInput `json:"urls,omitempty"`
+
+	// Webhook Webhook configuration for async result delivery.
+	Webhook *WebhookConfig `json:"webhook,omitempty"`
+	union   json.RawMessage
+}
+
+// ProExtractRequest0 defines model for ProExtractRequest.0.
+type ProExtractRequest0 struct {
+	CrawlConfig any `json:"crawl_config,omitempty"`
+}
+
+// ProExtractRequest1 defines model for ProExtractRequest.1.
+type ProExtractRequest1 struct {
+	Urls []UrlInput `json:"urls"`
+}
+
 // ProExtractionJobResponse Metadata for one extraction job returned by `GET /v1/jobs/{id}`.
 type ProExtractionJobResponse struct {
 	// Cached Whether the result came from the server-side cache, when known.
@@ -476,16 +571,118 @@ type ProExtractionJobResponse struct {
 	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
 	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
 	// ProcessingTimeMs Server-side processing duration in milliseconds.
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+
+	// Result Extraction result embedded by Enterprise for compatibility. Clients may
+	// use `GET /v1/jobs/{id}/result` on either tier instead.
+	Result *ExtractedDocument `json:"result,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
 
 	// Status Current job status.
 	Status ProJobStatus `json:"status"`
 
 	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
-	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	TablesExtracted *int32 `json:"tables_extracted,omitempty"`
+
+	// TuningProfileId Applied tuning profile id, when this Pro job used one.
+	TuningProfileId *string `json:"tuning_profile_id,omitempty"`
+
+	// TuningProfileRoute Matched Pro tuning profile route: `global` or `route:<zero-based-index>`.
+	TuningProfileRoute *string `json:"tuning_profile_route,omitempty"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProFileExtractionConfig Per-file extraction config override for batch/presign requests.
+//
+// All fields are optional — only provided fields override the batch-level config.
+// Batch-only fields (`use_cache`, `cache_namespace`, `cache_ttl_secs`,
+// `max_concurrent_extractions`, `security_limits`, `max_archive_depth`,
+// `max_embedded_file_bytes`) are not per-file overrides.
+//
+// Precedence, highest to lowest: this per-file config > the request's
+// batch-level `options.extraction_config` > a curated/saved preset > the
+// project default. The preset and project default are already folded into
+// the batch-level config by the time a per-file override is applied, and the
+// merge is shallow over top-level fields, so an override here always wins the
+// field it sets and an unset field falls through to whatever the batch level
+// carries.
+type ProFileExtractionConfig struct {
+	// Chunking Text chunking configuration.
+	Chunking *ChunkingConfig `json:"chunking,omitempty"`
+
+	// ContentFilter Content filtering configuration (headers, footers, watermarks).
+	ContentFilter *ContentFilterConfig `json:"content_filter,omitempty"`
+
+	// DisableOcr `true` conflicts with an `ocr` block, including one inherited from
+	// the batch configuration.
+	DisableOcr              *bool `json:"disable_ocr,omitempty"`
+	EnableQualityProcessing *bool `json:"enable_quality_processing,omitempty"`
+
+	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (default: 600, min: 1, max: 600).
+	//
+	// The engine clamps a client-supplied value lower-only against its own
+	// default (`crates/engine/src/config_convert.rs`'s `wire_to_xberg`, which
+	// `wire_to_xberg_file` delegates to for a per-file override): a value
+	// above 600 is silently reduced to 600, never rejected. `maximum` here
+	// documents that existing ceiling for the SDK rather than enforcing a
+	// second one — this field is otherwise unvalidated at the API boundary.
+	ExtractionTimeoutSecs *int64                  `json:"extraction_timeout_secs,omitempty"`
+	ForceOcr              *bool                   `json:"force_ocr,omitempty"`
+	ForceOcrPages         *[]int32                `json:"force_ocr_pages,omitempty"`
+	HtmlOptions           *map[string]interface{} `json:"html_options,omitempty"`
+
+	// Images Image extraction and processing configuration.
+	Images                   *ImageExtractionConfig `json:"images,omitempty"`
+	IncludeDocumentStructure *bool                  `json:"include_document_structure,omitempty"`
+
+	// Keywords Keyword extraction configuration.
+	Keywords *KeywordConfig `json:"keywords,omitempty"`
+
+	// LanguageDetection Language detection configuration.
+	LanguageDetection *LanguageDetectionConfig `json:"language_detection,omitempty"`
+
+	// Layout Document layout detection configuration.
+	Layout *LayoutDetectionConfig `json:"layout,omitempty"`
+
+	// Ocr OCR backend and language configuration.
+	Ocr *OcrConfig `json:"ocr,omitempty"`
+
+	// OcrStrategy Which pages go to OCR when neither `force_ocr` nor `force_ocr_pages`
+	// applies. Omitting it keeps xberg's default, `auto`.
+	OcrStrategy *OcrStrategy `json:"ocr_strategy,omitempty"`
+
+	// OutputFormat Rendered output format: `plain` or `text`, `markdown` or `md`, `djot`,
+	// `html`, `json`, or `doctags`. Any other value is refused with a 400.
+	OutputFormat *string `json:"output_format,omitempty"`
+
+	// Pages Page extraction configuration.
+	Pages *PageConfig `json:"pages,omitempty"`
+
+	// PdfOptions PDF-specific extraction options.
+	PdfOptions *PdfConfig `json:"pdf_options,omitempty"`
+
+	// Postprocessor Post-processing pipeline configuration.
+	Postprocessor *PostProcessorConfig `json:"postprocessor,omitempty"`
+	ResultFormat  *string              `json:"result_format,omitempty"`
+
+	// StructuredExtraction LLM-driven structured extraction.
+	//
+	// When set, the worker passes the extracted document text and the supplied
+	// JSON schema to an LLM provider (routed through liter-llm) and returns the
+	// validated JSON on `ExtractionResult::structured_output`.
+	StructuredExtraction *ProStructuredExtractionConfig `json:"structured_extraction,omitempty"`
+
+	// TokenReduction Token reduction configuration for LLM consumption.
+	TokenReduction *TokenReductionConfig `json:"token_reduction,omitempty"`
 }
 
 // ProGetJobResponse Canonical response for `GET /v1/jobs/{id}` on both product tiers.
@@ -529,15 +726,33 @@ type ProGetJobResponse0 struct {
 	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
 	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
 	// ProcessingTimeMs Server-side processing duration in milliseconds.
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+
+	// Result Extraction result embedded by Enterprise for compatibility. Clients may
+	// use `GET /v1/jobs/{id}/result` on either tier instead.
+	Result *ExtractedDocument `json:"result,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
 
 	// Status Current job status.
 	Status ProJobStatus `json:"status"`
 
 	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
-	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	TablesExtracted *int32 `json:"tables_extracted,omitempty"`
+
+	// TuningProfileId Applied tuning profile id, when this Pro job used one.
+	TuningProfileId *string `json:"tuning_profile_id,omitempty"`
+
+	// TuningProfileRoute Matched Pro tuning profile route: `global` or `route:<zero-based-index>`.
+	TuningProfileRoute *string `json:"tuning_profile_route,omitempty"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -615,8 +830,8 @@ type ProIntegrationListResponse struct {
 
 // ProJobResult Result envelope returned by GET /v1/jobs/{id}/result. The results array contains the extracted documents produced by this Pro job, in discovery order. The endpoint returns 409 until the job reaches completed or partial_success.
 type ProJobResult struct {
-	// Cached ~keep This job's recorded extraction-cache hit, independent of child jobs and billing.
-	// ~keep False means no recorded hit; a pending job has not necessarily attempted extraction.
+	// Cached This job's recorded extraction-cache hit, independent of child jobs and billing.
+	// False means no recorded hit; a pending job has not necessarily attempted extraction.
 	Cached bool `json:"cached"`
 
 	// CompletedAt ISO 8601 completion timestamp, when available.
@@ -639,7 +854,9 @@ type ProJobResult struct {
 	Results *[]JobResultDocument `json:"results,omitempty"`
 
 	// Status Job status at the time the result was read.
-	Status          ProJobStatus     `json:"status"`
+	Status ProJobStatus `json:"status"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -655,17 +872,29 @@ type ProJobSummary struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt time.Time `json:"created_at"`
 
-	// Filename Original filename.
+	// Filename Original filename for an extraction, or the primary seed URL for a crawl.
 	Filename string `json:"filename"`
 
 	// Id Unique job identifier.
 	Id openapi_types.UUID `json:"id"`
 
-	// MimeType MIME type of the submitted document.
+	// JobType Kind of detail view represented by this row.
+	JobType JobSummaryType `json:"job_type"`
+
+	// MimeType MIME type of the submitted document, or `crawl` for a crawl parent.
 	MimeType string `json:"mime_type"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
+
 	// Status Current job status.
-	Status          ProJobStatus     `json:"status"`
+	Status ProJobStatus `json:"status"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -684,13 +913,72 @@ type ProListJobsResponse struct {
 	Total int64 `json:"total"`
 }
 
+// ProLlmConfig LLM provider configuration routed through liter-llm.
+type ProLlmConfig struct {
+	// ApiKey API key for the provider. Mutually exclusive with `use_managed = true`.
+	// Treated as a secret — never logged. Omit to leave it unset; explicit
+	// `null` is not a distinct value from omission and is rejected.
+	ApiKey *string `json:"api_key,omitempty"`
+
+	// BaseUrl Override the provider base URL.
+	BaseUrl *string `json:"base_url,omitempty"`
+
+	// MaxRetries Max retry attempts.
+	MaxRetries *int32 `json:"max_retries,omitempty"`
+
+	// MaxTokens Maximum tokens to generate.
+	MaxTokens *int64 `json:"max_tokens,omitempty"`
+
+	// Model liter-llm routing identifier, e.g. "openai/gpt-4o-mini".
+	Model string `json:"model"`
+
+	// Temperature Sampling temperature.
+	Temperature *float64 `json:"temperature,omitempty"`
+
+	// TimeoutSecs Request timeout in seconds.
+	TimeoutSecs *int64 `json:"timeout_secs,omitempty"`
+
+	// UseManaged Managed provider keys are not available. The worker holds no key to
+	// substitute, so a request that sets this is rejected with a 400.
+	UseManaged *bool `json:"use_managed,omitempty"`
+}
+
+// ProPresignDocumentInput Document metadata for presigned upload (no bytes).
+type ProPresignDocumentInput struct {
+	// Config Per-file extraction config override.
+	// Merged with batch-level `config` at confirm time. None = use batch default.
+	Config *ProFileExtractionConfig `json:"config,omitempty"`
+
+	// Filename Original filename
+	Filename string `json:"filename"`
+
+	// MimeType MIME type of the document
+	MimeType string `json:"mime_type"`
+}
+
 // ProPresignUploadRequest Request body for presigning upload URLs.
 type ProPresignUploadRequest struct {
 	// Config Batch-level extraction configuration (applied to all documents).
 	Config *map[string]interface{} `json:"config,omitempty"`
 
+	// Context Free-form context merged into a curated or saved preset's context
+	// template, resolved the same way as `/v1/extract`'s `options.context`
+	// (`api_types::ExtractionOptions::context`). Ignored when neither
+	// `preset` nor `saved_preset_id` is set.
+	Context *map[string]string `json:"context,omitempty"`
+
 	// Documents Document metadata (no file data)
-	Documents []PresignDocumentInput `json:"documents"`
+	Documents []ProPresignDocumentInput `json:"documents"`
+
+	// Preset Curated preset identifier, resolved the same way as `/v1/extract`'s
+	// `options.preset`. Mutually exclusive with `saved_preset_id` and with
+	// an inline schema in `config`.
+	Preset *string `json:"preset,omitempty"`
+
+	// SavedPresetId Saved preset ID (project-scoped, user-created), resolved the same way
+	// as `/v1/extract`'s `options.saved_preset_id`. Mutually exclusive with
+	// `preset`.
+	SavedPresetId *string `json:"saved_preset_id,omitempty"`
 
 	// Webhook Webhook configuration for async result delivery
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
@@ -722,6 +1010,69 @@ type ProReadinessResponse struct {
 
 	// Status `ready` or `not_ready`
 	Status string `json:"status"`
+}
+
+// ProStructuredExtractionConfig LLM-driven structured extraction.
+//
+// When set, the worker passes the extracted document text and the supplied
+// JSON schema to an LLM provider (routed through liter-llm) and returns the
+// validated JSON on `ExtractionResult::structured_output`.
+type ProStructuredExtractionConfig struct {
+	// Llm LLM provider + model configuration.
+	Llm ProLlmConfig `json:"llm"`
+
+	// Prompt Custom Jinja2 prompt template. When omitted, the xberg default is used.
+	Prompt *string `json:"prompt,omitempty"`
+
+	// Schema JSON Schema (draft-07) the structured output must conform to. Optional
+	// only when `options.preset` or `options.saved_preset_id` supplies it.
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// SchemaDescription Optional human-readable schema description supplied to the LLM.
+	SchemaDescription *string `json:"schema_description,omitempty"`
+
+	// SchemaName Schema name passed to the LLM's structured-output mode. Defaults to "extraction".
+	SchemaName *string `json:"schema_name,omitempty"`
+
+	// Strict Strict mode — output must match the schema exactly (provider-dependent).
+	Strict *bool `json:"strict,omitempty"`
+}
+
+// ProUpdateSavedPresetRequest Request to update a saved preset.
+type ProUpdateSavedPresetRequest struct {
+	// ContextTemplate Optional context template.
+	ContextTemplate *string `json:"context_template,omitempty"`
+
+	// Description Optional description of the preset.
+	Description *string `json:"description,omitempty"`
+
+	// EmitCitations Whether to emit citations in results.
+	//
+	// Stored and returned verbatim, but **not applied at extraction time** —
+	// see `preferred_call_mode`. Results produced from a saved preset carry no
+	// citations regardless of this value.
+	EmitCitations *bool `json:"emit_citations,omitempty"`
+
+	// Name Preset name. Trimmed before storage; a name that is entirely
+	// whitespace is rejected once trimmed.
+	Name *string `json:"name,omitempty"`
+
+	// PreferredCallMode Preferred orchestration path (`text_only`, `vision_only`, or
+	// `text_plus_vision`).
+	//
+	// Validated on write, stored, and returned verbatim, but
+	// **not applied at extraction time**. Call-mode selection belongs to the
+	// vision pipeline, which a job reaches only through the curated preset
+	// registry (`options.preset`); a saved preset never routes there. On Xberg
+	// Pro a saved preset contributes its `schema`, `system_prompt` and
+	// `context_template`, and nothing else.
+	PreferredCallMode *string `json:"preferred_call_mode,omitempty"`
+
+	// Schema JSON Schema (Draft 2020-12) for the extraction result.
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// SystemPrompt Optional custom system prompt override.
+	SystemPrompt *string `json:"system_prompt,omitempty"`
 }
 
 // ProjectInfo Project information in the login response.
@@ -901,6 +1252,172 @@ type CreateIntegrationJSONRequestBody = CreateIntegrationRequest
 
 // SetRagConfigJSONRequestBody defines body for SetRagConfig for application/json ContentType.
 type SetRagConfigJSONRequestBody = SetRagConfigRequest
+
+// AsProExtractRequest0 returns the union data inside the ProExtractRequest as a ProExtractRequest0
+func (t ProExtractRequest) AsProExtractRequest0() (ProExtractRequest0, error) {
+	var body ProExtractRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromProExtractRequest0 overwrites any union data inside the ProExtractRequest as the provided ProExtractRequest0
+func (t *ProExtractRequest) FromProExtractRequest0(v ProExtractRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeProExtractRequest0 performs a merge with any union data inside the ProExtractRequest, using the provided ProExtractRequest0
+func (t *ProExtractRequest) MergeProExtractRequest0(v ProExtractRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsProExtractRequest1 returns the union data inside the ProExtractRequest as a ProExtractRequest1
+func (t ProExtractRequest) AsProExtractRequest1() (ProExtractRequest1, error) {
+	var body ProExtractRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromProExtractRequest1 overwrites any union data inside the ProExtractRequest as the provided ProExtractRequest1
+func (t *ProExtractRequest) FromProExtractRequest1(v ProExtractRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeProExtractRequest1 performs a merge with any union data inside the ProExtractRequest, using the provided ProExtractRequest1
+func (t *ProExtractRequest) MergeProExtractRequest1(v ProExtractRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ProExtractRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	object := make(map[string]json.RawMessage)
+	if t.union != nil {
+		err = json.Unmarshal(b, &object)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if t.CrawlConfig != nil {
+		object["crawl_config"], err = json.Marshal(t.CrawlConfig)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'crawl_config': %w", err)
+		}
+	}
+
+	if t.Documents != nil {
+		object["documents"], err = json.Marshal(t.Documents)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'documents': %w", err)
+		}
+	}
+
+	if t.Options != nil {
+		object["options"], err = json.Marshal(t.Options)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'options': %w", err)
+		}
+	}
+
+	if t.ProjectId != nil {
+		object["project_id"], err = json.Marshal(t.ProjectId)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'project_id': %w", err)
+		}
+	}
+
+	if t.Urls != nil {
+		object["urls"], err = json.Marshal(t.Urls)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'urls': %w", err)
+		}
+	}
+
+	if t.Webhook != nil {
+		object["webhook"], err = json.Marshal(t.Webhook)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'webhook': %w", err)
+		}
+	}
+	b, err = json.Marshal(object)
+	return b, err
+}
+
+func (t *ProExtractRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	object := make(map[string]json.RawMessage)
+	err = json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["crawl_config"]; found {
+		err = json.Unmarshal(raw, &t.CrawlConfig)
+		if err != nil {
+			return fmt.Errorf("error reading 'crawl_config': %w", err)
+		}
+	}
+
+	if raw, found := object["documents"]; found {
+		err = json.Unmarshal(raw, &t.Documents)
+		if err != nil {
+			return fmt.Errorf("error reading 'documents': %w", err)
+		}
+	}
+
+	if raw, found := object["options"]; found {
+		err = json.Unmarshal(raw, &t.Options)
+		if err != nil {
+			return fmt.Errorf("error reading 'options': %w", err)
+		}
+	}
+
+	if raw, found := object["project_id"]; found {
+		err = json.Unmarshal(raw, &t.ProjectId)
+		if err != nil {
+			return fmt.Errorf("error reading 'project_id': %w", err)
+		}
+	}
+
+	if raw, found := object["urls"]; found {
+		err = json.Unmarshal(raw, &t.Urls)
+		if err != nil {
+			return fmt.Errorf("error reading 'urls': %w", err)
+		}
+	}
+
+	if raw, found := object["webhook"]; found {
+		err = json.Unmarshal(raw, &t.Webhook)
+		if err != nil {
+			return fmt.Errorf("error reading 'webhook': %w", err)
+		}
+	}
+
+	return err
+}
 
 // AsProGetJobResponse0 returns the union data inside the ProGetJobResponse as a ProGetJobResponse0
 func (t ProGetJobResponse) AsProGetJobResponse0() (ProGetJobResponse0, error) {

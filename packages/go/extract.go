@@ -89,7 +89,7 @@ func (c *Client) ExtractBatch(
 	}
 	jobs := make([]*ExtractionJobResponse, len(jobIDs))
 	for i, id := range jobIDs {
-		job, err := c.GetJob(ctx, id)
+		job, err := c.getExtractionJob(ctx, id)
 		if err != nil {
 			return nil, err
 		}

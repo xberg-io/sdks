@@ -675,7 +675,11 @@ func TestExtractBatch_RejectsAnExplicitlyEmptyConfigsSlice(t *testing.T) {
 // means "no per-file configs", so the common call site keeps working.
 func TestExtractBatch_NilConfigsMeansNoOverrides(t *testing.T) {
 	t.Parallel()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte(`{"id":"550e8400-e29b-41d4-a716-446655440000","filename":"scanned.pdf","mime_type":"application/pdf","created_at":"2026-10-12T10:00:00Z","status":"pending"}`))
+			return
+		}
 		w.WriteHeader(http.StatusAccepted)
 		_, _ = w.Write([]byte(`{"job_ids":["550e8400-e29b-41d4-a716-446655440000"]}`))
 	}))

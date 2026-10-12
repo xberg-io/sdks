@@ -25,7 +25,7 @@ Poll, read, page through and cancel extraction jobs.
 | Method | Description |
 | --- | --- |
 | `list_jobs` | List jobs via ``GET /v1/jobs`` (paginated). Returns the decoded response body. |
-| `get_job` | Fetch a job's current status and (when terminal) its extraction result. |
+| `get_job` | Fetch a tagged extraction or crawl job record (``GET /v1/jobs/{id}``). |
 | `get_job_result` | Fetch a job's stored result envelope (``GET /v1/jobs/{id}/result``). |
 | `get_job_page` | Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes). |
 | `cancel_job` | Cancel an extraction job (``DELETE /v1/jobs/{id}``, 204 whether pending or already terminal). |
@@ -166,6 +166,8 @@ All backend operations use the configured control-plane origin and credential.
 | --- | --- |
 | `delete_account` | Enterprise backend: Delete the authenticated user's account and all associated data (``DELETE /auth/account``). |
 | `get_auth_config` | Enterprise backend: `GET /auth/config`: which auth methods this instance accepts. (``GET /auth/config``). |
+| `get_user_profile` | Enterprise backend: Get the authenticated user's durable profile (``GET /auth/profile``). |
+| `update_user_profile` | Enterprise backend: Update the authenticated user's display name (``PATCH /auth/profile``). |
 | `backend_login` | Enterprise backend: Authenticate with an OIDC ID token and receive a backend JWT (``POST /auth/login``). |
 | `healthz` | Enterprise backend: Liveness probe - returns 200 if the process is running (``GET /healthz``). |
 | `readyz` | Enterprise backend: Readiness probe - returns 200 if the service can handle traffic (``GET /readyz``). |

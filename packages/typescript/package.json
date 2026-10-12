@@ -1,9 +1,10 @@
 {
   "name": "@xberg-io/sdk",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Official TypeScript client for the Xberg Enterprise and Xberg Pro document-processing APIs.",
   "license": "MIT",
-  "author": "Kreuzberg, Inc. <contact@xberg.io>",
+  "author": "Na'aman Hirschfeld <naaman@xberg.io>",
+  "contributors": ["Tobias Perlstein <tobias@xberg.io>"],
   "homepage": "https://xberg.io",
   "repository": {
     "type": "git",
@@ -48,14 +49,15 @@
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.6",
-    "@vitest/coverage-v8": "^4.1.11",
-    "msw": "^2.15.0",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.3",
+    "msw": "^3.0.3",
     "openapi-typescript": "^7.13.0",
-    "oxfmt": "^0.47.0",
-    "oxlint": "^1.83.0",
-    "tsdown": "^0.18.4",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
-  }
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "tsdown": "^0.23.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "packageManager": "pnpm@12.11.2"
 }

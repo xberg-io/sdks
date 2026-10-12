@@ -114,7 +114,7 @@ Shared methods (both tiers):
 |---|---|
 | `extract(file=..., options=..., webhook=...)` | Submit one document, get back a `Job`. |
 | `extract_batch(files, options=...)` | Submit many documents in ONE multipart request. |
-| `get_job(job_id)` | Fetch current job status / result. |
+| `get_job(job_id)` | Fetch a tagged extraction or crawl record. |
 | `wait_for_job(job_id, timeout=300, ...)` | Poll until terminal (raises on `failed`/`cancelled`). |
 | `wait_for_jobs(job_ids, ...)` | Wait for multiple jobs. |
 | `extract_and_wait(file=..., ...)` | Submit + wait in one call. |

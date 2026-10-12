@@ -4,7 +4,8 @@ import { expect, it } from "vitest";
 
 it("accepts nonempty opaque JSON through public methods while preserving declared field types", () => {
   const fixture = fileURLToPath(new URL("./opaque-json.fixture.ts", import.meta.url));
-  const program = ts.createProgram([fixture], {
+  const alignmentFixture = fileURLToPath(new URL("./generated-alignment.fixture.ts", import.meta.url));
+  const program = ts.createProgram([fixture, alignmentFixture], {
     noEmit: true,
     strict: true,
     skipLibCheck: true,
@@ -19,4 +20,4 @@ it("accepts nonempty opaque JSON through public methods while preserving declare
     message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
   }));
   expect(diagnostics).toEqual([]);
-});
+}, 30_000);

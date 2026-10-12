@@ -25,7 +25,7 @@ Poll, read, page through and cancel extraction jobs.
 | Method | Description |
 | --- | --- |
 | `ListJobs` | ListJobs lists jobs via GET /v1/jobs (paginated) |
-| `GetJob` | GetJob fetches the current status of a single job by ID |
+| `GetJob` | GetJob fetches a tagged extraction or crawl job record by ID |
 | `GetJobResult` | GetJobResult fetches a job's stored extraction result via GET /v1/jobs/{id}/result |
 | `GetJobPage` | GetJobPage downloads one page raster persisted during a structured extraction (GET /v1/jobs/{jobID}/pages/{pageNumber}) |
 | `CancelJob` | CancelJob cancels a running job (DELETE /v1/jobs/{id}) |
@@ -166,6 +166,8 @@ All backend operations use the configured control-plane origin and credential.
 | --- | --- |
 | `DeleteAccount` | DeleteAccount calls DELETE /auth/account on the Enterprise control plane. |
 | `GetAuthConfig` | GetAuthConfig calls GET /auth/config on the Enterprise control plane. |
+| `GetUserProfile` | GetUserProfile calls GET /auth/profile on the Enterprise control plane |
+| `UpdateUserProfile` | UpdateUserProfile calls PATCH /auth/profile on the Enterprise control plane |
 | `BackendLogin` | BackendLogin calls POST /auth/login on the Enterprise control plane. |
 | `Healthz` | Healthz calls GET /healthz on the Enterprise control plane. |
 | `Readyz` | Readyz calls GET /readyz on the Enterprise control plane. |

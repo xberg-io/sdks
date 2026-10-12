@@ -16,7 +16,8 @@ The default is `../xberg-enterprise`.
 For Enterprise, set `XBERG_ENTERPRISE_BINARY_DIR` to a directory containing Linux release binaries
 for `api`, `backend`, `worker`, `rag`, `vector-index-broker`, `vector-index-broker-launcher` and
 `vector-index-worker`. Set `XBERG_ENTERPRISE_RUNTIME_IMAGE` to the locally built image providing
-those binaries' native runtime libraries. The harness mounts the binaries read-only and runs
+those binaries' native runtime libraries, `/bin/sh` for broker initialization and `/usr/bin/curl`
+for the presigned upload check. The harness mounts the binaries read-only and runs
 services with separate identities.
 
 For Pro, build the shipping `services/pro/Dockerfile` and set `PRO_IMAGE` to that local image tag.

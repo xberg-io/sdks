@@ -244,7 +244,7 @@ def state_environment(path: Path | None, target: str, root: Path) -> dict[str, s
         "api_key": "XBERG_API_KEY",
         "project_id": "XBERG_PROJECT_ID",
         "control_plane_token": "XBERG_CONTROL_PLANE_TOKEN",
-        "crawl_job_id": "XBERG_CRAWL_JOB_ID",
+        "idle_crawl_job_id": "XBERG_CRAWL_JOB_ID",
     }
     values = {
         environment: state.get(field, "") if path else os.environ.get(environment, "")
@@ -366,7 +366,7 @@ def execute_snippet(snippet: Snippet, target: str, directory: Path, command: lis
     if "document" in snippet.requires and not Path(values["XBERG_DOCUMENT"]).is_file():
         raise ValueError(f"{name}: missing document fixture")
     if "crawl-job" in snippet.requires and not values["XBERG_CRAWL_JOB_ID"]:
-        raise ValueError(f"{name}: missing live idle crawl job fixture")
+        raise ValueError(f"{name}: missing live idle crawl job fixture; run task enterprise:prepare-idle-crawl")
     if snippet.side_effect == "scratch-project" and not values["XBERG_CONTROL_PLANE_TOKEN"]:
         raise ValueError(f"{name}: scratch project lifecycle requires a fixture control-plane token")
     extension = {"python": "py", "typescript": "ts", "go": "go"}[snippet.language]

@@ -35,12 +35,14 @@ import {
   toBlob,
 } from "./_internal.js";
 import type { BackoffStrategy, FileLike, QueryParams, Target } from "./_internal.js";
-import { RateLimitError, TimeoutError, XbergError, raiseForStatus } from "./errors.js";
+import { RateLimitError, TimeoutError, ValidationError, XbergError, raiseForStatus } from "./errors.js";
 import type {
   AuthConfigResponse,
   BackendAcceptInvitationRequest,
   BackendAnalyticsResponse,
   BackendAuthConfigResponse,
+  BackendUserProfileResponse,
+  BackendUpdateUserProfileRequest,
   BackendBeginConnectResponse,
   BackendBillingResponse,
   BackendCheckoutResponse,
@@ -106,6 +108,7 @@ import type {
   FileExtractionConfig,
   IntegrationResponse,
   Job,
+  GetJobResponse,
   JobResult,
   LicenseInfoResponse,
   ListApiKeysResponse,
@@ -383,6 +386,14 @@ export class XbergClient {
   /** Enterprise backend `GET /auth/config`. */
   public async getAuthConfig(): Promise<BackendAuthConfigResponse> {
     return await this.backendRequest<BackendAuthConfigResponse>("GET", `/auth/config`, { backendPublic: true });
+  }
+  /** Enterprise backend `GET /auth/profile`. */
+  public async getUserProfile(): Promise<BackendUserProfileResponse> {
+    return await this.backendRequest<BackendUserProfileResponse>("GET", "/auth/profile");
+  }
+  /** Enterprise backend `PATCH /auth/profile`. */
+  public async updateUserProfile(body: BackendUpdateUserProfileRequest): Promise<BackendUserProfileResponse> {
+    return await this.backendRequest<BackendUserProfileResponse>("PATCH", "/auth/profile", { json: body });
   }
   /** Enterprise backend `POST /auth/login`. */
   public async backendLogin(body: BackendLoginRequest): Promise<BackendLoginResponse> {
@@ -851,9 +862,9 @@ export class XbergClient {
     });
   }
 
-  /** Fetch the current state of a job. */
-  public async getJob(jobId: string): Promise<Job> {
-    return await this.requestJson<Job>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}`);
+  /** Fetch a tagged extraction or crawl job record (`GET /v1/jobs/{id}`). */
+  public async getJob(jobId: string): Promise<GetJobResponse> {
+    return parseJobResponse(await this.requestJson<unknown>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}`));
   }
 
   /**
@@ -897,6 +908,9 @@ export class XbergClient {
 
     for (;;) {
       const job = await this.getJob(jobId);
+      if (job.job_type !== "extraction") {
+        throw new ValidationError("expected extraction job, received crawl job", { status: 200, body: job });
+      }
       if (TERMINAL_JOB_STATUSES.includes(job.status)) {
         if (SUCCESS_JOB_STATUSES.includes(job.status)) {
           return job;
@@ -1773,6 +1787,20 @@ interface RequestParts {
   json?: unknown;
   headers?: Record<string, string>;
   params?: QueryParams;
+}
+
+function parseJobResponse(payload: unknown): GetJobResponse {
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    throw new ValidationError("unexpected job response shape", { status: 200, body: payload });
+  }
+  const record = payload as Record<string, unknown>;
+  if (!("job_type" in record) && typeof record["filename"] === "string") {
+    return { ...record, job_type: "extraction" } as GetJobResponse;
+  }
+  if (record["job_type"] === "extraction" || record["job_type"] === "crawl") {
+    return record as GetJobResponse;
+  }
+  throw new ValidationError("unexpected job_type", { status: 200, body: payload });
 }
 
 /**

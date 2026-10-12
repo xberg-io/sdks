@@ -85,6 +85,8 @@ def verify_result(client: XbergClient, job_id: str, text: str) -> None:
         job_id, poll_interval=POLL_INTERVAL_SECONDS, timeout=POLL_TIMEOUT_SECONDS, backoff="constant"
     )
     require(str(job.id) == job_id, "job metadata ID differs from the submitted job")
+    detail = client.get_job(job_id)
+    require(detail.job_type == "extraction" and str(detail.id) == job_id, "job detail did not select extraction")
     result = client.get_job_result(job_id)
     require(str(result.job_id) == job_id, "JobResult envelope ID differs from the submitted job")
     require(result.status in {"completed", "partial_success"}, "JobResult is not successful")
@@ -144,6 +146,26 @@ def verify_saved_presets(client: XbergClient) -> None:
     finally:
         client.delete_saved_preset(preset_id)
     expect_status(lambda: client.get_saved_preset(preset_id), 404)
+
+
+def verify_user_profile(client: XbergClient) -> None:
+    """Read and persist the private fixture user's profile through the Enterprise control plane."""
+    original = client.get_user_profile()
+    name = "SDK live contract profile"
+    updated = client.update_user_profile({"display_name": name})
+    require(updated.user_id == original.user_id, "profile update changed the fixture identity")
+    require(updated.display_name == name, "profile update returned the wrong display name")
+    fetched = client.get_user_profile()
+    require(fetched.user_id == original.user_id and fetched.display_name == name, "profile update was not durable")
+
+
+def verify_crawl_detail(client: XbergClient) -> None:
+    """Read the real terminal crawl fixture through the unified job detail route."""
+    job_id = required_environment("XBERG_CRAWL_JOB_ID")
+    job = client.get_job(job_id)
+    require(job.job_type == "crawl" and str(job.id) == job_id, "job detail did not select crawl")
+    require(job.status == "completed" and job.seed_urls == [], "terminal crawl fixture metadata was lost")
+    require(job.progress.pages_crawled == 0, "empty crawl fixture acquired unexpected progress")
 
 
 def expect_status(operation: Callable[[], Any], expected: int, *, expected_code: str | None = None) -> None:
@@ -304,7 +326,13 @@ def verify(args: argparse.Namespace) -> int:
     checks.run("served OpenAPI includes vendored operations", lambda: verify_surface(args.base_url, args.tier))
     try:
         with (
-            XbergClient(base_url=args.base_url, api_key=key, target=args.tier) as client,
+            XbergClient(
+                base_url=args.base_url,
+                api_key=key,
+                target=args.tier,
+                control_plane_base_url=os.environ.get("XBERG_CONTROL_PLANE_URL"),
+                control_plane_token=os.environ.get("XBERG_CONTROL_PLANE_TOKEN"),
+            ) as client,
             tempfile.TemporaryDirectory(prefix="xberg-sdk-live-") as directory,
         ):
             checks.run("single multipart extraction and jobs", lambda: verify_single(client, Path(directory)))
@@ -313,6 +341,8 @@ def verify(args: argparse.Namespace) -> int:
             checks.run("managed preset catalog", lambda: require(len(client.presets()) > 0, "empty preset catalog"))
             checks.run("missing job typed error", lambda: expect_status(lambda: client.get_job(str(uuid.uuid4())), 404))
             if args.tier == "enterprise":
+                checks.run("Enterprise user profile read/update/read", lambda: verify_user_profile(client))
+                checks.run("Enterprise unified crawl job detail", lambda: verify_crawl_detail(client))
                 checks.run(
                     "Enterprise page retrieval typed absence (text has no raster)",
                     lambda: verify_job_page(client, Path(directory)),
@@ -332,7 +362,7 @@ def verify(args: argparse.Namespace) -> int:
                 checks.run(
                     "Enterprise SDK presign/confirm and real upload transport", lambda: verify_presigned_upload(client)
                 )
-        return checks.finish(13 if args.tier == "enterprise" else 7)
+        return checks.finish(15 if args.tier == "enterprise" else 7)
     finally:
         if minted is not None:
             with XbergClient(

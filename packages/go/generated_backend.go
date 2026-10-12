@@ -4,6 +4,10 @@
 package xberg
 
 import (
+	"encoding/json"
+	"errors"
+
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -35,6 +39,121 @@ type AnalyticsResponse struct {
 
 	// StartDate Start date of the analytics period
 	StartDate string `json:"start_date"`
+}
+
+// BackendArchiveEntry A single file extracted from an archive.
+//
+// When archives (ZIP, TAR, 7Z, GZIP) are extracted with recursive extraction
+// enabled, each processable file produces its own full `ExtractedDocument`.
+type BackendArchiveEntry struct {
+	// MimeType Detected MIME type of the file.
+	MimeType string `json:"mime_type"`
+
+	// Path Archive-relative file path (e.g. "folder/document.pdf").
+	Path string `json:"path"`
+
+	// Result Document extracted by the core extraction pipeline.
+	//
+	// `extract` and `extract_batch` return an `ExtractionResult` envelope whose
+	// `results` field contains these per-document payloads.
+	Result BackendExtractedDocument `json:"result"`
+}
+
+// BackendArchiveMetadata Archive (ZIP/TAR/7Z) metadata.
+//
+// Extracted from compressed archive files containing file lists and size information.
+type BackendArchiveMetadata struct {
+	// CompressedSize Compressed size in bytes (if available)
+	CompressedSize *int64 `json:"compressed_size,omitempty"`
+
+	// FileCount Total number of files in the archive
+	FileCount int32 `json:"file_count"`
+
+	// FileList List of file paths within the archive
+	FileList []string `json:"file_list"`
+
+	// Format Archive format ("ZIP", "TAR", "7Z", etc.)
+	Format string `json:"format"`
+
+	// TotalSize Total uncompressed size in bytes
+	TotalSize int64 `json:"total_size"`
+}
+
+// BackendAudioMetadata Audio/video file metadata.
+//
+// Populated from container tags (ID3v2, MP4 atoms, Vorbis comments, etc.) and
+// PCM decode properties. Available when the `transcription-types` feature is enabled.
+type BackendAudioMetadata struct {
+	// Bitrate Audio bitrate in kbps from the source file tags/properties.
+	Bitrate *int32 `json:"bitrate,omitempty"`
+
+	// Channels Number of audio channels (1 = mono, 2 = stereo).
+	Channels *int32 `json:"channels,omitempty"`
+
+	// Codec Audio codec (e.g. "mp3", "aac", "opus", "flac").
+	Codec *string `json:"codec,omitempty"`
+
+	// Container Container format (e.g. "mpeg", "mp4", "ogg", "wav").
+	Container *string `json:"container,omitempty"`
+
+	// DurationMs Duration in milliseconds derived from the decoded audio stream.
+	DurationMs *int64 `json:"duration_ms,omitempty"`
+
+	// SampleRateHz Sample rate in Hz after decode (always 16000 when resampled for Whisper).
+	SampleRateHz *int32 `json:"sample_rate_hz,omitempty"`
+}
+
+// BackendBibtexMetadata BibTeX bibliography metadata.
+type BackendBibtexMetadata struct {
+	// Authors Author names collected across all bibliography entries.
+	Authors *[]string `json:"authors,omitempty"`
+
+	// CitationKeys BibTeX citation keys (e.g. `"knuth1984"`) for all entries.
+	CitationKeys *[]string `json:"citation_keys,omitempty"`
+
+	// EntryCount Number of entries in the bibliography.
+	EntryCount int `json:"entry_count"`
+
+	// EntryTypes Count of entries grouped by BibTeX entry type (e.g. `"article"` → 5).
+	EntryTypes *map[string]int `json:"entry_types,omitempty"`
+
+	// YearRange Earliest and latest publication years found in the bibliography.
+	YearRange *YearRange `json:"year_range,omitempty"`
+}
+
+// BackendCitationMetadata Citation file metadata (RIS, PubMed, EndNote).
+type BackendCitationMetadata struct {
+	// Authors Author names collected across all citation records.
+	Authors *[]string `json:"authors,omitempty"`
+
+	// CitationCount Total number of citation records in the file.
+	CitationCount int `json:"citation_count"`
+
+	// Dois DOI identifiers found in the citation records.
+	Dois *[]string `json:"dois,omitempty"`
+
+	// Format Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`).
+	Format *string `json:"format,omitempty"`
+
+	// Keywords Keywords collected from all citation records.
+	Keywords *[]string `json:"keywords,omitempty"`
+
+	// YearRange Earliest and latest publication years found in the file.
+	YearRange *YearRange `json:"year_range,omitempty"`
+}
+
+// BackendCodeMetadata Code-format metadata: the structural chunks produced by tree-sitter parsing.
+//
+// Wrapped by `FormatMetadata.Code`. Kept as a named struct (rather than an inline
+// enum-variant body) so serde can tag it under internal tagging and utoipa can emit a
+// referenceable `CodeMetadata` component in the OpenAPI schema.
+type BackendCodeMetadata struct {
+	// Chunks Structural code chunks (function/class/module boundaries).
+	Chunks []CodeChunkInfo `json:"chunks"`
+
+	// Data Hierarchical key/value data tree extracted from data-format source
+	// (JSON, YAML, TOML, XML, CSV, etc.), when data extraction was enabled.
+	Data *CodeDataNode `json:"data,omitempty"`
 }
 
 // BackendCreateIntegrationRequest Request to create a new integration.
@@ -99,6 +218,511 @@ type BackendCreateProjectRequest struct {
 	Slug *string `json:"slug,omitempty"`
 }
 
+// BackendCsvMetadata CSV/TSV file metadata.
+type BackendCsvMetadata struct {
+	// ColumnCount Number of columns detected.
+	ColumnCount int32 `json:"column_count"`
+
+	// ColumnTypes Inferred data type for each column (e.g. `"string"`, `"integer"`, `"float"`).
+	ColumnTypes *[]string `json:"column_types,omitempty"`
+
+	// Delimiter Field delimiter character (e.g. `","` or `"\t"`).
+	Delimiter *string `json:"delimiter,omitempty"`
+
+	// HasHeader Whether the first row was treated as a header.
+	HasHeader bool `json:"has_header"`
+
+	// RowCount Total number of data rows (excluding the header row if present).
+	RowCount int32 `json:"row_count"`
+}
+
+// BackendDbfMetadata dBASE (DBF) file metadata.
+type BackendDbfMetadata struct {
+	// FieldCount Number of field (column) definitions.
+	FieldCount int `json:"field_count"`
+
+	// Fields Descriptor for each field in the table schema.
+	Fields *[]DbfFieldInfo `json:"fields,omitempty"`
+
+	// RecordCount Total number of data records in the DBF file.
+	RecordCount int `json:"record_count"`
+}
+
+// BackendDjotContent Comprehensive Djot document structure with semantic preservation.
+//
+// This type captures the full richness of Djot markup, including:
+// - Block-level structures (headings, lists, blockquotes, code blocks, etc.)
+// - Inline formatting (emphasis, strong, highlight, subscript, superscript, etc.)
+// - Attributes (classes, IDs, key-value pairs)
+// - Links, images, footnotes
+// - Math expressions (inline and display)
+// - Tables with full structure
+//
+// Available when the `djot` feature is enabled.
+type BackendDjotContent struct {
+	// Attributes Attributes mapped by element identifier (if present)
+	Attributes *[]DjotAttributeGroup `json:"attributes,omitempty"`
+
+	// Blocks Structured block-level content
+	Blocks []FormattedBlock `json:"blocks"`
+
+	// Footnotes Footnote definitions
+	Footnotes []Footnote `json:"footnotes"`
+
+	// Images Extracted images with metadata
+	Images []DjotImage `json:"images"`
+
+	// Links Extracted links with URLs
+	Links []DjotLink `json:"links"`
+
+	// Metadata Metadata from YAML frontmatter
+	Metadata BackendMetadata `json:"metadata"`
+
+	// PlainText Plain text representation for backwards compatibility
+	PlainText string `json:"plain_text"`
+
+	// Tables Extracted tables as structured data
+	Tables []Table `json:"tables"`
+}
+
+// BackendDocxMetadata Word document metadata.
+//
+// Extracted from DOCX files using shared Office Open XML metadata extraction.
+// Integrates with `office_metadata` module for core/app/custom properties.
+type BackendDocxMetadata struct {
+	// AppProperties Application properties from docProps/app.xml (Word-specific statistics)
+	//
+	// Contains word count, page count, paragraph count, editing time, etc.
+	// DOCX-specific variant of Office application properties.
+	AppProperties *map[string]interface{} `json:"app_properties,omitempty"`
+
+	// CoreProperties Core properties from docProps/core.xml (Dublin Core metadata)
+	//
+	// Contains title, creator, subject, keywords, dates, etc.
+	// Shared format across DOCX/PPTX/XLSX documents.
+	CoreProperties *map[string]interface{} `json:"core_properties,omitempty"`
+
+	// CustomProperties Custom properties from docProps/custom.xml (user-defined properties)
+	//
+	// Contains key-value pairs defined by users or applications.
+	// Values can be strings, numbers, booleans, or dates.
+	CustomProperties *map[string]interface{} `json:"custom_properties,omitempty"`
+}
+
+// BackendEmailMetadata Email metadata extracted from .eml and .msg files.
+//
+// Includes sender/recipient information, message ID, and attachment list.
+type BackendEmailMetadata struct {
+	// Attachments List of attachment filenames
+	Attachments []string `json:"attachments"`
+
+	// BccEmails BCC recipients
+	BccEmails []string `json:"bcc_emails"`
+
+	// CcEmails CC recipients
+	CcEmails []string `json:"cc_emails"`
+
+	// FromEmail Sender's email address
+	FromEmail *string `json:"from_email,omitempty"`
+
+	// FromName Sender's display name
+	FromName *string `json:"from_name,omitempty"`
+
+	// MessageId Message-ID header value
+	MessageId *string `json:"message_id,omitempty"`
+
+	// ToEmails Primary recipients
+	ToEmails []string `json:"to_emails"`
+}
+
+// BackendEpubMetadata EPUB metadata (Dublin Core extensions).
+type BackendEpubMetadata struct {
+	// CoverImage Path or identifier of the cover image within the EPUB container.
+	CoverImage *string `json:"cover_image,omitempty"`
+
+	// Coverage Dublin Core `coverage` field (geographic or temporal scope).
+	Coverage *string `json:"coverage,omitempty"`
+
+	// DcFormat Dublin Core `format` field (media type of the resource).
+	DcFormat *string `json:"dc_format,omitempty"`
+
+	// DcType Dublin Core `type` field (nature or genre of the resource).
+	DcType *string `json:"dc_type,omitempty"`
+
+	// Relation Dublin Core `relation` field (related resource identifier).
+	Relation *string `json:"relation,omitempty"`
+
+	// Source Dublin Core `source` field (origin resource identifier).
+	Source *string `json:"source,omitempty"`
+}
+
+// BackendExcelMetadata Excel/spreadsheet format metadata.
+//
+// Identifies the document as a spreadsheet source via the `FormatMetadata::Excel`
+// discriminant. Sheet count and sheet names are stored inside this struct.
+type BackendExcelMetadata struct {
+	// SheetCount Number of sheets in the workbook.
+	SheetCount *int32 `json:"sheet_count,omitempty"`
+
+	// SheetNames Names of all sheets in the workbook.
+	SheetNames *[]string `json:"sheet_names,omitempty"`
+}
+
+// BackendExtractedDocument Document extracted by the core extraction pipeline.
+//
+// `extract` and `extract_batch` return an `ExtractionResult` envelope whose
+// `results` field contains these per-document payloads.
+type BackendExtractedDocument struct {
+	// Annotations PDF annotations extracted from the document.
+	//
+	// When annotation extraction is enabled via `PdfConfig::extract_annotations`,
+	// this field contains text notes, highlights, links, stamps, and other
+	// annotations found in PDF documents.
+	Annotations *[]PdfAnnotation `json:"annotations,omitempty"`
+
+	// Children Nested extraction results from archive contents.
+	//
+	// When extracting archives, each processable file inside produces its own
+	// full extraction result. Set to `None` for non-archive formats.
+	// Use `max_archive_depth` in config to control recursion depth.
+	Children *[]BackendArchiveEntry `json:"children,omitempty"`
+
+	// Chunks Text chunks when chunking is enabled.
+	//
+	// When chunking configuration is provided, the content is split into
+	// overlapping chunks for efficient processing. Each chunk contains the text,
+	// optional embeddings (if enabled), and metadata about its position.
+	Chunks *[]Chunk `json:"chunks,omitempty"`
+
+	// CodeIntelligence Code intelligence results from tree-sitter analysis.
+	//
+	// Populated when extracting source code files with the `tree-sitter` feature.
+	// Contains metrics, structural analysis, imports/exports, comments,
+	// docstrings, symbols, diagnostics, and optionally chunked code segments.
+	//
+	// Stored as an opaque JSON value so that all language bindings (Go, Java,
+	// C#, …) can deserialize it as a raw JSON object rather than a typed struct.
+	// The underlying type is `tree_sitter_language_pack::ProcessResult`.
+	CodeIntelligence interface{} `json:"code_intelligence,omitempty"`
+
+	// Content Plain-text representation of the extracted document content.
+	Content string `json:"content"`
+
+	// Counts Cheap structural counts (pages, tables, images).
+	//
+	// Always populated by the extraction pipeline, even when the `pages` /
+	// `images` collections are `None`. See `DocumentCounts`.
+	Counts *DocumentCounts `json:"counts,omitempty"`
+
+	// DetectedLanguageConfidences Structured per-language detection results: confidence, document share, script,
+	// and reliability, alongside the ISO-code-only `detected_languages` (#261).
+	//
+	// One entry per language in `detected_languages`, in the same order. `None` under
+	// the same conditions as `detected_languages`: detection disabled, empty input
+	// text, or no language met the configured `min_confidence`.
+	DetectedLanguageConfidences *[]LanguageConfidence `json:"detected_language_confidences,omitempty"`
+
+	// DetectedLanguages ISO 639-1 language codes detected in the document content.
+	DetectedLanguages *[]string `json:"detected_languages,omitempty"`
+
+	// DjotContent Rich Djot content structure (when extracting Djot documents).
+	//
+	// When extracting Djot documents with structured extraction enabled,
+	// this field contains the full semantic structure including:
+	// - Block-level elements with nesting
+	// - Inline formatting with attributes
+	// - Links, images, footnotes
+	// - Math expressions
+	// - Complete attribute information
+	//
+	// The `content` field still contains plain text for backward compatibility.
+	//
+	// Always `None` for non-Djot documents.
+	DjotContent *BackendDjotContent `json:"djot_content,omitempty"`
+
+	// Document Structured document tree (when document structure extraction is enabled).
+	//
+	// When `include_document_structure` is true in `ExtractionConfig`, this field
+	// contains the full hierarchical representation of the document including:
+	// - Heading-driven section nesting
+	// - Table grids with cell-level metadata
+	// - Content layer classification (body, header, footer, footnote)
+	// - Inline text annotations (formatting, links)
+	// - Bounding boxes and page numbers
+	//
+	// Independent of `result_format` — can be combined with Unified or ElementBased.
+	Document *DocumentStructure `json:"document,omitempty"`
+
+	// Elements Semantic elements when element-based result format is enabled.
+	//
+	// When result_format is set to ElementBased, this field contains semantic
+	// elements with type classification, unique identifiers, and metadata for
+	// Unstructured-compatible element-based processing.
+	Elements *[]Element `json:"elements,omitempty"`
+
+	// Entities Named entities detected in `content` by the NER post-processor.
+	//
+	// `None` when no NER backend is configured. Populated by the `xberg-gliner`
+	// ONNX backend or the LLM-driven backend (see `crates/xberg/src/text/ner/`).
+	Entities *[]Entity `json:"entities,omitempty"`
+
+	// ExtractedKeywords Extracted keywords when keyword extraction is enabled.
+	//
+	// When keyword extraction (RAKE or YAKE) is configured, this field contains
+	// the extracted keywords with scores, algorithm info, and position data.
+	// Previously stored in `metadata.additional["keywords"]`.
+	ExtractedKeywords *[]Keyword `json:"extracted_keywords,omitempty"`
+
+	// ExtractionConfidence Confidence score computed by the heuristics pipeline.
+	//
+	// Populated when the `heuristics` feature is enabled and confidence
+	// scoring has been performed.  Combines text-coverage, OCR aggregate
+	// confidence, and schema-compliance into a single `[0, 1]` value.
+	//
+	// `None` when confidence scoring is not configured or the feature is
+	// absent.
+	ExtractionConfidence *ExtractionConfidence `json:"extraction_confidence,omitempty"`
+
+	// ExtractionMethod Extraction strategy used to produce the returned text.
+	//
+	// Populated when the extractor can reliably distinguish native text extraction,
+	// OCR-only extraction, or mixed native/OCR output.
+	ExtractionMethod *ExtractionMethod `json:"extraction_method,omitempty"`
+
+	// FormFields Form fields extracted from a PDF's AcroForm or XFA structure.
+	//
+	// Populated by the PDF extractor when `PdfConfig::extract_form_fields` is
+	// enabled (default) and the document is a fillable form. Empty otherwise.
+	FormFields *[]PdfFormField `json:"form_fields,omitempty"`
+
+	// Formulas Mathematical formulas recognized in the document.
+	//
+	// Populated from every source that produces formulas: layout-guided OCR
+	// (with geometry), VLM OCR (text only), and markup extraction (DOCX,
+	// PPTX, ODT, EPUB, HTML, JATS, LaTeX, Markdown, and related formats,
+	// without geometry). Empty when the document contains no formulas.
+	Formulas *[]Formula `json:"formulas,omitempty"`
+
+	// Images Extracted images from the document.
+	//
+	// When image extraction is enabled via `ImageExtractionConfig`, this field
+	// contains all images found in the document with their raw data and metadata.
+	// Each image may optionally contain a nested `ocr_result` if OCR was performed.
+	Images *[]BackendExtractedImage `json:"images,omitempty"`
+
+	// LlmUsage LLM token usage and cost data for all LLM calls made during this extraction.
+	//
+	// Contains one entry per LLM call. Multiple entries are produced when
+	// VLM OCR, structured extraction, or LLM embeddings run during
+	// the same extraction.
+	//
+	// `None` when no LLM was used.
+	LlmUsage *[]LlmUsage `json:"llm_usage,omitempty"`
+
+	// Metadata Document-level metadata (author, title, dates, format-specific fields).
+	Metadata BackendMetadata `json:"metadata"`
+
+	// MimeType MIME type of the source document (e.g. `"application/pdf"`).
+	MimeType string `json:"mime_type"`
+
+	// OcrElements OCR elements with full spatial and confidence metadata.
+	//
+	// When OCR is performed with element extraction enabled, this field contains
+	// the structured representation of detected text including:
+	// - Bounding geometry (rectangles or quadrilaterals)
+	// - Confidence scores (detection and recognition)
+	// - Rotation information
+	// - Hierarchical relationships (Tesseract only)
+	//
+	// This field preserves all metadata that would otherwise be lost when
+	// converting to plain text or markdown output formats.
+	//
+	// Only populated when `OcrElementConfig.include_elements` is true.
+	OcrElements *[]OcrElement `json:"ocr_elements,omitempty"`
+
+	// PageClassifications Per-page classifications produced by the page-classification post-processor.
+	//
+	// `None` when classification is not configured.
+	PageClassifications *[]PageClassification `json:"page_classifications,omitempty"`
+
+	// Pages Per-page content when page extraction is enabled.
+	//
+	// When page extraction is configured, the document is split into per-page content
+	// with tables and images mapped to their respective pages.
+	Pages *[]PageContent `json:"pages,omitempty"`
+
+	// ProcessingWarnings Non-fatal warnings collected during processing pipeline stages.
+	//
+	// Captures errors from optional pipeline features (embedding, chunking,
+	// language detection, output formatting) that don't prevent extraction
+	// but may indicate degraded or incomplete results. These warnings are
+	// independent of `quality_score`, which assesses only retained text.
+	// Previously stored as individual keys in `metadata.additional`.
+	ProcessingWarnings *[]ProcessingWarning `json:"processing_warnings,omitempty"`
+
+	// QualityScore Text cleanliness/readability score from quality analysis.
+	//
+	// A value between 0.0 and 1.0 describing the quality of the text that was
+	// retained. This is not a completeness or recall score: clean text can score
+	// highly even when an extractor omitted or rejected other content. Inspect
+	// `processing_warnings` separately for known degraded or partial extraction.
+	//
+	// When the text came from OCR and the result carries enough recognized words to
+	// judge, this score is additionally capped by the mean OCR recognition confidence.
+	// Text that looks clean but that OCR itself had little confidence in therefore
+	// cannot score high. A native, non-OCR extraction is not capped.
+	// Previously stored in `metadata.additional["quality_score"]`.
+	QualityScore *float64 `json:"quality_score,omitempty"`
+
+	// RedactionReport Audit report of redactions applied by the redaction post-processor.
+	//
+	// The redaction processor rewrites `content`, `formatted_content`, every
+	// chunk's text, and the textual fields of `entities` / `summary` / `translation` /
+	// `page_classifications` in place. This report describes what was found and how it
+	// was replaced. `None` when redaction is not configured.
+	RedactionReport *RedactionReport `json:"redaction_report,omitempty"`
+
+	// Revisions Tracked changes embedded in the source document.
+	//
+	// Populated by per-format extractors that understand change-tracking
+	// metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`,
+	// …). Every extractor defaults to `None` until its format-specific
+	// implementation is added. Extractors that do populate this field follow
+	// the "accepted-changes" convention: inserted text is present in
+	// `content`, deleted text is absent — the revision list is the separate
+	// audit trail.
+	Revisions *[]DocumentRevision `json:"revisions,omitempty"`
+
+	// StructuredOutput Structured extraction output from LLM-based JSON schema extraction.
+	//
+	// When `structured_extraction` is configured in `ExtractionConfig`, the
+	// extracted document content is sent to a VLM with the provided JSON schema.
+	// The response is parsed and stored here as a JSON value matching the schema.
+	StructuredOutput interface{} `json:"structured_output,omitempty"`
+
+	// Summary Summary of `content` produced by the summarisation post-processor.
+	//
+	// `None` when summarisation is not configured. Populated by the TextRank
+	// extractive backend (deterministic, no external service) or by the
+	// liter-llm-driven abstractive backend.
+	Summary *DocumentSummary `json:"summary,omitempty"`
+
+	// Tables Tables extracted from the document, each with structured cell data.
+	Tables []Table `json:"tables"`
+
+	// Translation Translation of `content` produced by the translation post-processor.
+	//
+	// `None` when translation is not configured.
+	Translation *Translation `json:"translation,omitempty"`
+
+	// Uris URIs/links discovered during document extraction.
+	//
+	// Contains hyperlinks, image references, citations, email addresses, and
+	// other URI-like references found in the document. Always extracted when
+	// present in the source document.
+	Uris *[]ExtractedUri `json:"uris,omitempty"`
+}
+
+// BackendExtractedImage Extracted image from a document.
+//
+// Contains raw image data, metadata, and optional nested OCR results.
+// Raw bytes allow cross-language compatibility - users can convert to
+// PIL.Image (Python), Sharp (Node.js), or other formats as needed.
+type BackendExtractedImage struct {
+	// BitsPerComponent Bits per color component (e.g., 8, 16)
+	BitsPerComponent *int32 `json:"bits_per_component,omitempty"`
+
+	// BoundingBox Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+	// Only populated for PDF-extracted images when position data is available from the PDF extractor.
+	BoundingBox *BoundingBox `json:"bounding_box,omitempty"`
+
+	// Caption VLM-generated caption describing the image, when captioning is configured.
+	//
+	// Populated by the captioning post-processor
+	// (`crates/xberg/src/plugins/processor/builtin/captioning.rs`), which routes
+	// each image through `crate::llm::region_extractor::extract_region_with_vlm` in
+	// caption mode. `None` when captioning is disabled or the VLM declined to caption.
+	Caption *string `json:"caption,omitempty"`
+
+	// ClusterId Identifier shared across images that form a single logical figure
+	// (e.g. all raster tiles of one technical drawing). `None` for singletons.
+	ClusterId *int32 `json:"cluster_id,omitempty"`
+
+	// Colorspace Colorspace information (e.g., "RGB", "CMYK", "Gray")
+	Colorspace *string `json:"colorspace,omitempty"`
+
+	// Data Raw image data (PNG, JPEG, WebP, etc. bytes).
+	// Uses `bytes::Bytes` for cheap cloning of large buffers.
+	Data []int `json:"data"`
+
+	// DataBase64 Base64-encoded copy of `data`; populated when `ImageExtractionConfig::include_data_base64`
+	// is `true`. Omitted from JSON by default; use instead of `data` in JSON-only clients.
+	DataBase64 *string `json:"data_base64,omitempty"`
+
+	// Description Optional description of the image
+	Description *string `json:"description,omitempty"`
+
+	// Format Image format (e.g., "jpeg", "png", "webp")
+	// Uses Cow<'static, str> to avoid allocation for static literals.
+	Format string `json:"format"`
+
+	// Height Image height in pixels
+	Height *int32 `json:"height,omitempty"`
+
+	// ImageIndex Zero-indexed position of this image in the document/page
+	ImageIndex int32 `json:"image_index"`
+
+	// ImageKind Heuristic classification of what this image likely depicts.
+	// `None` if classification was disabled or inconclusive.
+	ImageKind *ImageKind `json:"image_kind,omitempty"`
+
+	// IsMask Whether this image is a mask image
+	IsMask *bool `json:"is_mask,omitempty"`
+
+	// KindConfidence Confidence score for `image_kind`, in the range 0.0 to 1.0.
+	KindConfidence *float32 `json:"kind_confidence,omitempty"`
+
+	// OcrResult Document extracted by the core extraction pipeline.
+	//
+	// `extract` and `extract_batch` return an `ExtractionResult` envelope whose
+	// `results` field contains these per-document payloads.
+	OcrResult *BackendExtractedDocument `json:"ocr_result,omitempty"`
+
+	// PageNumber Page/slide number where image was found (1-indexed)
+	PageNumber *int32 `json:"page_number,omitempty"`
+
+	// QrCodes QR codes decoded from this image, when QR detection is enabled.
+	//
+	// Populated by the QR post-processor (`crates/xberg/src/extractors/qr.rs`) via
+	// the pure-Rust `rqrr` decoder. `None` when QR detection is disabled; an empty
+	// `Some(vec![])` when detection ran but found nothing.
+	QrCodes *[]QrCode `json:"qr_codes,omitempty"`
+
+	// SourcePath Original source path of the image within the document archive (e.g., "media/image1.png" in DOCX).
+	// Used for rendering image references when the binary data is not extracted.
+	SourcePath *string `json:"source_path,omitempty"`
+
+	// Width Image width in pixels
+	Width *int32 `json:"width,omitempty"`
+}
+
+// BackendFictionBookMetadata FictionBook (FB2) metadata.
+type BackendFictionBookMetadata struct {
+	// Annotation Short annotation / summary from the FB2 `<annotation>` element.
+	Annotation *string `json:"annotation,omitempty"`
+
+	// Genres Genre tags as declared in the FB2 `<genre>` elements.
+	Genres *[]string `json:"genres,omitempty"`
+
+	// Sequences Book series (sequence) names, if any.
+	Sequences *[]string `json:"sequences,omitempty"`
+}
+
+// BackendFormatMetadata Format-specific metadata (discriminated union). Only one format type can exist per extraction result.
+type BackendFormatMetadata struct {
+	union json.RawMessage
+}
+
 // BackendHealthResponse Backend liveness and deployment capabilities used by the dashboard.
 type BackendHealthResponse struct {
 	// AutoTune Enterprise AutoTune availability; project entitlement is checked on submission.
@@ -120,6 +744,300 @@ type BackendHealthResponse struct {
 	Tier string `json:"tier"`
 }
 
+// BackendHtmlMetadata HTML metadata extracted from HTML documents.
+//
+// Includes document-level metadata, Open Graph data, Twitter Card metadata,
+// and extracted structural elements (headers, links, images, structured data).
+type BackendHtmlMetadata struct {
+	// Author Document author from `<meta name="author">` tag
+	Author *string `json:"author,omitempty"`
+
+	// BaseHref Base URL from `<base href="">` tag for resolving relative URLs
+	BaseHref *string `json:"base_href,omitempty"`
+
+	// CanonicalUrl Canonical URL from `<link rel="canonical">` tag
+	CanonicalUrl *string `json:"canonical_url,omitempty"`
+
+	// Description Document description from `<meta name="description">` tag
+	Description *string `json:"description,omitempty"`
+
+	// Headers Extracted header elements with hierarchy
+	Headers *[]HeaderMetadata `json:"headers,omitempty"`
+
+	// Images Extracted images with source and dimensions
+	Images *[]ImageMetadataType `json:"images,omitempty"`
+
+	// Keywords Document keywords from `<meta name="keywords">` tag, split on commas
+	Keywords *[]string `json:"keywords,omitempty"`
+
+	// Language Document language from `lang` attribute
+	Language *string `json:"language,omitempty"`
+
+	// Links Extracted hyperlinks with type classification
+	Links *[]LinkMetadata `json:"links,omitempty"`
+
+	// MetaTags Additional meta tags not covered by specific fields
+	// Keys are meta name/property attributes, values are content
+	MetaTags *map[string]string `json:"meta_tags,omitempty"`
+
+	// OpenGraph Open Graph metadata (og:* properties) for social media
+	// Keys like "title", "description", "image", "url", etc.
+	OpenGraph *map[string]string `json:"open_graph,omitempty"`
+
+	// StructuredData Extracted structured data blocks
+	StructuredData *[]StructuredData `json:"structured_data,omitempty"`
+
+	// TextDirection Document text direction from `dir` attribute
+	TextDirection *TextDirection `json:"text_direction,omitempty"`
+
+	// Title Document title from `<title>` tag
+	Title *string `json:"title,omitempty"`
+
+	// TwitterCard Twitter Card metadata (twitter:* properties)
+	// Keys like "card", "site", "creator", "title", "description", "image", etc.
+	TwitterCard *map[string]string `json:"twitter_card,omitempty"`
+}
+
+// BackendImageMetadata Image metadata extracted from image files.
+//
+// Includes dimensions, format, and EXIF data.
+type BackendImageMetadata struct {
+	// Exif EXIF metadata tags
+	Exif map[string]string `json:"exif"`
+
+	// Format Image format (e.g., "PNG", "JPEG", "TIFF")
+	Format string `json:"format"`
+
+	// Height Image height in pixels
+	Height int32 `json:"height"`
+
+	// Width Image width in pixels
+	Width int32 `json:"width"`
+}
+
+// BackendJatsMetadata JATS (Journal Article Tag Suite) metadata.
+type BackendJatsMetadata struct {
+	// ContributorRoles Authors and contributors with their stated roles.
+	ContributorRoles *[]ContributorRole `json:"contributor_roles,omitempty"`
+
+	// Copyright Copyright statement from the article's `<permissions>` element.
+	Copyright *string `json:"copyright,omitempty"`
+
+	// HistoryDates Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`).
+	HistoryDates *map[string]string `json:"history_dates,omitempty"`
+
+	// License Open-access license URI from the article's `<license>` element.
+	License *string `json:"license,omitempty"`
+}
+
+// BackendMetadata Extraction result metadata.
+//
+// Contains common fields applicable to all formats, format-specific metadata
+// via a discriminated union, and additional custom fields from postprocessors.
+type BackendMetadata struct {
+	// AbstractText Abstract or summary text (from frontmatter).
+	AbstractText *string `json:"abstract_text,omitempty"`
+
+	// Additional Additional custom fields from postprocessors.
+	//
+	// Serialized as a nested `"additional"` object (not flattened at root level).
+	// Uses `Cow<'static, str>` keys so static string keys avoid allocation.
+	Additional *map[string]interface{} `json:"additional,omitempty"`
+
+	// Authors Primary author(s) - always Vec for consistency
+	Authors *[]string `json:"authors,omitempty"`
+
+	// Category Document category (from frontmatter or classification).
+	Category *string `json:"category,omitempty"`
+
+	// CreatedAt Creation timestamp (ISO 8601 format)
+	CreatedAt *string `json:"created_at,omitempty"`
+
+	// CreatedBy User who created the document
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// DocumentVersion Document version string (from frontmatter).
+	DocumentVersion *string `json:"document_version,omitempty"`
+
+	// Error Error metadata (for batch operations)
+	Error *ErrorMetadata `json:"error,omitempty"`
+
+	// ExtractionDurationMs Extraction duration in milliseconds (for benchmarking).
+	//
+	// This field is populated by batch extraction to provide per-file timing
+	// information. It's `None` for single-file extraction (which uses external timing).
+	ExtractionDurationMs *int64 `json:"extraction_duration_ms,omitempty"`
+
+	// Format Format-specific metadata (discriminated union)
+	//
+	// Contains detailed metadata specific to the document format.
+	// Serialized as a nested `"format"` object with a `format_type` discriminator field.
+	Format *BackendFormatMetadata `json:"format,omitempty"`
+
+	// ImagePreprocessing Image preprocessing metadata (when OCR preprocessing was applied)
+	ImagePreprocessing *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
+
+	// JsonSchema JSON schema (for structured data extraction)
+	JsonSchema interface{} `json:"json_schema,omitempty"`
+
+	// Keywords Keywords/tags - always Vec for consistency
+	Keywords *[]string `json:"keywords,omitempty"`
+
+	// Language Primary language (ISO 639 code)
+	Language *string `json:"language,omitempty"`
+
+	// ModifiedAt Last modification timestamp (ISO 8601 format)
+	ModifiedAt *string `json:"modified_at,omitempty"`
+
+	// ModifiedBy User who last modified the document
+	ModifiedBy *string `json:"modified_by,omitempty"`
+
+	// OcrUsed Whether OCR was used during extraction.
+	//
+	// Set to `true` whenever the extraction pipeline ran an OCR backend
+	// (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary
+	// or fallback text. `false` means native text extraction was used exclusively.
+	OcrUsed *bool `json:"ocr_used,omitempty"`
+
+	// OutputFormat Output format identifier (e.g., "markdown", "html", "text").
+	//
+	// Set by the output format pipeline stage when format conversion is applied.
+	// Previously stored in `metadata.additional["output_format"]`.
+	OutputFormat *string `json:"output_format,omitempty"`
+
+	// Pages Page/slide/sheet structure with boundaries
+	Pages *PageStructure `json:"pages,omitempty"`
+
+	// Subject Document subject or description
+	Subject *string `json:"subject,omitempty"`
+
+	// Tags Document tags (from frontmatter).
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Title Document title
+	Title *string `json:"title,omitempty"`
+}
+
+// BackendOcrMetadata OCR processing metadata.
+//
+// Captures information about OCR processing configuration and results.
+type BackendOcrMetadata struct {
+	// Language OCR language code(s) used
+	Language string `json:"language"`
+
+	// OutputFormat Output format (e.g., "text", "hocr")
+	OutputFormat string `json:"output_format"`
+
+	// Psm Tesseract Page Segmentation Mode (PSM)
+	Psm int32 `json:"psm"`
+
+	// TableCols Number of columns in the detected table (if a single table was found).
+	TableCols *int32 `json:"table_cols,omitempty"`
+
+	// TableCount Number of tables detected
+	TableCount int32 `json:"table_count"`
+
+	// TableRows Number of rows in the detected table (if a single table was found).
+	TableRows *int32 `json:"table_rows,omitempty"`
+}
+
+// BackendPdfMetadata PDF-specific metadata.
+//
+// Contains metadata fields specific to PDF documents that are not in the common
+// `Metadata` structure. Common fields like title, authors, keywords, and dates
+// are at the `Metadata` level.
+type BackendPdfMetadata struct {
+	// FabricatedTextPages Pages whose text was dominated by fabricated character mappings (1-indexed):
+	// `MappingProvenance::Fallback`, a font whose glyph-to-Unicode mapping resolved to
+	// a value the extractor chose rather than read from the file (issue #1254). This is
+	// a fact about how the text was derived, independent of `scanned_pages`'s raster-based
+	// scan detection, and independent of whether the resulting text happens to look
+	// structurally like prose (issue #1667: a broken mapping that lands on ordinary
+	// letters and punctuation passes every character-shape check but is still fabricated).
+	//
+	// `None` when `OcrQualityThresholds::enable_provenance_ocr_routing` is `false`; empty
+	// when no page qualifies.
+	FabricatedTextPages *[]int32 `json:"fabricated_text_pages,omitempty"`
+
+	// Height First page height in points (1/72 inch)
+	Height *int64 `json:"height,omitempty"`
+
+	// ImplausibleTextPages Pages whose native text layer reads as no real detectable language (1-indexed): a
+	// `/ToUnicode` CMap (or other mapping tier) that resolves every glyph to *a* character,
+	// consistently the WRONG one (e.g. a ROT-shifted mapping), so the page is structurally
+	// indistinguishable from real prose to `fabricated_text_pages`'s provenance check and to
+	// every character-shape heuristic (issue #1696; issue #1667's `quality_score: 1.0` with
+	// no warning on such a page is the same underlying gap). This is a content-plausibility
+	// fact, independent of `fabricated_text_pages` and of `scanned_pages`.
+	//
+	// `None` when `OcrQualityThresholds::enable_plausibility_ocr_routing` is `false`; empty
+	// when no page qualifies.
+	ImplausibleTextPages *[]int32 `json:"implausible_text_pages,omitempty"`
+
+	// IsEncrypted Whether the PDF is encrypted/password-protected
+	IsEncrypted *bool `json:"is_encrypted,omitempty"`
+
+	// LayoutGateReasons Why the `auto` layout gate selected or skipped each page.
+	//
+	// Index `i` is page `i + 1`. Snake_case values such as `multi_column`,
+	// `table_grid`, or `plain_text` (the skip reason). `None` unless layout
+	// detection ran with `LayoutStrategy::Auto`.
+	LayoutGateReasons *[]string `json:"layout_gate_reasons,omitempty"`
+
+	// LayoutGatedPages Pages the `auto` layout strategy skipped (1-indexed).
+	//
+	// `None` unless layout detection ran with `LayoutStrategy::Auto`; empty
+	// when the gate selected every page.
+	LayoutGatedPages *[]int32 `json:"layout_gated_pages,omitempty"`
+
+	// PageCount Total number of pages in the PDF document
+	PageCount *int32 `json:"page_count,omitempty"`
+
+	// PdfVersion PDF version (e.g., "1.7", "2.0")
+	PdfVersion *string `json:"pdf_version,omitempty"`
+
+	// Producer PDF producer (application that created the PDF)
+	Producer *string `json:"producer,omitempty"`
+
+	// ScannedConfidence How strongly the document's most scan-like page resembles a scan, in `[0.0, 1.0]`.
+	//
+	// `None` when the document could not be inspected. A full-page raster with no
+	// visible text scores at least `0.85`; a born-digital slide with a full-bleed
+	// background image scores `0.50`.
+	ScannedConfidence *float32 `json:"scanned_confidence,omitempty"`
+
+	// ScannedPages Pages that look like scans (1-indexed), using the default confidence threshold.
+	//
+	// `None` when the document could not be inspected; empty when no page qualifies.
+	ScannedPages *[]int32 `json:"scanned_pages,omitempty"`
+
+	// Width First page width in points (1/72 inch)
+	Width *int64 `json:"width,omitempty"`
+}
+
+// BackendPptxMetadata PowerPoint presentation metadata.
+//
+// Extracted from PPTX files containing slide counts and presentation details.
+type BackendPptxMetadata struct {
+	// ImageCount Number of embedded images
+	ImageCount *int32 `json:"image_count,omitempty"`
+
+	// SlideCount Total number of slides in the presentation
+	SlideCount int32 `json:"slide_count"`
+
+	// SlideNames Names of slides (if available)
+	SlideNames []string `json:"slide_names"`
+
+	// TableCount Number of tables
+	TableCount *int32 `json:"table_count,omitempty"`
+}
+
+// BackendPstMetadata Outlook PST archive metadata.
+type BackendPstMetadata struct {
+	// MessageCount Total number of email messages found in the PST archive.
+	MessageCount int `json:"message_count"`
+}
+
 // BackendReadinessChecks Individual dependency check results
 type BackendReadinessChecks struct {
 	// Database Database connectivity
@@ -136,6 +1054,30 @@ type BackendReadinessResponse struct {
 
 	// Status Overall readiness status
 	Status string `json:"status"`
+}
+
+// BackendTextMetadata Text/Markdown metadata.
+//
+// Extracted from plain text and Markdown files. Includes word counts and,
+// for Markdown, structural elements like headers and links.
+type BackendTextMetadata struct {
+	// CharacterCount Number of characters
+	CharacterCount int32 `json:"character_count"`
+
+	// CodeBlocks Code blocks (for Markdown files).
+	CodeBlocks *[]MarkdownCodeBlock `json:"code_blocks,omitempty"`
+
+	// Headers Markdown headers (headings text only, for Markdown files)
+	Headers *[]string `json:"headers,omitempty"`
+
+	// LineCount Number of lines in the document
+	LineCount int32 `json:"line_count"`
+
+	// Links Markdown links (for Markdown files).
+	Links *[]MarkdownLink `json:"links,omitempty"`
+
+	// WordCount Number of words
+	WordCount int32 `json:"word_count"`
 }
 
 // BackendUsageResponse Response containing usage statistics
@@ -160,6 +1102,17 @@ type BackendUsageResponse struct {
 
 	// Summary Aggregated statistics for the period
 	Summary UsageSummary `json:"summary"`
+}
+
+// BackendXmlMetadata XML metadata extracted during XML parsing.
+//
+// Provides statistics about XML document structure.
+type BackendXmlMetadata struct {
+	// ElementCount Total number of XML elements processed
+	ElementCount int32 `json:"element_count"`
+
+	// UniqueElements List of unique element tag names (sorted)
+	UniqueElements []string `json:"unique_elements"`
 }
 
 // BeginConnectResponse OAuth authorization initiation response
@@ -200,6 +1153,7 @@ type BillingAccountInfo struct {
 
 // BillingResponse Billing and quota response for a project
 type BillingResponse struct {
+	// BillingAccount Stripe billing account information (omitted if not provisioned)
 	BillingAccount *BillingAccountInfo `json:"billing_account,omitempty"`
 
 	// PeriodEnd End of the current billing period (ISO 8601 date)
@@ -559,8 +1513,8 @@ type SandboxExtractResponse struct {
 	Id string `json:"id"`
 
 	// ProcessingTimeMs Processing time in milliseconds
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64                    `json:"processing_time_ms,omitempty"`
+	Result           *BackendExtractedDocument `json:"result,omitempty"`
 
 	// Status Job status
 	Status string `json:"status"`
@@ -577,6 +1531,12 @@ type UpdateMemberRoleRequest struct {
 type UpdateProjectRequest struct {
 	// Name Updated project name.
 	Name *string `json:"name,omitempty"`
+}
+
+// UpdateUserProfileRequest Fields the authenticated user may change on their profile.
+type UpdateUserProfileRequest struct {
+	// DisplayName Non-empty display name of at most 255 characters.
+	DisplayName string `json:"display_name"`
 }
 
 // UpdateWebhookRequest Request to update a webhook. All fields optional; at least one must be
@@ -652,6 +1612,18 @@ type UsageSummary struct {
 	TotalResponseBytes int64 `json:"total_response_bytes"`
 }
 
+// UserProfileResponse The authenticated user's durable profile.
+type UserProfileResponse struct {
+	// DisplayName User-chosen display name, initially seeded from OIDC claims.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Email Most recently observed email from trusted OIDC claims.
+	Email *string `json:"email,omitempty"`
+
+	// UserId User ID from the identity provider.
+	UserId string `json:"user_id"`
+}
+
 // WebhookResponse Webhook resource details.
 type WebhookResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
@@ -722,7 +1694,8 @@ type GetAnalyticsParams struct {
 
 // ListProjectAuditParams defines parameters for ListProjectAudit.
 type ListProjectAuditParams struct {
-	// Action Filter to entries matching this action exactly (e.g. `"job.submit"`).
+	// Action Filter to entries matching a known audit action exactly (e.g. `"job.submit"`).
+	// Unknown actions are rejected with a 400 response.
 	Action *string `form:"action,omitempty" json:"action,omitempty"`
 
 	// Limit Page size. Values outside 1..=100 are rejected.
@@ -777,6 +1750,9 @@ type RetryWebhookDeliveryParams struct {
 	IdempotencyKey *string `json:"Idempotency-Key,omitempty"`
 }
 
+// UpdateUserProfileJSONRequestBody defines body for UpdateUserProfile for application/json ContentType.
+type UpdateUserProfileJSONRequestBody = UpdateUserProfileRequest
+
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
 type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
 
@@ -800,3 +1776,788 @@ type UpdateWebhookJSONRequestBody = UpdateWebhookRequest
 
 // PublicSandboxExtractMultipartRequestBody defines body for PublicSandboxExtract for multipart/form-data ContentType.
 type PublicSandboxExtractMultipartRequestBody = PublicSandboxExtractForm
+
+// AsBackendPdfMetadata returns the union data inside the BackendFormatMetadata as a BackendPdfMetadata
+func (t BackendFormatMetadata) AsBackendPdfMetadata() (BackendPdfMetadata, error) {
+	var body BackendPdfMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendPdfMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendPdfMetadata
+func (t *BackendFormatMetadata) FromBackendPdfMetadata(v BackendPdfMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPdfMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendPdfMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendPdfMetadata
+func (t *BackendFormatMetadata) MergeBackendPdfMetadata(v BackendPdfMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPdfMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendDocxMetadata returns the union data inside the BackendFormatMetadata as a BackendDocxMetadata
+func (t BackendFormatMetadata) AsBackendDocxMetadata() (BackendDocxMetadata, error) {
+	var body BackendDocxMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendDocxMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendDocxMetadata
+func (t *BackendFormatMetadata) FromBackendDocxMetadata(v BackendDocxMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendDocxMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendDocxMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendDocxMetadata
+func (t *BackendFormatMetadata) MergeBackendDocxMetadata(v BackendDocxMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendDocxMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendExcelMetadata returns the union data inside the BackendFormatMetadata as a BackendExcelMetadata
+func (t BackendFormatMetadata) AsBackendExcelMetadata() (BackendExcelMetadata, error) {
+	var body BackendExcelMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendExcelMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendExcelMetadata
+func (t *BackendFormatMetadata) FromBackendExcelMetadata(v BackendExcelMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendExcelMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendExcelMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendExcelMetadata
+func (t *BackendFormatMetadata) MergeBackendExcelMetadata(v BackendExcelMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendExcelMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendEmailMetadata returns the union data inside the BackendFormatMetadata as a BackendEmailMetadata
+func (t BackendFormatMetadata) AsBackendEmailMetadata() (BackendEmailMetadata, error) {
+	var body BackendEmailMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendEmailMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendEmailMetadata
+func (t *BackendFormatMetadata) FromBackendEmailMetadata(v BackendEmailMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendEmailMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendEmailMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendEmailMetadata
+func (t *BackendFormatMetadata) MergeBackendEmailMetadata(v BackendEmailMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendEmailMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendPptxMetadata returns the union data inside the BackendFormatMetadata as a BackendPptxMetadata
+func (t BackendFormatMetadata) AsBackendPptxMetadata() (BackendPptxMetadata, error) {
+	var body BackendPptxMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendPptxMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendPptxMetadata
+func (t *BackendFormatMetadata) FromBackendPptxMetadata(v BackendPptxMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPptxMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendPptxMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendPptxMetadata
+func (t *BackendFormatMetadata) MergeBackendPptxMetadata(v BackendPptxMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPptxMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendArchiveMetadata returns the union data inside the BackendFormatMetadata as a BackendArchiveMetadata
+func (t BackendFormatMetadata) AsBackendArchiveMetadata() (BackendArchiveMetadata, error) {
+	var body BackendArchiveMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendArchiveMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendArchiveMetadata
+func (t *BackendFormatMetadata) FromBackendArchiveMetadata(v BackendArchiveMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendArchiveMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendArchiveMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendArchiveMetadata
+func (t *BackendFormatMetadata) MergeBackendArchiveMetadata(v BackendArchiveMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendArchiveMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendImageMetadata returns the union data inside the BackendFormatMetadata as a BackendImageMetadata
+func (t BackendFormatMetadata) AsBackendImageMetadata() (BackendImageMetadata, error) {
+	var body BackendImageMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendImageMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendImageMetadata
+func (t *BackendFormatMetadata) FromBackendImageMetadata(v BackendImageMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendImageMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendImageMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendImageMetadata
+func (t *BackendFormatMetadata) MergeBackendImageMetadata(v BackendImageMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendImageMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendXmlMetadata returns the union data inside the BackendFormatMetadata as a BackendXmlMetadata
+func (t BackendFormatMetadata) AsBackendXmlMetadata() (BackendXmlMetadata, error) {
+	var body BackendXmlMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendXmlMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendXmlMetadata
+func (t *BackendFormatMetadata) FromBackendXmlMetadata(v BackendXmlMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendXmlMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendXmlMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendXmlMetadata
+func (t *BackendFormatMetadata) MergeBackendXmlMetadata(v BackendXmlMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendXmlMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendTextMetadata returns the union data inside the BackendFormatMetadata as a BackendTextMetadata
+func (t BackendFormatMetadata) AsBackendTextMetadata() (BackendTextMetadata, error) {
+	var body BackendTextMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendTextMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendTextMetadata
+func (t *BackendFormatMetadata) FromBackendTextMetadata(v BackendTextMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendTextMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendTextMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendTextMetadata
+func (t *BackendFormatMetadata) MergeBackendTextMetadata(v BackendTextMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendTextMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendHtmlMetadata returns the union data inside the BackendFormatMetadata as a BackendHtmlMetadata
+func (t BackendFormatMetadata) AsBackendHtmlMetadata() (BackendHtmlMetadata, error) {
+	var body BackendHtmlMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendHtmlMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendHtmlMetadata
+func (t *BackendFormatMetadata) FromBackendHtmlMetadata(v BackendHtmlMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendHtmlMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendHtmlMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendHtmlMetadata
+func (t *BackendFormatMetadata) MergeBackendHtmlMetadata(v BackendHtmlMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendHtmlMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendOcrMetadata returns the union data inside the BackendFormatMetadata as a BackendOcrMetadata
+func (t BackendFormatMetadata) AsBackendOcrMetadata() (BackendOcrMetadata, error) {
+	var body BackendOcrMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendOcrMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendOcrMetadata
+func (t *BackendFormatMetadata) FromBackendOcrMetadata(v BackendOcrMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendOcrMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendOcrMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendOcrMetadata
+func (t *BackendFormatMetadata) MergeBackendOcrMetadata(v BackendOcrMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendOcrMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendCsvMetadata returns the union data inside the BackendFormatMetadata as a BackendCsvMetadata
+func (t BackendFormatMetadata) AsBackendCsvMetadata() (BackendCsvMetadata, error) {
+	var body BackendCsvMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendCsvMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendCsvMetadata
+func (t *BackendFormatMetadata) FromBackendCsvMetadata(v BackendCsvMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCsvMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendCsvMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendCsvMetadata
+func (t *BackendFormatMetadata) MergeBackendCsvMetadata(v BackendCsvMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCsvMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendBibtexMetadata returns the union data inside the BackendFormatMetadata as a BackendBibtexMetadata
+func (t BackendFormatMetadata) AsBackendBibtexMetadata() (BackendBibtexMetadata, error) {
+	var body BackendBibtexMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendBibtexMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendBibtexMetadata
+func (t *BackendFormatMetadata) FromBackendBibtexMetadata(v BackendBibtexMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendBibtexMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendBibtexMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendBibtexMetadata
+func (t *BackendFormatMetadata) MergeBackendBibtexMetadata(v BackendBibtexMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendBibtexMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendCitationMetadata returns the union data inside the BackendFormatMetadata as a BackendCitationMetadata
+func (t BackendFormatMetadata) AsBackendCitationMetadata() (BackendCitationMetadata, error) {
+	var body BackendCitationMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendCitationMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendCitationMetadata
+func (t *BackendFormatMetadata) FromBackendCitationMetadata(v BackendCitationMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCitationMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendCitationMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendCitationMetadata
+func (t *BackendFormatMetadata) MergeBackendCitationMetadata(v BackendCitationMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCitationMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendFictionBookMetadata returns the union data inside the BackendFormatMetadata as a BackendFictionBookMetadata
+func (t BackendFormatMetadata) AsBackendFictionBookMetadata() (BackendFictionBookMetadata, error) {
+	var body BackendFictionBookMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendFictionBookMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendFictionBookMetadata
+func (t *BackendFormatMetadata) FromBackendFictionBookMetadata(v BackendFictionBookMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendFictionBookMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendFictionBookMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendFictionBookMetadata
+func (t *BackendFormatMetadata) MergeBackendFictionBookMetadata(v BackendFictionBookMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendFictionBookMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendDbfMetadata returns the union data inside the BackendFormatMetadata as a BackendDbfMetadata
+func (t BackendFormatMetadata) AsBackendDbfMetadata() (BackendDbfMetadata, error) {
+	var body BackendDbfMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendDbfMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendDbfMetadata
+func (t *BackendFormatMetadata) FromBackendDbfMetadata(v BackendDbfMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendDbfMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendDbfMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendDbfMetadata
+func (t *BackendFormatMetadata) MergeBackendDbfMetadata(v BackendDbfMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendDbfMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendEpubMetadata returns the union data inside the BackendFormatMetadata as a BackendEpubMetadata
+func (t BackendFormatMetadata) AsBackendEpubMetadata() (BackendEpubMetadata, error) {
+	var body BackendEpubMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendEpubMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendEpubMetadata
+func (t *BackendFormatMetadata) FromBackendEpubMetadata(v BackendEpubMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendEpubMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendEpubMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendEpubMetadata
+func (t *BackendFormatMetadata) MergeBackendEpubMetadata(v BackendEpubMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendEpubMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendJatsMetadata returns the union data inside the BackendFormatMetadata as a BackendJatsMetadata
+func (t BackendFormatMetadata) AsBackendJatsMetadata() (BackendJatsMetadata, error) {
+	var body BackendJatsMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendJatsMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendJatsMetadata
+func (t *BackendFormatMetadata) FromBackendJatsMetadata(v BackendJatsMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendJatsMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendJatsMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendJatsMetadata
+func (t *BackendFormatMetadata) MergeBackendJatsMetadata(v BackendJatsMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendJatsMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendPstMetadata returns the union data inside the BackendFormatMetadata as a BackendPstMetadata
+func (t BackendFormatMetadata) AsBackendPstMetadata() (BackendPstMetadata, error) {
+	var body BackendPstMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendPstMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendPstMetadata
+func (t *BackendFormatMetadata) FromBackendPstMetadata(v BackendPstMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPstMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendPstMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendPstMetadata
+func (t *BackendFormatMetadata) MergeBackendPstMetadata(v BackendPstMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendPstMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendAudioMetadata returns the union data inside the BackendFormatMetadata as a BackendAudioMetadata
+func (t BackendFormatMetadata) AsBackendAudioMetadata() (BackendAudioMetadata, error) {
+	var body BackendAudioMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendAudioMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendAudioMetadata
+func (t *BackendFormatMetadata) FromBackendAudioMetadata(v BackendAudioMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendAudioMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendAudioMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendAudioMetadata
+func (t *BackendFormatMetadata) MergeBackendAudioMetadata(v BackendAudioMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendAudioMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsBackendCodeMetadata returns the union data inside the BackendFormatMetadata as a BackendCodeMetadata
+func (t BackendFormatMetadata) AsBackendCodeMetadata() (BackendCodeMetadata, error) {
+	var body BackendCodeMetadata
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromBackendCodeMetadata overwrites any union data inside the BackendFormatMetadata as the provided BackendCodeMetadata
+func (t *BackendFormatMetadata) FromBackendCodeMetadata(v BackendCodeMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCodeMetadata"}`))
+	t.union = b
+	return err
+}
+
+// MergeBackendCodeMetadata performs a merge with any union data inside the BackendFormatMetadata, using the provided BackendCodeMetadata
+func (t *BackendFormatMetadata) MergeBackendCodeMetadata(v BackendCodeMetadata) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"format_type":"BackendCodeMetadata"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t BackendFormatMetadata) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"format_type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t BackendFormatMetadata) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "BackendArchiveMetadata":
+		return t.AsBackendArchiveMetadata()
+	case "BackendAudioMetadata":
+		return t.AsBackendAudioMetadata()
+	case "BackendBibtexMetadata":
+		return t.AsBackendBibtexMetadata()
+	case "BackendCitationMetadata":
+		return t.AsBackendCitationMetadata()
+	case "BackendCodeMetadata":
+		return t.AsBackendCodeMetadata()
+	case "BackendCsvMetadata":
+		return t.AsBackendCsvMetadata()
+	case "BackendDbfMetadata":
+		return t.AsBackendDbfMetadata()
+	case "BackendDocxMetadata":
+		return t.AsBackendDocxMetadata()
+	case "BackendEmailMetadata":
+		return t.AsBackendEmailMetadata()
+	case "BackendEpubMetadata":
+		return t.AsBackendEpubMetadata()
+	case "BackendExcelMetadata":
+		return t.AsBackendExcelMetadata()
+	case "BackendFictionBookMetadata":
+		return t.AsBackendFictionBookMetadata()
+	case "BackendHtmlMetadata":
+		return t.AsBackendHtmlMetadata()
+	case "BackendImageMetadata":
+		return t.AsBackendImageMetadata()
+	case "BackendJatsMetadata":
+		return t.AsBackendJatsMetadata()
+	case "BackendOcrMetadata":
+		return t.AsBackendOcrMetadata()
+	case "BackendPdfMetadata":
+		return t.AsBackendPdfMetadata()
+	case "BackendPptxMetadata":
+		return t.AsBackendPptxMetadata()
+	case "BackendPstMetadata":
+		return t.AsBackendPstMetadata()
+	case "BackendTextMetadata":
+		return t.AsBackendTextMetadata()
+	case "BackendXmlMetadata":
+		return t.AsBackendXmlMetadata()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t BackendFormatMetadata) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *BackendFormatMetadata) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}

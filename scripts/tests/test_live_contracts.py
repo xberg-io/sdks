@@ -6,10 +6,38 @@ import importlib.util
 import os
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("persisted", [True, False])
+def test_profile_check_requires_durable_round_trip(persisted: bool) -> None:
+    spec = importlib.util.spec_from_file_location("live_profile_check", ROOT / "scripts/live-sdk-contracts.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    reads = []
+    writes = []
+
+    def read():
+        reads.append(True)
+        name = writes[0]["display_name"] if persisted and writes else None
+        return SimpleNamespace(user_id="fixture-user", display_name=name)
+
+    def update(body):
+        writes.append(body)
+        return SimpleNamespace(user_id="fixture-user", display_name=body["display_name"])
+
+    client = SimpleNamespace(get_user_profile=read, update_user_profile=update)
+    if persisted:
+        module.verify_user_profile(client)
+    else:
+        with pytest.raises(ValueError, match="profile update was not durable"):
+            module.verify_user_profile(client)
+    assert len(reads) == 2
+    assert writes == [{"display_name": "SDK live contract profile"}]
 
 
 def test_pro_key_requires_explicit_admin_credential_before_external_commands(tmp_path: Path) -> None:

@@ -224,3 +224,6 @@ export type BackendUsageResponse = backendComponents["schemas"]["UsageResponse"]
 export type BackendWebhookDeliveryDetailResponse = backendComponents["schemas"]["WebhookDeliveryDetailResponse"];
 export type BackendWebhookResponse = backendComponents["schemas"]["WebhookResponse"];
 export type BackendWebhookTestResponse = backendComponents["schemas"]["WebhookTestResponse"];
+
+export type BackendUserProfileResponse = backendComponents["schemas"]["UserProfileResponse"];
+export type BackendUpdateUserProfileRequest = backendComponents["schemas"]["UpdateUserProfileRequest"];

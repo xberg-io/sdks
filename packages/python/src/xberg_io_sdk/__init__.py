@@ -9,7 +9,7 @@ from xberg_io_sdk._generated_api.models.file_extraction_config import FileExtrac
 from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.job_result_error import JobResultError
 from xberg_io_sdk._generated_api.models.job_status import JobStatus
-from xberg_io_sdk.client import AsyncXbergClient, XbergClient
+from xberg_io_sdk.client import AsyncXbergClient, GetJobResponse, XbergClient
 from xberg_io_sdk.errors import (
     AuthError,
     NotFoundError,
@@ -34,6 +34,7 @@ __all__ = [
     "ExtractionOptions",
     "ExtractionResult",
     "FileExtractionConfig",
+    "GetJobResponse",
     "Job",
     "JobResponse",
     "JobResult",
@@ -49,4 +50,4 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
