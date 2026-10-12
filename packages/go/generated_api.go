@@ -192,6 +192,87 @@ func (e AnnotationKind11AnnotationType) Valid() bool {
 	}
 }
 
+// Defines values for ArchiveMetadataFormatType.
+const (
+	Archive ArchiveMetadataFormatType = "archive"
+)
+
+// Valid indicates whether the value is a known member of the ArchiveMetadataFormatType enum.
+func (e ArchiveMetadataFormatType) Valid() bool {
+	switch e {
+	case Archive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AudioMetadataFormatType.
+const (
+	Audio AudioMetadataFormatType = "audio"
+)
+
+// Valid indicates whether the value is a known member of the AudioMetadataFormatType enum.
+func (e AudioMetadataFormatType) Valid() bool {
+	switch e {
+	case Audio:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AutoTuneWebhookEventType.
+const (
+	AutoTuneCompleted AutoTuneWebhookEventType = "auto_tune.completed"
+	AutoTuneFailed    AutoTuneWebhookEventType = "auto_tune.failed"
+)
+
+// Valid indicates whether the value is a known member of the AutoTuneWebhookEventType enum.
+func (e AutoTuneWebhookEventType) Valid() bool {
+	switch e {
+	case AutoTuneCompleted:
+		return true
+	case AutoTuneFailed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AutoTuneWebhookStatus.
+const (
+	AutoTuneWebhookStatusCompleted AutoTuneWebhookStatus = "completed"
+	AutoTuneWebhookStatusFailed    AutoTuneWebhookStatus = "failed"
+)
+
+// Valid indicates whether the value is a known member of the AutoTuneWebhookStatus enum.
+func (e AutoTuneWebhookStatus) Valid() bool {
+	switch e {
+	case AutoTuneWebhookStatusCompleted:
+		return true
+	case AutoTuneWebhookStatusFailed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for BibtexMetadataFormatType.
+const (
+	Bibtex BibtexMetadataFormatType = "bibtex"
+)
+
+// Valid indicates whether the value is a known member of the BibtexMetadataFormatType enum.
+func (e BibtexMetadataFormatType) Valid() bool {
+	switch e {
+	case Bibtex:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BlockType.
 const (
 	BlockTypeBlockquote            BlockType = "blockquote"
@@ -330,6 +411,21 @@ func (e ChunkType) Valid() bool {
 	}
 }
 
+// Defines values for CitationMetadataFormatType.
+const (
+	CitationMetadataFormatTypeCitation CitationMetadataFormatType = "citation"
+)
+
+// Valid indicates whether the value is a known member of the CitationMetadataFormatType enum.
+func (e CitationMetadataFormatType) Valid() bool {
+	switch e {
+	case CitationMetadataFormatTypeCitation:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CodeDataNodeKind.
 const (
 	CodeDataNodeKindElement  CodeDataNodeKind = "element"
@@ -345,6 +441,45 @@ func (e CodeDataNodeKind) Valid() bool {
 	case CodeDataNodeKindKeyValue:
 		return true
 	case CodeDataNodeKindSequence:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CodeMetadataFormatType.
+const (
+	CodeMetadataFormatTypeCode CodeMetadataFormatType = "code"
+)
+
+// Valid indicates whether the value is a known member of the CodeMetadataFormatType enum.
+func (e CodeMetadataFormatType) Valid() bool {
+	switch e {
+	case CodeMetadataFormatTypeCode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CollectionResponseIndexStatus.
+const (
+	CollectionResponseIndexStatusBuilding CollectionResponseIndexStatus = "building"
+	CollectionResponseIndexStatusFailed   CollectionResponseIndexStatus = "failed"
+	CollectionResponseIndexStatusPending  CollectionResponseIndexStatus = "pending"
+	CollectionResponseIndexStatusReady    CollectionResponseIndexStatus = "ready"
+)
+
+// Valid indicates whether the value is a known member of the CollectionResponseIndexStatus enum.
+func (e CollectionResponseIndexStatus) Valid() bool {
+	switch e {
+	case CollectionResponseIndexStatusBuilding:
+		return true
+	case CollectionResponseIndexStatusFailed:
+		return true
+	case CollectionResponseIndexStatusPending:
+		return true
+	case CollectionResponseIndexStatusReady:
 		return true
 	default:
 		return false
@@ -468,15 +603,54 @@ func (e CrawlJobStatus) Valid() bool {
 	}
 }
 
+// Defines values for CrawlWebhookEventType.
+const (
+	CrawlCompleted CrawlWebhookEventType = "crawl.completed"
+	CrawlFailed    CrawlWebhookEventType = "crawl.failed"
+)
+
+// Valid indicates whether the value is a known member of the CrawlWebhookEventType enum.
+func (e CrawlWebhookEventType) Valid() bool {
+	switch e {
+	case CrawlCompleted:
+		return true
+	case CrawlFailed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CrawlWebhookStatus.
+const (
+	CrawlWebhookStatusCompleted      CrawlWebhookStatus = "completed"
+	CrawlWebhookStatusFailed         CrawlWebhookStatus = "failed"
+	CrawlWebhookStatusPartialSuccess CrawlWebhookStatus = "partial_success"
+)
+
+// Valid indicates whether the value is a known member of the CrawlWebhookStatus enum.
+func (e CrawlWebhookStatus) Valid() bool {
+	switch e {
+	case CrawlWebhookStatusCompleted:
+		return true
+	case CrawlWebhookStatusFailed:
+		return true
+	case CrawlWebhookStatusPartialSuccess:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreateDocumentSourceChunksKind.
 const (
-	Chunks CreateDocumentSourceChunksKind = "chunks"
+	CreateDocumentSourceChunksKindChunks CreateDocumentSourceChunksKind = "chunks"
 )
 
 // Valid indicates whether the value is a known member of the CreateDocumentSourceChunksKind enum.
 func (e CreateDocumentSourceChunksKind) Valid() bool {
 	switch e {
-	case Chunks:
+	case CreateDocumentSourceChunksKindChunks:
 		return true
 	default:
 		return false
@@ -492,6 +666,36 @@ const (
 func (e CreateDocumentSourceTextKind) Valid() bool {
 	switch e {
 	case CreateDocumentSourceTextKindText:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CsvMetadataFormatType.
+const (
+	Csv CsvMetadataFormatType = "csv"
+)
+
+// Valid indicates whether the value is a known member of the CsvMetadataFormatType enum.
+func (e CsvMetadataFormatType) Valid() bool {
+	switch e {
+	case Csv:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DbfMetadataFormatType.
+const (
+	Dbf DbfMetadataFormatType = "dbf"
+)
+
+// Valid indicates whether the value is a known member of the DbfMetadataFormatType enum.
+func (e DbfMetadataFormatType) Valid() bool {
+	switch e {
+	case Dbf:
 		return true
 	default:
 		return false
@@ -564,6 +768,21 @@ func (e DiffLine2Kind) Valid() bool {
 	}
 }
 
+// Defines values for DocxMetadataFormatType.
+const (
+	Docx DocxMetadataFormatType = "docx"
+)
+
+// Valid indicates whether the value is a known member of the DocxMetadataFormatType enum.
+func (e DocxMetadataFormatType) Valid() bool {
+	switch e {
+	case Docx:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ElementType.
 const (
 	ElementTypeBlockQuote    ElementType = "block_quote"
@@ -606,6 +825,21 @@ func (e ElementType) Valid() bool {
 	case ElementTypeTable:
 		return true
 	case ElementTypeTitle:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmailMetadataFormatType.
+const (
+	EmailMetadataFormatTypeEmail EmailMetadataFormatType = "email"
+)
+
+// Valid indicates whether the value is a known member of the EmailMetadataFormatType enum.
+func (e EmailMetadataFormatType) Valid() bool {
+	switch e {
+	case EmailMetadataFormatTypeEmail:
 		return true
 	default:
 		return false
@@ -807,21 +1041,66 @@ func (e EntityCategory9) Valid() bool {
 	}
 }
 
+// Defines values for EpubMetadataFormatType.
+const (
+	Epub EpubMetadataFormatType = "epub"
+)
+
+// Valid indicates whether the value is a known member of the EpubMetadataFormatType enum.
+func (e EpubMetadataFormatType) Valid() bool {
+	switch e {
+	case Epub:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ExcelMetadataFormatType.
+const (
+	Excel ExcelMetadataFormatType = "excel"
+)
+
+// Valid indicates whether the value is a known member of the ExcelMetadataFormatType enum.
+func (e ExcelMetadataFormatType) Valid() bool {
+	switch e {
+	case Excel:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ExtractionMethod.
 const (
-	Mixed  ExtractionMethod = "mixed"
-	Native ExtractionMethod = "native"
-	Ocr    ExtractionMethod = "ocr"
+	ExtractionMethodMixed  ExtractionMethod = "mixed"
+	ExtractionMethodNative ExtractionMethod = "native"
+	ExtractionMethodOcr    ExtractionMethod = "ocr"
 )
 
 // Valid indicates whether the value is a known member of the ExtractionMethod enum.
 func (e ExtractionMethod) Valid() bool {
 	switch e {
-	case Mixed:
+	case ExtractionMethodMixed:
 		return true
-	case Native:
+	case ExtractionMethodNative:
 		return true
-	case Ocr:
+	case ExtractionMethodOcr:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for FictionBookMetadataFormatType.
+const (
+	FictionBook FictionBookMetadataFormatType = "fiction_book"
+)
+
+// Valid indicates whether the value is a known member of the FictionBookMetadataFormatType enum.
+func (e FictionBookMetadataFormatType) Valid() bool {
+	switch e {
+	case FictionBook:
 		return true
 	default:
 		return false
@@ -863,13 +1142,13 @@ func (e FormFieldType) Valid() bool {
 
 // Defines values for GetJobResponse0JobType.
 const (
-	Extraction GetJobResponse0JobType = "extraction"
+	GetJobResponse0JobTypeExtraction GetJobResponse0JobType = "extraction"
 )
 
 // Valid indicates whether the value is a known member of the GetJobResponse0JobType enum.
 func (e GetJobResponse0JobType) Valid() bool {
 	switch e {
-	case Extraction:
+	case GetJobResponse0JobTypeExtraction:
 		return true
 	default:
 		return false
@@ -878,13 +1157,13 @@ func (e GetJobResponse0JobType) Valid() bool {
 
 // Defines values for GetJobResponse1JobType.
 const (
-	Crawl GetJobResponse1JobType = "crawl"
+	GetJobResponse1JobTypeCrawl GetJobResponse1JobType = "crawl"
 )
 
 // Valid indicates whether the value is a known member of the GetJobResponse1JobType enum.
 func (e GetJobResponse1JobType) Valid() bool {
 	switch e {
-	case Crawl:
+	case GetJobResponse1JobTypeCrawl:
 		return true
 	default:
 		return false
@@ -906,6 +1185,21 @@ func (e GroundTruthKind) Valid() bool {
 	case Plaintext:
 		return true
 	case Structured:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HtmlMetadataFormatType.
+const (
+	Html HtmlMetadataFormatType = "html"
+)
+
+// Valid indicates whether the value is a known member of the HtmlMetadataFormatType enum.
+func (e HtmlMetadataFormatType) Valid() bool {
+	switch e {
+	case Html:
 		return true
 	default:
 		return false
@@ -954,6 +1248,21 @@ func (e ImageKind) Valid() bool {
 	case ImageKindTileFragment:
 		return true
 	case ImageKindUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ImageMetadataFormatType.
+const (
+	ImageMetadataFormatTypeImage ImageMetadataFormatType = "image"
+)
+
+// Valid indicates whether the value is a known member of the ImageMetadataFormatType enum.
+func (e ImageMetadataFormatType) Valid() bool {
+	switch e {
+	case ImageMetadataFormatTypeImage:
 		return true
 	default:
 		return false
@@ -1044,6 +1353,21 @@ func (e InlineType) Valid() bool {
 	}
 }
 
+// Defines values for JatsMetadataFormatType.
+const (
+	Jats JatsMetadataFormatType = "jats"
+)
+
+// Valid indicates whether the value is a known member of the JatsMetadataFormatType enum.
+func (e JatsMetadataFormatType) Valid() bool {
+	switch e {
+	case Jats:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for JobStatus.
 const (
 	JobStatusAwaitingUpload JobStatus = "awaiting_upload"
@@ -1071,6 +1395,24 @@ func (e JobStatus) Valid() bool {
 	case JobStatusPending:
 		return true
 	case JobStatusProcessing:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for JobSummaryType.
+const (
+	JobSummaryTypeCrawl      JobSummaryType = "crawl"
+	JobSummaryTypeExtraction JobSummaryType = "extraction"
+)
+
+// Valid indicates whether the value is a known member of the JobSummaryType enum.
+func (e JobSummaryType) Valid() bool {
+	switch e {
+	case JobSummaryTypeCrawl:
+		return true
+	case JobSummaryTypeExtraction:
 		return true
 	default:
 		return false
@@ -1536,6 +1878,51 @@ func (e OcrElementLevel) Valid() bool {
 	}
 }
 
+// Defines values for OcrMetadataFormatType.
+const (
+	OcrMetadataFormatTypeOcr OcrMetadataFormatType = "ocr"
+)
+
+// Valid indicates whether the value is a known member of the OcrMetadataFormatType enum.
+func (e OcrMetadataFormatType) Valid() bool {
+	switch e {
+	case OcrMetadataFormatTypeOcr:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OcrStrategy0Mode.
+const (
+	OcrStrategy0ModeAuto OcrStrategy0Mode = "auto"
+)
+
+// Valid indicates whether the value is a known member of the OcrStrategy0Mode enum.
+func (e OcrStrategy0Mode) Valid() bool {
+	switch e {
+	case OcrStrategy0ModeAuto:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OcrStrategy1Mode.
+const (
+	ScannedPages OcrStrategy1Mode = "scanned_pages"
+)
+
+// Valid indicates whether the value is a known member of the OcrStrategy1Mode enum.
+func (e OcrStrategy1Mode) Valid() bool {
+	switch e {
+	case ScannedPages:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PageUnitType.
 const (
 	PageUnitTypePage  PageUnitType = "page"
@@ -1617,6 +2004,21 @@ func (e PdfAnnotationType) Valid() bool {
 	case PdfAnnotationTypeText:
 		return true
 	case PdfAnnotationTypeUnderline:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PdfMetadataFormatType.
+const (
+	Pdf PdfMetadataFormatType = "pdf"
+)
+
+// Valid indicates whether the value is a known member of the PdfMetadataFormatType enum.
+func (e PdfMetadataFormatType) Valid() bool {
+	switch e {
+	case Pdf:
 		return true
 	default:
 		return false
@@ -1803,6 +2205,21 @@ func (e PiiCategory11) Valid() bool {
 	}
 }
 
+// Defines values for PptxMetadataFormatType.
+const (
+	Pptx PptxMetadataFormatType = "pptx"
+)
+
+// Valid indicates whether the value is a known member of the PptxMetadataFormatType enum.
+func (e PptxMetadataFormatType) Valid() bool {
+	switch e {
+	case Pptx:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PresetCallMode.
 const (
 	TextOnly       PresetCallMode = "text_only"
@@ -1896,6 +2313,21 @@ const (
 func (e PrimaryScore2Kind) Valid() bool {
 	switch e {
 	case PrimaryScore2KindHybrid:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PstMetadataFormatType.
+const (
+	Pst PstMetadataFormatType = "pst"
+)
+
+// Valid indicates whether the value is a known member of the PstMetadataFormatType enum.
+func (e PstMetadataFormatType) Valid() bool {
+	switch e {
+	case Pst:
 		return true
 	default:
 		return false
@@ -2378,19 +2810,34 @@ func (e SummaryStrategy) Valid() bool {
 
 // Defines values for TextDirection.
 const (
-	Auto TextDirection = "auto"
-	Ltr  TextDirection = "ltr"
-	Rtl  TextDirection = "rtl"
+	TextDirectionAuto TextDirection = "auto"
+	TextDirectionLtr  TextDirection = "ltr"
+	TextDirectionRtl  TextDirection = "rtl"
 )
 
 // Valid indicates whether the value is a known member of the TextDirection enum.
 func (e TextDirection) Valid() bool {
 	switch e {
-	case Auto:
+	case TextDirectionAuto:
 		return true
-	case Ltr:
+	case TextDirectionLtr:
 		return true
-	case Rtl:
+	case TextDirectionRtl:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TextMetadataFormatType.
+const (
+	TextMetadataFormatTypeText TextMetadataFormatType = "text"
+)
+
+// Valid indicates whether the value is a known member of the TextMetadataFormatType enum.
+func (e TextMetadataFormatType) Valid() bool {
+	switch e {
+	case TextMetadataFormatTypeText:
 		return true
 	default:
 		return false
@@ -2421,6 +2868,48 @@ func (e UriKind) Valid() bool {
 	case UriKindImage:
 		return true
 	case UriKindReference:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VectorCandidateStatus.
+const (
+	VectorCandidateStatusBudgetFilled           VectorCandidateStatus = "budget_filled"
+	VectorCandidateStatusEligibleMatchesOmitted VectorCandidateStatus = "eligible_matches_omitted"
+	VectorCandidateStatusEligibleSetExhausted   VectorCandidateStatus = "eligible_set_exhausted"
+	VectorCandidateStatusUnknown                VectorCandidateStatus = "unknown"
+)
+
+// Valid indicates whether the value is a known member of the VectorCandidateStatus enum.
+func (e VectorCandidateStatus) Valid() bool {
+	switch e {
+	case VectorCandidateStatusBudgetFilled:
+		return true
+	case VectorCandidateStatusEligibleMatchesOmitted:
+		return true
+	case VectorCandidateStatusEligibleSetExhausted:
+		return true
+	case VectorCandidateStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VectorCandidateUnit.
+const (
+	VectorCandidateUnitChunks    VectorCandidateUnit = "chunks"
+	VectorCandidateUnitDocuments VectorCandidateUnit = "documents"
+)
+
+// Valid indicates whether the value is a known member of the VectorCandidateUnit enum.
+func (e VectorCandidateUnit) Valid() bool {
+	switch e {
+	case VectorCandidateUnitChunks:
+		return true
+	case VectorCandidateUnitDocuments:
 		return true
 	default:
 		return false
@@ -2508,6 +2997,138 @@ func (e WebhookEventType) Valid() bool {
 	case JobCompleted:
 		return true
 	case JobFailed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for XmlMetadataFormatType.
+const (
+	Xml XmlMetadataFormatType = "xml"
+)
+
+// Valid indicates whether the value is a known member of the XmlMetadataFormatType enum.
+func (e XmlMetadataFormatType) Valid() bool {
+	switch e {
+	case Xml:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListAuditEntriesParamsAction.
+const (
+	ApiKeyCreate             ListAuditEntriesParamsAction = "api_key.create"
+	ApiKeyRegenerate         ListAuditEntriesParamsAction = "api_key.regenerate"
+	ApiKeyRevoke             ListAuditEntriesParamsAction = "api_key.revoke"
+	AuthFailure              ListAuditEntriesParamsAction = "auth.failure"
+	AuthLogin                ListAuditEntriesParamsAction = "auth.login"
+	CrawlSubmit              ListAuditEntriesParamsAction = "crawl.submit"
+	DbApiKeysDelete          ListAuditEntriesParamsAction = "db.api_keys.delete"
+	DbApiKeysInsert          ListAuditEntriesParamsAction = "db.api_keys.insert"
+	DbApiKeysUpdate          ListAuditEntriesParamsAction = "db.api_keys.update"
+	DbAuditLogBackfill       ListAuditEntriesParamsAction = "db.audit_log.backfill"
+	DbIntegrationsDelete     ListAuditEntriesParamsAction = "db.integrations.delete"
+	DbIntegrationsInsert     ListAuditEntriesParamsAction = "db.integrations.insert"
+	DbOauthConnectionsUpdate ListAuditEntriesParamsAction = "db.oauth_connections.update"
+	IntegrationCreate        ListAuditEntriesParamsAction = "integration.create"
+	IntegrationDelete        ListAuditEntriesParamsAction = "integration.delete"
+	IntegrationDisconnect    ListAuditEntriesParamsAction = "integration.disconnect"
+	InvitationAccept         ListAuditEntriesParamsAction = "invitation.accept"
+	InvitationCreate         ListAuditEntriesParamsAction = "invitation.create"
+	InvitationRevoke         ListAuditEntriesParamsAction = "invitation.revoke"
+	JobSubmit                ListAuditEntriesParamsAction = "job.submit"
+	MemberLeave              ListAuditEntriesParamsAction = "member.leave"
+	MemberRemove             ListAuditEntriesParamsAction = "member.remove"
+	MemberRoleUpdate         ListAuditEntriesParamsAction = "member.role_update"
+	PresetCreate             ListAuditEntriesParamsAction = "preset.create"
+	PresetDelete             ListAuditEntriesParamsAction = "preset.delete"
+	PresetUpdate             ListAuditEntriesParamsAction = "preset.update"
+	ProjectCreate            ListAuditEntriesParamsAction = "project.create"
+	ProjectDelete            ListAuditEntriesParamsAction = "project.delete"
+	ProjectRagConfigUpdate   ListAuditEntriesParamsAction = "project.rag_config_update"
+	RagCollectionCreate      ListAuditEntriesParamsAction = "rag_collection.create"
+	RagCollectionDelete      ListAuditEntriesParamsAction = "rag_collection.delete"
+	RagCollectionMigrate     ListAuditEntriesParamsAction = "rag_collection.migrate"
+	RagDocumentDelete        ListAuditEntriesParamsAction = "rag_document.delete"
+	WebhookCreate            ListAuditEntriesParamsAction = "webhook.create"
+	WebhookDelete            ListAuditEntriesParamsAction = "webhook.delete"
+)
+
+// Valid indicates whether the value is a known member of the ListAuditEntriesParamsAction enum.
+func (e ListAuditEntriesParamsAction) Valid() bool {
+	switch e {
+	case ApiKeyCreate:
+		return true
+	case ApiKeyRegenerate:
+		return true
+	case ApiKeyRevoke:
+		return true
+	case AuthFailure:
+		return true
+	case AuthLogin:
+		return true
+	case CrawlSubmit:
+		return true
+	case DbApiKeysDelete:
+		return true
+	case DbApiKeysInsert:
+		return true
+	case DbApiKeysUpdate:
+		return true
+	case DbAuditLogBackfill:
+		return true
+	case DbIntegrationsDelete:
+		return true
+	case DbIntegrationsInsert:
+		return true
+	case DbOauthConnectionsUpdate:
+		return true
+	case IntegrationCreate:
+		return true
+	case IntegrationDelete:
+		return true
+	case IntegrationDisconnect:
+		return true
+	case InvitationAccept:
+		return true
+	case InvitationCreate:
+		return true
+	case InvitationRevoke:
+		return true
+	case JobSubmit:
+		return true
+	case MemberLeave:
+		return true
+	case MemberRemove:
+		return true
+	case MemberRoleUpdate:
+		return true
+	case PresetCreate:
+		return true
+	case PresetDelete:
+		return true
+	case PresetUpdate:
+		return true
+	case ProjectCreate:
+		return true
+	case ProjectDelete:
+		return true
+	case ProjectRagConfigUpdate:
+		return true
+	case RagCollectionCreate:
+		return true
+	case RagCollectionDelete:
+		return true
+	case RagCollectionMigrate:
+		return true
+	case RagDocumentDelete:
+		return true
+	case WebhookCreate:
+		return true
+	case WebhookDelete:
 		return true
 	default:
 		return false
@@ -2665,11 +3286,15 @@ type ArchiveMetadata struct {
 	FileList []string `json:"file_list"`
 
 	// Format Archive format ("ZIP", "TAR", "7Z", etc.)
-	Format string `json:"format"`
+	Format     string                    `json:"format"`
+	FormatType ArchiveMetadataFormatType `json:"format_type"`
 
 	// TotalSize Total uncompressed size in bytes
 	TotalSize int64 `json:"total_size"`
 }
+
+// ArchiveMetadataFormatType defines model for ArchiveMetadata.FormatType.
+type ArchiveMetadataFormatType string
 
 // Attributes Element attributes in Djot.
 //
@@ -2703,11 +3328,15 @@ type AudioMetadata struct {
 	Container *string `json:"container,omitempty"`
 
 	// DurationMs Duration in milliseconds derived from the decoded audio stream.
-	DurationMs *int64 `json:"duration_ms,omitempty"`
+	DurationMs *int64                  `json:"duration_ms,omitempty"`
+	FormatType AudioMetadataFormatType `json:"format_type"`
 
 	// SampleRateHz Sample rate in Hz after decode (always 16000 when resampled for Whisper).
 	SampleRateHz *int32 `json:"sample_rate_hz,omitempty"`
 }
+
+// AudioMetadataFormatType defines model for AudioMetadata.FormatType.
+type AudioMetadataFormatType string
 
 // AuditEntry A single customer-facing audit log entry.
 type AuditEntry struct {
@@ -2873,8 +3502,11 @@ type AutoTuneResult struct {
 
 	// Profile The winning tuning profile artifact. The concrete `TuningProfile`
 	// shape is defined in `autotune-core`; here it is opaque JSON.
-	Profile        map[string]interface{} `json:"profile"`
-	RoutingOutcome *RoutingOutcome        `json:"routing_outcome,omitempty"`
+	Profile map[string]interface{} `json:"profile"`
+
+	// RoutingOutcome Whether routing was requested, kept routes, or fell back to the global configuration.
+	// Absent on results recorded before this field was introduced.
+	RoutingOutcome *RoutingOutcome `json:"routing_outcome,omitempty"`
 
 	// SearchSpaceTotal Combinations the search space held. Compare it with the leaderboard
 	// length to see how much of the space the trial budget reached: a run
@@ -2917,6 +3549,32 @@ type AutoTuneSearchParams struct {
 	OcrBackends *[]string `json:"ocr_backends,omitempty"`
 }
 
+// AutoTuneWebhookEvent Auto-Tune terminal body. Retrieve the full result through
+// `GET /v1/auto-tune/{id}/result`; webhook retries carry this same small body.
+type AutoTuneWebhookEvent struct {
+	AutoTuneJobId string   `json:"auto_tune_job_id"`
+	BestScore     *float64 `json:"best_score,omitempty"`
+
+	// Error Error information included in webhook failure events.
+	Error *WebhookEventError `json:"error,omitempty"`
+
+	// Event Terminal event names for Auto-Tune runs, separate from extraction-job events.
+	Event           AutoTuneWebhookEventType `json:"event"`
+	EventId         openapi_types.UUID       `json:"event_id"`
+	Metadata        *map[string]string       `json:"metadata,omitempty"`
+	ProjectId       openapi_types.UUID       `json:"project_id"`
+	Status          AutoTuneWebhookStatus    `json:"status"`
+	Timestamp       time.Time                `json:"timestamp"`
+	TrialsCompleted int32                    `json:"trials_completed"`
+	TrialsTotal     int32                    `json:"trials_total"`
+}
+
+// AutoTuneWebhookEventType Terminal event names for Auto-Tune runs, separate from extraction-job events.
+type AutoTuneWebhookEventType string
+
+// AutoTuneWebhookStatus defines model for AutoTuneWebhookStatus.
+type AutoTuneWebhookStatus string
+
 // BibtexMetadata BibTeX bibliography metadata.
 type BibtexMetadata struct {
 	// Authors Author names collected across all bibliography entries.
@@ -2929,9 +3587,15 @@ type BibtexMetadata struct {
 	EntryCount int `json:"entry_count"`
 
 	// EntryTypes Count of entries grouped by BibTeX entry type (e.g. `"article"` → 5).
-	EntryTypes *map[string]int `json:"entry_types,omitempty"`
-	YearRange  *YearRange      `json:"year_range,omitempty"`
+	EntryTypes *map[string]int          `json:"entry_types,omitempty"`
+	FormatType BibtexMetadataFormatType `json:"format_type"`
+
+	// YearRange Earliest and latest publication years found in the bibliography.
+	YearRange *YearRange `json:"year_range,omitempty"`
 }
+
+// BibtexMetadataFormatType defines model for BibtexMetadata.FormatType.
+type BibtexMetadataFormatType string
 
 // BlockType Types of block-level elements in Djot.
 type BlockType string
@@ -3026,11 +3690,32 @@ type Chunk struct {
 	//
 	// Only populated when `EmbeddingConfig` is provided in chunking configuration.
 	// The dimensionality depends on the chosen embedding model.
-	Embedding       *[]float32            `json:"embedding,omitempty"`
+	Embedding *[]float32 `json:"embedding,omitempty"`
+
+	// LateInteraction Optional ColBERT-style multi-vector (late-interaction) embedding for this chunk.
+	//
+	// Only populated when late-interaction embedding generation is configured for
+	// chunking. `None` otherwise, including on builds without the `late-interaction`
+	// feature.
+	//
+	// Uses the crate-root `MultiVectorEmbedding` alias for the same reason
+	// `sparse_embedding` uses `SparseEmbedding` — see that field's docs.
 	LateInteraction *MultiVectorEmbedding `json:"late_interaction,omitempty"`
 
 	// Metadata Metadata about this chunk's position and properties.
-	Metadata        ChunkMetadata    `json:"metadata"`
+	Metadata ChunkMetadata `json:"metadata"`
+
+	// SparseEmbedding Optional sparse (SPLADE) learned embedding for this chunk.
+	//
+	// Only populated when sparse-embedding generation is configured for chunking.
+	// `None` otherwise, including on builds without the `sparse-embeddings` feature.
+	//
+	// Uses the crate-root `SparseEmbedding` alias rather than
+	// `crate::sparse_embeddings::SparseEmbedding` directly: the `sparse_embeddings`
+	// module itself only compiles under `sparse-embeddings`/`sparse-embedding-presets`,
+	// while the crate-root alias is always defined (a field-compatible stub on builds
+	// without either feature), so this field — and `Chunk` itself — compiles on every
+	// feature combination, including the crate's default features.
 	SparseEmbedding *SparseEmbedding `json:"sparse_embedding,omitempty"`
 }
 
@@ -3056,7 +3741,12 @@ type ChunkMetadata struct {
 	// FirstPage First page number this chunk spans (1-indexed).
 	//
 	// Only populated when page tracking is enabled in extraction configuration.
-	FirstPage      *int32          `json:"first_page,omitempty"`
+	FirstPage *int32 `json:"first_page,omitempty"`
+
+	// HeadingContext Heading context when using Markdown chunker.
+	//
+	// Contains the heading hierarchy this chunk falls under.
+	// Only populated when `ChunkerType::Markdown` is used.
 	HeadingContext *HeadingContext `json:"heading_context,omitempty"`
 
 	// HeadingPath Flattened heading trail from document root to this chunk's section.
@@ -3151,12 +3841,18 @@ type CitationMetadata struct {
 	Dois *[]string `json:"dois,omitempty"`
 
 	// Format Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`).
-	Format *string `json:"format,omitempty"`
+	Format     *string                    `json:"format,omitempty"`
+	FormatType CitationMetadataFormatType `json:"format_type"`
 
 	// Keywords Keywords collected from all citation records.
-	Keywords  *[]string  `json:"keywords,omitempty"`
+	Keywords *[]string `json:"keywords,omitempty"`
+
+	// YearRange Earliest and latest publication years found in the file.
 	YearRange *YearRange `json:"year_range,omitempty"`
 }
+
+// CitationMetadataFormatType defines model for CitationMetadata.FormatType.
+type CitationMetadataFormatType string
 
 // ClassificationLabel A single label + confidence pair.
 type ClassificationLabel struct {
@@ -3256,8 +3952,15 @@ type CodeDataNodeKind string
 type CodeMetadata struct {
 	// Chunks Structural code chunks (function/class/module boundaries).
 	Chunks []CodeChunkInfo `json:"chunks"`
-	Data   *CodeDataNode   `json:"data,omitempty"`
+
+	// Data Hierarchical key/value data tree extracted from data-format source
+	// (JSON, YAML, TOML, XML, CSV, etc.), when data extraction was enabled.
+	Data       *CodeDataNode          `json:"data,omitempty"`
+	FormatType CodeMetadataFormatType `json:"format_type"`
 }
+
+// CodeMetadataFormatType defines model for CodeMetadata.FormatType.
+type CodeMetadataFormatType string
 
 // CollectionChunkingConfig Per-collection text chunking configuration.
 //
@@ -3301,8 +4004,14 @@ type CollectionResponse struct {
 	// Id Collection unique identifier
 	Id openapi_types.UUID `json:"id"`
 
+	// IndexError Safe failure summary when `index_status` is `failed`
+	IndexError *string `json:"index_error,omitempty"`
+
 	// IndexMethod Vector index method
 	IndexMethod string `json:"index_method"`
+
+	// IndexStatus Durable state of the collection's currently served vector index.
+	IndexStatus CollectionResponseIndexStatus `json:"index_status"`
 
 	// Name Collection name
 	Name string `json:"name"`
@@ -3318,6 +4027,9 @@ type CollectionResponse struct {
 	// intentionally lightweight and does not run per-collection counts.
 	Stats *CollectionStatsResponse `json:"stats,omitempty"`
 }
+
+// CollectionResponseIndexStatus Durable state of the collection's currently served vector index.
+type CollectionResponseIndexStatus string
 
 // CollectionStatsResponse Collection statistics response
 type CollectionStatsResponse struct {
@@ -3387,8 +4099,10 @@ type CrawlChildJob struct {
 	Id openapi_types.UUID `json:"id"`
 
 	// ProcessingTimeMs Processing duration in milliseconds.
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+
+	// Result Embedded extraction result, when available.
+	Result *ExtractedDocument `json:"result,omitempty"`
 
 	// SourceUrl URL that produced the document.
 	SourceUrl *string `json:"source_url,omitempty"`
@@ -3515,7 +4229,7 @@ type CrawlEventV11 struct {
 	Error string            `json:"error"`
 	Kind  CrawlEventV11Kind `json:"kind"`
 
-	// Terminal Whether this error is the job's terminal event. ~keep
+	// Terminal Whether this error is the job's terminal event.
 	Terminal *bool `json:"terminal,omitempty"`
 
 	// Ts Event timestamp (UTC)
@@ -3608,6 +4322,39 @@ type CrawlProgress struct {
 	PagesCrawled int32 `json:"pages_crawled"`
 }
 
+// CrawlWebhookEvent Crawl-level webhook body. Unlike extraction job events, it never embeds results.
+type CrawlWebhookEvent struct {
+	// CrawlJobId Crawl job that reached a terminal status.
+	CrawlJobId openapi_types.UUID `json:"crawl_job_id"`
+
+	// Error Error details, present only on `crawl.failed`.
+	Error *WebhookEventError `json:"error,omitempty"`
+
+	// Event Terminal crawl event name.
+	Event CrawlWebhookEventType `json:"event"`
+
+	// EventId Stable identity shared by retries of this event.
+	EventId openapi_types.UUID `json:"event_id"`
+
+	// Metadata Customer metadata, sorted for stable signed payload bytes.
+	Metadata *map[string]string `json:"metadata,omitempty"`
+
+	// Progress The same four counters exposed by `CrawlJobResponse`.
+	Progress CrawlProgress `json:"progress"`
+
+	// Status The terminal crawl status, including partial success when applicable.
+	Status CrawlWebhookStatus `json:"status"`
+
+	// Timestamp RFC 3339 time when the crawl reached a terminal status.
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// CrawlWebhookEventType Terminal event names for crawl-level deliveries. Job event names remain separate.
+type CrawlWebhookEventType string
+
+// CrawlWebhookStatus Terminal crawl status carried separately from the event name.
+type CrawlWebhookStatus string
+
 // CrawledPage One raw page retained by a scrape or crawl output job.
 type CrawledPage struct {
 	// ContentUrl Presigned URL for the retained response body.
@@ -3637,7 +4384,7 @@ type CreateAutoTuneJobRequest struct {
 	// Budget Optional budget limits; falls back to defaults when omitted.
 	Budget *AutoTuneBudget `json:"budget,omitempty"`
 
-	// Documents Documents and their ground truth for this run.
+	// Documents Documents and their ground truth for this run. At least one is required.
 	Documents []AutoTuneDocumentInput `json:"documents"`
 
 	// Routing Whether to tune per-document routing in addition to global
@@ -3646,6 +4393,9 @@ type CreateAutoTuneJobRequest struct {
 
 	// Search Optional search configuration; falls back to defaults when omitted.
 	Search *AutoTuneSearchConfig `json:"search,omitempty"`
+
+	// Webhook Optional terminal callback, snapshotted when the run is submitted.
+	Webhook *WebhookConfig `json:"webhook,omitempty"`
 }
 
 // CreateAutoTuneJobResponse Response from submitting a new auto-tune job.
@@ -3889,7 +4639,8 @@ type CreateSavedPresetRequest struct {
 	// citations regardless of this value. Defaults to `true` when omitted.
 	EmitCitations *bool `json:"emit_citations,omitempty"`
 
-	// Name Preset name (must be unique per project).
+	// Name Preset name (must be unique per project). Trimmed before storage; a
+	// name that is entirely whitespace is rejected once trimmed.
 	Name string `json:"name"`
 
 	// PreferredCallMode Preferred orchestration path (`text_only`, `vision_only`, or
@@ -3934,7 +4685,8 @@ type CsvMetadata struct {
 	ColumnTypes *[]string `json:"column_types,omitempty"`
 
 	// Delimiter Field delimiter character (e.g. `","` or `"\t"`).
-	Delimiter *string `json:"delimiter,omitempty"`
+	Delimiter  *string               `json:"delimiter,omitempty"`
+	FormatType CsvMetadataFormatType `json:"format_type"`
 
 	// HasHeader Whether the first row was treated as a header.
 	HasHeader bool `json:"has_header"`
@@ -3942,6 +4694,9 @@ type CsvMetadata struct {
 	// RowCount Total number of data rows (excluding the header row if present).
 	RowCount int32 `json:"row_count"`
 }
+
+// CsvMetadataFormatType defines model for CsvMetadata.FormatType.
+type CsvMetadataFormatType string
 
 // DbfFieldInfo dBASE field information.
 type DbfFieldInfo struct {
@@ -3958,11 +4713,15 @@ type DbfMetadata struct {
 	FieldCount int `json:"field_count"`
 
 	// Fields Descriptor for each field in the table schema.
-	Fields *[]DbfFieldInfo `json:"fields,omitempty"`
+	Fields     *[]DbfFieldInfo       `json:"fields,omitempty"`
+	FormatType DbfMetadataFormatType `json:"format_type"`
 
 	// RecordCount Total number of data records in the DBF file.
 	RecordCount int `json:"record_count"`
 }
+
+// DbfMetadataFormatType defines model for DbfMetadata.FormatType.
+type DbfMetadataFormatType string
 
 // DeleteDocumentsRequest OpenAPI schema for `DeleteDocumentsRequest`.
 type DeleteDocumentsRequest struct {
@@ -4150,7 +4909,9 @@ type DjotContent struct {
 // DjotImage Image element in Djot.
 type DjotImage struct {
 	// Alt Alternative text
-	Alt        string      `json:"alt"`
+	Alt string `json:"alt"`
+
+	// Attributes Element attributes
 	Attributes *Attributes `json:"attributes,omitempty"`
 
 	// Src Image source URL or path
@@ -4162,6 +4923,7 @@ type DjotImage struct {
 
 // DjotLink Link element in Djot.
 type DjotLink struct {
+	// Attributes Element attributes
 	Attributes *Attributes `json:"attributes,omitempty"`
 
 	// Text Link text content
@@ -4260,7 +5022,9 @@ type DocumentNode struct {
 	// Extensible bag for miscellaneous data without a dedicated typed field: CSS classes,
 	// LaTeX environment names, Excel cell formulas, slide layout names, etc.
 	Attributes *map[string]string `json:"attributes,omitempty"`
-	Bbox       *BoundingBox       `json:"bbox,omitempty"`
+
+	// Bbox Bounding box in document coordinates.
+	Bbox *BoundingBox `json:"bbox,omitempty"`
 
 	// Children Child node indices in reading order.
 	Children *[]NodeIndex `json:"children,omitempty"`
@@ -4292,8 +5056,10 @@ type DocumentNode struct {
 	Page *int32 `json:"page,omitempty"`
 
 	// PageEnd Page number where this node ends (for multi-page tables/sections).
-	PageEnd *int32     `json:"page_end,omitempty"`
-	Parent  *NodeIndex `json:"parent,omitempty"`
+	PageEnd *int32 `json:"page_end,omitempty"`
+
+	// Parent Parent node index (`None` = root-level node).
+	Parent *NodeIndex `json:"parent,omitempty"`
 }
 
 // DocumentRelationship A resolved relationship between two nodes in the document tree.
@@ -4410,8 +5176,9 @@ type DocumentVersionEntry struct {
 	// BillablePages Number of billable pages.
 	BillablePages int32 `json:"billable_pages"`
 
-	// ContentHash SHA-256 hash of the extracted content.
-	ContentHash string `json:"content_hash"`
+	// ContentHash SHA-256 hash of the original uploaded content, encoded as 64 lowercase hexadecimal characters.
+	// Legacy versions without a stored hash return `null`.
+	ContentHash *string `json:"content_hash"`
 
 	// CreatedAt When the job was created.
 	CreatedAt time.Time `json:"created_at"`
@@ -4463,7 +5230,11 @@ type DocxMetadata struct {
 	// Contains key-value pairs defined by users or applications.
 	// Values can be strings, numbers, booleans, or dates.
 	CustomProperties *map[string]interface{} `json:"custom_properties,omitempty"`
+	FormatType       DocxMetadataFormatType  `json:"format_type"`
 }
+
+// DocxMetadataFormatType defines model for DocxMetadata.FormatType.
+type DocxMetadataFormatType string
 
 // Element Semantic element extracted from document.
 //
@@ -4517,7 +5288,8 @@ type EmailMetadata struct {
 	BccEmails []string `json:"bcc_emails"`
 
 	// CcEmails CC recipients
-	CcEmails []string `json:"cc_emails"`
+	CcEmails   []string                `json:"cc_emails"`
+	FormatType EmailMetadataFormatType `json:"format_type"`
 
 	// FromEmail Sender's email address
 	FromEmail *string `json:"from_email,omitempty"`
@@ -4531,6 +5303,9 @@ type EmailMetadata struct {
 	// ToEmails Primary recipients
 	ToEmails []string `json:"to_emails"`
 }
+
+// EmailMetadataFormatType defines model for EmailMetadata.FormatType.
+type EmailMetadataFormatType string
 
 // EmbeddingConfig Embedding generation configuration for chunks.
 type EmbeddingConfig struct {
@@ -4547,7 +5322,65 @@ type EmbeddingConfig struct {
 	ShowDownloadProgress *bool `json:"show_download_progress,omitempty"`
 }
 
+// EnrichCaptioningOptions Captioning options: caller-supplied images plus the VLM used to caption them.
+type EnrichCaptioningOptions struct {
+	// Images Base64-encoded image bytes, in order. Each entry gets its own parallel
+	// slot in `EnrichResult::captions`.
+	Images []string `json:"images"`
+
+	// Llm VLM used for captioning.
+	Llm EnrichLlmConfig `json:"llm"`
+}
+
+// EnrichChunkClassificationDefinition One label definition for chunk classification: a name plus a description of
+// when it applies, injected verbatim into the classification prompt.
+type EnrichChunkClassificationDefinition struct {
+	// Description Semantic description of when this label applies.
+	Description string `json:"description"`
+
+	// Label Label name returned in the matching entry of `chunk_classifications`.
+	Label string `json:"label"`
+}
+
+// EnrichChunkClassificationOptions Chunk-classification options. The caller supplies its own chunk texts:
+// `/v1/enrich` operates on a single text blob with no chunking pipeline of its
+// own, unlike the file-extraction pipeline's `ExtractedDocument::chunks`.
+type EnrichChunkClassificationOptions struct {
+	// Chunks Chunk texts to classify, in order. Each entry gets its own parallel slot
+	// in `EnrichResult::chunk_classifications`.
+	Chunks []string `json:"chunks"`
+
+	// Definitions The set of label definitions the classifier may emit. Must contain at
+	// least one entry.
+	Definitions []EnrichChunkClassificationDefinition `json:"definitions"`
+
+	// Llm LLM used for classification.
+	Llm EnrichLlmConfig `json:"llm"`
+}
+
+// EnrichClassificationOptions Whole-text classification options.
+type EnrichClassificationOptions struct {
+	// Labels The set of labels the classifier may emit. Must contain at least one entry.
+	Labels []string `json:"labels"`
+
+	// Llm LLM used for classification.
+	Llm EnrichLlmConfig `json:"llm"`
+
+	// MultiLabel Allow multiple labels for the text. Single-label mode returns at most one label.
+	MultiLabel *bool `json:"multi_label,omitempty"`
+}
+
 // EnrichJobStatus Status response for an enrichment job.
+//
+// `Completed` is far larger than the other two variants now that
+// `EnrichResult` carries classification, chunk classifications and captions
+// (#1568). Boxing it would satisfy the lint but is the wrong trade here: the
+// wire shape is fixed by the API, and `Box<EnrichResult>` would churn every
+// construction site on both tiers to save a stack copy. Pro's per-job status
+// cache (`services/pro/src/jobs/enrich.rs`) does hold these in a collection
+// now, but weighs entries by encoded size rather than by count, so the large
+// variant costs proportionally more of the cache's budget instead of being
+// undercounted as "one entry" the way boxing-for-a-collection would invite.
 type EnrichJobStatus struct {
 	union json.RawMessage
 }
@@ -4586,11 +5419,62 @@ type EnrichJobSubmitted struct {
 	JobId string `json:"job_id"`
 }
 
+// EnrichLlmConfig LLM/VLM provider configuration for an enrichment stage, routed through
+// liter-llm. A narrower, enrichment-scoped mirror of
+// `LlmConfig`'s wire shape.
+//
+// `Debug` is implemented by hand: unlike `LlmConfig`, which prints `base_url`'s
+// *presence* through `Option`'s derived `Debug`, this type prints the same
+// `"<redacted>"` marker whether `base_url` is set or not. Whether a caller
+// routed a request at its own endpoint is, on its own, information about that
+// caller's infrastructure — not only the endpoint value itself (#1864 residual
+// tracked for the Pro enrichment provider paths in `services/pro/src/jobs/enrich_provider.rs`).
+type EnrichLlmConfig struct {
+	// ApiKey API key for the provider. When omitted, liter-llm falls back to the
+	// provider's standard environment variable on this deployment. Treated as
+	// a secret — never logged.
+	ApiKey *string `json:"api_key,omitempty"`
+
+	// BaseUrl Override the provider base URL. Setting this never falls back to this
+	// deployment's own provider credentials — see
+	// `services/pro/src/jobs/enrich_provider.rs::to_xberg_llm_config`.
+	BaseUrl *string `json:"base_url,omitempty"`
+
+	// MaxRetries Max retry attempts. Clamped to this deployment's ceiling.
+	MaxRetries *int32 `json:"max_retries,omitempty"`
+
+	// MaxTokens Maximum tokens to generate.
+	MaxTokens *int64 `json:"max_tokens,omitempty"`
+
+	// Model liter-llm routing identifier, e.g. "openai/gpt-4o-mini".
+	Model string `json:"model"`
+
+	// Temperature Sampling temperature.
+	Temperature *float64 `json:"temperature,omitempty"`
+
+	// TimeoutSecs Request timeout in seconds. Clamped to this deployment's ceiling.
+	TimeoutSecs *int64 `json:"timeout_secs,omitempty"`
+}
+
 // EnrichRequestOptions Enrichment processing options.
 //
 // Unknown keys are refused: an option this type does not carry is one the
 // caller asked for and will not get, and a 202 would report otherwise.
 type EnrichRequestOptions struct {
+	// Captioning VLM captioning of caller-supplied images. Enterprise refuses a
+	// non-`None` value; only Xberg Pro implements it (#1568).
+	Captioning *EnrichCaptioningOptions `json:"captioning,omitempty"`
+
+	// ChunkClassification Multi-label classification of caller-supplied chunks against a described
+	// label taxonomy. `/v1/enrich` has no chunking pipeline of its own, so the
+	// caller supplies the chunk texts directly. Enterprise refuses a
+	// non-`None` value; only Xberg Pro implements it (#1568).
+	ChunkClassification *EnrichChunkClassificationOptions `json:"chunk_classification,omitempty"`
+
+	// Classification Whole-text zero-shot classification against a caller-supplied label set.
+	// Enterprise refuses a non-`None` value; only Xberg Pro implements it (#1568).
+	Classification *EnrichClassificationOptions `json:"classification,omitempty"`
+
 	// Entities Extract named entities via NER.
 	Entities *bool `json:"entities,omitempty"`
 
@@ -4606,6 +5490,19 @@ type EnrichRequestOptions struct {
 
 // EnrichResult Result of enrichment processing.
 type EnrichResult struct {
+	// Captions Per-image captions, positionally parallel to the submitted
+	// `captioning.images`. Empty when captioning was not requested.
+	Captions *[]string `json:"captions,omitempty"`
+
+	// ChunkClassifications Per-chunk classification labels, positionally parallel to the submitted
+	// `chunk_classification.chunks`. Empty when chunk classification was not
+	// requested.
+	ChunkClassifications *[][]ClassificationLabel `json:"chunk_classifications,omitempty"`
+
+	// Classification Whole-text classification labels, or `None` when classification was not
+	// requested. `Some(vec![])` means it ran and matched no label.
+	Classification *[]ClassificationLabel `json:"classification,omitempty"`
+
 	// Entities Extracted named entities, or null when entity detection was not requested.
 	Entities *[]map[string]interface{} `json:"entities,omitempty"`
 
@@ -4718,7 +5615,8 @@ type EpubMetadata struct {
 	DcFormat *string `json:"dc_format,omitempty"`
 
 	// DcType Dublin Core `type` field (nature or genre of the resource).
-	DcType *string `json:"dc_type,omitempty"`
+	DcType     *string                `json:"dc_type,omitempty"`
+	FormatType EpubMetadataFormatType `json:"format_type"`
 
 	// Relation Dublin Core `relation` field (related resource identifier).
 	Relation *string `json:"relation,omitempty"`
@@ -4726,6 +5624,9 @@ type EpubMetadata struct {
 	// Source Dublin Core `source` field (origin resource identifier).
 	Source *string `json:"source,omitempty"`
 }
+
+// EpubMetadataFormatType defines model for EpubMetadata.FormatType.
+type EpubMetadataFormatType string
 
 // ErrorBody Error body containing code, message, and optional details.
 type ErrorBody struct {
@@ -4761,12 +5662,17 @@ type ErrorResponse struct {
 // Identifies the document as a spreadsheet source via the `FormatMetadata::Excel`
 // discriminant. Sheet count and sheet names are stored inside this struct.
 type ExcelMetadata struct {
+	FormatType ExcelMetadataFormatType `json:"format_type"`
+
 	// SheetCount Number of sheets in the workbook.
 	SheetCount *int32 `json:"sheet_count,omitempty"`
 
 	// SheetNames Names of all sheets in the workbook.
 	SheetNames *[]string `json:"sheet_names,omitempty"`
 }
+
+// ExcelMetadataFormatType defines model for ExcelMetadata.FormatType.
+type ExcelMetadataFormatType string
 
 // ExtractMultipartForm Multipart (`multipart/form-data`) variant of the extract request body.
 //
@@ -4909,9 +5815,35 @@ type ExtractedDocument struct {
 	DetectedLanguageConfidences *[]LanguageConfidence `json:"detected_language_confidences,omitempty"`
 
 	// DetectedLanguages ISO 639-1 language codes detected in the document content.
-	DetectedLanguages *[]string          `json:"detected_languages,omitempty"`
-	DjotContent       *DjotContent       `json:"djot_content,omitempty"`
-	Document          *DocumentStructure `json:"document,omitempty"`
+	DetectedLanguages *[]string `json:"detected_languages,omitempty"`
+
+	// DjotContent Rich Djot content structure (when extracting Djot documents).
+	//
+	// When extracting Djot documents with structured extraction enabled,
+	// this field contains the full semantic structure including:
+	// - Block-level elements with nesting
+	// - Inline formatting with attributes
+	// - Links, images, footnotes
+	// - Math expressions
+	// - Complete attribute information
+	//
+	// The `content` field still contains plain text for backward compatibility.
+	//
+	// Always `None` for non-Djot documents.
+	DjotContent *DjotContent `json:"djot_content,omitempty"`
+
+	// Document Structured document tree (when document structure extraction is enabled).
+	//
+	// When `include_document_structure` is true in `ExtractionConfig`, this field
+	// contains the full hierarchical representation of the document including:
+	// - Heading-driven section nesting
+	// - Table grids with cell-level metadata
+	// - Content layer classification (body, header, footer, footnote)
+	// - Inline text annotations (formatting, links)
+	// - Bounding boxes and page numbers
+	//
+	// Independent of `result_format` — can be combined with Unified or ElementBased.
+	Document *DocumentStructure `json:"document,omitempty"`
 
 	// Elements Semantic elements when element-based result format is enabled.
 	//
@@ -4931,9 +5863,23 @@ type ExtractedDocument struct {
 	// When keyword extraction (RAKE or YAKE) is configured, this field contains
 	// the extracted keywords with scores, algorithm info, and position data.
 	// Previously stored in `metadata.additional["keywords"]`.
-	ExtractedKeywords    *[]Keyword            `json:"extracted_keywords,omitempty"`
+	ExtractedKeywords *[]Keyword `json:"extracted_keywords,omitempty"`
+
+	// ExtractionConfidence Confidence score computed by the heuristics pipeline.
+	//
+	// Populated when the `heuristics` feature is enabled and confidence
+	// scoring has been performed.  Combines text-coverage, OCR aggregate
+	// confidence, and schema-compliance into a single `[0, 1]` value.
+	//
+	// `None` when confidence scoring is not configured or the feature is
+	// absent.
 	ExtractionConfidence *ExtractionConfidence `json:"extraction_confidence,omitempty"`
-	ExtractionMethod     *ExtractionMethod     `json:"extraction_method,omitempty"`
+
+	// ExtractionMethod Extraction strategy used to produce the returned text.
+	//
+	// Populated when the extractor can reliably distinguish native text extraction,
+	// OCR-only extraction, or mixed native/OCR output.
+	ExtractionMethod *ExtractionMethod `json:"extraction_method,omitempty"`
 
 	// FormFields Form fields extracted from a PDF's AcroForm or XFA structure.
 	//
@@ -5012,8 +5958,20 @@ type ExtractedDocument struct {
 	// retained. This is not a completeness or recall score: clean text can score
 	// highly even when an extractor omitted or rejected other content. Inspect
 	// `processing_warnings` separately for known degraded or partial extraction.
+	//
+	// When the text came from OCR and the result carries enough recognized words to
+	// judge, this score is additionally capped by the mean OCR recognition confidence.
+	// Text that looks clean but that OCR itself had little confidence in therefore
+	// cannot score high. A native, non-OCR extraction is not capped.
 	// Previously stored in `metadata.additional["quality_score"]`.
-	QualityScore    *float64         `json:"quality_score,omitempty"`
+	QualityScore *float64 `json:"quality_score,omitempty"`
+
+	// RedactionReport Audit report of redactions applied by the redaction post-processor.
+	//
+	// The redaction processor rewrites `content`, `formatted_content`, every
+	// chunk's text, and the textual fields of `entities` / `summary` / `translation` /
+	// `page_classifications` in place. This report describes what was found and how it
+	// was replaced. `None` when redaction is not configured.
 	RedactionReport *RedactionReport `json:"redaction_report,omitempty"`
 
 	// Revisions Tracked changes embedded in the source document.
@@ -5032,11 +5990,21 @@ type ExtractedDocument struct {
 	// When `structured_extraction` is configured in `ExtractionConfig`, the
 	// extracted document content is sent to a VLM with the provided JSON schema.
 	// The response is parsed and stored here as a JSON value matching the schema.
-	StructuredOutput interface{}      `json:"structured_output,omitempty"`
-	Summary          *DocumentSummary `json:"summary,omitempty"`
+	StructuredOutput interface{} `json:"structured_output,omitempty"`
+
+	// Summary Summary of `content` produced by the summarisation post-processor.
+	//
+	// `None` when summarisation is not configured. Populated by the TextRank
+	// extractive backend (deterministic, no external service) or by the
+	// liter-llm-driven abstractive backend.
+	Summary *DocumentSummary `json:"summary,omitempty"`
 
 	// Tables Tables extracted from the document, each with structured cell data.
-	Tables      []Table      `json:"tables"`
+	Tables []Table `json:"tables"`
+
+	// Translation Translation of `content` produced by the translation post-processor.
+	//
+	// `None` when translation is not configured.
 	Translation *Translation `json:"translation,omitempty"`
 
 	// Uris URIs/links discovered during document extraction.
@@ -5054,8 +6022,11 @@ type ExtractedDocument struct {
 // PIL.Image (Python), Sharp (Node.js), or other formats as needed.
 type ExtractedImage struct {
 	// BitsPerComponent Bits per color component (e.g., 8, 16)
-	BitsPerComponent *int32       `json:"bits_per_component,omitempty"`
-	BoundingBox      *BoundingBox `json:"bounding_box,omitempty"`
+	BitsPerComponent *int32 `json:"bits_per_component,omitempty"`
+
+	// BoundingBox Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
+	// Only populated for PDF-extracted images when position data is available from the PDF extractor.
+	BoundingBox *BoundingBox `json:"bounding_box,omitempty"`
 
 	// Caption VLM-generated caption describing the image, when captioning is configured.
 	//
@@ -5091,15 +6062,23 @@ type ExtractedImage struct {
 	Height *int32 `json:"height,omitempty"`
 
 	// ImageIndex Zero-indexed position of this image in the document/page
-	ImageIndex int32      `json:"image_index"`
-	ImageKind  *ImageKind `json:"image_kind,omitempty"`
+	ImageIndex int32 `json:"image_index"`
+
+	// ImageKind Heuristic classification of what this image likely depicts.
+	// `None` if classification was disabled or inconclusive.
+	ImageKind *ImageKind `json:"image_kind,omitempty"`
 
 	// IsMask Whether this image is a mask image
 	IsMask *bool `json:"is_mask,omitempty"`
 
 	// KindConfidence Confidence score for `image_kind`, in the range 0.0 to 1.0.
-	KindConfidence *float32           `json:"kind_confidence,omitempty"`
-	OcrResult      *ExtractedDocument `json:"ocr_result,omitempty"`
+	KindConfidence *float32 `json:"kind_confidence,omitempty"`
+
+	// OcrResult Document extracted by the core extraction pipeline.
+	//
+	// `extract` and `extract_batch` return an `ExtractionResult` envelope whose
+	// `results` field contains these per-document payloads.
+	OcrResult *ExtractedDocument `json:"ocr_result,omitempty"`
 
 	// PageNumber Page/slide number where image was found (1-indexed)
 	PageNumber *int32 `json:"page_number,omitempty"`
@@ -5146,7 +6125,8 @@ type ExtractionConfidence struct {
 	// Combined Weighted blend in `[0, 1]`.  The value compared against the fallback threshold.
 	Combined float32 `json:"combined"`
 
-	// OcrAggregate Mean OCR per-element recognition confidence when OCR ran; `None` when it did not.
+	// OcrAggregate OCR recognition confidence, word-count-weighted across every recognized word, when OCR
+	// ran; `None` when it did not.
 	OcrAggregate *float32 `json:"ocr_aggregate,omitempty"`
 
 	// SchemaCompliance Whether the merged output validates against the preset schema.
@@ -5170,7 +6150,8 @@ type ExtractionConfig struct {
 	// ContentFilter Content filtering (headers, footers, watermarks)
 	ContentFilter *ContentFilterConfig `json:"content_filter,omitempty"`
 
-	// DisableOcr Disable OCR entirely
+	// DisableOcr Disable OCR entirely. `true` conflicts with an `ocr` block, including
+	// one inherited by a per-file override.
 	DisableOcr *bool `json:"disable_ocr,omitempty"`
 
 	// EnableQualityProcessing Enable quality post-processing. Defaults to true when omitted.
@@ -5222,6 +6203,10 @@ type ExtractionConfig struct {
 
 	// Ocr OCR configuration
 	Ocr *OcrConfig `json:"ocr,omitempty"`
+
+	// OcrStrategy Which pages go to OCR when neither `force_ocr` nor `force_ocr_pages`
+	// applies. Omitting it keeps xberg's default, `auto`.
+	OcrStrategy *OcrStrategy `json:"ocr_strategy,omitempty"`
 
 	// OutputFormat Output text format: "plain", "markdown", "html", "djot", "structured", "json"
 	OutputFormat *string `json:"output_format,omitempty"`
@@ -5346,15 +6331,27 @@ type ExtractionJobResponse struct {
 	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
 	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
 	// ProcessingTimeMs Server-side processing duration in milliseconds.
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+
+	// Result Extraction result embedded by Enterprise for compatibility. Clients may
+	// use `GET /v1/jobs/{id}/result` on either tier instead.
+	Result *ExtractedDocument `json:"result,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
 
 	// Status Current job status.
 	Status JobStatus `json:"status"`
 
 	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
-	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	TablesExtracted *int32 `json:"tables_extracted,omitempty"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -5372,6 +6369,8 @@ type ExtractionOptions struct {
 	// concrete schema (`services/api::rest::types::ExtractionConfig` on
 	// Enterprise, a raw `serde_json::Value` on Pro) is service-local and out
 	// of scope for this convergence pass.
+	// Both tiers reject unknown extraction-config fields and reject an
+	// effective config with `disable_ocr: true` alongside an `ocr` block.
 	ExtractionConfig *map[string]interface{} `json:"extraction_config,omitempty"`
 
 	// Preset Curated preset identifier. Mutually exclusive with `saved_preset_id`
@@ -5412,7 +6411,8 @@ type ExtractionOptions struct {
 // FictionBookMetadata FictionBook (FB2) metadata.
 type FictionBookMetadata struct {
 	// Annotation Short annotation / summary from the FB2 `<annotation>` element.
-	Annotation *string `json:"annotation,omitempty"`
+	Annotation *string                       `json:"annotation,omitempty"`
+	FormatType FictionBookMetadataFormatType `json:"format_type"`
 
 	// Genres Genre tags as declared in the FB2 `<genre>` elements.
 	Genres *[]string `json:"genres,omitempty"`
@@ -5420,6 +6420,9 @@ type FictionBookMetadata struct {
 	// Sequences Book series (sequence) names, if any.
 	Sequences *[]string `json:"sequences,omitempty"`
 }
+
+// FictionBookMetadataFormatType defines model for FictionBookMetadata.FormatType.
+type FictionBookMetadataFormatType string
 
 // FileExtractionConfig Per-file extraction config override for batch/presign requests.
 //
@@ -5440,9 +6443,12 @@ type FileExtractionConfig struct {
 	Chunking *ChunkingConfig `json:"chunking,omitempty"`
 
 	// ContentFilter Content filtering configuration (headers, footers, watermarks).
-	ContentFilter           *ContentFilterConfig `json:"content_filter,omitempty"`
-	DisableOcr              *bool                `json:"disable_ocr,omitempty"`
-	EnableQualityProcessing *bool                `json:"enable_quality_processing,omitempty"`
+	ContentFilter *ContentFilterConfig `json:"content_filter,omitempty"`
+
+	// DisableOcr `true` conflicts with an `ocr` block, including one inherited from
+	// the batch configuration.
+	DisableOcr              *bool `json:"disable_ocr,omitempty"`
+	EnableQualityProcessing *bool `json:"enable_quality_processing,omitempty"`
 
 	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (default: 600, min: 1, max: 600).
 	//
@@ -5472,6 +6478,10 @@ type FileExtractionConfig struct {
 
 	// Ocr OCR backend and language configuration.
 	Ocr *OcrConfig `json:"ocr,omitempty"`
+
+	// OcrStrategy Which pages go to OCR when neither `force_ocr` nor `force_ocr_pages`
+	// applies. Omitting it keeps xberg's default, `auto`.
+	OcrStrategy *OcrStrategy `json:"ocr_strategy,omitempty"`
 
 	// OutputFormat Rendered output format: `plain` or `text`, `markdown` or `md`, `djot`,
 	// `html`, `json`, or `doctags`. Any other value is refused with a 400.
@@ -5522,6 +6532,7 @@ type FormatMetadata struct {
 //
 // Represents structural elements like headings, paragraphs, lists, code blocks, etc.
 type FormattedBlock struct {
+	// Attributes Element attributes (classes, IDs, key-value pairs)
 	Attributes *Attributes `json:"attributes,omitempty"`
 
 	// BlockType Type of block element
@@ -5552,6 +6563,13 @@ type FormattedBlock struct {
 // HTML, JATS, LaTeX, Markdown, and related formats) converts embedded math
 // to LaTeX, also without geometry.
 type Formula struct {
+	// Bbox Bounding box of the formula region on its page. `None` for markup sources.
+	//
+	// PDF OCR sources report PDF point coordinates with the origin at the
+	// bottom-left of the page, comparable to native PDF geometry. Image
+	// sources, and PDF pages whose geometry is unavailable, report pixels of
+	// the image the OCR backend saw. The C FFI reports an absent bbox as a
+	// null pointer.
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 
 	// Latex LaTeX source of the formula, without surrounding `$$` delimiters.
@@ -5608,15 +6626,27 @@ type GetJobResponse0 struct {
 	// PagesExtracted Pages extracted, when recorded by the tier's persistence layer.
 	PagesExtracted *int32 `json:"pages_extracted,omitempty"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
 	// ProcessingTimeMs Server-side processing duration in milliseconds.
-	ProcessingTimeMs *int64             `json:"processing_time_ms,omitempty"`
-	Result           *ExtractedDocument `json:"result,omitempty"`
+	ProcessingTimeMs *int64 `json:"processing_time_ms,omitempty"`
+
+	// Result Extraction result embedded by Enterprise for compatibility. Clients may
+	// use `GET /v1/jobs/{id}/result` on either tier instead.
+	Result *ExtractedDocument `json:"result,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
 
 	// Status Current job status.
 	Status JobStatus `json:"status"`
 
 	// TablesExtracted Tables extracted, when recorded by the tier's persistence layer.
-	TablesExtracted *int32           `json:"tables_extracted,omitempty"`
+	TablesExtracted *int32 `json:"tables_extracted,omitempty"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -5656,6 +6686,7 @@ type GetJobResponse1JobType string
 
 // GridCell Individual grid cell with position and span metadata.
 type GridCell struct {
+	// Bbox Bounding box for this cell (if available).
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 
 	// Col Zero-indexed column position.
@@ -5675,7 +6706,7 @@ type GridCell struct {
 	// left as the bare cell text: prefixing it with `#` would put a markdown heading inside a
 	// table cell, which is invalid where it lands and changes text every existing consumer
 	// already reads. This field is the signal instead, so a caller can decide for itself
-	// whether a `heading 2` in a banner row is a section title or a column label. ~keep
+	// whether a `heading 2` in a banner row is a section title or a column label.
 	HeadingLevel *int32 `json:"heading_level,omitempty"`
 
 	// IsHeader Whether this is a header cell.
@@ -5690,7 +6721,7 @@ type GridCell struct {
 	// StyleName Human-readable name of the paragraph style applied to this cell's text (`heading 2`).
 	//
 	// Carries the style even when it resolves to no outline level, so a caller can key on a
-	// named style this crate does not map to a heading. See `GridCell.heading_level`. ~keep
+	// named style this crate does not map to a heading. See `GridCell.heading_level`.
 	StyleName *string `json:"style_name,omitempty"`
 }
 
@@ -5737,9 +6768,10 @@ type HeadingLevel struct {
 type HealthResponse struct {
 	// AutoTune Auto-tune readiness, read by the frontend to gate the auto-tune UI.
 	AutoTune AutoTuneHealth `json:"auto_tune"`
-
-	// Rag RAG API availability, not a grant of access to a project.
-	Rag HealthResponse_Rag `json:"rag"`
+	Rag      struct {
+		// Enabled Always true because Enterprise mounts the RAG API unconditionally.
+		Enabled bool `json:"enabled"`
+	} `json:"rag"`
 
 	// Status Service status
 	Status string `json:"status"`
@@ -5748,19 +6780,11 @@ type HealthResponse struct {
 	Tier string `json:"tier"`
 }
 
-// HealthResponseRag0 Enterprise RAG availability; project configuration remains authoritative.
-type HealthResponseRag0 struct {
-	// Enabled Always true because Enterprise mounts the RAG API unconditionally.
-	Enabled bool `json:"enabled"`
-}
-
-// HealthResponse_Rag RAG API availability, not a grant of access to a project.
-type HealthResponse_Rag struct {
-	union json.RawMessage
-}
-
 // HierarchicalBlock defines model for HierarchicalBlock.
 type HierarchicalBlock struct {
+	// Bbox Bounding box information for the block
+	//
+	// Contains left, top, right, and bottom coordinates in PDF units.
 	Bbox *HierarchicalBoundingBox `json:"bbox,omitempty"`
 
 	// FontSize The font size of the text in this block
@@ -5820,7 +6844,8 @@ type HtmlMetadata struct {
 	CanonicalUrl *string `json:"canonical_url,omitempty"`
 
 	// Description Document description from `<meta name="description">` tag
-	Description *string `json:"description,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	FormatType  HtmlMetadataFormatType `json:"format_type"`
 
 	// Headers Extracted header elements with hierarchy
 	Headers *[]HeaderMetadata `json:"headers,omitempty"`
@@ -5847,7 +6872,9 @@ type HtmlMetadata struct {
 
 	// StructuredData Extracted structured data blocks
 	StructuredData *[]StructuredData `json:"structured_data,omitempty"`
-	TextDirection  *TextDirection    `json:"text_direction,omitempty"`
+
+	// TextDirection Document text direction from `dir` attribute
+	TextDirection *TextDirection `json:"text_direction,omitempty"`
 
 	// Title Document title from `<title>` tag
 	Title *string `json:"title,omitempty"`
@@ -5856,6 +6883,9 @@ type HtmlMetadata struct {
 	// Keys like "card", "site", "creator", "title", "description", "image", etc.
 	TwitterCard *map[string]string `json:"twitter_card,omitempty"`
 }
+
+// HtmlMetadataFormatType defines model for HtmlMetadata.FormatType.
+type HtmlMetadataFormatType string
 
 // ImageDimensions defines model for ImageDimensions.
 type ImageDimensions struct {
@@ -5904,7 +6934,8 @@ type ImageMetadata struct {
 	Exif map[string]string `json:"exif"`
 
 	// Format Image format (e.g., "PNG", "JPEG", "TIFF")
-	Format string `json:"format"`
+	Format     string                  `json:"format"`
+	FormatType ImageMetadataFormatType `json:"format_type"`
 
 	// Height Image height in pixels
 	Height int32 `json:"height"`
@@ -5912,6 +6943,9 @@ type ImageMetadata struct {
 	// Width Image width in pixels
 	Width int32 `json:"width"`
 }
+
+// ImageMetadataFormatType defines model for ImageMetadata.FormatType.
+type ImageMetadataFormatType string
 
 // ImageMetadataType Image element metadata.
 type ImageMetadataType struct {
@@ -5958,7 +6992,31 @@ type ImagePreprocessingConfig struct {
 	// InvertColors Invert colors (white text on black → black on white).
 	InvertColors *bool `json:"invert_colors,omitempty"`
 
+	// NormalizeShadedRows Normalize shaded table rows (e.g. a subtotal row on a light or dark fill) before
+	// binarization, so each shaded band is stretched to its own dark-text-on-white
+	// polarity instead of being lost to a single whole-page threshold (GH#1785).
+	//
+	// This is a per-band step, not a replacement for `binarization_method`: no single
+	// whole-page method recovers every fill color, and the per-band step itself can
+	// regress a row style it does not fully model (e.g. a mid-grey fill with white
+	// text), so it defaults to `false` rather than being enabled unconditionally.
+	//
+	// Has no effect when `binarization_method` is `"none"` or `"off"` **and** `contrast_enhance`
+	// is `true`: that path re-reads the original image to apply background normalization and
+	// sharpening, discarding the per-band result. A `WARN` is emitted when the option is
+	// requested in that combination (GH#1837).
+	NormalizeShadedRows *bool `json:"normalize_shaded_rows,omitempty"`
+
 	// TargetDpi Target DPI for the image (300 is standard, 600 for small text).
+	//
+	// For a PDF page, this resamples the already-rendered raster; it does not make the page
+	// re-render at a higher native resolution. A value above what
+	// `image::preprocessing::calculate_target_dpi`'s memory/dimension clamp allows is
+	// silently capped (GH#1786: 400 and 600 both clamped to the same ~372 on a Letter page
+	// and produced byte-identical output), so upscaling interpolated pixels this way adds no
+	// detail. To change the actual PDF render resolution, set `images.target_dpi` on
+	// `ExtractionConfig` instead
+	// (`image::dpi::effective_pdf_render_dpi`).
 	TargetDpi *int32 `json:"target_dpi,omitempty"`
 }
 
@@ -6018,6 +7076,7 @@ type IncludeMask struct {
 //
 // Represents text with formatting, links, images, etc.
 type InlineElement struct {
+	// Attributes Element attributes
 	Attributes *Attributes `json:"attributes,omitempty"`
 
 	// Content Text content
@@ -6051,7 +7110,8 @@ type JatsMetadata struct {
 	ContributorRoles *[]ContributorRole `json:"contributor_roles,omitempty"`
 
 	// Copyright Copyright statement from the article's `<permissions>` element.
-	Copyright *string `json:"copyright,omitempty"`
+	Copyright  *string                `json:"copyright,omitempty"`
+	FormatType JatsMetadataFormatType `json:"format_type"`
 
 	// HistoryDates Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`).
 	HistoryDates *map[string]string `json:"history_dates,omitempty"`
@@ -6059,6 +7119,9 @@ type JatsMetadata struct {
 	// License Open-access license URI from the article's `<license>` element.
 	License *string `json:"license,omitempty"`
 }
+
+// JatsMetadataFormatType defines model for JatsMetadata.FormatType.
+type JatsMetadataFormatType string
 
 // JobResult The result envelope `GET /v1/jobs/{id}/result` serves on both tiers.
 //
@@ -6075,8 +7138,8 @@ type JatsMetadata struct {
 // HTTP boundary, and both answer 409 with `JobResult.not_ready_message`
 // while the job is not in a terminal successful state.
 type JobResult struct {
-	// Cached ~keep This job's recorded extraction-cache hit, independent of child jobs and billing.
-	// ~keep False means no recorded hit; a pending job has not necessarily attempted extraction.
+	// Cached This job's recorded extraction-cache hit, independent of child jobs and billing.
+	// False means no recorded hit; a pending job has not necessarily attempted extraction.
 	Cached bool `json:"cached"`
 
 	// ChildJobIds Child job IDs when this job was split into multiple jobs (Enterprise
@@ -6104,7 +7167,9 @@ type JobResult struct {
 	Results *[]JobResultDocument `json:"results,omitempty"`
 
 	// Status Job status at the time the result was read.
-	Status          JobStatus        `json:"status"`
+	Status JobStatus `json:"status"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
@@ -6227,19 +7292,34 @@ type JobSummary struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt time.Time `json:"created_at"`
 
-	// Filename Original filename.
+	// Filename Original filename for an extraction, or the primary seed URL for a crawl.
 	Filename string `json:"filename"`
 
 	// Id Unique job identifier.
 	Id openapi_types.UUID `json:"id"`
 
-	// MimeType MIME type of the submitted document.
+	// JobType Kind of detail view represented by this row.
+	JobType JobSummaryType `json:"job_type"`
+
+	// MimeType MIME type of the submitted document, or `crawl` for a crawl parent.
 	MimeType string `json:"mime_type"`
 
+	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
+	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
+
+	// SourceUrl The crawled page URL this document came from, when the job is a
+	// crawl child (#1961). Absent for a direct upload.
+	SourceUrl *string `json:"source_url,omitempty"`
+
 	// Status Current job status.
-	Status          JobStatus        `json:"status"`
+	Status JobStatus `json:"status"`
+
+	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
+
+// JobSummaryType Kind of job represented by a `JobSummary`.
+type JobSummaryType string
 
 // KeyValueAttribute defines model for KeyValueAttribute.
 type KeyValueAttribute struct {
@@ -6475,9 +7555,6 @@ type LinkMetadata struct {
 type LinkType string
 
 // ListAuditEntriesResponse Response for the customer-facing audit read endpoint (`GET /v1/audit`).
-//
-// The list field is named `entries` (Pro's current response names it
-// `events`) — a breaking rename for existing Pro consumers, per ADR-0066.
 type ListAuditEntriesResponse struct {
 	// Entries Audit entries in the current page, most recent first.
 	Entries []AuditEntry `json:"entries"`
@@ -6488,9 +7565,7 @@ type ListAuditEntriesResponse struct {
 	// Offset Offset used for pagination.
 	Offset int64 `json:"offset"`
 
-	// Total Total number of audit entries matching the query. Services that cannot
-	// cheaply compute a distinct total may set this to the page length. (Pro
-	// has no `total` field today; this is new behavior on convergence.)
+	// Total Total number of audit entries matching the query.
 	Total int64 `json:"total"`
 }
 
@@ -6605,8 +7680,9 @@ type ListWebhookDeliveriesResponse struct {
 // LlmConfig LLM provider configuration routed through liter-llm.
 type LlmConfig struct {
 	// ApiKey API key for the provider. Mutually exclusive with `use_managed = true`.
-	// Treated as a secret — never logged.
-	ApiKey *string `json:"api_key,omitempty"`
+	// Treated as a secret — never logged. Omit to leave it unset; explicit
+	// `null` is not a distinct value from omission and is rejected.
+	ApiKey string `json:"api_key"`
 
 	// BaseUrl Override the provider base URL.
 	BaseUrl *string `json:"base_url,omitempty"`
@@ -6717,16 +7793,25 @@ type Metadata struct {
 	CreatedBy *string `json:"created_by,omitempty"`
 
 	// DocumentVersion Document version string (from frontmatter).
-	DocumentVersion *string        `json:"document_version,omitempty"`
-	Error           *ErrorMetadata `json:"error,omitempty"`
+	DocumentVersion *string `json:"document_version,omitempty"`
+
+	// Error Error metadata (for batch operations)
+	Error *ErrorMetadata `json:"error,omitempty"`
 
 	// ExtractionDurationMs Extraction duration in milliseconds (for benchmarking).
 	//
 	// This field is populated by batch extraction to provide per-file timing
 	// information. It's `None` for single-file extraction (which uses external timing).
-	ExtractionDurationMs *int64                      `json:"extraction_duration_ms,omitempty"`
-	Format               *FormatMetadata             `json:"format,omitempty"`
-	ImagePreprocessing   *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
+	ExtractionDurationMs *int64 `json:"extraction_duration_ms,omitempty"`
+
+	// Format Format-specific metadata (discriminated union)
+	//
+	// Contains detailed metadata specific to the document format.
+	// Serialized as a nested `"format"` object with a `format_type` discriminator field.
+	Format *FormatMetadata `json:"format,omitempty"`
+
+	// ImagePreprocessing Image preprocessing metadata (when OCR preprocessing was applied)
+	ImagePreprocessing *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
 
 	// JsonSchema JSON schema (for structured data extraction)
 	JsonSchema interface{} `json:"json_schema,omitempty"`
@@ -6754,8 +7839,10 @@ type Metadata struct {
 	//
 	// Set by the output format pipeline stage when format conversion is applied.
 	// Previously stored in `metadata.additional["output_format"]`.
-	OutputFormat *string        `json:"output_format,omitempty"`
-	Pages        *PageStructure `json:"pages,omitempty"`
+	OutputFormat *string `json:"output_format,omitempty"`
+
+	// Pages Page/slide/sheet structure with boundaries
+	Pages *PageStructure `json:"pages,omitempty"`
 
 	// Subject Document subject or description
 	Subject *string `json:"subject,omitempty"`
@@ -7155,6 +8242,12 @@ type OcrBackendCapabilityInfo struct {
 
 	// Name Registered backend name (e.g. `tesseract`, `paddle-ocr`).
 	Name string `json:"name"`
+
+	// SupportedLanguages Known language identifiers advertised by this backend. The list can be non-exhaustive.
+	SupportedLanguages *[]string `json:"supported_languages,omitempty"`
+
+	// SupportedLanguagesExhaustive Whether `supported_languages` contains every identifier accepted by the backend.
+	SupportedLanguagesExhaustive *bool `json:"supported_languages_exhaustive,omitempty"`
 }
 
 // OcrBackendCostKind Kind classification for the cost of running an OCR backend.
@@ -7227,6 +8320,21 @@ type OcrConfig struct {
 	// with a 400 when not recognized.
 	Backend *string `json:"backend,omitempty"`
 
+	// BackendOptions Per-call options for the named OCR backend, as a JSON object.
+	//
+	// The accepted keys depend on the backend. The candle backends accept a
+	// `device` (`auto`, `cpu`, `cuda`, `metal`) plus their own keys:
+	// `candle-deepseek-ocr` takes `model_id` (default
+	// `deepseek-ai/DeepSeek-OCR`), an optional `model_path` that takes
+	// precedence when set, `version`, `hf_revision` (required for a
+	// non-default `model_id`), `cache_dir` and `dtype`;
+	// `candle-paddleocr-vl` takes `task`, `model_path`, `model_id`,
+	// `hf_revision` and `cache_dir`; `candle-glm-ocr` takes `task`,
+	// `layout_mode`, `enable_chart_understanding` and `cache_dir`;
+	// `candle-trocr` takes `variant`, `hf_revision` and `cache_dir`. An option
+	// the named backend does not accept is rejected with a 400.
+	BackendOptions *map[string]interface{} `json:"backend_options,omitempty"`
+
 	// ElementConfig Structured OCR element extraction
 	ElementConfig *OcrElementConfig `json:"element_config,omitempty"`
 
@@ -7239,7 +8347,7 @@ type OcrConfig struct {
 	// Pipeline Multi-backend OCR pipeline with quality-based fallback
 	Pipeline *OcrPipelineConfig `json:"pipeline,omitempty"`
 
-	// Psm Tesseract page-segmentation mode (0..=13).
+	// Psm Tesseract page-segmentation mode (1..=13).
 	//
 	// Present because this service's own auto-tune sweeps it (`Knob::Psm`) and
 	// returns it inside a winning profile. Without the field the DTO dropped it
@@ -7257,7 +8365,8 @@ type OcrConfig struct {
 	// VlmConfig VLM (Vision Language Model) configuration
 	VlmConfig *map[string]interface{} `json:"vlm_config,omitempty"`
 
-	// VlmFallback VLM fallback policy for OCR operations
+	// VlmFallback Request VLM fallback using the deployment's model.
+	// An explicit OCR pipeline takes precedence, so it ignores this fallback policy.
 	VlmFallback *VlmFallbackPolicy `json:"vlm_fallback,omitempty"`
 
 	// VlmPrompt Custom Jinja2 prompt template for VLM OCR
@@ -7286,9 +8395,11 @@ type OcrElement struct {
 
 	// ParentId Parent element ID for hierarchical relationships.
 	//
-	// ~keep When hierarchy output is enabled, this resolves to another emitted element's
+	// When hierarchy output is enabled, this resolves to another emitted element's
 	// `backend_metadata["element_id"]` value.
-	ParentId *string      `json:"parent_id,omitempty"`
+	ParentId *string `json:"parent_id,omitempty"`
+
+	// Rotation Rotation information (if detected).
 	Rotation *OcrRotation `json:"rotation,omitempty"`
 
 	// Text The recognized text content.
@@ -7320,6 +8431,8 @@ type OcrElementLevel string
 //
 // Captures information about OCR processing configuration and results.
 type OcrMetadata struct {
+	FormatType OcrMetadataFormatType `json:"format_type"`
+
 	// Language OCR language code(s) used
 	Language string `json:"language"`
 
@@ -7339,6 +8452,9 @@ type OcrMetadata struct {
 	TableRows *int32 `json:"table_rows,omitempty"`
 }
 
+// OcrMetadataFormatType defines model for OcrMetadata.FormatType.
+type OcrMetadataFormatType string
+
 // OcrPipelineConfig Multi-backend OCR pipeline with quality-based fallback.
 type OcrPipelineConfig struct {
 	// QualityThresholds Quality evaluation thresholds for fallback decisions
@@ -7354,6 +8470,12 @@ type OcrPipelineStage struct {
 	// compiled in and registered; the accepted set is deployment-dependent
 	// and is rejected with a 400 when not recognized.
 	Backend string `json:"backend"`
+
+	// BackendOptions Per-call options for this stage's backend, as a JSON object.
+	//
+	// The top-level `ocr.backend_options` has no effect once a pipeline is
+	// set, so a stage carries its own.
+	BackendOptions *map[string]interface{} `json:"backend_options,omitempty"`
 
 	// Language Language override for this stage
 	Language *string `json:"language,omitempty"`
@@ -7407,6 +8529,61 @@ type OcrRotation struct {
 	// Confidence Confidence score for the rotation detection.
 	Confidence *float64 `json:"confidence,omitempty"`
 }
+
+// OcrStrategy Which pages of a PDF go to OCR when neither `force_ocr` nor
+// `force_ocr_pages` applies.
+//
+// Mirrors xberg's `OcrStrategy`, tag and variant names included, so a caller
+// who reads the library documentation can write the same object here.
+//
+// `auto` OCRs a page only when its native text layer fails a quality check,
+// and a scanner's invisible text layer passes that check. `scanned_pages`
+// additionally OCRs every page that grades at or above `min_confidence` on
+// scan detection, which is the knob between "OCR everything" and "OCR
+// nothing": a lower threshold sends more pages to recognition, a higher one
+// sends fewer.
+//
+// `min_confidence` is in `[0.0, 1.0]` and anything else is a 400. xberg's own
+// default is 0.70, and it is what an omitted `ocr_strategy` keeps.
+//
+// Rejects an unrecognised key on either variant, unlike the wire type
+// it mirrors (`messages::jobs::OcrStrategy`): this DTO sits on the live
+// request path, which ADR-0082 keeps strict, so
+// `{"mode":"auto","min_confidence":0.3}` is a 400 naming the field
+// rather than a threshold parsed and silently dropped. The wire type
+// stays lenient on purpose — it is reachable from the worker's tolerant
+// decode paths, and ADR-0082's amendment measured that adding
+// `deny_unknown_fields` to a tagged enum reachable from there can
+// permanently strand a stored job instead of merely dropping a field.
+//
+// `Deserialize` is hand-written rather than derived because serde's
+// `deny_unknown_fields` only rejects an extra field beside a fieldless
+// variant when that variant declares its (empty) field set with braces
+// (`Auto {}`), and a struct variant cannot carry `#[default]`. So the
+// public enum keeps `Auto` a plain unit variant — every call site
+// matches it that way — and deserializes through a private shadow enum
+// that uses the brace form purely to get the rejection. xberg's own
+// `OcrStrategy` uses the identical split for the identical reason.
+type OcrStrategy struct {
+	union json.RawMessage
+}
+
+// OcrStrategy0 OCR only where the native text layer fails a quality check (default).
+type OcrStrategy0 struct {
+	Mode OcrStrategy0Mode `json:"mode"`
+}
+
+// OcrStrategy0Mode defines model for OcrStrategy.0.Mode.
+type OcrStrategy0Mode string
+
+// OcrStrategy1 Also OCR every page that looks like a scan at or above `min_confidence`.
+type OcrStrategy1 struct {
+	MinConfidence float64          `json:"min_confidence"`
+	Mode          OcrStrategy1Mode `json:"mode"`
+}
+
+// OcrStrategy1Mode defines model for OcrStrategy.1.Mode.
+type OcrStrategy1Mode string
 
 // PageBoundary Byte offset boundary for a page.
 //
@@ -7466,14 +8643,20 @@ type PageConfig struct {
 // by avoiding redundant copies during serialization.
 type PageContent struct {
 	// Content Text content for this page
-	Content   string         `json:"content"`
+	Content string `json:"content"`
+
+	// Hierarchy Hierarchy information for the page (when hierarchy extraction is enabled)
+	//
+	// Contains text hierarchy levels (H1-H6) extracted from the page content.
 	Hierarchy *PageHierarchy `json:"hierarchy,omitempty"`
 
 	// ImageIndices Indices into `ExtractedDocument.images` for images found on this page.
 	//
 	// Each value is a zero-based index into the top-level `images` collection.
 	// Only populated when `extract_images = true` in the extraction config.
-	ImageIndices       *[]int32                    `json:"image_indices,omitempty"`
+	ImageIndices *[]int32 `json:"image_indices,omitempty"`
+
+	// ImagePreprocessing OCR image preprocessing applied to this page's raster.
 	ImagePreprocessing *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
 
 	// IsBlank Whether this page is blank (no meaningful text content)
@@ -7487,7 +8670,9 @@ type PageContent struct {
 	//
 	// Contains detected layout regions with class, confidence, bounding box,
 	// and area fraction. Only populated when layout detection is configured.
-	LayoutRegions *[]LayoutRegion    `json:"layout_regions,omitempty"`
+	LayoutRegions *[]LayoutRegion `json:"layout_regions,omitempty"`
+
+	// OcrConfidence Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
 	OcrConfidence *PageOcrConfidence `json:"ocr_confidence,omitempty"`
 
 	// PageNumber Page number (1-indexed)
@@ -7540,6 +8725,7 @@ type PageHierarchy struct {
 
 // PageInfo defines model for PageInfo.
 type PageInfo struct {
+	// Dimensions Dimensions in points (PDF) or pixels (images).
 	Dimensions *PageDimensions `json:"dimensions,omitempty"`
 
 	// HasVectorGraphics Whether this page contains non-trivial vector graphics (paths, shapes, curves)
@@ -7607,6 +8793,7 @@ type PageOcrConfidence struct {
 //
 // See `ChunkMetadata.page_spans` (#1295) for population semantics.
 type PageSpan struct {
+	// Bbox Bounding box on this page, if known.
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 
 	// Page Page number (1-indexed).
@@ -7645,7 +8832,9 @@ type PdfAnnotation struct {
 	AnnotationType PdfAnnotationType `json:"annotation_type"`
 
 	// Author Author/creator of the annotation (PDF `/T` entry).
-	Author      *string      `json:"author,omitempty"`
+	Author *string `json:"author,omitempty"`
+
+	// BoundingBox Bounding box of the annotation on the page.
 	BoundingBox *BoundingBox `json:"bounding_box,omitempty"`
 
 	// Color Annotation colour (PDF `/C` entry), normalised to a CSS-compatible
@@ -7715,6 +8904,7 @@ type PdfConfig struct {
 // take priority (canonical fallback per PDF spec), and XFA-only fields are appended.
 // The collection is empty for non-form PDFs and for non-PDF formats.
 type PdfFormField struct {
+	// Bbox Widget bounding box on its page, if known.
 	Bbox *BoundingBox `json:"bbox,omitempty"`
 
 	// DefaultValue Default field value, if any.
@@ -7753,8 +8943,33 @@ type PdfFormField struct {
 // `Metadata` structure. Common fields like title, authors, keywords, and dates
 // are at the `Metadata` level.
 type PdfMetadata struct {
+	// FabricatedTextPages Pages whose text was dominated by fabricated character mappings (1-indexed):
+	// `MappingProvenance::Fallback`, a font whose glyph-to-Unicode mapping resolved to
+	// a value the extractor chose rather than read from the file (issue #1254). This is
+	// a fact about how the text was derived, independent of `scanned_pages`'s raster-based
+	// scan detection, and independent of whether the resulting text happens to look
+	// structurally like prose (issue #1667: a broken mapping that lands on ordinary
+	// letters and punctuation passes every character-shape check but is still fabricated).
+	//
+	// `None` when `OcrQualityThresholds::enable_provenance_ocr_routing` is `false`; empty
+	// when no page qualifies.
+	FabricatedTextPages *[]int32              `json:"fabricated_text_pages,omitempty"`
+	FormatType          PdfMetadataFormatType `json:"format_type"`
+
 	// Height First page height in points (1/72 inch)
 	Height *int64 `json:"height,omitempty"`
+
+	// ImplausibleTextPages Pages whose native text layer reads as no real detectable language (1-indexed): a
+	// `/ToUnicode` CMap (or other mapping tier) that resolves every glyph to *a* character,
+	// consistently the WRONG one (e.g. a ROT-shifted mapping), so the page is structurally
+	// indistinguishable from real prose to `fabricated_text_pages`'s provenance check and to
+	// every character-shape heuristic (issue #1696; issue #1667's `quality_score: 1.0` with
+	// no warning on such a page is the same underlying gap). This is a content-plausibility
+	// fact, independent of `fabricated_text_pages` and of `scanned_pages`.
+	//
+	// `None` when `OcrQualityThresholds::enable_plausibility_ocr_routing` is `false`; empty
+	// when no page qualifies.
+	ImplausibleTextPages *[]int32 `json:"implausible_text_pages,omitempty"`
 
 	// IsEncrypted Whether the PDF is encrypted/password-protected
 	IsEncrypted *bool `json:"is_encrypted,omitempty"`
@@ -7796,6 +9011,9 @@ type PdfMetadata struct {
 	// Width First page width in points (1/72 inch)
 	Width *int64 `json:"width,omitempty"`
 }
+
+// PdfMetadataFormatType defines model for PdfMetadata.FormatType.
+type PdfMetadataFormatType string
 
 // PiiCategory PII categories the pattern engine recognises.
 type PiiCategory struct {
@@ -7882,6 +9100,8 @@ type PostProcessorConfig struct {
 //
 // Extracted from PPTX files containing slide counts and presentation details.
 type PptxMetadata struct {
+	FormatType PptxMetadataFormatType `json:"format_type"`
+
 	// ImageCount Number of embedded images
 	ImageCount *int32 `json:"image_count,omitempty"`
 
@@ -7894,6 +9114,9 @@ type PptxMetadata struct {
 	// TableCount Number of tables
 	TableCount *int32 `json:"table_count,omitempty"`
 }
+
+// PptxMetadataFormatType defines model for PptxMetadata.FormatType.
+type PptxMetadataFormatType string
 
 // PresetCallMode Preferred call mode for a preset.
 type PresetCallMode string
@@ -7974,8 +9197,27 @@ type PresignUploadRequest struct {
 	// Config Batch-level extraction configuration (applied to all documents)
 	Config *ExtractionConfig `json:"config,omitempty"`
 
+	// Context Free-form context, resolved the same way as `/v1/extract`'s
+	// `options.context` (`api_types::ExtractionOptions::context`). It
+	// renders into a curated or saved preset's context template when one
+	// is set. With no preset it is still validated and written into
+	// `structured_extraction.context` on the resolved config, unlike Xberg
+	// Pro's presign handler, which validates a standalone context the same
+	// way but discards it when no preset is set.
+	Context *map[string]string `json:"context,omitempty"`
+
 	// Documents Document metadata (no file data)
 	Documents []PresignDocumentInput `json:"documents"`
+
+	// Preset Curated preset identifier, resolved the same way as `/v1/extract`'s
+	// `options.preset` (`api_types::ExtractionOptions::preset`). Mutually
+	// exclusive with `saved_preset_id` and with an inline schema in `config`.
+	Preset *string `json:"preset,omitempty"`
+
+	// SavedPresetId Saved preset ID (project-scoped, user-created), resolved the same way
+	// as `/v1/extract`'s `options.saved_preset_id`. Mutually exclusive with
+	// `preset`.
+	SavedPresetId *string `json:"saved_preset_id,omitempty"`
 
 	// Webhook Webhook configuration for async result delivery
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
@@ -8079,6 +9321,13 @@ type ProcessingWarning struct {
 // PromoteProfileRequest Request to promote a completed auto-tune result to a named, reusable
 // tuning profile.
 type PromoteProfileRequest struct {
+	// AllowUnscored Promote the run even when no trial in it scored any document.
+	//
+	// Such a run's winning configuration extracted nothing, so the profile it produces is
+	// unproven and promotion refuses it by default. Set this when you know why the run
+	// scored nothing and you want its configuration anyway.
+	AllowUnscored *bool `json:"allow_unscored,omitempty"`
+
 	// Name Name to give the promoted tuning profile.
 	Name string `json:"name"`
 }
@@ -8116,9 +9365,14 @@ type ProxyOverride struct {
 
 // PstMetadata Outlook PST archive metadata.
 type PstMetadata struct {
+	FormatType PstMetadataFormatType `json:"format_type"`
+
 	// MessageCount Total number of email messages found in the PST archive.
 	MessageCount int `json:"message_count"`
 }
+
+// PstMetadataFormatType defines model for PstMetadata.FormatType.
+type PstMetadataFormatType string
 
 // QrBoundingBox Pixel-space bounding box of a QR code inside its source image.
 type QrBoundingBox struct {
@@ -8137,6 +9391,9 @@ type QrBoundingBox struct {
 
 // QrCode One QR code decoded from an extracted image.
 type QrCode struct {
+	// Bbox Bounding box of the QR code inside the source image, in pixel coordinates
+	// (`x`, `y` of the top-left corner; `width`, `height` of the rectangle).
+	// `None` if the decoder did not report a bounding box.
 	Bbox *QrBoundingBox `json:"bbox,omitempty"`
 
 	// Confidence Detector-reported confidence in `[0.0, 1.0]`. `None` when the decoder
@@ -8414,6 +9671,9 @@ type RetrieveResponse struct {
 
 	// Rerank What happened to the rerank stage. Always present.
 	Rerank RerankOutcomeReport `json:"rerank"`
+
+	// VectorCandidates HNSW vector-leg completeness before fusion or reranking; absent for other retrieval paths.
+	VectorCandidates *VectorCandidateReport `json:"vector_candidates,omitempty"`
 }
 
 // RetrievedChunk Single retrieved chunk in the response.
@@ -8711,7 +9971,7 @@ type SecurityLimits struct {
 	// MaxCompressionRatio Maximum compression ratio before flagging as potential bomb (100:1)
 	MaxCompressionRatio *int `json:"max_compression_ratio,omitempty"`
 
-	// MaxContentSize Maximum string growth and decoded image allocation per document (100 MB)
+	// MaxContentSize Maximum string growth and decoded image allocation per document (512 MiB). This value may only be lowered.
 	MaxContentSize *int `json:"max_content_size,omitempty"`
 
 	// MaxEntityLength Maximum length of any single XML entity / attribute / token (1 MiB).
@@ -8724,7 +9984,10 @@ type SecurityLimits struct {
 	// MaxFilesInArchive Maximum number of files in archive (10,000)
 	MaxFilesInArchive *int `json:"max_files_in_archive,omitempty"`
 
-	// MaxIterations Maximum iterations per operation
+	// MaxIterations Maximum iterations per operation.
+	//
+	// For external redaction findings, this may lower but cannot raise the
+	// fixed 10,000-finding ceiling.
 	MaxIterations *int `json:"max_iterations,omitempty"`
 
 	// MaxNestingDepth Maximum nesting depth for structures (1024)
@@ -8756,10 +10019,7 @@ type SecurityLimits struct {
 	// document of an unenforced format is silently a no-op, not a guarantee.
 	MaxPages *int `json:"max_pages,omitempty"`
 
-	// MaxTableCells Maximum aggregate table cells per document (100,000).
-	//
-	// Raise this for trusted large tabular inputs. Higher values permit
-	// proportionally more parsing work and output allocation.
+	// MaxTableCells Maximum aggregate table cells per document (1000000). This value may only be lowered.
 	MaxTableCells *int `json:"max_table_cells,omitempty"`
 
 	// MaxXmlDepth Maximum XML depth (1024 levels)
@@ -8828,6 +10088,26 @@ type SummaryStrategy string
 // Represents a table detected and extracted from a document (PDF, image, etc.).
 // Tables are converted to both structured cell data and Markdown format.
 type Table struct {
+	// BoundingBox Bounding box of the table's position. Only populated when position data is
+	// available from the producing extractor.
+	//
+	// The coordinate space depends on how the table was produced, and callers must
+	// know which route produced a given `Table` before interpreting this field:
+	//
+	// - Tables extracted from a PDF's native content, and tables recognized on a
+	//   scanned PDF page that went through xberg's OCR pipeline (`--force-ocr` /
+	//   `--ocr-scanned-pages`), are in **PDF points with a bottom-left origin**
+	//   (x0=left, y0=bottom, x1=right, y1=top; y increases upward). For the OCR
+	//   case, the pipeline rescales the backend's raw pixel output into this space
+	//   before it reaches `Table::bounding_box` — see
+	//   `rescale_ocr_bboxes_to_page_points` in `extractors::pdf::ocr`.
+	// - Tables detected by OCR on a standalone image with no backing PDF page (for
+	//   example extracting a bare PNG/JPEG/TIFF) are in **raster pixel coordinates
+	//   with a top-left origin** (x0=left, y0=top, x1=right, y1=bottom; y increases
+	//   downward) — the same convention the OCR backend (Tesseract, PaddleOCR,
+	//   candle-based backends) or the layout detector reported them in. There is no
+	//   PDF page geometry to rescale into for this case, so the raw pixel box is
+	//   passed through unchanged.
 	BoundingBox *BoundingBox `json:"bounding_box,omitempty"`
 
 	// CellStyles Paragraph styles carried by individual cells, for the cells that have one.
@@ -8840,7 +10120,7 @@ type Table struct {
 	// existing consumer already reads. This list is the signal instead.
 	//
 	// Entries are only emitted for cells that actually carry a style, so an ordinary table
-	// serialises exactly as it did before. Indices are into `cells`. ~keep
+	// serialises exactly as it did before. Indices are into `cells`.
 	CellStyles *[]TableCellStyle `json:"cell_styles,omitempty"`
 
 	// Cells Table cells as a 2D vector (rows × columns)
@@ -8884,7 +10164,7 @@ type Table struct {
 // TableCellStyle The paragraph style a single table cell's text carries, located by grid position.
 //
 // Flat rather than a nested `Vec<Vec<Option<..>>>`: the nested shape marshals badly across the
-// FFI bindings, and the data is sparse anyway. See `Table.cell_styles`. ~keep
+// FFI bindings, and the data is sparse anyway. See `Table.cell_styles`.
 type TableCellStyle struct {
 	// Col Zero-indexed column of the cell this style belongs to.
 	Col int32 `json:"col"`
@@ -8984,6 +10264,12 @@ type TesseractConfig struct {
 	// it would with no `TesseractConfig` at all — see issue #1573. Setting any other
 	// field on this struct no longer changes that behaviour.
 	//
+	// A rendered PDF page (`force_ocr` / `force_ocr_pages` / scanned-page OCR) that is one
+	// full-page scan gets the same whole-image PSM as standalone image OCR of that raster
+	// (11, or 5 for a vertical language), so the scan needs no explicit `psm` (GH#1786). A
+	// page that is not a scan, such as forced OCR of a vector page, keeps the engine's
+	// automatic-layout PSM (3).
+	//
 	// Common explicit values:
 	// - 3: Fully automatic page segmentation (native engine default)
 	// - 6: Assume a single uniform block of text (WASM engine default — avoids
@@ -9021,8 +10307,13 @@ type TesseractConfig struct {
 	// TextordSpaceSizeIsVariable Variable-width space detection
 	TextordSpaceSizeIsVariable *bool `json:"textord_space_size_is_variable,omitempty"`
 
-	// ThresholdingMethod Use adaptive thresholding method
-	ThresholdingMethod *bool `json:"thresholding_method,omitempty"`
+	// ThresholdingMethod Tesseract image-binarization method (0-2): 0 = Otsu (default), 1 = LeptonicaOtsu,
+	// 2 = Sauvola. Sent to Tesseract's integer `thresholding_method` engine variable.
+	//
+	// GH#1784: used to be a `bool` sent as `"true"`/`"false"`, silently ignored by
+	// Tesseract's integer parser. A config for the old field still deserializes: `false` ->
+	// `0` (Otsu, the prior no-op), `true` -> `1` (LeptonicaOtsu, the old "adaptive" doc).
+	ThresholdingMethod *int32 `json:"thresholding_method,omitempty"`
 
 	// UseCache Enable OCR result caching
 	UseCache *bool `json:"use_cache,omitempty"`
@@ -9055,7 +10346,8 @@ type TextMetadata struct {
 	CharacterCount int32 `json:"character_count"`
 
 	// CodeBlocks Code blocks (for Markdown files).
-	CodeBlocks *[]MarkdownCodeBlock `json:"code_blocks,omitempty"`
+	CodeBlocks *[]MarkdownCodeBlock   `json:"code_blocks,omitempty"`
+	FormatType TextMetadataFormatType `json:"format_type"`
 
 	// Headers Markdown headers (headings text only, for Markdown files)
 	Headers *[]string `json:"headers,omitempty"`
@@ -9069,6 +10361,9 @@ type TextMetadata struct {
 	// WordCount Number of words
 	WordCount int32 `json:"word_count"`
 }
+
+// TextMetadataFormatType defines model for TextMetadata.FormatType.
+type TextMetadataFormatType string
 
 // TokenReductionConfig Token reduction configuration for LLM consumption.
 type TokenReductionConfig struct {
@@ -9163,7 +10458,8 @@ type UpdateSavedPresetRequest struct {
 	// citations regardless of this value.
 	EmitCitations *bool `json:"emit_citations,omitempty"`
 
-	// Name Preset name.
+	// Name Preset name. Trimmed before storage; a name that is entirely
+	// whitespace is rejected once trimmed.
 	Name *string `json:"name,omitempty"`
 
 	// PreferredCallMode Preferred orchestration path (`text_only`, `vision_only`, or
@@ -9249,11 +10545,32 @@ type UsageResponse struct {
 	TotalPages int64 `json:"total_pages"`
 }
 
+// VectorCandidateReport Candidate availability evidence, not approximate nearest-neighbour accuracy or scan-limit cause.
+type VectorCandidateReport struct {
+	// Budget Candidate budget, including any pre-rerank inflation.
+	Budget int32 `json:"budget"`
+
+	// Returned Units the vector leg returned, before fusion or reranking.
+	Returned int32 `json:"returned"`
+
+	// Status Evidence established in the retrieval snapshot.
+	Status VectorCandidateStatus `json:"status"`
+
+	// Unit Unit counted by the candidate budget.
+	Unit VectorCandidateUnit `json:"unit"`
+}
+
+// VectorCandidateStatus Candidate-set completeness; does not identify why an approximate scan stopped.
+type VectorCandidateStatus string
+
+// VectorCandidateUnit Candidate budget unit.
+type VectorCandidateUnit string
+
 // VlmFallbackPolicy VLM fallback policy for OCR operations.
 //
-// Determines whether and when to fall back from classical OCR (tesseract) to
-// Vision Language Model (VLM) processing. VLM is not available on the managed
-// API — any non-`disabled` policy is rejected with a 400.
+// Determines whether and when to use the deployment's VLM model for OCR.
+// Enterprise accepts active policies only when the operator configures a model;
+// an explicit OCR pipeline takes precedence and ignores this policy.
 type VlmFallbackPolicy struct {
 	union json.RawMessage
 }
@@ -9266,8 +10583,7 @@ type VlmFallbackPolicy0 struct {
 // VlmFallbackPolicy0Mode defines model for VlmFallbackPolicy.0.Mode.
 type VlmFallbackPolicy0Mode string
 
-// VlmFallbackPolicy1 Try the classical OCR backend first, then fall back to VLM below a quality
-// threshold. Not available on the managed API — rejected with a 400.
+// VlmFallbackPolicy1 Try classical OCR first, then fall back to VLM below this quality threshold.
 type VlmFallbackPolicy1 struct {
 	Mode             VlmFallbackPolicy1Mode `json:"mode"`
 	QualityThreshold float64                `json:"quality_threshold"`
@@ -9276,8 +10592,7 @@ type VlmFallbackPolicy1 struct {
 // VlmFallbackPolicy1Mode defines model for VlmFallbackPolicy.1.Mode.
 type VlmFallbackPolicy1Mode string
 
-// VlmFallbackPolicy2 Send every page directly to VLM. Not available on the managed API —
-// rejected with a 400.
+// VlmFallbackPolicy2 Use VLM instead of classical OCR on pages selected for OCR.
 type VlmFallbackPolicy2 struct {
 	Mode VlmFallbackPolicy2Mode `json:"mode"`
 }
@@ -9439,8 +10754,8 @@ type WebhookEventError struct {
 	Message string `json:"message"`
 }
 
-// WebhookEventType The terminal job events a webhook can carry. The serialized names are the
-// `event` field of the body and the names a managed subscription registers.
+// WebhookEventType The terminal job events a webhook can carry. The serialized names appear
+// in the body's `event` field and in subscription filters where supported.
 type WebhookEventType string
 
 // XmlMetadata XML metadata extracted during XML parsing.
@@ -9448,11 +10763,15 @@ type WebhookEventType string
 // Provides statistics about XML document structure.
 type XmlMetadata struct {
 	// ElementCount Total number of XML elements processed
-	ElementCount int32 `json:"element_count"`
+	ElementCount int32                 `json:"element_count"`
+	FormatType   XmlMetadataFormatType `json:"format_type"`
 
 	// UniqueElements List of unique element tag names (sorted)
 	UniqueElements []string `json:"unique_elements"`
 }
+
+// XmlMetadataFormatType defines model for XmlMetadata.FormatType.
+type XmlMetadataFormatType string
 
 // YakeParams YAKE-specific parameters.
 type YakeParams struct {
@@ -9476,8 +10795,9 @@ type YearRange struct {
 
 // ListAuditEntriesParams defines parameters for ListAuditEntries.
 type ListAuditEntriesParams struct {
-	// Action Filter to entries matching this action exactly (e.g. `"job.submit"`).
-	Action *string `form:"action,omitempty" json:"action,omitempty"`
+	// Action Filter to entries matching a known audit action exactly (e.g. `"job.submit"`).
+	// Unknown actions are rejected with a 400 response.
+	Action *ListAuditEntriesParamsAction `form:"action,omitempty" json:"action,omitempty"`
 
 	// Limit Page size. Values outside 1..=100 are rejected.
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
@@ -9485,6 +10805,9 @@ type ListAuditEntriesParams struct {
 	// Offset Number of items to skip. Values outside 0..=1,000,000 are rejected.
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
+
+// ListAuditEntriesParamsAction defines parameters for ListAuditEntries.
+type ListAuditEntriesParamsAction string
 
 // ListAutoTuneJobsParams defines parameters for ListAutoTuneJobs.
 type ListAutoTuneJobsParams struct {
@@ -9543,7 +10866,7 @@ type ListExtractionEventsParams struct {
 	// Limit Page size. Values outside 1..=100 are clamped into range rather than rejected.
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Offset Number of items to skip. A value above 1,000,000 is clamped to 1,000,000.
+	// Offset Number of items to skip. A value above 1,000,000 is clamped to 1,000,000; a negative value is clamped to 0.
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
@@ -11648,42 +12971,6 @@ func (t *GetJobResponse) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsHealthResponseRag0 returns the union data inside the HealthResponse_Rag as a HealthResponseRag0
-func (t HealthResponse_Rag) AsHealthResponseRag0() (HealthResponseRag0, error) {
-	var body HealthResponseRag0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromHealthResponseRag0 overwrites any union data inside the HealthResponse_Rag as the provided HealthResponseRag0
-func (t *HealthResponse_Rag) FromHealthResponseRag0(v HealthResponseRag0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeHealthResponseRag0 performs a merge with any union data inside the HealthResponse_Rag, using the provided HealthResponseRag0
-func (t *HealthResponse_Rag) MergeHealthResponseRag0(v HealthResponseRag0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t HealthResponse_Rag) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *HealthResponse_Rag) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
 // AsNodeContent0 returns the union data inside the NodeContent as a NodeContent0
 func (t NodeContent) AsNodeContent0() (NodeContent0, error) {
 	var body NodeContent0
@@ -12298,6 +13585,68 @@ func (t OcrBoundingGeometry) MarshalJSON() ([]byte, error) {
 }
 
 func (t *OcrBoundingGeometry) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsOcrStrategy0 returns the union data inside the OcrStrategy as a OcrStrategy0
+func (t OcrStrategy) AsOcrStrategy0() (OcrStrategy0, error) {
+	var body OcrStrategy0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromOcrStrategy0 overwrites any union data inside the OcrStrategy as the provided OcrStrategy0
+func (t *OcrStrategy) FromOcrStrategy0(v OcrStrategy0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeOcrStrategy0 performs a merge with any union data inside the OcrStrategy, using the provided OcrStrategy0
+func (t *OcrStrategy) MergeOcrStrategy0(v OcrStrategy0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsOcrStrategy1 returns the union data inside the OcrStrategy as a OcrStrategy1
+func (t OcrStrategy) AsOcrStrategy1() (OcrStrategy1, error) {
+	var body OcrStrategy1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromOcrStrategy1 overwrites any union data inside the OcrStrategy as the provided OcrStrategy1
+func (t *OcrStrategy) FromOcrStrategy1(v OcrStrategy1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeOcrStrategy1 performs a merge with any union data inside the OcrStrategy, using the provided OcrStrategy1
+func (t *OcrStrategy) MergeOcrStrategy1(v OcrStrategy1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t OcrStrategy) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *OcrStrategy) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

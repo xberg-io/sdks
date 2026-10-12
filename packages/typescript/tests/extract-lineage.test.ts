@@ -99,7 +99,7 @@ describe("extraction document lineage", () => {
         value = (await request.formData()).get("document_id-a.txt");
         return HttpResponse.json({ job_ids: ["a"] });
       }),
-      http.get(url("/v1/jobs/a"), () => HttpResponse.json({ id: "a", status: "completed" })),
+      http.get(url("/v1/jobs/a"), () => HttpResponse.json({ id: "a", filename: "a.txt", status: "completed" })),
     );
     const result = await new XbergClient({ baseUrl: TEST_BASE_URL, target: "enterprise" }).extractAndWait({
       file,

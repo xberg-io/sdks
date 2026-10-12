@@ -1,4 +1,16 @@
-import type { backendComponents, XbergClient } from "../src/index.js";
+import type { Client } from "openapi-fetch";
+import type { backendComponents, proPaths, XbergClient } from "../src/index.js";
+
+export function acceptsCurrentProPaths(client: Client<proPaths>): void {
+  const path = { project_id: "project", iid: "integration" };
+  void client.GET("/v1/projects/{project_id}/integrations/{iid}", { params: { path } });
+  void client.POST("/v1/projects/{project_id}/integrations/{iid}/connect", { params: { path } });
+  void client.POST("/v1/projects/{project_id}/integrations/{iid}/disconnect", { params: { path } });
+  void client.GET("/v1/projects/{project_id}/integrations/{iid}/documents", { params: { path } });
+  void client.GET("/v1/projects/{project_id}/integrations/{iid}/documents/{doc_id}", {
+    params: { path: { ...path, doc_id: "document" } },
+  });
+}
 
 export function acceptsOpaqueJson(client: XbergClient): void {
   void client.createSavedPreset({

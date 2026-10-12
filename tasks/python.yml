@@ -42,14 +42,17 @@ tasks:
     cmds:
       - rm -rf {{.OUT}}
       - mkdir -p {{.OUT}}
+      - uv run python scripts/prepare-python-spec.py {{.SPEC}} {{.OUT}}/_spec.json
       - uv run -m openapi_python_client generate
-        --path {{.SPEC}}
+        --path {{.OUT}}/_spec.json
         --config {{.PKG_DIR}}/openapi-python-client.yaml
         --output-path {{.OUT}}/_pkg
         --overwrite
         --meta none
       - mv {{.OUT}}/_pkg/* {{.OUT}}/
       - rmdir {{.OUT}}/_pkg
+      - rm {{.OUT}}/_spec.json
+      - uv run python scripts/patch-python-compat.py {{.OUT}}
       - touch {{.OUT}}/__init__.py
 
   _patch-format-metadata:

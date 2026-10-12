@@ -10,6 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Enterprise control-plane profile reads and updates in Python, TypeScript and Go.
+
+### Changed
+
+- Refresh dependency locks and CI tools across the SDKs and documentation site.
+- Align all three OpenAPI specifications with the local Pro and Enterprise services.
+- **Breaking.** Expose the current generated contract types directly. Document version hashes
+  can be absent, Go audit filters use their declared enum, Go thresholding methods use numeric
+  values, and Pro upload and backend sandbox responses use their own schema types.
+- **Breaking (TypeScript).** Raw Pro integration paths use `iid` and `doc_id` template
+  parameters. Newly required response fields and rejection of explicit null LLM keys follow
+  the current service contracts; omit an unset LLM key.
+- **Breaking.** Job detail reads return the tagged extraction-or-crawl response on both tiers.
+  Narrow on `job_type` before accessing variant fields; extraction wait and batch helpers
+  retain their extraction response types.
+
+### Fixed
+
+- Keep Python generation compatible with Python 3.10, UTC timestamps and composed job-response schemas.
+- Match TypeScript inputs to the service's optional LLM keys, defaulted image preprocessing
+  and support for both legacy boolean and numeric thresholding methods.
+- Regenerate committed Go clients during automatic specification syncs and run TypeScript CI
+  when its dependency lock or workflow changes.
+
 ## [0.7.0] - 2026-09-18
 
 ### Changed

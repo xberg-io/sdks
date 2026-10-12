@@ -14,6 +14,16 @@ func (c *Client) GetAuthConfig(ctx context.Context) (*AuthConfigResponse, error)
 	return controlPlaneJSON[AuthConfigResponse](ctx, c, "GetAuthConfig", methodGet, "/auth/config", nil)
 }
 
+// GetUserProfile calls GET /auth/profile on the Enterprise control plane. ~keep
+func (c *Client) GetUserProfile(ctx context.Context) (*UserProfileResponse, error) {
+	return controlPlaneJSON[UserProfileResponse](ctx, c, "GetUserProfile", methodGet, "/auth/profile", nil)
+}
+
+// UpdateUserProfile calls PATCH /auth/profile on the Enterprise control plane. ~keep
+func (c *Client) UpdateUserProfile(ctx context.Context, body UpdateUserProfileRequest) (*UserProfileResponse, error) {
+	return controlPlaneJSON[UserProfileResponse](ctx, c, "UpdateUserProfile", methodPatch, "/auth/profile", body)
+}
+
 // BackendLogin calls POST /auth/login on the Enterprise control plane.
 func (c *Client) BackendLogin(ctx context.Context, body LoginRequest) (*LoginResponse, error) {
 	return controlPlaneJSON[LoginResponse](ctx, c, "BackendLogin", methodPost, "/auth/login", body)

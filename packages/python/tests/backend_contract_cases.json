@@ -998,5 +998,41 @@
     },
     "model": "SandboxExtractResponse",
     "public": true
+  },
+  {
+    "operation_id": "get_user_profile",
+    "name": "get_user_profile",
+    "verb": "GET",
+    "path": "/auth/profile",
+    "arguments": {},
+    "query": {},
+    "status": 200,
+    "response": {
+      "user_id": "user-123",
+      "email": "profile@example.test",
+      "display_name": "Updated"
+    },
+    "model": "UserProfileResponse",
+    "public": false
+  },
+  {
+    "operation_id": "update_user_profile",
+    "name": "update_user_profile",
+    "verb": "PATCH",
+    "path": "/auth/profile",
+    "arguments": {
+      "body": {
+        "display_name": "Updated"
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "user_id": "user-123",
+      "email": "profile@example.test",
+      "display_name": "Updated"
+    },
+    "model": "UserProfileResponse",
+    "public": false
   }
 ]

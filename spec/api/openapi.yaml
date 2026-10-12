@@ -116,18 +116,11 @@ paths:
               - member.role_update
               - member.remove
               - member.leave
-              - project_role.create
-              - project_role.update
-              - project_role.delete
-              - project_role.assign
               - webhook.create
               - webhook.delete
               - preset.create
               - preset.update
               - preset.delete
-              - scim.connection.create
-              - scim.connection.rotate
-              - scim.group_roles.replace
               - db.api_keys.insert
               - db.api_keys.delete
               - db.api_keys.update
@@ -9561,18 +9554,6 @@ components:
             converting to plain text or markdown output formats.
 
             Only populated when `OcrElementConfig.include_elements` is true.
-        ocr_page_failures:
-          type:
-            - array
-            - "null"
-          items:
-            $ref: '#/components/schemas/OcrPageFailure'
-          description: |-
-            Pages whose OCR failed while extraction continued, in the order the failures were reported.
-
-            A record with `recovered` set means the document still has content for that page
-            from native text or from embedded images. Xberg-produced results use `None` when
-            no page failed.
         page_classifications:
           type:
             - array
@@ -11764,11 +11745,15 @@ components:
             (1, 2) = unigrams and bigrams
             (1, 3) = unigrams, bigrams, and trigrams (default)
         rake_params:
-          $ref: '#/components/schemas/RakeParams'
-          description: RAKE-specific tuning parameters.
+          oneOf:
+            - $ref: '#/components/schemas/RakeParams'
+              description: RAKE-specific tuning parameters.
+            - type: "null"
         yake_params:
-          $ref: '#/components/schemas/YakeParams'
-          description: YAKE-specific tuning parameters.
+          oneOf:
+            - $ref: '#/components/schemas/YakeParams'
+              description: YAKE-specific tuning parameters.
+            - type: "null"
       additionalProperties: false
     LanguageConfidence:
       type: object
@@ -13262,9 +13247,6 @@ components:
             - string
             - "null"
           description: OCR output format override
-        paddle_ocr_settings:
-          type: object
-          description: PaddleOCR model and inference configuration.
         pipeline:
           $ref: '#/components/schemas/OcrPipelineConfig'
           description: Multi-backend OCR pipeline with quality-based fallback
@@ -13428,32 +13410,6 @@ components:
           format: int32
           description: Number of rows in the detected table (if a single table was found).
           minimum: 0
-    OcrPageFailure:
-      type: object
-      description: |-
-        A page whose OCR failed while extraction of the document continued.
-
-        The warning in `ExtractedDocument::processing_warnings` stays available. One warning
-        can cover several pages: when an automatic OCR run of selected pages fails as a whole,
-        it adds one warning and one record for each selected page. A failure of the OCR fallback
-        for the whole document adds a warning and no record. Repeated failures on one page make
-        one record.
-      required:
-        - page
-        - error
-        - recovered
-      properties:
-        error:
-          type: string
-          description: OCR backend error text.
-        page:
-          type: integer
-          format: int32
-          description: One-based page number in the source document.
-          minimum: 0
-        recovered:
-          type: boolean
-          description: Whether content for this page was retained or recovered through another route.
     OcrPipelineConfig:
       type: object
       description: Multi-backend OCR pipeline with quality-based fallback.
@@ -13824,15 +13780,6 @@ components:
 
             Contains detected layout regions with class, confidence, bounding box,
             and area fraction. Only populated when layout detection is configured.
-        native_content:
-          type:
-            - string
-            - "null"
-          description: |-
-            Text layer of this page, kept when OCR output replaced it in `content`.
-
-            Set only when `PageConfig::keep_native_content` is on, an OCR route replaced this page's `content`, and the
-            text layer is not blank and differs from the OCR text. `None` on every other page. PDF only.
         ocr_confidence:
           $ref: '#/components/schemas/PageOcrConfidence'
           description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
@@ -16286,12 +16233,15 @@ components:
           description: Output format ("text" or "markdown")
           default: markdown
         preprocessing:
-          $ref: '#/components/schemas/ImagePreprocessingConfig'
-          description: |-
-            Image preprocessing configuration.
+          oneOf:
+            - $ref: '#/components/schemas/ImagePreprocessingConfig'
+              description: |-
+                Image preprocessing configuration.
 
-            Controls how images are preprocessed before OCR. Can significantly
-            improve quality for scanned documents or low-quality images.
+                Controls how images are preprocessed before OCR. Can significantly
+                improve quality for scanned documents or low-quality images.
+            - type: "null"
+          default: null
         psm:
           type:
             - integer

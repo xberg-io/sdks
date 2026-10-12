@@ -2,8 +2,10 @@ package xberg
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
@@ -28,18 +30,75 @@ func jobPath(jobID, suffix string) string {
 	return jobsPath + "/" + escapePathSegment(jobID) + suffix
 }
 
-// GetJob fetches the current status of a single job by ID.
+// GetJob fetches a tagged extraction or crawl job record by ID.
 //
 // Part of the shared surface (Enterprise + Pro).
-func (c *Client) GetJob(ctx context.Context, jobID string) (*ExtractionJobResponse, error) {
+func (c *Client) GetJob(ctx context.Context, jobID string) (*GetJobResponse, error) {
 	if jobID == "" {
 		return nil, fmt.Errorf("xberg: GetJob requires a non-empty jobID")
 	}
-	var job ExtractionJobResponse
-	if err := c.getJSON(ctx, jobPath(jobID, ""), &job); err != nil {
+	var payload json.RawMessage
+	if err := c.getJSON(ctx, jobPath(jobID, ""), &payload); err != nil {
+		return nil, err
+	}
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(payload, &object); err != nil || object == nil {
+		return nil, &ValidationError{XbergError{Status: http.StatusOK, Message: "unexpected job response shape", Body: payload}}
+	}
+	discriminator, tagged := object["job_type"]
+	if !tagged {
+		var filename string
+		if value, exists := object["filename"]; exists && json.Unmarshal(value, &filename) == nil && string(value) != "null" {
+			discriminator = json.RawMessage(`"extraction"`)
+			object["job_type"] = discriminator
+			var err error
+			payload, err = json.Marshal(object)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	var kind string
+	if err := json.Unmarshal(discriminator, &kind); err != nil || (kind != "extraction" && kind != "crawl") {
+		return nil, &ValidationError{XbergError{Status: http.StatusOK, Message: "unexpected job_type", Body: payload}}
+	}
+	var job GetJobResponse
+	if err := json.Unmarshal(payload, &job); err != nil {
+		return nil, err
+	}
+	var err error
+	if kind == "extraction" {
+		_, err = job.AsGetJobResponse0()
+	} else {
+		_, err = job.AsGetJobResponse1()
+	}
+	if err != nil {
 		return nil, err
 	}
 	return &job, nil
+}
+
+func (c *Client) getExtractionJob(ctx context.Context, jobID string) (*ExtractionJobResponse, error) {
+	job, err := c.GetJob(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+	extraction, err := job.AsGetJobResponse0()
+	if err != nil {
+		return nil, err
+	}
+	payload, err := json.Marshal(job)
+	if err != nil {
+		return nil, err
+	}
+	if extraction.JobType != "extraction" {
+		return nil, &ValidationError{XbergError{Status: http.StatusOK, Message: "expected extraction job, received crawl job", Body: payload}}
+	}
+	var response ExtractionJobResponse
+	if err := json.Unmarshal(payload, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 // CancelJob cancels a running job (DELETE /v1/jobs/{id}). It is idempotent:
@@ -133,7 +192,7 @@ func (c *Client) WaitForJob(
 	deadline := start.Add(options.Timeout)
 	pollInterval := options.PollInterval
 	for {
-		job, err := c.GetJob(ctx, jobID)
+		job, err := c.getExtractionJob(ctx, jobID)
 		if err != nil {
 			return nil, err
 		}

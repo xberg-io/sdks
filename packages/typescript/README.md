@@ -103,7 +103,7 @@ Shared surface (both tiers):
 |---|---|
 | `extract({ file, options? })` | `Promise<Job>` |
 | `extractBatch({ files, options? })` | `Promise<Job[]>` |
-| `getJob(jobId)` | `Promise<Job>` |
+| `getJob(jobId)` | `Promise<GetJobResponse>` (tagged extraction or crawl) |
 | `getJobResult(jobId)` | `Promise<JobResult>` |
 | `waitForJob(jobId, opts?)` | `Promise<Job>` |
 | `waitForJobs(jobIds, opts?)` | `Promise<Job[]>` |

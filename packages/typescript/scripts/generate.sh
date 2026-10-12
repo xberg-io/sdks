@@ -23,3 +23,4 @@ cd "${PKG_DIR}"
 pnpm exec openapi-typescript "${API_SPEC}" -o "${OUT_DIR}/api.d.ts" --empty-objects-unknown
 pnpm exec openapi-typescript "${PRO_SPEC}" -o "${OUT_DIR}/pro.d.ts" --empty-objects-unknown
 pnpm exec openapi-typescript "${BACKEND_SPEC}" -o "${OUT_DIR}/backend.d.ts" --empty-objects-unknown
+node "${PKG_DIR}/scripts/align-generated.mjs" "${OUT_DIR}"

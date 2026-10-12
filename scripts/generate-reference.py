@@ -120,6 +120,8 @@ GROUPS: list[tuple[str, str, list[str]]] = [
         [
             "delete_account",
             "get_auth_config",
+            "get_user_profile",
+            "update_user_profile",
             "backend_login",
             "healthz",
             "readyz",

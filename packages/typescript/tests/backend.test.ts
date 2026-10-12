@@ -20,6 +20,29 @@ interface BackendCase {
 
 const cases: BackendCase[] = [
   {
+    name: "getUserProfile",
+    method: "GET",
+    path: "/auth/profile",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.getUserProfile(),
+  },
+  {
+    name: "updateUserProfile",
+    method: "PATCH",
+    path: "/auth/profile",
+    query: {},
+    body: { display_name: "Updated" },
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.updateUserProfile({ display_name: "Updated" }),
+  },
+  {
     name: "deleteAccount",
     method: "DELETE",
     path: "/auth/account",
@@ -644,7 +667,7 @@ const cases: BackendCase[] = [
 ];
 
 describe("Enterprise backend operations", () => {
-  it("covers every one of the 49 operations", () => expect(cases).toHaveLength(49));
+  it("covers every one of the 51 operations", () => expect(cases).toHaveLength(51));
   for (const scenario of cases) {
     it(`${scenario.name} uses the declared control-plane wire contract`, async () => {
       let calls = 0;
@@ -705,6 +728,18 @@ describe("Enterprise backend operations", () => {
   }
 });
 
+it("returns the user profile fields from both profile operations", async () => {
+  const profile = { user_id: "user-123", email: "profile@example.test", display_name: "Updated" };
+  const client = new XbergClient({
+    baseUrl: DATA_URL,
+    controlPlaneBaseUrl: CONTROL_URL,
+    target: "enterprise",
+    fetch: async () => Response.json(profile),
+  });
+  expect(await client.getUserProfile()).toEqual(profile);
+  expect(await client.updateUserProfile({ display_name: "Updated" })).toEqual(profile);
+});
+
 describe("backend credential and redirect boundaries", () => {
   for (const scenario of cases) {
     it(`${scenario.name} rejects an explicit Pro target before network access`, async () => {
@@ -728,7 +763,9 @@ describe("backend credential and redirect boundaries", () => {
     const fetch: typeof globalThis.fetch = async (input, init) => {
       const request = new Request(input, init);
       requests.push([request.url, request.headers.get("authorization")]);
-      return Response.json({});
+      return Response.json(
+        request.url.includes("/v1/jobs/") ? { job_type: "extraction", filename: "fixture.pdf" } : {},
+      );
     };
     const client = new XbergClient({
       baseUrl: DATA_URL,

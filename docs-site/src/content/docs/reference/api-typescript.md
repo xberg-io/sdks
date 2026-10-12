@@ -166,6 +166,8 @@ All backend operations use the configured control-plane origin and credential.
 | --- | --- |
 | `deleteAccount` |  |
 | `getAuthConfig` |  |
+| `getUserProfile` |  |
+| `updateUserProfile` |  |
 | `backendLogin` |  |
 | `healthz` |  |
 | `readyz` |  |
