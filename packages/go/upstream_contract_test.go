@@ -147,10 +147,11 @@ func TestUpstreamSandboxAndHealthResponseShapes(t *testing.T) {
 	if sandbox.Result == nil || sandbox.Result.Content != "result" {
 		t.Fatalf("sandbox result = %#v", sandbox.Result)
 	}
-	var _ *xberg.BackendExtractedDocument = sandbox.Result
-	if sandbox.Result.MimeType != "text/plain" {
-		t.Fatal("backend result metadata lost")
-	}
+	func(result *xberg.BackendExtractedDocument) {
+		if result.MimeType != "text/plain" {
+			t.Fatal("backend result metadata lost")
+		}
+	}(sandbox.Result)
 	var health xberg.HealthResponse
 	if err := json.Unmarshal([]byte(`{"rag":{"enabled":true},"status":"ok","tier":"enterprise"}`), &health); err != nil {
 		t.Fatal(err)
