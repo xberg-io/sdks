@@ -46,3 +46,16 @@ def test_typescript_ci_tracks_lockfile_and_workflow_changes() -> None:
 def test_python_ci_executes_every_step_with_the_minimum_supported_interpreter() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/ci-python.yml")
     assert workflow["jobs"]["test"]["env"]["UV_PYTHON"] == "3.10"
+
+
+@pytest.mark.parametrize("filename", ("ci-go.yml", "spec-sync.yml", "publish.yaml"))
+def test_go_workflows_use_the_verified_patched_toolchain(filename: str) -> None:
+    workflow = YAML(typ="safe").load(ROOT / ".github/workflows" / filename)
+    setups = [
+        step
+        for job in workflow["jobs"].values()
+        for step in job.get("steps", [])
+        if step.get("uses", "").startswith("actions/setup-go@")
+    ]
+    assert setups
+    assert all(step["with"]["go-version"] == "1.27.2" for step in setups)
