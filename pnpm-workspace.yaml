@@ -8,3 +8,6 @@ allowBuilds:
 sharedWorkspaceLockfile: true
 autoInstallPeers: true
 hoist: true
+
+# ~keep Root and SDK pin TypeScript 6 because openapi-typescript and textlint-plugin-mdx
+# need the JavaScript compiler API removed from TypeScript 7.

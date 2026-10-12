@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.32.4"]
 
 [project]
 name = "xberg-io-sdk"
@@ -33,12 +33,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
-dependencies = [
-  "attrs>=24.2",
-  "httpx>=0.28.1",
-  "python-dateutil>=2.9",
-  "typing-extensions>=4.12; python_version<'3.11'",
-]
+dependencies = ["attrs>=26.1.0", "httpx>=0.28.1", "python-dateutil>=2.9.0.post0", "typing-extensions>=4.16.0"]
 urls.Changelog = "https://github.com/xberg-io/sdks/blob/main/CHANGELOG.md"
 urls.Documentation = "https://docs.sdks.xberg.io"
 urls.Homepage = "https://xberg.io"
