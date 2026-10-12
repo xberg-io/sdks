@@ -1,6 +1,7 @@
 name: ci-python
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
@@ -39,15 +40,17 @@ jobs:
   test:
     name: test (python 3.10)
     runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: "3.10"
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.1.0
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
       - name: Pin Python
         run: uv python install 3.10
       - name: Install task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
