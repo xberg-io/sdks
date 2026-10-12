@@ -57,8 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   timing-dependent assertions.
 - Make local Enterprise verification work from a cold database with the shipping Timescale
   image, correct extension-bootstrap ordering and isolated NATS provisioning.
-- Keep separate terminal crawl and active idle-stream fixtures so documentation cancellation
-  examples exercise a real open stream; verify profile persistence and both job-detail variants.
+- Keep separate terminal crawl and unqueued pending fixtures so documentation cancellation
+  examples exercise a real open stream without the active-work reaper expiring an idle fixture;
+  validate reused fixtures, profile persistence and both job-detail variants.
 
 ## [0.7.0] - 2026-09-18
 

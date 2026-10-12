@@ -188,13 +188,104 @@ def test_crawl_fixtures_separate_terminal_detail_from_idle_cancellation() -> Non
     assert crawl in sql
     assert "app.current_project_id" in sql
     idle_sql = stack.crawl_fixture_sql(project, crawl, terminal=False)
-    assert "'CRAWLING'" in idle_sql
+    assert "'PENDING'" in idle_sql
     assert "'COMPLETED'" not in idle_sql
     assert "ARRAY[]::text[]" in idle_sql
-    assert "now(), NULL" in idle_sql
+    assert "NULL, NULL" in idle_sql
     assert "app.current_project_id" in idle_sql
     with pytest.raises(ValueError, match="badly formed hexadecimal UUID"):
         stack.crawl_fixture_sql("invalid'project", crawl)
+
+
+@pytest.mark.parametrize("status", ["pending", "crawling", "failed"])
+def test_preparation_reuses_only_pending_idle_fixture_and_preserves_old_rows(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], status: str
+) -> None:
+    from types import SimpleNamespace
+
+    import httpx
+
+    stack = load_stack()
+    directory = tmp_path / "state"
+    state = stack.initialize_state(directory, "enterprise")
+    state.update(
+        api_key="fixture-key",
+        api_url="http://127.0.0.1:1234",
+        project_id="project",
+        crawl_job_id="terminal",
+        idle_crawl_job_id="old-idle",
+    )
+
+    class Client:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            pass
+
+        def get_job(self, job_id):
+            return SimpleNamespace(id=job_id, job_type="crawl", seed_urls=[], status=status)
+
+    monkeypatch.setattr(stack, "XbergClient", lambda **_: Client())
+    inserted = []
+
+    def insert(*_, terminal):
+        inserted.append(terminal)
+        return "new-idle"
+
+    monkeypatch.setattr(stack, "insert_crawl_fixture", insert)
+    http_client = httpx.Client
+    monkeypatch.setattr(
+        stack.httpx,
+        "Client",
+        lambda **kwargs: http_client(
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, headers={"content-type": "text/event-stream"})),
+            **kwargs,
+        ),
+    )
+    stack.prepare_idle_crawl(directory, state, tmp_path)
+    assert state["crawl_job_id"] == "terminal"
+    assert state["idle_crawl_job_id"] == ("old-idle" if status == "pending" else "new-idle")
+    assert inserted == ([] if status == "pending" else [False])
+    assert state["idle_crawl_fixture_kind"] == "pending-unqueued-v1"
+    output = capsys.readouterr().out
+    assert ("preserving old row" in output) == (status != "pending")
+
+
+def test_preparation_fails_if_current_unqueued_pending_fixture_terminalizes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    state.update(
+        api_key="fixture-key",
+        api_url="http://127.0.0.1:1234",
+        idle_crawl_job_id="idle",
+        idle_crawl_fixture_kind="pending-unqueued-v1",
+    )
+    job = SimpleNamespace(id="idle", job_type="crawl", seed_urls=[], status="failed")
+    monkeypatch.setattr(stack, "XbergClient", lambda **_: nullcontext(SimpleNamespace(get_job=lambda _: job)))
+    monkeypatch.setattr(stack, "insert_crawl_fixture", lambda *_, **__: pytest.fail("Unexpected fixture replacement"))
+    with pytest.raises(ValueError, match="changed status unexpectedly"):
+        stack.prepare_idle_crawl(tmp_path / "state", state, tmp_path)
+    assert state["idle_crawl_job_id"] == "idle"
+
+
+def test_documentation_gate_prepares_idle_fixture_after_state_checks_before_execution() -> None:
+    from ruamel.yaml import YAML
+
+    taskfile = YAML(typ="safe").load((ROOT / "tasks/docs.yml").read_text())
+    commands = taskfile["tasks"]["snippets:test"]["cmds"]
+    scripts = [command for command in commands if isinstance(command, str) and "scripts/test-snippets.py" in command]
+    assert len(scripts) == 1
+    script = scripts[0]
+    preparation = "task enterprise:prepare-idle-crawl"
+    assert script.count(preparation) == 1
+    assert script.index("${XBERG_ENTERPRISE_STATE_DIR:?") < script.index(preparation)
+    assert script.index(preparation) < script.index("uv run python scripts/test-snippets.py")
 
 
 def test_gcs_fixture_uses_distinct_ephemeral_signing_keys() -> None:

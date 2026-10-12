@@ -49,6 +49,7 @@ tasks:
         set -eu
         : "${XBERG_PRO_STATE_DIR:?Set XBERG_PRO_STATE_DIR to the private Pro stack directory}"
         : "${XBERG_ENTERPRISE_STATE_DIR:?Set XBERG_ENTERPRISE_STATE_DIR to the private Enterprise stack directory}"
+        task enterprise:prepare-idle-crawl
         version=$(cat VERSION)
         uv run python scripts/test-snippets.py \
           --python-wheel "dist/xberg_io_sdk-$version-py3-none-any.whl" \

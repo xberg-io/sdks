@@ -547,62 +547,83 @@ def mint_fixture(directory: Path, state: dict[str, Any]) -> None:
 def crawl_fixture_sql(project_id: str, crawl_id: str, *, terminal: bool = True) -> str:
     """Seed a scoped detail or idle-stream row without queueing crawl work."""
     project_id, crawl_id = str(uuid.UUID(project_id)), str(uuid.UUID(crawl_id))
-    status, completed_at = ("COMPLETED", "now()") if terminal else ("CRAWLING", "NULL")
+    status, started_at, completed_at = ("COMPLETED", "now()", "now()") if terminal else ("PENDING", "NULL", "NULL")
     # ~keep IDs are canonical UUIDs; status and timestamp fragments are fixed fixture variants.
     return f"""BEGIN;
 SET LOCAL app.current_project_id = '{project_id}';
 INSERT INTO crawl_jobs (id, project_id, seed_urls, status, crawl_config, metadata, started_at, completed_at)
 VALUES ('{crawl_id}', '{project_id}', ARRAY[]::text[], '{status}', '{{}}',
-        '{{"fixture":"sdk-live-contract"}}', now(), {completed_at});
+        '{{"fixture":"sdk-live-contract"}}', {started_at}, {completed_at});
 SELECT id FROM crawl_jobs WHERE id = '{crawl_id}' AND project_id = '{project_id}' AND status = '{status}';
 COMMIT;
 """  # noqa: S608
 
 
+def insert_crawl_fixture(directory: Path, state: dict[str, Any], enterprise: Path, *, terminal: bool) -> str:
+    """Insert one owned fixture and require exactly one project-scoped row."""
+    environment = base_environment(directory, state)
+    environment["COMPOSE_FILE"] = str(directory / "compose.json")
+    credentials = parse_exports(
+        run([str(enterprise / "scripts/local-db-env.sh")], enterprise, environment, capture=True)
+    )
+    container = run(
+        compose_command(directory, state, "ps", "-q", "postgres"), enterprise, environment, capture=True
+    ).strip()
+    if not container:
+        raise ValueError("owned PostgreSQL container is not running")
+    crawl_id = str(uuid.uuid4())
+    command = [
+        "docker",
+        "exec",
+        "-i",
+        container,
+        "sh",
+        "-c",
+        (
+            "IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -X -qAt -v ON_ERROR_STOP=1 "
+            "-h 127.0.0.1 -U xberg_app -d xberg_enterprise"
+        ),
+    ]
+    result = subprocess.run(
+        command,
+        input=credentials["LOCAL_POSTGRES_APPLICATION_PASSWORD"]
+        + "\n"
+        + crawl_fixture_sql(state["project_id"], crawl_id, terminal=terminal),
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )  # noqa: S603
+    if result.returncode != 0 or result.stdout.strip() != crawl_id:
+        raise RuntimeError("crawl fixture insertion failed or returned the wrong row count")
+    return crawl_id
+
+
 def prepare_idle_crawl(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
-    """Keep separate terminal-detail and active-idle fixtures and verify authenticated SSE."""
+    """Keep durable pending-idle and terminal-detail fixtures without queueing crawl work."""
     if state["tier"] != "enterprise" or not state.get("api_key"):
         raise ValueError("idle crawl fixture requires a ready Enterprise stack")
+    if state.get("idle_crawl_job_id"):
+        fixture_kind = state.get("idle_crawl_fixture_kind")
+        if fixture_kind is not None and fixture_kind != "pending-unqueued-v1":
+            raise ValueError("cached idle fixture has an unknown fixture kind")
+        with XbergClient(base_url=state["api_url"], api_key=state["api_key"], target="enterprise") as client:
+            job = client.get_job(state["idle_crawl_job_id"])
+        if str(job.id) != state["idle_crawl_job_id"] or job.job_type != "crawl" or job.seed_urls != []:
+            raise ValueError("cached idle fixture has unexpected identity or crawl work")
+        if job.status not in {"pending", "crawling", "failed"}:
+            raise ValueError("cached idle fixture has an unexpected terminal state")
+        if job.status != "pending":
+            if fixture_kind == "pending-unqueued-v1":
+                raise ValueError("unqueued PENDING idle fixture changed status unexpectedly")
+            print(f"Replacing {job.status} idle fixture with unqueued PENDING fixture; preserving old row")  # noqa: T201
+            state.pop("idle_crawl_job_id")
     for state_key, terminal in (("crawl_job_id", True), ("idle_crawl_job_id", False)):
-        if state.get(state_key):
-            continue
-        environment = base_environment(directory, state)
-        environment["COMPOSE_FILE"] = str(directory / "compose.json")
-        credentials = parse_exports(
-            run([str(enterprise / "scripts/local-db-env.sh")], enterprise, environment, capture=True)
-        )
-        container = run(
-            compose_command(directory, state, "ps", "-q", "postgres"), enterprise, environment, capture=True
-        ).strip()
-        if not container:
-            raise ValueError("owned PostgreSQL container is not running")
-        crawl_id = str(uuid.uuid4())
-        command = [
-            "docker",
-            "exec",
-            "-i",
-            container,
-            "sh",
-            "-c",
-            (
-                "IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -X -qAt -v ON_ERROR_STOP=1 "
-                "-h 127.0.0.1 -U xberg_app -d xberg_enterprise"
-            ),
-        ]
-        result = subprocess.run(
-            command,
-            input=credentials["LOCAL_POSTGRES_APPLICATION_PASSWORD"]
-            + "\n"
-            + crawl_fixture_sql(state["project_id"], crawl_id, terminal=terminal),
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )  # noqa: S603
-        if result.returncode != 0 or result.stdout.strip() != crawl_id:
-            raise RuntimeError("crawl fixture insertion failed or returned the wrong row count")
-        state[state_key] = crawl_id
-        write_private(directory / "state.json", state)
+        if not state.get(state_key):
+            state[state_key] = insert_crawl_fixture(directory, state, enterprise, terminal=terminal)
+            write_private(directory / "state.json", state)
+    state["idle_crawl_fixture_kind"] = "pending-unqueued-v1"
+    write_private(directory / "state.json", state)
     with (
         httpx.Client(timeout=10, trust_env=False) as client,
         client.stream(
@@ -721,7 +742,15 @@ def main() -> int:
                 run([str(enterprise / "scripts/local-vector-index-claims.sh"), "disable"], enterprise, environment)
         run(compose_command(directory, state, *arguments), enterprise, environment)
         if args.command == "reset":
-            for name in ("api_key", "key_id", "project_id", "control_plane_token", "crawl_job_id", "idle_crawl_job_id"):
+            for name in (
+                "api_key",
+                "key_id",
+                "project_id",
+                "control_plane_token",
+                "crawl_job_id",
+                "idle_crawl_job_id",
+                "idle_crawl_fixture_kind",
+            ):
                 state.pop(name, None)
             write_private(directory / "state.json", state)
     elif args.command == "key":
