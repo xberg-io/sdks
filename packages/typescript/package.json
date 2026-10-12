@@ -1,6 +1,6 @@
 {
   "name": "@xberg-io/sdk",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Official TypeScript client for the Xberg Enterprise and Xberg Pro document-processing APIs.",
   "license": "MIT",
   "author": "Na'aman Hirschfeld <naaman@xberg.io>",

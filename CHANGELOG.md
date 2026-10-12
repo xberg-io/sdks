@@ -7,31 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-12
+
 ### Added
 
-- Enterprise control-plane profile reads and updates in Python, TypeScript and Go.
+- Enterprise user profile reads and updates: Python `get_user_profile` / `update_user_profile`
+  (sync and async), TypeScript `getUserProfile` / `updateUserProfile`, and Go
+  `GetUserProfile` / `UpdateUserProfile`, using the separate control-plane URL and bearer.
 
 ### Changed
 
-- Refresh dependency locks and CI tools across the SDKs and documentation site.
-- Align all three OpenAPI specifications with the local Pro and Enterprise services.
-- **Breaking.** Expose the current generated contract types directly. Document version hashes
-  can be absent, Go audit filters use their declared enum, Go thresholding methods use numeric
-  values, and Pro upload and backend sandbox responses use their own schema types.
-- **Breaking (TypeScript).** Raw Pro integration paths use `iid` and `doc_id` template
-  parameters. Newly required response fields and rejection of explicit null LLM keys follow
-  the current service contracts; omit an unset LLM key.
-- **Breaking.** Job detail reads return the tagged extraction-or-crawl response on both tiers.
-  Narrow on `job_type` before accessing variant fields; extraction wait and batch helpers
-  retain their extraction response types.
+- Align the Enterprise data-plane, Pro and Enterprise control-plane schemas with the current
+  local service contracts, and regenerate all three SDKs.
+- **Breaking, job details.** Python `get_job`, TypeScript `getJob` and Go `GetJob` now return
+  the tagged extraction-or-crawl response, preserving crawl progress, pages and child jobs.
+  Branch on `job_type` in Python and TypeScript; use `AsGetJobResponse0` (extraction) or
+  `AsGetJobResponse1` (crawl) in Go and check the variant's `JobType`.
+  Extraction wait and batch helpers keep their extraction return types and reject crawl jobs.
+- **Breaking, generated types.** Handle absent or null document version hashes before using
+  them; Go represents these fields as `*string`. Go audit filters use their declared enum,
+  `TesseractConfig.ThresholdingMethod` takes numeric values, and Pro upload inputs and
+  Enterprise sandbox results use their own schema types rather than shared substitutes.
+- **Breaking, Go enum constants.** Generated Enterprise constants now include their type
+  prefix: `Mixed` / `Native` / `Ocr` become `ExtractionMethodMixed` /
+  `ExtractionMethodNative` / `ExtractionMethodOcr`, `Auto` / `Ltr` / `Rtl` become
+  `TextDirectionAuto` / `TextDirectionLtr` / `TextDirectionRtl`, and `Chunks` becomes
+  `CreateDocumentSourceChunksKindChunks`. Job tags `Extraction` and `Crawl` become
+  `GetJobResponse0JobTypeExtraction` and `GetJobResponse1JobTypeCrawl`.
+- **Breaking, Python format metadata.** `result.metadata.format_` now deserializes into
+  typed models such as `OcrMetadata`, rather than dictionaries. Check for `UNSET` before
+  reading model attributes such as `format_.format_type`; use `format_.to_dict()` when
+  a dictionary is needed instead of indexing the model with `format_["format_type"]`.
+- **Breaking, TypeScript raw clients.** Pro integration path parameters use `iid` and `doc_id`.
+  Supply the newly required response fields when constructing typed fixtures, and omit an
+  unset LLM API key instead of passing `null`.
+- Update Python, TypeScript, Go and documentation dependencies and lockfiles, refresh CI tools,
+  and use Go 1.27.2 for CI and release workflows. Keep TypeScript 6 and the compatible YAML
+  iterator pinned while their dependent generators and JSONPath tooling require those APIs.
 
 ### Fixed
 
-- Keep Python generation compatible with Python 3.10, UTC timestamps and composed job-response schemas.
-- Match TypeScript inputs to the service's optional LLM keys, defaulted image preprocessing
+- Generate Python composed job-response models and keep generated clients compatible with
+  Python 3.10, including `Self` imports and RFC 3339 timestamps ending in `Z`.
+- Match TypeScript inputs to the service's optional LLM keys, defaulted image preprocessing,
   and support for both legacy boolean and numeric thresholding methods.
-- Regenerate committed Go clients during automatic specification syncs and run TypeScript CI
-  when its dependency lock or workflow changes.
+- Regenerate committed Go clients during automatic specification syncs, and trigger
+  TypeScript CI for dependency-lock and workflow changes.
+- Isolate Go test HTTP connection pools and verify exponential polling backoff without
+  timing-dependent assertions.
+- Make local Enterprise verification work from a cold database with the shipping Timescale
+  image, correct extension-bootstrap ordering and isolated NATS provisioning.
+- Keep separate terminal crawl and active idle-stream fixtures so documentation cancellation
+  examples exercise a real open stream; verify profile persistence and both job-detail variants.
 
 ## [0.7.0] - 2026-09-18
 
@@ -362,7 +389,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/xberg-io/sdks/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/xberg-io/sdks/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xberg-io/sdks/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xberg-io/sdks/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xberg-io/sdks/compare/v0.3.1...v0.4.0
