@@ -126,7 +126,7 @@ def initialize_state(directory: Path, tier: str) -> dict[str, Any]:
         "passwords": {name: secrets.token_urlsafe(32) for name in ROLE_NAMES},
         "nats_passwords": {
             name: "sdk_" + secrets.token_urlsafe(32)
-            for name in ("api", "worker", "backend", "billing", "rag", "webhook")
+            for name in ("api", "worker", "backend", "bootstrap", "rag", "webhook")
         },
     }
     write_private(directory / "state.json", state)
@@ -163,7 +163,39 @@ def runtime_service(binary: str, directory: Path, image: str, environment: dict[
     }
 
 
-def runtime_services(state: dict[str, Any], environment: dict[str, str], directory: Path, image: str) -> dict[str, Any]:
+def configure_nats_provisioning(
+    services: dict[str, Any], state: dict[str, Any], directory: Path, image: str, enterprise: Path | None
+) -> None:
+    """Provision the shipping NATS manifest before starting restricted service identities."""
+    manifest = {
+        "type": "bind",
+        "source": str((enterprise or ROOT.parent / "xberg-enterprise") / "config/nats-provisioning.local.json"),
+        "target": "/etc/xberg-nats/provisioning.json",
+        "read_only": True,
+    }
+    for name in ("api", "backend", "worker", "rag"):
+        services["sdk-" + name]["environment"]["NATS_PROVISIONING_MANIFEST"] = manifest["target"]
+        services["sdk-" + name]["volumes"].append(manifest.copy())
+        services["sdk-" + name]["depends_on"]["sdk-nats-bootstrap"] = {"condition": "service_completed_successfully"}
+    bootstrap = runtime_service(
+        "api",
+        directory,
+        image,
+        {
+            "NATS_URL": "nats://nats:4222",
+            "NATS_USER": "bootstrap",
+            "NATS_PASSWORD": state["nats_passwords"]["bootstrap"],
+        },
+    )
+    bootstrap["command"] = ["--bootstrap-nats", manifest["target"]]
+    bootstrap["volumes"].append(manifest.copy())
+    bootstrap["depends_on"]["nats"] = {"condition": "service_healthy"}
+    services["sdk-nats-bootstrap"] = bootstrap
+
+
+def runtime_services(
+    state: dict[str, Any], environment: dict[str, str], directory: Path, image: str, enterprise: Path | None = None
+) -> dict[str, Any]:
     """Wire the API, backend, workers and credential-isolated broker containers."""
     storage = {
         "STORAGE_PROVIDER": "gcs",
@@ -174,21 +206,19 @@ def runtime_services(state: dict[str, Any], environment: dict[str, str], directo
         "CACHE_DIR": "/tmp/cache",  # noqa: S108 ~keep Cache lives inside the container-private tmpfs.
         "CACHE_ENABLED": "false",
     }
-    common = {key: container_database_url(environment[key]) for key in ("DATABASE_URL", "MAINTENANCE_DATABASE_URL")}
-    common.update(
-        {
-            "DATABASE_TLS_ENABLED": "false",
-            "JWT_SECRET": state["jwt_secret"],
-            "NATS_URL": "nats://nats:4222",
-            "RUST_LOG": "info",
-        }
-    )
+    common = {key: container_database_url(environment[key]) for key in ("DATABASE_URL", "MAINTENANCE_DATABASE_URL")} | {
+        "DATABASE_TLS_ENABLED": "false",
+        "JWT_SECRET": state["jwt_secret"],
+        "NATS_URL": "nats://nats:4222",
+        "RUST_LOG": "info",
+    }
     services = {}
     for name in ("api", "backend", "worker", "rag"):
         config = {**common, "NATS_USER": name, "NATS_PASSWORD": state["nats_passwords"][name]}
         if name != "backend":
             config.update(storage)
         services["sdk-" + name] = runtime_service(name, directory, image, config)
+    configure_nats_provisioning(services, state, directory, image, enterprise)
     services["sdk-api"]["environment"].update({"REST_ADDR": "0.0.0.0:8081", "METRICS_ADDR": "0.0.0.0:9091"})
     services["sdk-api"]["ports"] = [published_port(8081, state["ports"]["api"])]
     services["sdk-backend"]["environment"].update(
@@ -259,7 +289,7 @@ def base_environment(directory: Path, state: dict[str, Any]) -> dict[str, str]:
     environment = {
         key: value
         for key, value in os.environ.items()
-        if key in {"PATH", "HOME", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG"}
+        if key in {"PATH", "HOME", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "LOCAL_POSTGRES_IMAGE"}
     }
     temporary = directory / "temporary"
     private_directory(temporary)
@@ -268,7 +298,6 @@ def base_environment(directory: Path, state: dict[str, Any]) -> dict[str, str]:
             "TMPDIR": str(temporary),
             "COMPOSE_PROJECT_NAME": state["project"],
             "LOCAL_POSTGRES_PORT": str(state["ports"]["postgres"]),
-            "LOCAL_POSTGRES_IMAGE": os.environ.get("LOCAL_POSTGRES_IMAGE", "pgvector/pgvector:pg18"),
         }
     )
     environment.update({f"PRO_POSTGRES_{role}_PASSWORD": value for role, value in state["passwords"].items()})
@@ -311,6 +340,7 @@ def compose_command(directory: Path, state: dict[str, Any], *arguments: str) -> 
 
 def configure(directory: Path, state: dict[str, Any], enterprise: Path) -> dict[str, str]:
     """Render the sibling shipping Compose configuration into private stack state."""
+    state["nats_passwords"].setdefault("bootstrap", "sdk_" + secrets.token_urlsafe(32))
     environment = base_environment(directory, state)
     filename = "docker-compose.pro.yml" if state["tier"] == "pro" else "docker-compose.yml"
     if state["tier"] == "enterprise":
@@ -344,7 +374,7 @@ def configure(directory: Path, state: dict[str, Any], enterprise: Path) -> dict[
     )
     config = json.loads(rendered)
     if state["tier"] == "enterprise":
-        configure_enterprise(config, state, environment)
+        configure_enterprise(config, state, environment, enterprise)
     else:
         pro = config["services"]["pro"]
         pro.pop("build", None)
@@ -390,7 +420,9 @@ def gcs_signing_credential() -> str:
     return base64.b64encode(json.dumps(credential).encode()).decode()
 
 
-def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environment: dict[str, str]) -> None:
+def configure_enterprise(
+    config: dict[str, Any], state: dict[str, Any], environment: dict[str, str], enterprise: Path
+) -> None:
     """Add built Enterprise services and isolated host ports to the sibling infrastructure."""
     binary_directory = Path(os.environ.get("XBERG_ENTERPRISE_BINARY_DIR", "")).resolve()
     image = os.environ.get("XBERG_ENTERPRISE_RUNTIME_IMAGE", "")
@@ -410,6 +442,11 @@ def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environm
     ports = state["ports"]
     services = config["services"]
     services["postgres"]["ports"] = [published_port(5432, ports["postgres"])]
+    services["postgres"]["healthcheck"]["start_period"] = "120s"
+    for volume in services["postgres"]["volumes"]:
+        if volume["target"] == "/docker-entrypoint-initdb.d/00-db-bootstrap.sh":
+            # ~keep Timescale's 000/010 installers must finish before extension ownership is hardened.
+            volume["target"] = "/docker-entrypoint-initdb.d/99-db-bootstrap.sh"
     services["nats"]["ports"] = [published_port(4222, ports["nats"]), published_port(8222, ports["nats_metrics"])]
     services["gcs-emulator"]["ports"] = [published_port(4443, ports["gcs"])]
     services["gcs-emulator"]["command"] = [
@@ -426,7 +463,7 @@ def configure_enterprise(config: dict[str, Any], state: dict[str, Any], environm
         "-external-url",
         f"http://127.0.0.1:{ports['gcs']}",
     ]
-    services.update(runtime_services(state, environment, binary_directory, image))
+    services.update(runtime_services(state, environment, binary_directory, image, enterprise))
     if not state.get("gcs_credential"):
         state["gcs_credential"] = gcs_signing_credential()
     services["sdk-api"]["environment"]["GCS_CREDENTIAL"] = state["gcs_credential"]
@@ -507,25 +544,28 @@ def mint_fixture(directory: Path, state: dict[str, Any]) -> None:
     write_private(directory / "state.json", state)
 
 
-def crawl_fixture_sql(project_id: str, crawl_id: str) -> str:
-    """Seed only a terminal row for real idle SSE tests; no crawl work is queued."""
+def crawl_fixture_sql(project_id: str, crawl_id: str, *, terminal: bool = True) -> str:
+    """Seed a scoped detail or idle-stream row without queueing crawl work."""
     project_id, crawl_id = str(uuid.UUID(project_id)), str(uuid.UUID(crawl_id))
-    # ~keep Both SQL values are canonical UUIDs, validated above before interpolation.
+    status, completed_at = ("COMPLETED", "now()") if terminal else ("CRAWLING", "NULL")
+    # ~keep IDs are canonical UUIDs; status and timestamp fragments are fixed fixture variants.
     return f"""BEGIN;
 SET LOCAL app.current_project_id = '{project_id}';
 INSERT INTO crawl_jobs (id, project_id, seed_urls, status, crawl_config, metadata, started_at, completed_at)
-VALUES ('{crawl_id}', '{project_id}', ARRAY[]::text[], 'COMPLETED', '{{}}',
-        '{{"fixture":"sdk-idle-cancellation"}}', now(), now());
-SELECT id FROM crawl_jobs WHERE id = '{crawl_id}' AND project_id = '{project_id}' AND status = 'COMPLETED';
+VALUES ('{crawl_id}', '{project_id}', ARRAY[]::text[], '{status}', '{{}}',
+        '{{"fixture":"sdk-live-contract"}}', now(), {completed_at});
+SELECT id FROM crawl_jobs WHERE id = '{crawl_id}' AND project_id = '{project_id}' AND status = '{status}';
 COMMIT;
 """  # noqa: S608
 
 
 def prepare_idle_crawl(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
-    """Create a project-scoped terminal fixture and verify the real authenticated SSE endpoint."""
+    """Keep separate terminal-detail and active-idle fixtures and verify authenticated SSE."""
     if state["tier"] != "enterprise" or not state.get("api_key"):
         raise ValueError("idle crawl fixture requires a ready Enterprise stack")
-    if not state.get("crawl_job_id"):
+    for state_key, terminal in (("crawl_job_id", True), ("idle_crawl_job_id", False)):
+        if state.get(state_key):
+            continue
         environment = base_environment(directory, state)
         environment["COMPOSE_FILE"] = str(directory / "compose.json")
         credentials = parse_exports(
@@ -553,27 +593,27 @@ def prepare_idle_crawl(directory: Path, state: dict[str, Any], enterprise: Path)
             command,
             input=credentials["LOCAL_POSTGRES_APPLICATION_PASSWORD"]
             + "\n"
-            + crawl_fixture_sql(state["project_id"], crawl_id),
+            + crawl_fixture_sql(state["project_id"], crawl_id, terminal=terminal),
             capture_output=True,
             text=True,
             timeout=30,
             check=False,
         )  # noqa: S603
         if result.returncode != 0 or result.stdout.strip() != crawl_id:
-            raise RuntimeError("terminal crawl fixture insertion failed or returned the wrong row count")
-        state["crawl_job_id"] = crawl_id
+            raise RuntimeError("crawl fixture insertion failed or returned the wrong row count")
+        state[state_key] = crawl_id
         write_private(directory / "state.json", state)
     with (
         httpx.Client(timeout=10, trust_env=False) as client,
         client.stream(
             "GET",
-            state["api_url"] + "/v1/crawl-jobs/" + state["crawl_job_id"] + "/events",
+            state["api_url"] + "/v1/crawl-jobs/" + state["idle_crawl_job_id"] + "/events",
             headers={"Authorization": "Bearer " + state["api_key"]},
         ) as response,
     ):
         if response.status_code != 200 or "text/event-stream" not in response.headers.get("content-type", ""):
             raise RuntimeError("real authenticated idle SSE subscription was not accepted")
-    print("Terminal crawl fixture ready for real idle SSE cancellation")  # noqa: T201
+    print("Separate terminal detail and idle SSE cancellation fixtures ready")  # noqa: T201
 
 
 def up(directory: Path, state: dict[str, Any], enterprise: Path) -> None:
@@ -681,7 +721,7 @@ def main() -> int:
                 run([str(enterprise / "scripts/local-vector-index-claims.sh"), "disable"], enterprise, environment)
         run(compose_command(directory, state, *arguments), enterprise, environment)
         if args.command == "reset":
-            for name in ("api_key", "key_id", "project_id", "control_plane_token", "crawl_job_id"):
+            for name in ("api_key", "key_id", "project_id", "control_plane_token", "crawl_job_id", "idle_crawl_job_id"):
                 state.pop(name, None)
             write_private(directory / "state.json", state)
     elif args.command == "key":

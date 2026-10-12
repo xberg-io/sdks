@@ -83,7 +83,101 @@ def test_scope_mismatch_cannot_run_docker(tmp_path: Path) -> None:
     assert os.getuid() == state["uid"]
 
 
-def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
+def test_database_image_uses_shipping_default_unless_explicitly_overridden(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stack = load_stack()
+    directory = tmp_path / "state"
+    state = stack.initialize_state(directory, "enterprise")
+    monkeypatch.delenv("LOCAL_POSTGRES_IMAGE", raising=False)
+    assert "LOCAL_POSTGRES_IMAGE" not in stack.base_environment(directory, state)
+    monkeypatch.setenv("LOCAL_POSTGRES_IMAGE", "fixture-postgres:local")
+    assert stack.base_environment(directory, state)["LOCAL_POSTGRES_IMAGE"] == "fixture-postgres:local"
+
+
+def test_enterprise_provisions_nats_before_restricted_runtime_services(tmp_path: Path) -> None:
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    environment = dict.fromkeys(
+        (
+            "DATABASE_URL",
+            "MAINTENANCE_DATABASE_URL",
+            "VECTOR_INDEX_BROKER_DATABASE_URL",
+            "VECTOR_INDEX_QUEUE_DATABASE_URL",
+        ),
+        "postgresql://fixture:fixture@localhost:5432/db",
+    )
+    services = stack.runtime_services(state, environment, tmp_path, "runtime:test")
+    bootstrap = services["sdk-nats-bootstrap"]
+    assert bootstrap["entrypoint"] == ["/app/api"]
+    assert bootstrap["command"] == ["--bootstrap-nats", "/etc/xberg-nats/provisioning.json"]
+    assert bootstrap["environment"]["NATS_USER"] == "bootstrap"
+    assert bootstrap["environment"]["NATS_PASSWORD"] == state["nats_passwords"]["bootstrap"]
+    assert all("DATABASE" not in key for key in bootstrap["environment"])
+    for name in ("api", "backend", "worker", "rag"):
+        runtime = services["sdk-" + name]
+        assert runtime["environment"]["NATS_PROVISIONING_MANIFEST"] == "/etc/xberg-nats/provisioning.json"
+        assert runtime["depends_on"]["sdk-nats-bootstrap"] == {"condition": "service_completed_successfully"}
+        assert runtime["environment"]["NATS_PASSWORD"] != bootstrap["environment"]["NATS_PASSWORD"]
+        assert any(
+            volume["target"] == "/etc/xberg-nats/provisioning.json" and volume["read_only"]
+            for volume in runtime["volumes"]
+        )
+
+
+def test_enterprise_cold_boot_hardens_after_timescale_addon_installers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stack = load_stack()
+    state = stack.initialize_state(tmp_path / "state", "enterprise")
+    for binary in (
+        "api",
+        "backend",
+        "worker",
+        "rag",
+        "vector-index-broker",
+        "vector-index-broker-launcher",
+        "vector-index-worker",
+    ):
+        (tmp_path / binary).touch()
+    monkeypatch.setenv("XBERG_ENTERPRISE_BINARY_DIR", str(tmp_path))
+    monkeypatch.setenv("XBERG_ENTERPRISE_RUNTIME_IMAGE", "runtime:test")
+    monkeypatch.setattr(stack, "gcs_signing_credential", lambda: "fixture-signing-identity")
+    configuration = {
+        "services": {
+            "postgres": {
+                "healthcheck": {"start_period": "10s"},
+                "volumes": [
+                    {
+                        "type": "bind",
+                        "source": "/fixture/bootstrap.sh",
+                        "target": "/docker-entrypoint-initdb.d/00-db-bootstrap.sh",
+                        "read_only": True,
+                    }
+                ],
+            },
+            "nats": {},
+            "gcs-emulator": {},
+        },
+        "networks": {"default": {"name": "fixture-network"}},
+    }
+    environment = dict.fromkeys(
+        (
+            "DATABASE_URL",
+            "MAINTENANCE_DATABASE_URL",
+            "VECTOR_INDEX_BROKER_DATABASE_URL",
+            "VECTOR_INDEX_QUEUE_DATABASE_URL",
+        ),
+        "postgresql://fixture:fixture@localhost:5432/db",
+    )
+    stack.configure_enterprise(configuration, state, environment, tmp_path)
+    database = configuration["services"]["postgres"]
+    assert database["volumes"][0]["target"] == "/docker-entrypoint-initdb.d/99-db-bootstrap.sh"
+    assert database["volumes"][0]["read_only"] is True
+    assert database["healthcheck"]["start_period"] == "120s"
+
+
+def test_crawl_fixtures_separate_terminal_detail_from_idle_cancellation() -> None:
     stack = load_stack()
     project = "11111111-1111-1111-1111-111111111111"
     crawl = "22222222-2222-2222-2222-222222222222"
@@ -93,6 +187,12 @@ def test_idle_crawl_fixture_is_terminal_and_scoped_to_exact_project() -> None:
     assert project in sql
     assert crawl in sql
     assert "app.current_project_id" in sql
+    idle_sql = stack.crawl_fixture_sql(project, crawl, terminal=False)
+    assert "'CRAWLING'" in idle_sql
+    assert "'COMPLETED'" not in idle_sql
+    assert "ARRAY[]::text[]" in idle_sql
+    assert "now(), NULL" in idle_sql
+    assert "app.current_project_id" in idle_sql
     with pytest.raises(ValueError, match="badly formed hexadecimal UUID"):
         stack.crawl_fixture_sql("invalid'project", crawl)
 

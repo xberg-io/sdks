@@ -181,6 +181,33 @@ def private_state(path: Path, tier: str = "enterprise") -> None:
     path.chmod(0o600)
 
 
+def test_stream_snippets_use_idle_fixture_and_never_fall_back_to_terminal_detail(tmp_path: Path) -> None:
+    state = tmp_path / "state.json"
+    private_state(state)
+    content = json.loads(state.read_text())
+    content.update(crawl_job_id="terminal-fixture", idle_crawl_job_id="idle-fixture")
+    state.write_text(json.dumps(content))
+    module = runner()
+    assert module.state_environment(state, "enterprise", tmp_path)["XBERG_CRAWL_JOB_ID"] == "idle-fixture"
+    del content["idle_crawl_job_id"]
+    state.write_text(json.dumps(content))
+    environment = module.state_environment(state, "enterprise", tmp_path)
+    snippet = module.Snippet("idle.md:1", "go", "package main\n", ["enterprise"], "safe", ["crawl-job"], None)
+    with pytest.raises(ValueError, match="prepare-idle-crawl"):
+        module.execute_snippet(snippet, "enterprise", tmp_path, ["go"], environment)
+
+
+@pytest.mark.parametrize("invalid", [None, {}, 123])
+def test_idle_fixture_state_type_must_be_a_string(tmp_path: Path, invalid: object) -> None:
+    state = tmp_path / "state.json"
+    private_state(state)
+    content = json.loads(state.read_text())
+    content["idle_crawl_job_id"] = invalid
+    state.write_text(json.dumps(content))
+    with pytest.raises(ValueError, match="must be strings"):
+        runner().state_environment(state, "enterprise", tmp_path)
+
+
 def test_wrong_tier_state_cannot_count_enterprise_twice(tmp_path: Path) -> None:
     state = tmp_path / "state.json"
     private_state(state)
