@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 GENERATED_GO = tuple(f"packages/go/generated_{name}.go" for name in ("api", "pro", "backend"))
 
 
-def test_go_ci_tracks_generation_compatibility_helpers() -> None:
+def test_go_ci_tracks_shared_contract_tooling() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/ci-go.yml")
     for event in ("push", "pull_request"):
         assert "scripts/**" in workflow["on"][event]["paths"]

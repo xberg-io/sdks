@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	xberg "github.com/xberg-io/sdks/packages/go"
 )
@@ -66,7 +67,12 @@ func newRefusingServer(t *testing.T) string {
 // configuration errors. Used to keep test bodies focused on assertions.
 func mustClient(t *testing.T, opts ...xberg.Option) *xberg.Client {
 	t.Helper()
-	client, err := xberg.New(opts...)
+	// ~keep httptest.Server.Close closes http.DefaultTransport's idle connections,
+	// which can interrupt another parallel fixture's request. Own each pool.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	t.Cleanup(transport.CloseIdleConnections)
+	defaults := []xberg.Option{xberg.WithHTTPClient(&http.Client{Transport: transport, Timeout: 30 * time.Second})}
+	client, err := xberg.New(append(defaults, opts...)...)
 	if err != nil {
 		t.Fatalf("xberg.New: %v", err)
 	}

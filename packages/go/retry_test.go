@@ -37,9 +37,13 @@ func TestRetry_RetriesOn503(t *testing.T) {
 		xberg.WithBaseURL(server.URL),
 		xberg.WithRetries(5),
 	)
-	job, err := client.GetJob(context.Background(), "j")
+	response, err := client.GetJob(context.Background(), "j")
 	if err != nil {
 		t.Fatalf("GetJob: %v", err)
+	}
+	job, err := response.AsGetJobResponse0()
+	if err != nil {
+		t.Fatalf("extraction job variant: %v", err)
 	}
 	if got := calls.Load(); got != 3 {
 		t.Errorf("calls = %d, want 3", got)
@@ -221,9 +225,13 @@ func TestRetry_RetriesOnConnectionError(t *testing.T) {
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithRetries(5))
 
-	job, err := client.GetJob(context.Background(), "j")
+	response, err := client.GetJob(context.Background(), "j")
 	if err != nil {
 		t.Fatalf("GetJob: %v", err)
+	}
+	job, err := response.AsGetJobResponse0()
+	if err != nil {
+		t.Fatalf("extraction job variant: %v", err)
 	}
 	if got := calls.Load(); got != 3 {
 		t.Errorf("calls = %d, want 3 (the connection failures were not retried)", got)

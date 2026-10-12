@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	xberg "github.com/xberg-io/sdks/packages/go"
@@ -35,9 +35,13 @@ func TestGetJob_ReturnsParsedJob(t *testing.T) {
 	}))
 	defer server.Close()
 	client := mustClient(t, xberg.WithBaseURL(server.URL))
-	job, err := client.GetJob(context.Background(), jobUUID)
+	response, err := client.GetJob(context.Background(), jobUUID)
 	if err != nil {
 		t.Fatalf("GetJob: %v", err)
+	}
+	job, err := response.AsGetJobResponse0()
+	if err != nil {
+		t.Fatalf("extraction job variant: %v", err)
 	}
 	if job.Id.String() != jobUUID {
 		t.Errorf("Id = %q, want %s", job.Id.String(), jobUUID)
@@ -227,53 +231,59 @@ func TestWaitForJob_FailedStatusReturnsError(t *testing.T) {
 	}
 }
 
+type jobPollTransport func(*http.Request) (*http.Response, error)
+
+func (transport jobPollTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	return transport(request)
+}
+
 func TestWaitForJob_ExponentialBackoffIncreases(t *testing.T) {
 	t.Parallel()
-	// ~keep The handler goroutine records poll timestamps concurrently with the
-	// test goroutine's read, so guard the slice with a mutex to stay -race clean.
-	var (
-		mu         sync.Mutex
-		timestamps []time.Time
-	)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		mu.Lock()
-		timestamps = append(timestamps, time.Now())
-		count := len(timestamps)
-		mu.Unlock()
-		status := "processing"
-		extra := ""
-		if count >= 4 {
-			status = "completed"
-			extra = `,"result":{"content":"done"}`
+	synctest.Test(t, func(t *testing.T) {
+		var timestamps []time.Time
+		transport := jobPollTransport(func(request *http.Request) (*http.Response, error) {
+			if request.Method != http.MethodGet || request.URL.Path != "/v1/jobs/"+jobUUID {
+				t.Errorf("request = %s %s", request.Method, request.URL.Path)
+			}
+			timestamps = append(timestamps, time.Now())
+			status := "processing"
+			extra := ""
+			if len(timestamps) == 4 {
+				status = "completed"
+				extra = `,"result":{"content":"done"}`
+			}
+			body := fmt.Sprintf(
+				`{"id":%q,"filename":"a.pdf","status":%q,"created_at":"2025-12-21T10:00:00Z"%s}`,
+				jobUUID, status, extra,
+			)
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(body)),
+				Request:    request,
+			}, nil
+		})
+		client := mustClient(t, xberg.WithBaseURL("https://example.test"), xberg.WithHTTPClient(&http.Client{Transport: transport}))
+		job, err := client.WaitForJob(context.Background(), jobUUID, &xberg.WaitOptions{
+			Timeout:      5 * time.Second,
+			PollInterval: 50 * time.Millisecond,
+			Backoff:      xberg.BackoffExponential,
+		})
+		if err != nil {
+			t.Fatalf("WaitForJob: %v", err)
 		}
-		fmt.Fprintf(
-			w,
-			`{"id":%q,"filename":"a.pdf","status":%q,"created_at":"2025-12-21T10:00:00Z"%s}`,
-			jobUUID, status, extra,
-		)
-	}))
-	defer server.Close()
-	client := mustClient(t, xberg.WithBaseURL(server.URL))
-	// ~keep Base interval is 50ms so the exponential step (50ms -> 100ms) dwarfs
-	// scheduling jitter under `go test -race`; a 10ms base flaked when jitter
-	// exceeded the tiny gap difference.
-	if _, err := client.WaitForJob(context.Background(), jobUUID, &xberg.WaitOptions{
-		Timeout:      5 * time.Second,
-		PollInterval: 50 * time.Millisecond,
-		Backoff:      xberg.BackoffExponential,
-	}); err != nil {
-		t.Fatalf("WaitForJob: %v", err)
-	}
-	mu.Lock()
-	defer mu.Unlock()
-	if len(timestamps) < 4 {
-		t.Fatalf("got %d polls, want >=4", len(timestamps))
-	}
-	gap1 := timestamps[1].Sub(timestamps[0])
-	gap2 := timestamps[2].Sub(timestamps[1])
-	if gap2 <= gap1 {
-		t.Errorf("expected exponential growth, gap1=%v gap2=%v", gap1, gap2)
-	}
+		if job.Result == nil || job.Result.Content != "done" {
+			t.Fatalf("Result = %v, want content done", job.Result)
+		}
+		if len(timestamps) != 4 {
+			t.Fatalf("got %d polls, want 4", len(timestamps))
+		}
+		for index, want := range []time.Duration{50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond} {
+			if got := timestamps[index+1].Sub(timestamps[index]); got != want {
+				t.Errorf("poll gap %d = %v, want %v", index+1, got, want)
+			}
+		}
+	})
 }
 
 func TestWaitForJobs_ParallelCompletion(t *testing.T) {
