@@ -3805,6 +3805,171 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{project_id}/integrations/{iid}/sync:
+    get:
+      tags:
+        - integrations
+      summary: Report the durable synchronization state for one source integration.
+      description: Requires project access and returns the persisted per-integration opt-in state.
+      operationId: get_integration_sync
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Synchronization preference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Integration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    put:
+      tags:
+        - integrations
+      summary: Enable or disable durable synchronization for one source integration.
+      description: Requires project access and preserves the choice across scheduler restarts.
+      operationId: set_integration_sync
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetIntegrationSyncRequest'
+        required: true
+      responses:
+        "204":
+          description: Synchronization preference updated
+        "400":
+          description: Integration kind does not support durable synchronization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Integration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{project_id}/rag-config:
     get:
       tags:
@@ -6139,6 +6304,14 @@ paths:
       summary: Confirm uploads are complete and start processing.
       description: Snapshot uploaded bytes and atomically persist job IDs with recovery manifests.
       operationId: confirm_upload
+      parameters:
+        - name: X-Project-ID
+          in: header
+          description: Optional selected project UUID. Defaults to the authenticated or local workspace project. Human membership and existing endpoint permissions are required; project API keys cannot select another project.
+          required: false
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -6153,7 +6326,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConfirmUploadResponse'
         "400":
-          description: Invalid request
+          description: Invalid request; X-Project-ID must be a UUID
           content:
             application/json:
               schema:
@@ -6300,6 +6473,14 @@ paths:
         bounds the pending-job fan-out created when the batch is confirmed.
         <!-- public batch-limit contract -->
       operationId: presign_upload
+      parameters:
+        - name: X-Project-ID
+          in: header
+          description: Optional selected project UUID. Defaults to the authenticated or local workspace project. Human membership and existing endpoint permissions are required; project API keys cannot select another project.
+          required: false
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -6314,7 +6495,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PresignUploadResponse'
         "400":
-          description: Invalid request
+          description: Invalid request; X-Project-ID must be a UUID
           content:
             application/json:
               schema:
@@ -6327,6 +6508,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "403":
           description: The API key is read-only and cannot use this method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Selected project not found or unavailable to the caller
           content:
             application/json:
               schema:
@@ -6871,6 +7058,13 @@ components:
           description: |-
             OIDC-specific detail, used by the frontend to decide whether to render
             a "Sign in with Google" button.
+        saml:
+          oneOf:
+            - $ref: '#/components/schemas/SamlInfo'
+              description: |-
+                SAML discovery endpoint. Provider details remain project-scoped and are
+                disclosed only after a verified email-domain lookup.
+            - type: "null"
     AuthMode:
       type: string
       description: Authentication policy advertised by the instance.
@@ -8874,10 +9068,14 @@ components:
           type: string
         config:
           type: object
-          description: Additional configuration as a JSON object (optional; mirrors the backend).
+          description: |-
+            Additional configuration. Dropbox accepts an optional absolute `path`; SharePoint requires `site_id`.
+            Object stores require `bucket`; S3 also requires `region`; all accept an optional `root`.
         credentials:
           type: object
-          description: BYO client credentials (client_id, client_secret for OAuth2/OIDC).
+          description: |-
+            BYO credentials. Dropbox and Microsoft Graph OAuth accept `client_id` and `client_secret`.
+            Object-store fields are documented on the shared request schema.
         kind:
           type: string
         name:
@@ -10784,6 +10982,18 @@ components:
             converting to plain text or markdown output formats.
 
             Only populated when `OcrElementConfig.include_elements` is true.
+        ocr_page_failures:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/OcrPageFailure'
+          description: |-
+            Pages whose OCR failed while extraction continued, in the order the failures were reported.
+
+            A record with `recovered` set means the document still has content for that page
+            from native text or from embedded images. Xberg-produced results use `None` when
+            no page failed.
         page_classifications:
           type:
             - array
@@ -12338,6 +12548,17 @@ components:
         provider:
           type: string
           description: Provider name.
+    IntegrationSyncResponse:
+      type: object
+      required:
+        - enabled
+        - interval_seconds
+      properties:
+        enabled:
+          type: boolean
+        interval_seconds:
+          type: integer
+          format: int32
     JatsMetadata:
       type: object
       description: JATS (Journal Article Tag Suite) metadata.
@@ -12723,15 +12944,11 @@ components:
             (1, 2) = unigrams and bigrams
             (1, 3) = unigrams, bigrams, and trigrams (default)
         rake_params:
-          oneOf:
-            - $ref: '#/components/schemas/RakeParams'
-              description: RAKE-specific tuning parameters.
-            - type: "null"
+          $ref: '#/components/schemas/RakeParams'
+          description: RAKE-specific tuning parameters.
         yake_params:
-          oneOf:
-            - $ref: '#/components/schemas/YakeParams'
-              description: YAKE-specific tuning parameters.
-            - type: "null"
+          $ref: '#/components/schemas/YakeParams'
+          description: YAKE-specific tuning parameters.
       additionalProperties: false
     LanguageConfidence:
       type: object
@@ -14331,6 +14548,9 @@ components:
             - string
             - "null"
           description: OCR output format override
+        paddle_ocr_settings:
+          type: object
+          description: PaddleOCR model and inference configuration.
         pipeline:
           $ref: '#/components/schemas/OcrPipelineConfig'
           description: Multi-backend OCR pipeline with quality-based fallback
@@ -14494,6 +14714,32 @@ components:
           format: int32
           description: Number of rows in the detected table (if a single table was found).
           minimum: 0
+    OcrPageFailure:
+      type: object
+      description: |-
+        A page whose OCR failed while extraction of the document continued.
+
+        The warning in `ExtractedDocument::processing_warnings` stays available. One warning
+        can cover several pages: when an automatic OCR run of selected pages fails as a whole,
+        it adds one warning and one record for each selected page. A failure of the OCR fallback
+        for the whole document adds a warning and no record. Repeated failures on one page make
+        one record.
+      required:
+        - page
+        - error
+        - recovered
+      properties:
+        error:
+          type: string
+          description: OCR backend error text.
+        page:
+          type: integer
+          format: int32
+          description: One-based page number in the source document.
+          minimum: 0
+        recovered:
+          type: boolean
+          description: Whether content for this page was retained or recovered through another route.
     OcrPipelineConfig:
       type: object
       description: Multi-backend OCR pipeline with quality-based fallback.
@@ -14886,6 +15132,15 @@ components:
 
             Contains detected layout regions with class, confidence, bounding box,
             and area fraction. Only populated when layout detection is configured.
+        native_content:
+          type:
+            - string
+            - "null"
+          description: |-
+            Text layer of this page, kept when OCR output replaced it in `content`.
+
+            Set only when `PageConfig::keep_native_content` is on, an OCR route replaced this page's `content`, and the
+            text layer is not blank and differs from the OCR text. `None` on every other page. PDF only.
         ocr_confidence:
           $ref: '#/components/schemas/PageOcrConfidence'
           description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
@@ -16872,6 +17127,20 @@ components:
               enum:
                 - global_only
       description: Outcome of per-document routing for an auto-tune run.
+    SamlInfo:
+      type: object
+      description: SAML login configuration visible before authentication.
+      required:
+        - enabled
+        - label
+        - login_url
+      properties:
+        enabled:
+          type: boolean
+        label:
+          type: string
+        login_url:
+          type: string
     SavedPresetDetail:
       type: object
       description: Response when retrieving a saved preset.
@@ -17021,6 +17290,13 @@ components:
           description: |-
             Reason rerank was skipped or fell back, if applicable.
             Values: `"timeout"`.
+    SetIntegrationSyncRequest:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
     SetRagConfigRequest:
       type: object
       description: Request to set a project's RAG configuration (`PUT .../rag-config`).
@@ -17366,15 +17642,12 @@ components:
           description: Output format ("text" or "markdown")
           default: markdown
         preprocessing:
-          oneOf:
-            - $ref: '#/components/schemas/ImagePreprocessingConfig'
-              description: |-
-                Image preprocessing configuration.
+          $ref: '#/components/schemas/ImagePreprocessingConfig'
+          description: |-
+            Image preprocessing configuration.
 
-                Controls how images are preprocessed before OCR. Can significantly
-                improve quality for scanned documents or low-quality images.
-            - type: "null"
-          default: null
+            Controls how images are preprocessed before OCR. Can significantly
+            improve quality for scanned documents or low-quality images.
         psm:
           type:
             - integer
