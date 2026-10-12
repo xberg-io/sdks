@@ -59,7 +59,7 @@ func (c *Client) GetJob(ctx context.Context, jobID string) (*GetJobResponse, err
 		}
 	}
 	var kind string
-	if err := json.Unmarshal(discriminator, &kind); err != nil || (kind != "extraction" && kind != "crawl") {
+	if err := json.Unmarshal(discriminator, &kind); err != nil || (kind != string(GetJobResponse0JobTypeExtraction) && kind != string(GetJobResponse1JobTypeCrawl)) {
 		return nil, &ValidationError{XbergError{Status: http.StatusOK, Message: "unexpected job_type", Body: payload}}
 	}
 	var job GetJobResponse
@@ -67,7 +67,7 @@ func (c *Client) GetJob(ctx context.Context, jobID string) (*GetJobResponse, err
 		return nil, err
 	}
 	var err error
-	if kind == "extraction" {
+	if kind == string(GetJobResponse0JobTypeExtraction) {
 		_, err = job.AsGetJobResponse0()
 	} else {
 		_, err = job.AsGetJobResponse1()
@@ -91,7 +91,7 @@ func (c *Client) getExtractionJob(ctx context.Context, jobID string) (*Extractio
 	if err != nil {
 		return nil, err
 	}
-	if extraction.JobType != "extraction" {
+	if extraction.JobType != GetJobResponse0JobTypeExtraction {
 		return nil, &ValidationError{XbergError{Status: http.StatusOK, Message: "expected extraction job, received crawl job", Body: payload}}
 	}
 	var response ExtractionJobResponse

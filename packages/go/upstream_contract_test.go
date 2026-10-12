@@ -147,8 +147,8 @@ func TestUpstreamSandboxAndHealthResponseShapes(t *testing.T) {
 	if sandbox.Result == nil || sandbox.Result.Content != "result" {
 		t.Fatalf("sandbox result = %#v", sandbox.Result)
 	}
-	var result *xberg.BackendExtractedDocument = sandbox.Result
-	if result.MimeType != "text/plain" {
+	var _ *xberg.BackendExtractedDocument = sandbox.Result
+	if sandbox.Result.MimeType != "text/plain" {
 		t.Fatal("backend result metadata lost")
 	}
 	var health xberg.HealthResponse
