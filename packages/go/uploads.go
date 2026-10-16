@@ -8,16 +8,12 @@ import (
 	"io"
 )
 
-// The presigned-upload flow is part of the shared surface: both specs declare
-// `/v1/uploads/presign` and `/v1/uploads/confirm` with the same request and
-// response schemas, so neither is tier-gated. They differ only in optional
-// scoping — Enterprise accepts an extra optional `X-Project-ID` header — which
-// the client does not send on either tier. Both endpoints declare their bodies
-// as named schemas but are exposed untyped here, matching the Python and
-// TypeScript SDKs.
+// Presign and confirm are shared operations on both tiers. WithProProject selects
+// a Pro project through X-Project-ID; Enterprise ignores that context. Unscoped
+// calls preserve the shared behavior without probing the instance tier. ~keep
 //
-// [Client.PutLocalUpload] is the exception: writing bytes back through the
-// local object store is Pro-only, and is gated accordingly.
+// PutLocalUpload is Pro-only and uses its explicit projectID and capability
+// token rather than the selected-project context. ~keep
 
 const (
 	presignUploadPath = "/v1/uploads/presign"
