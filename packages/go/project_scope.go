@@ -11,10 +11,11 @@ const extractPath = "/v1/extract"
 
 type proProjectKey struct{}
 
-// WithProProject selects a Pro project for extraction, job, usage and audit
-// operations, plus [Client.PresignUpload] and [Client.ConfirmUpload].
-// Enterprise ignores selection for shared usage, audit and upload operations;
-// unrelated routes also ignore it. Context deadlines and cancellation are preserved. ~keep
+// WithProProject selects a Pro project for extraction and job operations,
+// usage/audit, upload preparation, RAG collection CRUD, document add/delete
+// and retrieval. Extraction/job selection requires Pro. Enterprise ignores
+// selection for shared usage/audit/upload/RAG operations. Unrelated routes
+// ignore it. Context deadlines and cancellation are preserved. ~keep
 func WithProProject(ctx context.Context, projectID string) context.Context {
 	return context.WithValue(ctx, proProjectKey{}, projectID)
 }
@@ -53,6 +54,24 @@ func ownsCrawlOrEnrichProjectScope(method string, parts []string) bool {
 		parts[2] != "" && parts[3] == "events"
 }
 
+func ownsRagHeaderProjectScope(method, path string) bool {
+	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
+	if len(parts) < 3 || parts[0] != "v1" || parts[1] != "rag" || parts[2] != "collections" {
+		return false
+	}
+	if len(parts) == 3 {
+		return method == methodGet || method == methodPost
+	}
+	if parts[3] == "" {
+		return false
+	}
+	if len(parts) == 4 {
+		return method == methodGet || method == methodDelete
+	}
+	return len(parts) == 5 && ((parts[4] == "documents" && (method == methodPost || method == methodDelete)) ||
+		(parts[4] == "retrieve" && method == methodPost))
+}
+
 func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (requestSpec, error) {
 	projectID, selected := ctx.Value(proProjectKey{}).(string)
 	if !selected {
@@ -63,7 +82,8 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 		return spec, fmt.Errorf("xberg: parsing job request path: %w", err)
 	}
 	if (spec.method == methodGet && (u.EscapedPath() == "/v1/usage" || u.EscapedPath() == "/v1/audit")) ||
-		(spec.method == methodPost && (u.EscapedPath() == presignUploadPath || u.EscapedPath() == confirmUploadPath)) {
+		(spec.method == methodPost && (u.EscapedPath() == presignUploadPath || u.EscapedPath() == confirmUploadPath)) ||
+		ownsRagHeaderProjectScope(spec.method, u.EscapedPath()) {
 		return c.applyProHeaderProject(ctx, spec, projectID)
 	}
 	if !ownsJobProjectScope(spec.method, u.EscapedPath()) {
