@@ -11,8 +11,9 @@ const extractPath = "/v1/extract"
 
 type proProjectKey struct{}
 
-// WithProProject selects a Pro project for extraction and job operations using ctx.
-// The returned context preserves deadlines and cancellation; unrelated routes ignore it. ~keep
+// WithProProject selects a Pro project for extraction, job, usage and audit operations.
+// Usage and audit ignore this selection on Enterprise; unrelated routes also ignore it.
+// The returned context preserves deadlines and cancellation. ~keep
 func WithProProject(ctx context.Context, projectID string) context.Context {
 	return context.WithValue(ctx, proProjectKey{}, projectID)
 }
@@ -60,6 +61,9 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 	if err != nil {
 		return spec, fmt.Errorf("xberg: parsing job request path: %w", err)
 	}
+	if spec.method == methodGet && (u.EscapedPath() == "/v1/usage" || u.EscapedPath() == "/v1/audit") {
+		return c.applyProReadProject(ctx, spec, projectID)
+	}
 	if !ownsJobProjectScope(spec.method, u.EscapedPath()) {
 		return spec, nil
 	}
@@ -77,5 +81,20 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 		u.RawQuery = query.Encode()
 		spec.path = u.String()
 	}
+	return spec, nil
+}
+
+func (c *Client) applyProReadProject(ctx context.Context, spec requestSpec, projectID string) (requestSpec, error) {
+	tier, err := c.resolveTier(ctx)
+	if err != nil {
+		return spec, err
+	}
+	if tier != string(TargetPro) {
+		return spec, nil
+	}
+	if strings.TrimSpace(projectID) == "" {
+		return spec, fmt.Errorf("xberg: Pro project ID must not be blank")
+	}
+	spec.projectID = projectID
 	return spec, nil
 }

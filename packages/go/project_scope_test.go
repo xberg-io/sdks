@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -251,5 +252,139 @@ func TestSelectedProjectBatchReadsEveryAcceptedJob(t *testing.T) {
 	want := []string{"POST /v1/extract", "GET /v1/jobs/" + extractJobA + "?project_id=" + scopeProjectID, "GET /v1/jobs/" + extractJobB + "?project_id=" + scopeProjectID}
 	if !slices.Equal(seen, want) {
 		t.Fatalf("trace=%v want=%v", seen, want)
+	}
+}
+
+func scopeReadResponse(body string) *http.Response {
+	return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(body))}
+}
+
+func TestSelectedProjectUsageAndAuditUseProHeadersAndPreserveEnterprise(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		target   xberg.Target
+		probed   string
+		selected bool
+	}{
+		{"explicit-pro", xberg.TargetPro, "", true}, {"auto-pro", "", "pro", true},
+		{"explicit-enterprise", xberg.TargetEnterprise, "", false}, {"auto-enterprise", "", "enterprise", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			probes, operations := 0, 0
+			transport := jobPollTransport(func(r *http.Request) (*http.Response, error) {
+				if r.Method != http.MethodGet || r.Header.Get("Authorization") != "Bearer synthetic-owner" {
+					t.Error("method or native bearer changed")
+				}
+				if r.URL.Path == "/healthz" {
+					probes++
+					if r.Header.Get("X-Project-ID") != "" {
+						t.Error("scope leaked to probe")
+					}
+					return scopeReadResponse(fmt.Sprintf(`{"tier":%q}`, tc.probed)), nil
+				}
+				operations++
+				want := ""
+				if tc.selected {
+					want = scopeProjectID
+				}
+				if r.Header.Get("X-Project-ID") != want {
+					t.Errorf("project header=%q want=%q", r.Header.Get("X-Project-ID"), want)
+				}
+				switch r.URL.Path {
+				case "/v1/usage":
+					if r.URL.Query().Get("start") != "2026-01-01" || r.URL.Query().Get("end") != "2026-01-02" || len(r.URL.Query()) != 2 {
+						t.Errorf("usage query=%s", r.URL.RawQuery)
+					}
+					return scopeReadResponse(`{"total_documents":2}`), nil
+				case "/v1/audit":
+					if r.URL.Query().Get("action") != "job.submit" || r.URL.Query().Get("limit") != "1" || r.URL.Query().Get("offset") != "2" || len(r.URL.Query()) != 3 {
+						t.Errorf("audit query=%s", r.URL.RawQuery)
+					}
+					return scopeReadResponse(`{"entries":[],"total":2,"limit":1,"offset":2}`), nil
+				default:
+					t.Fatalf("unexpected path %s", r.URL.Path)
+					return nil, nil
+				}
+			})
+			client := mustClient(t, xberg.WithBaseURL("http://127.0.0.1:8080"), xberg.WithTarget(tc.target), xberg.WithAPIKey("synthetic-owner"), xberg.WithRetries(0), xberg.WithHTTPClient(&http.Client{Transport: transport}))
+			ctx := xberg.WithProProject(context.Background(), scopeProjectID)
+			usage, err := client.Usage(ctx, map[string]string{"start": "2026-01-01", "end": "2026-01-02"})
+			if err != nil || string(usage) != `{"total_documents":2}` {
+				t.Fatalf("usage=%s err=%v", usage, err)
+			}
+			audit, err := client.Audit(ctx, "job.submit", 1, 2)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if audit.Total != 2 || audit.Limit != 1 || audit.Offset != 2 || len(audit.Entries) != 0 {
+				t.Fatalf("audit=%+v", audit)
+			}
+			wantProbes := 0
+			if tc.target == "" {
+				wantProbes = 1
+			}
+			if operations != 2 || probes != wantProbes {
+				t.Fatalf("operations=%d probes=%d want2/%d", operations, probes, wantProbes)
+			}
+		})
+	}
+}
+
+func TestSelectedProjectUsageAndAuditRejectBlankBeforeTransport(t *testing.T) {
+	for _, op := range []string{"usage", "audit"} {
+		t.Run(op, func(t *testing.T) {
+			calls := 0
+			client := mustClient(t, xberg.WithBaseURL("http://127.0.0.1:8080"), xberg.WithTarget(xberg.TargetPro), xberg.WithHTTPClient(&http.Client{Transport: jobPollTransport(func(*http.Request) (*http.Response, error) { calls++; return scopeReadResponse(`{}`), nil })}))
+			ctx := xberg.WithProProject(context.Background(), " ")
+			var err error
+			if op == "usage" {
+				_, err = client.Usage(ctx, nil)
+			} else {
+				_, err = client.Audit(ctx, "", 0, 0)
+			}
+			if err == nil || !strings.Contains(err.Error(), "must not be blank") {
+				t.Fatalf("blank error=%v", err)
+			}
+			if calls != 0 {
+				t.Fatalf("blank scope reached transport%d times", calls)
+			}
+		})
+	}
+}
+
+func TestSelectedProjectUsageAndAuditContextsDoNotLeak(t *testing.T) {
+	var calls atomic.Int32
+	transport := jobPollTransport(func(r *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		selector := r.URL.Query().Get("start")
+		if r.URL.Path == "/v1/audit" {
+			selector = r.URL.Query().Get("offset")
+		}
+		expected := map[string]string{"2026-01-01": scopeProjectID, "2026-01-02": extractJobB, "2026-01-03": "", "1": scopeProjectID, "2": extractJobB, "3": ""}
+		want, ok := expected[selector]
+		if !ok || r.Header.Get("X-Project-ID") != want || r.URL.Query().Has("project_id") {
+			t.Errorf("scope leak selector=%s header=%q", selector, r.Header.Get("X-Project-ID"))
+		}
+		return scopeReadResponse(`{"entries":[],"total":0,"limit":1,"offset":0}`), nil
+	})
+	client := mustClient(t, xberg.WithBaseURL("http://127.0.0.1:8080"), xberg.WithTarget(xberg.TargetPro), xberg.WithRetries(0), xberg.WithHTTPClient(&http.Client{Transport: transport}))
+	var wg sync.WaitGroup
+	for i, project := range []string{scopeProjectID, extractJobB, ""} {
+		wg.Go(func() {
+			ctx := context.Background()
+			if project != "" {
+				ctx = xberg.WithProProject(ctx, project)
+			}
+			if _, err := client.Usage(ctx, map[string]string{"start": fmt.Sprintf("2026-01-0%d", i+1)}); err != nil {
+				t.Error(err)
+			}
+			if _, err := client.Audit(ctx, "", 1, i+1); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	if calls.Load() != 6 {
+		t.Fatalf("calls=%d want6", calls.Load())
 	}
 }
