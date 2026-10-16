@@ -41,6 +41,7 @@ type requestSpec struct {
 	body            io.Reader
 	bodyContentType string
 	accept          string
+	projectID       string
 	rewindBody      func() (io.Reader, error)
 }
 
@@ -134,6 +135,11 @@ func (c *Client) callJSON(ctx context.Context, method, path string, body, out an
 // do executes spec and returns the response body for 2xx responses. The
 // caller MUST close the returned reader.
 func (c *Client) do(ctx context.Context, spec requestSpec) (io.ReadCloser, error) {
+	var scopeErr error
+	spec, scopeErr = c.applyProProject(ctx, spec)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
 	attempt := 0
 	for {
 		body, err := c.doOnce(ctx, spec)
@@ -196,6 +202,9 @@ func (c *Client) doOnceWithCancel(
 		accept = contentTypeJSON
 	}
 	req.Header.Set("Accept", accept)
+	if spec.projectID != "" {
+		req.Header.Set("X-Project-ID", spec.projectID)
+	}
 	if err := c.authorize(ctx, req); err != nil {
 		cancel()
 		return nil, err

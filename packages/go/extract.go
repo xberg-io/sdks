@@ -67,7 +67,7 @@ func (c *Client) ExtractBatch(
 	var resp ExtractResponse
 	spec := requestSpec{
 		method:          methodPost,
-		path:            "/v1/extract",
+		path:            extractPath,
 		body:            bytes.NewReader(body),
 		bodyContentType: contentType,
 		rewindBody: func() (io.Reader, error) {

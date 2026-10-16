@@ -126,3 +126,17 @@ A batch can end with one job `completed` and another `partial_success` for a dif
 the same request — jobs are independent even when submitted together. A `partial_success` job's
 result carries per-document errors alongside whatever did extract; read those before assuming the
 whole batch failed. See [Batches](/guides/batches/) for how batch results correlate back to inputs.
+
+## Selecting a Pro project
+
+For a job in a specific Pro project, Python's synchronous and asynchronous helpers accept
+`project_id=project_id`. Pass it to extraction and to subsequent job, result, page, listing,
+cancellation and polling calls. TypeScript accepts the equivalent `{ projectId }` option.
+
+In Go, derive `projectCtx := xberg.WithProProject(ctx, projectID)` and pass that context to the
+existing extraction and job methods. The selection follows internal job reads and polling, and
+concurrent contexts can select different projects on the same client.
+
+Explicit project selection requires Pro. The SDK sends `X-Project-ID` when submitting extraction
+and `project_id` when reading or cancelling jobs. Calls without a selection keep their existing
+request URLs. Go's project context leaves unrelated routes unchanged.

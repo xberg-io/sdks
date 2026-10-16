@@ -854,7 +854,7 @@ class XbergClient(_BaseClient):
         """Close the underlying HTTP transport, releasing connections."""
         self._http.close()
 
-    def _request(
+    def _request(  # noqa: PLR0913 ~keep Preserve explicit transport flags and per-request project isolation.
         self,
         method: str,
         path: str,
@@ -867,6 +867,7 @@ class XbergClient(_BaseClient):
         control_plane: bool = False,
         public: bool = False,
         token: str | None = None,
+        project_id: str | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -875,6 +876,14 @@ class XbergClient(_BaseClient):
         # ~keep local upload, so `content` implies that media type; httpx sets no
         # ~keep Content-Type of its own for a bytes body and the route answers 415.
         headers = {"Content-Type": _OCTET_STREAM_CONTENT_TYPE} if content is not None else None
+        if project_id is not None:
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            self._require_tier("pro", "job project selection")
+            if path == "/v1/extract":
+                headers = {**(headers or {}), "X-Project-ID": project_id}
+            else:
+                params = {**(params or {}), "project_id": project_id}
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -934,6 +943,7 @@ class XbergClient(_BaseClient):
         json_body: Any | None = None,
         content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
+        project_id: str | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
         response = self._request(
@@ -944,15 +954,18 @@ class XbergClient(_BaseClient):
             json_body=json_body,
             content=content,
             params=params,
+            project_id=project_id,
         )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
 
-    def _request_bytes(self, method: str, path: str, *, params: Mapping[str, Any] | None = None) -> bytes:
+    def _request_bytes(
+        self, method: str, path: str, *, params: Mapping[str, Any] | None = None, project_id: str | None = None
+    ) -> bytes:
         """Issue a request, raise on non-2xx, and return the raw (non-JSON) response body."""
-        response = self._request(method, path, params=params)
+        response = self._request(method, path, params=params, project_id=project_id)
         raise_for_status(response)
         return response.content
 
@@ -1007,6 +1020,7 @@ class XbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
         document_id: str | UUID | None = None,
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Submit a single document for extraction via ``POST /v1/extract`` (multipart).
 
@@ -1014,6 +1028,7 @@ class XbergClient(_BaseClient):
         ``config-<filename>`` part. The server resolves it against
         ``options.extraction_config``, any preset and the project default.
         Enterprise-only ``document_id`` identifies the document across extraction versions.
+        Pro-only ``project_id`` selects the project for submission and subsequent job reads.
         """
         return self.extract_batch(
             [file],
@@ -1021,6 +1036,7 @@ class XbergClient(_BaseClient):
             webhook=webhook,
             configs=None if config is None else [config],
             document_ids=None if document_id is None else [document_id],
+            project_id=project_id,
         )[0]
 
     def extract_batch(
@@ -1030,6 +1046,8 @@ class XbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
         document_ids: Sequence[str | UUID | None] | None = None,
+        *,
+        project_id: str | None = None,
     ) -> list[ExtractionJobResponse]:
         """Submit multiple documents in a SINGLE multipart request carrying every file.
 
@@ -1048,31 +1066,31 @@ class XbergClient(_BaseClient):
         data = _multipart_data(options, webhook)
         data.update(_per_file_config_data(file_parts, configs))
         data.update(lineage)
-        payload = self._request_json("POST", "/v1/extract", files=file_parts, data=data)
+        payload = self._request_json("POST", "/v1/extract", files=file_parts, data=data, project_id=project_id)
         job_ids = _job_ids_from_extract_response(payload)
-        return [_extraction_job(self.get_job(job_id)) for job_id in job_ids]
+        return [_extraction_job(self.get_job(job_id, project_id=project_id)) for job_id in job_ids]
 
-    def get_job(self, job_id: str) -> GetJobResponse:
+    def get_job(self, job_id: str, *, project_id: str | None = None) -> GetJobResponse:
         """Fetch a tagged extraction or crawl job record (``GET /v1/jobs/{id}``)."""
-        return _parse_get_job(self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
+        return _parse_get_job(self._request_json("GET", f"/v1/jobs/{_q(job_id)}", project_id=project_id))
 
-    def get_job_result(self, job_id: str) -> JobResult:
+    def get_job_result(self, job_id: str, *, project_id: str | None = None) -> JobResult:
         """Fetch a job's stored result envelope (``GET /v1/jobs/{id}/result``).
 
         Served identically by both tiers. Answers 409 until the job reaches a terminal
         successful status (``completed`` or ``partial_success``), and 404 once the stored
         result has passed its retention window.
         """
-        return _parse_job_result(self._request_json("GET", f"/v1/jobs/{_q(job_id)}/result"))
+        return _parse_job_result(self._request_json("GET", f"/v1/jobs/{_q(job_id)}/result", project_id=project_id))
 
-    def list_jobs(self, *, limit: int | None = None, offset: int | None = None) -> Any:
+    def list_jobs(self, *, limit: int | None = None, offset: int | None = None, project_id: str | None = None) -> Any:
         """List jobs via ``GET /v1/jobs`` (paginated). Returns the decoded response body."""
         params = {k: v for k, v in (("limit", limit), ("offset", offset)) if v is not None}
-        return self._request_json("GET", "/v1/jobs", params=params or None)
+        return self._request_json("GET", "/v1/jobs", params=params or None, project_id=project_id)
 
-    def cancel_job(self, job_id: str) -> None:
+    def cancel_job(self, job_id: str, *, project_id: str | None = None) -> None:
         """Cancel an extraction job (``DELETE /v1/jobs/{id}``, 204 whether pending or already terminal)."""
-        self._request_json("DELETE", f"/v1/jobs/{_q(job_id)}")
+        self._request_json("DELETE", f"/v1/jobs/{_q(job_id)}", project_id=project_id)
 
     def wait_for_job(
         self,
@@ -1081,6 +1099,7 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Poll ``GET /v1/jobs/{id}`` until the job reaches a terminal status or ``timeout`` elapses.
 
@@ -1090,7 +1109,7 @@ class XbergClient(_BaseClient):
         deadline = time.monotonic() + timeout
         interval = poll_interval
         while True:
-            job = _extraction_job(self.get_job(job_id))
+            job = _extraction_job(self.get_job(job_id, project_id=project_id))
             if job.status in _TERMINAL_STATUSES:
                 _raise_if_failed(job)
                 return job
@@ -1110,10 +1129,13 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> list[ExtractionJobResponse]:
         """Wait for multiple jobs sequentially (sync)."""
         return [
-            self.wait_for_job(job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff)
+            self.wait_for_job(
+                job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff, project_id=project_id
+            )
             for job_id in job_ids
         ]
 
@@ -1128,10 +1150,15 @@ class XbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Submit a document and block until extraction completes (raises on failure/timeout)."""
-        job = self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
-        return self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
+        job = self.extract(
+            file=file, options=options, webhook=webhook, config=config, document_id=document_id, project_id=project_id
+        )
+        return self.wait_for_job(
+            str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff, project_id=project_id
+        )
 
     def audit(self, *, action: str | None = None, limit: int | None = None, offset: int | None = None) -> Any:
         """Fetch audit-log entries via ``GET /v1/audit``. Returns the decoded response body."""
@@ -1327,9 +1354,9 @@ class XbergClient(_BaseClient):
         """
         return self._request_json("GET", "/v1/usage", params=params)
 
-    def get_job_page(self, job_id: str, page_number: int) -> bytes:
+    def get_job_page(self, job_id: str, page_number: int, *, project_id: str | None = None) -> bytes:
         """Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes)."""
-        return self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
+        return self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}", project_id=project_id)
 
     def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
         """Submit text for enrichment (``POST /v1/enrich``, 202 Accepted)."""
@@ -2037,7 +2064,7 @@ class AsyncXbergClient(_BaseClient):
         """Close the underlying async HTTP transport, releasing connections."""
         await self._http.aclose()
 
-    async def _request(
+    async def _request(  # noqa: PLR0913 ~keep Preserve explicit transport flags and per-request project isolation.
         self,
         method: str,
         path: str,
@@ -2050,6 +2077,7 @@ class AsyncXbergClient(_BaseClient):
         control_plane: bool = False,
         public: bool = False,
         token: str | None = None,
+        project_id: str | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -2058,6 +2086,14 @@ class AsyncXbergClient(_BaseClient):
         # ~keep local upload, so `content` implies that media type; httpx sets no
         # ~keep Content-Type of its own for a bytes body and the route answers 415.
         headers = {"Content-Type": _OCTET_STREAM_CONTENT_TYPE} if content is not None else None
+        if project_id is not None:
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            await self._require_tier("pro", "job project selection")
+            if path == "/v1/extract":
+                headers = {**(headers or {}), "X-Project-ID": project_id}
+            else:
+                params = {**(params or {}), "project_id": project_id}
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -2117,6 +2153,7 @@ class AsyncXbergClient(_BaseClient):
         json_body: Any | None = None,
         content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
+        project_id: str | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
         response = await self._request(
@@ -2127,15 +2164,18 @@ class AsyncXbergClient(_BaseClient):
             json_body=json_body,
             content=content,
             params=params,
+            project_id=project_id,
         )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
 
-    async def _request_bytes(self, method: str, path: str, *, params: Mapping[str, Any] | None = None) -> bytes:
+    async def _request_bytes(
+        self, method: str, path: str, *, params: Mapping[str, Any] | None = None, project_id: str | None = None
+    ) -> bytes:
         """Issue a request, raise on non-2xx, and return the raw (non-JSON) response body."""
-        response = await self._request(method, path, params=params)
+        response = await self._request(method, path, params=params, project_id=project_id)
         raise_for_status(response)
         return response.content
 
@@ -2179,6 +2219,7 @@ class AsyncXbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         config: FileConfigInput = None,
         document_id: str | UUID | None = None,
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Async equivalent of :meth:`XbergClient.extract`."""
         jobs = await self.extract_batch(
@@ -2187,6 +2228,7 @@ class AsyncXbergClient(_BaseClient):
             webhook=webhook,
             configs=None if config is None else [config],
             document_ids=None if document_id is None else [document_id],
+            project_id=project_id,
         )
         return jobs[0]
 
@@ -2197,6 +2239,8 @@ class AsyncXbergClient(_BaseClient):
         webhook: Mapping[str, Any] | None = None,
         configs: Sequence[FileConfigInput] | None = None,
         document_ids: Sequence[str | UUID | None] | None = None,
+        *,
+        project_id: str | None = None,
     ) -> list[ExtractionJobResponse]:
         """Submit multiple documents in a SINGLE multipart request; fetch jobs concurrently."""
         materialized = list(files)
@@ -2209,26 +2253,33 @@ class AsyncXbergClient(_BaseClient):
         data = _multipart_data(options, webhook)
         data.update(_per_file_config_data(file_parts, configs))
         data.update(lineage)
-        payload = await self._request_json("POST", "/v1/extract", files=file_parts, data=data)
+        payload = await self._request_json("POST", "/v1/extract", files=file_parts, data=data, project_id=project_id)
         job_ids = _job_ids_from_extract_response(payload)
-        return [_extraction_job(job) for job in await asyncio.gather(*(self.get_job(job_id) for job_id in job_ids))]
+        return [
+            _extraction_job(job)
+            for job in await asyncio.gather(*(self.get_job(job_id, project_id=project_id) for job_id in job_ids))
+        ]
 
-    async def get_job(self, job_id: str) -> GetJobResponse:
+    async def get_job(self, job_id: str, *, project_id: str | None = None) -> GetJobResponse:
         """Async equivalent of :meth:`XbergClient.get_job`."""
-        return _parse_get_job(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}"))
+        return _parse_get_job(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}", project_id=project_id))
 
-    async def get_job_result(self, job_id: str) -> JobResult:
+    async def get_job_result(self, job_id: str, *, project_id: str | None = None) -> JobResult:
         """Async equivalent of :meth:`XbergClient.get_job_result`."""
-        return _parse_job_result(await self._request_json("GET", f"/v1/jobs/{_q(job_id)}/result"))
+        return _parse_job_result(
+            await self._request_json("GET", f"/v1/jobs/{_q(job_id)}/result", project_id=project_id)
+        )
 
-    async def list_jobs(self, *, limit: int | None = None, offset: int | None = None) -> Any:
+    async def list_jobs(
+        self, *, limit: int | None = None, offset: int | None = None, project_id: str | None = None
+    ) -> Any:
         """Async equivalent of :meth:`XbergClient.list_jobs`."""
         params = {k: v for k, v in (("limit", limit), ("offset", offset)) if v is not None}
-        return await self._request_json("GET", "/v1/jobs", params=params or None)
+        return await self._request_json("GET", "/v1/jobs", params=params or None, project_id=project_id)
 
-    async def cancel_job(self, job_id: str) -> None:
+    async def cancel_job(self, job_id: str, *, project_id: str | None = None) -> None:
         """Async equivalent of :meth:`XbergClient.cancel_job`."""
-        await self._request_json("DELETE", f"/v1/jobs/{_q(job_id)}")
+        await self._request_json("DELETE", f"/v1/jobs/{_q(job_id)}", project_id=project_id)
 
     async def wait_for_job(
         self,
@@ -2237,12 +2288,13 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Async equivalent of :meth:`XbergClient.wait_for_job` (raises on failure/timeout)."""
         deadline = time.monotonic() + timeout
         interval = poll_interval
         while True:
-            job = _extraction_job(await self.get_job(job_id))
+            job = _extraction_job(await self.get_job(job_id, project_id=project_id))
             if job.status in _TERMINAL_STATUSES:
                 _raise_if_failed(job)
                 return job
@@ -2262,10 +2314,13 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> list[ExtractionJobResponse]:
         """Wait for multiple jobs concurrently."""
         coros = [
-            self.wait_for_job(job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff)
+            self.wait_for_job(
+                job_id, timeout=timeout, poll_interval=poll_interval, backoff=backoff, project_id=project_id
+            )
             for job_id in job_ids
         ]
         return list(await asyncio.gather(*coros))
@@ -2281,10 +2336,15 @@ class AsyncXbergClient(_BaseClient):
         timeout: float = _DEFAULT_WAIT_TIMEOUT,
         poll_interval: float = _DEFAULT_POLL_INTERVAL,
         backoff: BackoffStrategy = "exponential",
+        project_id: str | None = None,
     ) -> ExtractionJobResponse:
         """Submit a document and await extraction in a single call (raises on failure/timeout)."""
-        job = await self.extract(file=file, options=options, webhook=webhook, config=config, document_id=document_id)
-        return await self.wait_for_job(str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff)
+        job = await self.extract(
+            file=file, options=options, webhook=webhook, config=config, document_id=document_id, project_id=project_id
+        )
+        return await self.wait_for_job(
+            str(job.id), timeout=timeout, poll_interval=poll_interval, backoff=backoff, project_id=project_id
+        )
 
     async def audit(self, *, action: str | None = None, limit: int | None = None, offset: int | None = None) -> Any:
         """Async equivalent of :meth:`XbergClient.audit`."""
@@ -2485,9 +2545,9 @@ class AsyncXbergClient(_BaseClient):
         """Async equivalent of :meth:`XbergClient.usage`."""
         return await self._request_json("GET", "/v1/usage", params=params)
 
-    async def get_job_page(self, job_id: str, page_number: int) -> bytes:
+    async def get_job_page(self, job_id: str, page_number: int, *, project_id: str | None = None) -> bytes:
         """Async equivalent of :meth:`XbergClient.get_job_page`."""
-        return await self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}")
+        return await self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}", project_id=project_id)
 
     async def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
         """Async equivalent of :meth:`XbergClient.submit_enrich`."""
