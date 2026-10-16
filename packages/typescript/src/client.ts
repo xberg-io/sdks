@@ -1232,9 +1232,9 @@ export class XbergClient {
    * (`GET /v1/jobs/{job_id}/pages/{page_number}`). The response is a PNG image —
    * raw bytes, not JSON. `pageNumber` is 1-indexed.
    */
-  public async getJobPage(jobId: string, pageNumber: number): Promise<Uint8Array> {
+  public async getJobPage(jobId: string, pageNumber: number, scope: JobScopeParams = {}): Promise<Uint8Array> {
     const path = `${JOBS_PATH}/${encodePathSegment(jobId)}/pages/${encodePathSegment(String(pageNumber))}`;
-    return await this.requestBytes("GET", path);
+    return await this.requestBytes("GET", path, { params: await this.jobScope(scope) });
   }
 
   /** Submit text for enrichment (`POST /v1/enrich`). */
