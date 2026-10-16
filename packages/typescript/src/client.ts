@@ -285,7 +285,7 @@ export interface SubmitAutoTuneParams {
 }
 
 /** Options accepted by `streamCrawlEvents`. */
-export interface StreamCrawlEventsOptions {
+export interface StreamCrawlEventsOptions extends JobScopeParams {
   /**
    * Aborts the stream from outside the loop. Breaking out of the `for await`
    * already closes the response body, so this is only needed to hang up from
@@ -1240,13 +1240,18 @@ export class XbergClient {
   }
 
   /** Submit text for enrichment (`POST /v1/enrich`). */
-  public async submitEnrich(body: EnrichTextRequest): Promise<EnrichJobSubmitted> {
-    return await this.requestJson<EnrichJobSubmitted>("POST", ENRICH_PATH, { json: body });
+  public async submitEnrich(body: EnrichTextRequest, scope: JobScopeParams = {}): Promise<EnrichJobSubmitted> {
+    return await this.requestJson<EnrichJobSubmitted>("POST", ENRICH_PATH, {
+      json: body,
+      params: await this.jobScope(scope),
+    });
   }
 
   /** Fetch an enrichment job's status (`GET /v1/enrich/{job_id}`). */
-  public async getEnrichStatus(jobId: string): Promise<EnrichJobStatus> {
-    return await this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodePathSegment(jobId)}`);
+  public async getEnrichStatus(jobId: string, scope: JobScopeParams = {}): Promise<EnrichJobStatus> {
+    return await this.requestJson<EnrichJobStatus>("GET", `${ENRICH_PATH}/${encodePathSegment(jobId)}`, {
+      params: await this.jobScope(scope),
+    });
   }
 
   /**
@@ -1273,7 +1278,8 @@ export class XbergClient {
    */
   public streamCrawlEvents(crawlJobId: string, options: StreamCrawlEventsOptions = {}): AsyncIterable<CrawlEvent> {
     const path = `${CRAWL_JOBS_PATH}/${encodePathSegment(crawlJobId)}/events`;
-    const open = (): Promise<Response> => this.openEventStream(path, options.signal);
+    const open = async (): Promise<Response> =>
+      this.openEventStream(`${path}${buildQueryString(await this.jobScope(options))}`, options.signal);
     return { [Symbol.asyncIterator]: (): AsyncIterator<CrawlEvent> => iterateCrawlEvents(open) };
   }
 

@@ -972,7 +972,9 @@ class XbergClient(_BaseClient):
         return response.content
 
     @contextmanager
-    def _request_stream(self, method: str, path: str, *, accept: str) -> Iterator[httpx.Response]:
+    def _request_stream(
+        self, method: str, path: str, *, accept: str, project_id: str | None = None
+    ) -> Iterator[httpx.Response]:
         """Open a streaming response, closing it on every exit path.
 
         Deliberately not routed through :meth:`_request`. That method is the
@@ -985,8 +987,14 @@ class XbergClient(_BaseClient):
         request/response round trip, while a subscription is idle between
         events by design. Connect, write and pool timeouts still apply.
         """
+        params = None
+        if project_id is not None:
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            self._require_tier("pro", "job project selection")
+            params = {"project_id": project_id}
         timeout = httpx.Timeout(self._timeout, read=None)
-        with self._http.stream(method, path, headers={"Accept": accept}, timeout=timeout) as response:
+        with self._http.stream(method, path, headers={"Accept": accept}, timeout=timeout, params=params) as response:
             if not response.is_success:
                 response.read()
                 raise_for_status(response)
@@ -1360,16 +1368,18 @@ class XbergClient(_BaseClient):
         """Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes)."""
         return self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}", project_id=project_id)
 
-    def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
+    def submit_enrich(
+        self, body: EnrichTextRequest | Mapping[str, Any], *, project_id: str | None = None
+    ) -> EnrichJobSubmitted:
         """Submit text for enrichment (``POST /v1/enrich``, 202 Accepted)."""
-        payload = self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
+        payload = self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body), project_id=project_id)
         return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
 
-    def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
+    def get_enrich_status(self, job_id: str, *, project_id: str | None = None) -> EnrichJobStatus:
         """Poll an enrichment job (``GET /v1/enrich/{job_id}``)."""
-        return _parse_enrich_status(self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
+        return _parse_enrich_status(self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}", project_id=project_id))
 
-    def stream_crawl_events(self, crawl_job_id: str) -> Iterator[CrawlEvent]:
+    def stream_crawl_events(self, crawl_job_id: str, *, project_id: str | None = None) -> Iterator[CrawlEvent]:
         """Stream a crawl job's events (``GET /v1/crawl-jobs/{id}/events``).
 
         Yields the ``kind``-discriminated :data:`CrawlEvent` variants as the
@@ -1388,7 +1398,9 @@ class XbergClient(_BaseClient):
         ...         break
         """
         decoder = _SSEDecoder()
-        with self._request_stream("GET", f"/v1/crawl-jobs/{_q(crawl_job_id)}/events", accept=_SSE_ACCEPT) as response:
+        with self._request_stream(
+            "GET", f"/v1/crawl-jobs/{_q(crawl_job_id)}/events", accept=_SSE_ACCEPT, project_id=project_id
+        ) as response:
             for chunk in response.iter_bytes():
                 for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)
@@ -2197,10 +2209,20 @@ class AsyncXbergClient(_BaseClient):
         return response.content
 
     @asynccontextmanager
-    async def _request_stream(self, method: str, path: str, *, accept: str) -> AsyncIterator[httpx.Response]:
+    async def _request_stream(
+        self, method: str, path: str, *, accept: str, project_id: str | None = None
+    ) -> AsyncIterator[httpx.Response]:
         """Async equivalent of :meth:`XbergClient._request_stream` — no retries, no read timeout."""
+        params = None
+        if project_id is not None:
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            await self._require_tier("pro", "job project selection")
+            params = {"project_id": project_id}
         timeout = httpx.Timeout(self._timeout, read=None)
-        async with self._http.stream(method, path, headers={"Accept": accept}, timeout=timeout) as response:
+        async with self._http.stream(
+            method, path, headers={"Accept": accept}, timeout=timeout, params=params
+        ) as response:
             if not response.is_success:
                 await response.aread()
                 raise_for_status(response)
@@ -2566,16 +2588,22 @@ class AsyncXbergClient(_BaseClient):
         """Async equivalent of :meth:`XbergClient.get_job_page`."""
         return await self._request_bytes("GET", f"/v1/jobs/{_q(job_id)}/pages/{_q(page_number)}", project_id=project_id)
 
-    async def submit_enrich(self, body: EnrichTextRequest | Mapping[str, Any]) -> EnrichJobSubmitted:
+    async def submit_enrich(
+        self, body: EnrichTextRequest | Mapping[str, Any], *, project_id: str | None = None
+    ) -> EnrichJobSubmitted:
         """Async equivalent of :meth:`XbergClient.submit_enrich`."""
-        payload = await self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body))
+        payload = await self._request_json("POST", _ENRICH_PATH, json_body=_coerce_body(body), project_id=project_id)
         return EnrichJobSubmitted.from_dict(_expect_object(payload, "enrich submission"))
 
-    async def get_enrich_status(self, job_id: str) -> EnrichJobStatus:
+    async def get_enrich_status(self, job_id: str, *, project_id: str | None = None) -> EnrichJobStatus:
         """Async equivalent of :meth:`XbergClient.get_enrich_status`."""
-        return _parse_enrich_status(await self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}"))
+        return _parse_enrich_status(
+            await self._request_json("GET", f"{_ENRICH_PATH}/{_q(job_id)}", project_id=project_id)
+        )
 
-    async def stream_crawl_events(self, crawl_job_id: str) -> AsyncIterator[CrawlEvent]:
+    async def stream_crawl_events(
+        self, crawl_job_id: str, *, project_id: str | None = None
+    ) -> AsyncIterator[CrawlEvent]:
         """Async equivalent of :meth:`XbergClient.stream_crawl_events`.
 
         An async generator: consume it with ``async for``. Same guarantees as
@@ -2584,7 +2612,7 @@ class AsyncXbergClient(_BaseClient):
         """
         decoder = _SSEDecoder()
         path = f"/v1/crawl-jobs/{_q(crawl_job_id)}/events"
-        async with self._request_stream("GET", path, accept=_SSE_ACCEPT) as response:
+        async with self._request_stream("GET", path, accept=_SSE_ACCEPT, project_id=project_id) as response:
             async for chunk in response.aiter_bytes():
                 for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)

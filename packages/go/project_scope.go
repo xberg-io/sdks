@@ -22,6 +22,9 @@ func ownsJobProjectScope(method, path string) bool {
 	if path == extractPath {
 		return method == methodPost
 	}
+	if ownsCrawlOrEnrichProjectScope(method, parts) {
+		return true
+	}
 	if len(parts) < 2 || parts[0] != "v1" || parts[1] != "jobs" {
 		return false
 	}
@@ -34,6 +37,18 @@ func ownsJobProjectScope(method, path string) bool {
 	return len(parts) == 2 || (len(parts) == 3 && parts[2] != "") ||
 		(len(parts) == 4 && parts[2] != "" && parts[3] == "result") ||
 		(len(parts) == 5 && parts[2] != "" && parts[3] == "pages" && parts[4] != "")
+}
+
+func ownsCrawlOrEnrichProjectScope(method string, parts []string) bool {
+	if len(parts) < 2 || parts[0] != "v1" {
+		return false
+	}
+	if parts[1] == "enrich" {
+		return (method == methodPost && len(parts) == 2) ||
+			(method == methodGet && len(parts) == 3 && parts[2] != "")
+	}
+	return method == methodGet && len(parts) == 4 && parts[1] == "crawl-jobs" &&
+		parts[2] != "" && parts[3] == "events"
 }
 
 func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (requestSpec, error) {

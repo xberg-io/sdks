@@ -189,7 +189,11 @@ func streamCrawlEventFrames(body io.Reader, yield func(CrawlEvent, error) bool) 
 // because doOnce is wrapped by the retry loop and by the per-call timeout, and
 // both are wrong for a subscription (see [Client.StreamCrawlEvents]).
 func (c *Client) openEventStream(ctx context.Context, path string) (io.ReadCloser, error) {
-	target := c.urlFor(path)
+	spec, err := c.applyProProject(ctx, requestSpec{method: methodGet, path: path})
+	if err != nil {
+		return nil, err
+	}
+	target := c.urlFor(spec.path)
 	req, err := http.NewRequestWithContext(ctx, methodGet, target, nil)
 	if err != nil {
 		return nil, fmt.Errorf("xberg: building request: %w", err)

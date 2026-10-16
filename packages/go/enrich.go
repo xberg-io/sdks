@@ -7,8 +7,7 @@ import (
 // Asynchronous text enrichment is part of the shared surface: both specs
 // declare `/v1/enrich` and `/v1/enrich/{job_id}` with the same request body and
 // the same response schemas, so neither method below is tier-gated. The specs
-// differ only in optional scoping — Pro accepts an extra optional `project_id`
-// query parameter — which the client does not send on either tier.
+// differ only in optional scoping: WithProProject adds Pro's `project_id` query parameter. ~keep
 
 // enrichPath is the enrichment submission route, served by both tiers.
 const enrichPath = "/v1/enrich"
