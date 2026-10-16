@@ -6,6 +6,7 @@ package xberg
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/oapi-codegen/runtime"
@@ -3049,10 +3050,17 @@ const (
 	ProjectCreate            ListAuditEntriesParamsAction = "project.create"
 	ProjectDelete            ListAuditEntriesParamsAction = "project.delete"
 	ProjectRagConfigUpdate   ListAuditEntriesParamsAction = "project.rag_config_update"
+	ProjectRoleAssign        ListAuditEntriesParamsAction = "project_role.assign"
+	ProjectRoleCreate        ListAuditEntriesParamsAction = "project_role.create"
+	ProjectRoleDelete        ListAuditEntriesParamsAction = "project_role.delete"
+	ProjectRoleUpdate        ListAuditEntriesParamsAction = "project_role.update"
 	RagCollectionCreate      ListAuditEntriesParamsAction = "rag_collection.create"
 	RagCollectionDelete      ListAuditEntriesParamsAction = "rag_collection.delete"
 	RagCollectionMigrate     ListAuditEntriesParamsAction = "rag_collection.migrate"
 	RagDocumentDelete        ListAuditEntriesParamsAction = "rag_document.delete"
+	ScimConnectionCreate     ListAuditEntriesParamsAction = "scim.connection.create"
+	ScimConnectionRotate     ListAuditEntriesParamsAction = "scim.connection.rotate"
+	ScimGroupRolesReplace    ListAuditEntriesParamsAction = "scim.group_roles.replace"
 	WebhookCreate            ListAuditEntriesParamsAction = "webhook.create"
 	WebhookDelete            ListAuditEntriesParamsAction = "webhook.delete"
 )
@@ -3118,6 +3126,14 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 		return true
 	case ProjectRagConfigUpdate:
 		return true
+	case ProjectRoleAssign:
+		return true
+	case ProjectRoleCreate:
+		return true
+	case ProjectRoleDelete:
+		return true
+	case ProjectRoleUpdate:
+		return true
 	case RagCollectionCreate:
 		return true
 	case RagCollectionDelete:
@@ -3125,6 +3141,12 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 	case RagCollectionMigrate:
 		return true
 	case RagDocumentDelete:
+		return true
+	case ScimConnectionCreate:
+		return true
+	case ScimConnectionRotate:
+		return true
+	case ScimGroupRolesReplace:
 		return true
 	case WebhookCreate:
 		return true
@@ -5932,6 +5954,13 @@ type ExtractedDocument struct {
 	// Only populated when `OcrElementConfig.include_elements` is true.
 	OcrElements *[]OcrElement `json:"ocr_elements,omitempty"`
 
+	// OcrPageFailures Pages whose OCR failed while extraction continued, in the order the failures were reported.
+	//
+	// A record with `recovered` set means the document still has content for that page
+	// from native text or from embedded images. Xberg-produced results use `None` when
+	// no page failed.
+	OcrPageFailures *[]OcrPageFailure `json:"ocr_page_failures,omitempty"`
+
 	// PageClassifications Per-page classifications produced by the page-classification post-processor.
 	//
 	// `None` when classification is not configured.
@@ -7241,7 +7270,8 @@ type JobResultDocument struct {
 
 	// Tables Tables extracted from the document. Opaque here; the engine type is
 	// `Table`.
-	Tables []interface{} `json:"tables"`
+	Tables               []interface{}          `json:"tables"`
+	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // JobResultError A non-fatal error attached to one document within a `JobResult`.
@@ -7370,7 +7400,11 @@ type KeywordConfig struct {
 	// (1, 2) = unigrams and bigrams
 	// (1, 3) = unigrams, bigrams, and trigrams (default)
 	NgramRange *NgramRange `json:"ngram_range,omitempty"`
+
+	// RakeParams RAKE-specific tuning parameters.
 	RakeParams *RakeParams `json:"rake_params,omitempty"`
+
+	// YakeParams YAKE-specific tuning parameters.
 	YakeParams *YakeParams `json:"yake_params,omitempty"`
 }
 
@@ -8344,6 +8378,9 @@ type OcrConfig struct {
 	// OutputFormat OCR output format override
 	OutputFormat *string `json:"output_format,omitempty"`
 
+	// PaddleOcrSettings PaddleOCR model and inference configuration.
+	PaddleOcrSettings *map[string]interface{} `json:"paddle_ocr_settings,omitempty"`
+
 	// Pipeline Multi-backend OCR pipeline with quality-based fallback
 	Pipeline *OcrPipelineConfig `json:"pipeline,omitempty"`
 
@@ -8454,6 +8491,24 @@ type OcrMetadata struct {
 
 // OcrMetadataFormatType defines model for OcrMetadata.FormatType.
 type OcrMetadataFormatType string
+
+// OcrPageFailure A page whose OCR failed while extraction of the document continued.
+//
+// The warning in `ExtractedDocument::processing_warnings` stays available. One warning
+// can cover several pages: when an automatic OCR run of selected pages fails as a whole,
+// it adds one warning and one record for each selected page. A failure of the OCR fallback
+// for the whole document adds a warning and no record. Repeated failures on one page make
+// one record.
+type OcrPageFailure struct {
+	// Error OCR backend error text.
+	Error string `json:"error"`
+
+	// Page One-based page number in the source document.
+	Page int32 `json:"page"`
+
+	// Recovered Whether content for this page was retained or recovered through another route.
+	Recovered bool `json:"recovered"`
+}
 
 // OcrPipelineConfig Multi-backend OCR pipeline with quality-based fallback.
 type OcrPipelineConfig struct {
@@ -8671,6 +8726,12 @@ type PageContent struct {
 	// Contains detected layout regions with class, confidence, bounding box,
 	// and area fraction. Only populated when layout detection is configured.
 	LayoutRegions *[]LayoutRegion `json:"layout_regions,omitempty"`
+
+	// NativeContent Text layer of this page, kept when OCR output replaced it in `content`.
+	//
+	// Set only when `PageConfig::keep_native_content` is on, an OCR route replaced this page's `content`, and the
+	// text layer is not blank and differs from the OCR text. `None` on every other page. PDF only.
+	NativeContent *string `json:"native_content,omitempty"`
 
 	// OcrConfidence Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
 	OcrConfidence *PageOcrConfidence `json:"ocr_confidence,omitempty"`
@@ -10249,7 +10310,12 @@ type TesseractConfig struct {
 	Oem *int32 `json:"oem,omitempty"`
 
 	// OutputFormat Output format ("text" or "markdown")
-	OutputFormat  *string                   `json:"output_format,omitempty"`
+	OutputFormat *string `json:"output_format,omitempty"`
+
+	// Preprocessing Image preprocessing configuration.
+	//
+	// Controls how images are preprocessed before OCR. Can significantly
+	// improve quality for scanned documents or low-quality images.
 	Preprocessing *ImagePreprocessingConfig `json:"preprocessing,omitempty"`
 
 	// Psm Page Segmentation Mode (1-13).
@@ -10990,6 +11056,218 @@ type ConfirmUploadJSONRequestBody = ConfirmUploadRequest
 
 // PresignUploadJSONRequestBody defines body for PresignUpload for application/json ContentType.
 type PresignUploadJSONRequestBody = PresignUploadRequest
+
+// Getter for additional properties for JobResultDocument. Returns the specified
+// element and whether it was found
+func (a JobResultDocument) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for JobResultDocument
+func (a *JobResultDocument) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for JobResultDocument to handle AdditionalProperties
+func (a *JobResultDocument) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["chunks"]; found {
+		err = json.Unmarshal(raw, &a.Chunks)
+		if err != nil {
+			return fmt.Errorf("error reading 'chunks': %w", err)
+		}
+		delete(object, "chunks")
+	}
+
+	if raw, found := object["content"]; found {
+		err = json.Unmarshal(raw, &a.Content)
+		if err != nil {
+			return fmt.Errorf("error reading 'content': %w", err)
+		}
+		delete(object, "content")
+	}
+
+	if raw, found := object["counts"]; found {
+		err = json.Unmarshal(raw, &a.Counts)
+		if err != nil {
+			return fmt.Errorf("error reading 'counts': %w", err)
+		}
+		delete(object, "counts")
+	}
+
+	if raw, found := object["detected_languages"]; found {
+		err = json.Unmarshal(raw, &a.DetectedLanguages)
+		if err != nil {
+			return fmt.Errorf("error reading 'detected_languages': %w", err)
+		}
+		delete(object, "detected_languages")
+	}
+
+	if raw, found := object["extraction_method"]; found {
+		err = json.Unmarshal(raw, &a.ExtractionMethod)
+		if err != nil {
+			return fmt.Errorf("error reading 'extraction_method': %w", err)
+		}
+		delete(object, "extraction_method")
+	}
+
+	if raw, found := object["metadata"]; found {
+		err = json.Unmarshal(raw, &a.Metadata)
+		if err != nil {
+			return fmt.Errorf("error reading 'metadata': %w", err)
+		}
+		delete(object, "metadata")
+	}
+
+	if raw, found := object["mime_type"]; found {
+		err = json.Unmarshal(raw, &a.MimeType)
+		if err != nil {
+			return fmt.Errorf("error reading 'mime_type': %w", err)
+		}
+		delete(object, "mime_type")
+	}
+
+	if raw, found := object["processing_warnings"]; found {
+		err = json.Unmarshal(raw, &a.ProcessingWarnings)
+		if err != nil {
+			return fmt.Errorf("error reading 'processing_warnings': %w", err)
+		}
+		delete(object, "processing_warnings")
+	}
+
+	if raw, found := object["quality_score"]; found {
+		err = json.Unmarshal(raw, &a.QualityScore)
+		if err != nil {
+			return fmt.Errorf("error reading 'quality_score': %w", err)
+		}
+		delete(object, "quality_score")
+	}
+
+	if raw, found := object["structured_output"]; found {
+		err = json.Unmarshal(raw, &a.StructuredOutput)
+		if err != nil {
+			return fmt.Errorf("error reading 'structured_output': %w", err)
+		}
+		delete(object, "structured_output")
+	}
+
+	if raw, found := object["tables"]; found {
+		err = json.Unmarshal(raw, &a.Tables)
+		if err != nil {
+			return fmt.Errorf("error reading 'tables': %w", err)
+		}
+		delete(object, "tables")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for JobResultDocument to handle AdditionalProperties
+func (a JobResultDocument) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Chunks != nil {
+		object["chunks"], err = json.Marshal(a.Chunks)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'chunks': %w", err)
+		}
+	}
+
+	object["content"], err = json.Marshal(a.Content)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'content': %w", err)
+	}
+
+	object["counts"], err = json.Marshal(a.Counts)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'counts': %w", err)
+	}
+
+	if a.DetectedLanguages != nil {
+		object["detected_languages"], err = json.Marshal(a.DetectedLanguages)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'detected_languages': %w", err)
+		}
+	}
+
+	if a.ExtractionMethod != nil {
+		object["extraction_method"], err = json.Marshal(a.ExtractionMethod)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'extraction_method': %w", err)
+		}
+	}
+
+	if a.Metadata != nil {
+		object["metadata"], err = json.Marshal(a.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'metadata': %w", err)
+		}
+	}
+
+	object["mime_type"], err = json.Marshal(a.MimeType)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'mime_type': %w", err)
+	}
+
+	if a.ProcessingWarnings != nil {
+		object["processing_warnings"], err = json.Marshal(a.ProcessingWarnings)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'processing_warnings': %w", err)
+		}
+	}
+
+	if a.QualityScore != nil {
+		object["quality_score"], err = json.Marshal(a.QualityScore)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'quality_score': %w", err)
+		}
+	}
+
+	if a.StructuredOutput != nil {
+		object["structured_output"], err = json.Marshal(a.StructuredOutput)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'structured_output': %w", err)
+		}
+	}
+
+	if a.Tables != nil {
+		object["tables"], err = json.Marshal(a.Tables)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'tables': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // AsAnnotationKind0 returns the union data inside the AnnotationKind as a AnnotationKind0
 func (t AnnotationKind) AsAnnotationKind0() (AnnotationKind0, error) {

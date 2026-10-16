@@ -12757,6 +12757,7 @@ components:
           description: |-
             Tables extracted from the document. Opaque here; the engine type is
             `Table`.
+      additionalProperties: true
     JobResultError:
       type: object
       description: |-

@@ -1,0 +1,10 @@
+{
+  "content": "Recovered invoice total 125.50",
+  "mime_type": "application/pdf",
+  "metadata": {},
+  "counts": {"pages": 1, "tables": 0, "images": 0},
+  "tables": [],
+  "ocr_page_failures": [{"page": 1, "error": "synthetic OCR timeout", "recovered": true}],
+  "pages": [{"page_number": 1, "content": "Recovered invoice total 125.50", "native_content": "Invoice total 125.50"}],
+  "future_opaque": {"numbers": [1, 2], "flag": false}
+}

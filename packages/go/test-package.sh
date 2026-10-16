@@ -29,5 +29,13 @@ func main() {
     _ = xberg.CrawlEventKindComplete
 }
 GO
+contract="$package_dir/sdk/testdata/public-v0.8.0/contract.go"
+actual_types=$(awk '$1 == "_" && $2 ~ /^xberg\./ { count++ } END { print count + 0 }' "$contract")
+if [ "$actual_types" -ne 720 ]; then
+  echo "published public types: expected 720, actual $actual_types" >&2
+  exit 1
+fi
+printf 'published public types: expected 720, actual %s\n' "$actual_types"
+cp "$contract" public_v0_8_0.go
 go mod tidy
 go build ./...

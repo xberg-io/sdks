@@ -565,7 +565,7 @@ type BackendExtractedDocument struct {
 	//
 	// When page extraction is configured, the document is split into per-page content
 	// with tables and images mapped to their respective pages.
-	Pages *[]PageContent `json:"pages,omitempty"`
+	Pages *[]BackendPageContent `json:"pages,omitempty"`
 
 	// ProcessingWarnings Non-fatal warnings collected during processing pipeline stages.
 	//
@@ -955,6 +955,84 @@ type BackendOcrMetadata struct {
 
 	// TableRows Number of rows in the detected table (if a single table was found).
 	TableRows *int32 `json:"table_rows,omitempty"`
+}
+
+// BackendPageContent Content for a single page/slide.
+//
+// When page extraction is enabled, documents are split into per-page content
+// with associated tables and images mapped to each page.
+//
+// # Performance
+//
+// Uses Arc-wrapped tables and images for memory efficiency:
+// - `Vec<Arc<Table>>` enables zero-copy sharing of table data
+// - `Vec<Arc<ExtractedImage>>` enables zero-copy sharing of image data
+// - Maintains exact JSON compatibility via custom Serialize/Deserialize
+//
+// This reduces memory overhead for documents with shared tables/images
+// by avoiding redundant copies during serialization.
+type BackendPageContent struct {
+	// Content Text content for this page
+	Content string `json:"content"`
+
+	// Hierarchy Hierarchy information for the page (when hierarchy extraction is enabled)
+	//
+	// Contains text hierarchy levels (H1-H6) extracted from the page content.
+	Hierarchy *PageHierarchy `json:"hierarchy,omitempty"`
+
+	// ImageIndices Indices into `ExtractedDocument.images` for images found on this page.
+	//
+	// Each value is a zero-based index into the top-level `images` collection.
+	// Only populated when `extract_images = true` in the extraction config.
+	ImageIndices *[]int32 `json:"image_indices,omitempty"`
+
+	// ImagePreprocessing OCR image preprocessing applied to this page's raster.
+	ImagePreprocessing *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
+
+	// IsBlank Whether this page is blank (no meaningful text content)
+	//
+	// Determined during extraction based on text content analysis.
+	// A page is blank if it has fewer than 3 non-whitespace characters
+	// and contains no tables or images.
+	IsBlank *bool `json:"is_blank,omitempty"`
+
+	// LayoutRegions Layout detection regions for this page (when layout detection is enabled).
+	//
+	// Contains detected layout regions with class, confidence, bounding box,
+	// and area fraction. Only populated when layout detection is configured.
+	LayoutRegions *[]LayoutRegion `json:"layout_regions,omitempty"`
+
+	// OcrConfidence Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
+	OcrConfidence *PageOcrConfidence `json:"ocr_confidence,omitempty"`
+
+	// PageNumber Page number (1-indexed)
+	PageNumber int32 `json:"page_number"`
+
+	// SectionName Section name this slide belongs to (PPTX only).
+	//
+	// PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in
+	// `ppt/presentation.xml`). Only populated when the source is a PPTX file and
+	// the slide belongs to a named section.
+	SectionName *string `json:"section_name,omitempty"`
+
+	// SheetName Sheet name for this page (XLSX/ODS only).
+	//
+	// Each spreadsheet sheet maps to one `PageContent` entry. This field carries the
+	// sheet's display name as it appears in the workbook. `None` for all non-spreadsheet
+	// formats and for sheets with an empty name.
+	SheetName *string `json:"sheet_name,omitempty"`
+
+	// SpeakerNotes Speaker notes for this slide (PPTX only).
+	//
+	// Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`).
+	// Only populated when the source is a PPTX file and notes are present.
+	SpeakerNotes *string `json:"speaker_notes,omitempty"`
+
+	// Tables Tables found on this page (uses Arc for memory efficiency)
+	//
+	// Serializes as `Vec<Table>` for JSON compatibility while maintaining
+	// Arc semantics in-memory for zero-copy sharing.
+	Tables *[]Table `json:"tables,omitempty"`
 }
 
 // BackendPdfMetadata PDF-specific metadata.

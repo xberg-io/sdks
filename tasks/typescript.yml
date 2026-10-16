@@ -36,6 +36,7 @@ tasks:
     dir: "{{.PKG_DIR}}"
     cmds:
       - task: generate
+      - task: typecheck:contracts
       - pnpm run test
 
   test:cov:
@@ -43,6 +44,7 @@ tasks:
     dir: "{{.PKG_DIR}}"
     cmds:
       - task: generate
+      - task: typecheck:contracts
       - pnpm run test:coverage
 
   lint:
@@ -51,6 +53,13 @@ tasks:
     cmds:
       - task: generate
       - pnpm run lint
+      - task: typecheck:contracts
+
+  typecheck:contracts:
+    desc: "Type-check shared and Pro schema compatibility fixtures"
+    dir: "{{.PKG_DIR}}"
+    cmds:
+      - pnpm exec tsc --noEmit -p tsconfig.contracts.json
 
   format:
     desc: "Format TypeScript (oxfmt)"

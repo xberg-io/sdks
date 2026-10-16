@@ -34,6 +34,11 @@ tasks:
       - yq -P -oy '.' {{.UPSTREAM_BACKEND_LOCAL}} > {{.BACKEND_SPEC}}
       - git diff --stat {{.API_SPEC}} {{.PRO_SPEC}} {{.BACKEND_SPEC}} || true
 
+  fetch:api:
+    desc: "Refresh only the Enterprise data-plane specification from the sibling repository"
+    cmds:
+      - yq -P -oy '.' {{.UPSTREAM_API_LOCAL}} > {{.API_SPEC}}
+
   fetch:pro:
     desc: "Refresh only the Pro specification from the sibling repository"
     cmds:
