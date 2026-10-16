@@ -162,6 +162,24 @@ is parsed from the `Retry-After` response header.
 The low-level `createClient(...)` factory (a thin `openapi-fetch` wrapper)
 is still exported for direct OpenAPI access.
 
+### Selecting a Pro project
+
+A local Pro workspace or administrator can select another visible project with
+`projectId`. Submission sends `X-Project-ID`; job reads, pagination and
+cancellation send the documented `project_id` query parameter. Polling helpers
+keep that selection throughout the operation:
+
+```ts
+const job = await pro.extractAndWait({ projectId, file: data });
+const result = await pro.getJobResult(job.id, { projectId });
+const jobs = await pro.listJobs({ projectId, limit: 20, offset: 0 });
+```
+
+The same option is accepted by `extract`, `extractBatch`, `getJob`, `cancelJob`,
+`waitForJob` and `waitForJobs`. Omitting it preserves the credential's default
+project. This option is Pro-only; an Enterprise target rejects it before
+submission. Project API keys still cannot select another project's data.
+
 ## Docs
 
 - SDK docs: <https://docs.sdks.xberg.io>

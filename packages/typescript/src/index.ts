@@ -16,6 +16,7 @@ export {
   type ListExtractionEventsParams,
   type ListIntegrationDocumentsParams,
   type ListJobsParams,
+  type JobScopeParams,
   type PaginationParams,
   type StreamCrawlEventsOptions,
   type SubmitAutoTuneParams,
