@@ -47,11 +47,13 @@ DELIBERATE_EXCLUSIONS = {
 # Operations a client will expose but does not yet, each with the issue that
 # will close it. Distinct from DELIBERATE_EXCLUSIONS on purpose: an exclusion
 # says "never", a tracked gap says "not yet", and collapsing the two is how a
-# gap quietly becomes a decision nobody made. Empty right now: the last entry
+# gap quietly becomes a decision nobody made. Keys include the tier because
+# backend and Pro may declare the same route on different destination planes. ~keep
+# Empty right now: the last entry
 # (#9, the crawl-event SSE stream) was removed by the change that implemented
 # it, which is the only way an entry may leave -- `main` fails on a tracked gap
 # the client has since started reaching.
-TRACKED_GAPS: dict[tuple[str, str], str] = {}
+TRACKED_GAPS: dict[tuple[str, str, str], str] = {}
 
 # Requests the client builds through a helper rather than a literal, so the
 # regex below cannot see them. Keep this list short: every entry is a place the
@@ -120,17 +122,34 @@ def spec_operations(path: Path) -> set[tuple[str, str]]:
     }
 
 
+def tracked_gap_failures(
+    operations: dict[str, set[tuple[str, str]]], coverage: dict[str, set[tuple[str, str]]]
+) -> list[str]:
+    """Reject obsolete tracking against the same tier that owns the gap."""
+    failures = []
+    for tier, verb, route in TRACKED_GAPS:
+        operation = (verb, erase_parameters(route))
+        if tier not in operations:
+            failures.append(f"tracked gap names unknown tier: {tier}")
+        elif operation not in operations[tier]:
+            failures.append(f"tracked gap for {tier}: {verb} {operation[1]} names an operation no spec declares")
+        elif operation in coverage[tier]:
+            failures.append(f"{tier}: {verb} {operation[1]} is now implemented -- remove it from TRACKED_GAPS")
+    return failures
+
+
 def main() -> int:
     """Print per-tier coverage and fail on any operation that is neither covered nor excluded."""
     data_plane = client_requests()
     control_plane = client_requests(control_plane=True)
-    tracked = {(verb, erase_parameters(route)) for verb, route in TRACKED_GAPS}
-    failures: list[str] = []
+    operations_by_tier = {tier: spec_operations(path) for tier, path in SPECS.items()}
+    coverage_by_tier = {tier: control_plane if tier == "backend" else data_plane for tier in SPECS}
+    failures = tracked_gap_failures(operations_by_tier, coverage_by_tier)
 
-    for tier, spec_path in SPECS.items():
-        covered = control_plane if tier == "backend" else data_plane
+    for tier, operations in operations_by_tier.items():
+        covered = coverage_by_tier[tier]
+        tracked = {(verb, erase_parameters(route)) for scope, verb, route in TRACKED_GAPS if scope == tier}
         excluded = {(verb, erase_parameters(route)) for scope, verb, route in DELIBERATE_EXCLUSIONS if scope == tier}
-        operations = spec_operations(spec_path)
         reached = operations & covered
         gaps = sorted(operations - covered - excluded - tracked)
         total = len(operations)
@@ -139,14 +158,14 @@ def main() -> int:
             f"{tier:<11} {len(reached)}/{total} reached, "
             f"{len(operations & excluded)} excluded, {pending} tracked as pending"
         )
+        if not operations:
+            failures.append(f"{tier}: spec declares no operations")
         for verb, route in gaps:
             failures.append(f"{tier}: {verb} {route} is in the spec, in no client, and not excluded")
 
     for tier, verb, route in DELIBERATE_EXCLUSIONS:
-        if (verb, erase_parameters(route)) not in spec_operations(SPECS[tier]):
+        if (verb, erase_parameters(route)) not in operations_by_tier[tier]:
             failures.append(f"exclusion for {tier}: {verb} {route} names an operation no spec declares")
-    for verb, route in sorted(tracked & (data_plane | control_plane)):
-        failures.append(f"{verb} {route} is now implemented -- remove it from TRACKED_GAPS")
 
     if failures:
         sys.stderr.write("spec coverage gaps:\n")
