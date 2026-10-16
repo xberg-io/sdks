@@ -239,10 +239,12 @@ Read back what the client was configured with. Go only; the other two expose the
 
 | Method | Description |
 | --- | --- |
+| `GetIntegrationSync` | GetIntegrationSync reads durable synchronization state |
 | `GetLicenseInfo` | GetLicenseInfo reports the instance's license state (GET /v1/license): licensee, license ID, plan, expiry, grace window and days remaining |
 | `GetSubscriptionDelivery` | GetSubscriptionDelivery fetches one delivery attempt with its bounded request and response previews (GET /v1/webhooks/{webhookID}/deliveries/{deliveryID}) |
 | `GetWebhookDelivery` | GetWebhookDelivery calls GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id} on the Enterprise control plane. |
 | `ListManagedEmbeddingPresets` | ListManagedEmbeddingPresets lists the curated embedding presets a RAG collection may name (GET /v1/rag/embedding-presets) |
 | `ListSubscriptionDeliveries` | ListSubscriptionDeliveries lists a webhook subscription's delivery attempts (GET /v1/webhooks/{webhookID}/deliveries, paginated) |
 | `PutLocalUpload` | PutLocalUpload writes raw document bytes against a presigned capability (PUT /v1/uploads/local/{projectID}/{token}, 204) |
+| `SetIntegrationSync` | SetIntegrationSync enables or disables durable synchronization |
 | `StopAutoTuneJob` | StopAutoTuneJob stops a running auto-tune job, keeping its artifacts (POST /v1/auto-tune/{autoTuneJobID}/stop) |

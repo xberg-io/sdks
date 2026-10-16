@@ -34,6 +34,11 @@ tasks:
       - yq -P -oy '.' {{.UPSTREAM_BACKEND_LOCAL}} > {{.BACKEND_SPEC}}
       - git diff --stat {{.API_SPEC}} {{.PRO_SPEC}} {{.BACKEND_SPEC}} || true
 
+  fetch:pro:
+    desc: "Refresh only the Pro specification from the sibling repository"
+    cmds:
+      - yq -P -oy '.' {{.UPSTREAM_PRO_LOCAL}} > {{.PRO_SPEC}}
+
   fetch:remote:
     desc: "Refresh the Enterprise spec from a running xberg-enterprise API server"
     preconditions:

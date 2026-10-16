@@ -107,6 +107,8 @@ import type {
   ExtractionOptions,
   FileExtractionConfig,
   IntegrationResponse,
+  IntegrationSyncResponse,
+  SetIntegrationSyncRequest,
   Job,
   GetJobResponse,
   JobResult,
@@ -1388,6 +1390,24 @@ export class XbergClient {
   public async getIntegration(projectId: string, integrationId: string): Promise<IntegrationResponse> {
     await this.requireTier("pro", "getIntegration");
     return this.requestJson<IntegrationResponse>("GET", this.integrationPath(projectId, integrationId));
+  }
+
+  /** Pro only: read durable synchronization state for an integration. */
+  public async getIntegrationSync(projectId: string, integrationId: string): Promise<IntegrationSyncResponse> {
+    await this.requireTier("pro", "getIntegrationSync");
+    return this.requestJson<IntegrationSyncResponse>("GET", `${this.integrationPath(projectId, integrationId)}/sync`);
+  }
+
+  /** Pro only: enable or disable durable synchronization for an integration. */
+  public async setIntegrationSync(
+    projectId: string,
+    integrationId: string,
+    body: SetIntegrationSyncRequest,
+  ): Promise<void> {
+    await this.requireTier("pro", "setIntegrationSync");
+    await this.requestJson("PUT", `${this.integrationPath(projectId, integrationId)}/sync`, {
+      json: body,
+    });
   }
 
   /** Pro only: delete an integration (`DELETE .../integrations/{integrationId}`). */

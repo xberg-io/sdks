@@ -228,10 +228,12 @@ Pro-only session and configuration reads.
 
 | Method | Description |
 | --- | --- |
+| `getIntegrationSync` |  |
 | `getLicenseInfo` | Pro only: read the running instance's license detail (`GET /v1/license`) — |
 | `getSubscriptionDelivery` | Enterprise only: fetch one delivery attempt with its bounded request and |
 | `getWebhookDelivery` |  |
 | `listManagedEmbeddingPresets` | List the managed embedding presets this server build ships |
 | `listSubscriptionDeliveries` | Enterprise only: list a webhook subscription's delivery attempts |
 | `putLocalUpload` | Pro only: upload a document's bytes against a presigned local capability |
+| `setIntegrationSync` |  |
 | `stopAutoTuneJob` | Stop a running auto-tune job (`POST /v1/auto-tune/{id}/stop`). |

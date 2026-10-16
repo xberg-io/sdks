@@ -204,6 +204,28 @@ func (c *Client) GetIntegration(ctx context.Context, projectID, integrationID st
 	return &out, nil
 }
 
+// GetIntegrationSync reads durable synchronization state. Pro only.
+func (c *Client) GetIntegrationSync(ctx context.Context, projectID, integrationID string) (*IntegrationSyncResponse, error) {
+	if err := c.requireTier(ctx, TargetPro, "GetIntegrationSync"); err != nil {
+		return nil, err
+	}
+	var out IntegrationSyncResponse
+	if err := c.getJSON(ctx, integrationPath(projectID, integrationID, "/sync"), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetIntegrationSync enables or disables durable synchronization. Pro only.
+func (c *Client) SetIntegrationSync(
+	ctx context.Context, projectID, integrationID string, body SetIntegrationSyncRequest,
+) error {
+	if err := c.requireTier(ctx, TargetPro, "SetIntegrationSync"); err != nil {
+		return err
+	}
+	return c.callJSON(ctx, methodPut, integrationPath(projectID, integrationID, "/sync"), body, nil)
+}
+
 // DeleteIntegration removes an integration
 // (DELETE /v1/projects/{projectID}/integrations/{integrationID}). The endpoint
 // answers 204 with no body. Pro only.

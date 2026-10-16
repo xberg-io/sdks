@@ -228,10 +228,12 @@ Pro-only session and configuration reads.
 
 | Method | Description |
 | --- | --- |
+| `get_integration_sync` | Pro only: read durable synchronization state for an integration. |
 | `get_license_info` | Pro only: report the instance's license state and entitlements (``GET /v1/license``). |
 | `get_subscription_delivery` | Enterprise only: read one delivery's payload previews (``GET /v1/webhooks/{id}/deliveries/{delivery_id}``). |
 | `get_webhook_delivery` | Enterprise backend: Fetch bounded payload previews for one retained managed attempt. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}``). |
 | `list_managed_embedding_presets` | List the curated embedding presets a RAG collection may name (``GET /v1/rag/embedding-presets``). |
 | `list_subscription_deliveries` | Enterprise only: list a subscription's delivery attempts (``GET /v1/webhooks/{id}/deliveries``). |
 | `put_local_upload` | Pro only: write document bytes against a presigned capability (``PUT /v1/uploads/local/{project_id}/{token}``, 204). |
+| `set_integration_sync` | Pro only: enable or disable durable synchronization for an integration. |
 | `stop_auto_tune_job` | Stop a running auto-tune job, keeping its artifacts (``POST /v1/auto-tune/{id}/stop``, 204). |

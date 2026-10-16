@@ -103,6 +103,22 @@ type BackendAudioMetadata struct {
 	SampleRateHz *int32 `json:"sample_rate_hz,omitempty"`
 }
 
+// BackendAuthConfigResponse `GET /auth/config` response: which auth methods this instance accepts.
+type BackendAuthConfigResponse struct {
+	// Identity Local operator identity when authentication is disabled.
+	Identity *LocalIdentity `json:"identity,omitempty"`
+
+	// Methods Accepted authentication methods (`"api_key"`, optionally `"oidc"`).
+	Methods []string `json:"methods"`
+
+	// Mode Explicit instance authentication policy; older servers require authentication.
+	Mode *AuthMode `json:"mode,omitempty"`
+
+	// Oidc OIDC-specific detail, used by the frontend to decide whether to render
+	// a "Sign in with Google" button.
+	Oidc OidcInfo `json:"oidc"`
+}
+
 // BackendBibtexMetadata BibTeX bibliography metadata.
 type BackendBibtexMetadata struct {
 	// Authors Author names collected across all bibliography entries.

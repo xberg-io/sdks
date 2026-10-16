@@ -142,6 +142,7 @@ from xberg_io_sdk._generated_backend.models.webhook_test_response import (
 from xberg_io_sdk._generated_pro.models.begin_o_auth_response import BeginOAuthResponse
 from xberg_io_sdk._generated_pro.models.create_api_key_response import CreateApiKeyResponse
 from xberg_io_sdk._generated_pro.models.integration_response import IntegrationResponse
+from xberg_io_sdk._generated_pro.models.integration_sync_response import IntegrationSyncResponse
 from xberg_io_sdk._generated_pro.models.license_info_response import LicenseInfoResponse
 from xberg_io_sdk._generated_pro.models.list_api_keys_response import ListApiKeysResponse
 from xberg_io_sdk._generated_pro.models.list_documents_response import ListDocumentsResponse
@@ -198,6 +199,7 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_pro.models.create_api_key_request import CreateApiKeyRequest
     from xberg_io_sdk._generated_pro.models.create_integration_request import CreateIntegrationRequest
     from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
+    from xberg_io_sdk._generated_pro.models.set_integration_sync_request import SetIntegrationSyncRequest
 
     if sys.version_info >= (3, 11):
         from typing import Self
@@ -1509,6 +1511,21 @@ class XbergClient(_BaseClient):
         payload = self._request_json("GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}")
         return IntegrationResponse.from_dict(_expect_object(payload, "integration"))
 
+    def get_integration_sync(self, project_id: str, integration_id: str) -> IntegrationSyncResponse:
+        """Pro only: read durable synchronization state for an integration."""
+        self._require_tier("pro", "get_integration_sync")
+        payload = self._request_json("GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync")
+        return IntegrationSyncResponse.from_dict(_expect_object(payload, "integration synchronization"))
+
+    def set_integration_sync(
+        self, project_id: str, integration_id: str, body: SetIntegrationSyncRequest | Mapping[str, Any]
+    ) -> None:
+        """Pro only: enable or disable durable synchronization for an integration."""
+        self._require_tier("pro", "set_integration_sync")
+        self._request_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
+        )
+
     def delete_integration(self, project_id: str, integration_id: str) -> None:
         """Pro only: delete an integration (``DELETE .../integrations/{integration_id}``)."""
         self._require_tier("pro", "delete_integration")
@@ -2685,6 +2702,23 @@ class AsyncXbergClient(_BaseClient):
         await self._require_tier("pro", "get_integration")
         payload = await self._request_json("GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}")
         return IntegrationResponse.from_dict(_expect_object(payload, "integration"))
+
+    async def get_integration_sync(self, project_id: str, integration_id: str) -> IntegrationSyncResponse:
+        """Async equivalent of :meth:`XbergClient.get_integration_sync`."""
+        await self._require_tier("pro", "get_integration_sync")
+        payload = await self._request_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync"
+        )
+        return IntegrationSyncResponse.from_dict(_expect_object(payload, "integration synchronization"))
+
+    async def set_integration_sync(
+        self, project_id: str, integration_id: str, body: SetIntegrationSyncRequest | Mapping[str, Any]
+    ) -> None:
+        """Async equivalent of :meth:`XbergClient.set_integration_sync`."""
+        await self._require_tier("pro", "set_integration_sync")
+        await self._request_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
+        )
 
     async def delete_integration(self, project_id: str, integration_id: str) -> None:
         """Async equivalent of :meth:`XbergClient.delete_integration`."""
