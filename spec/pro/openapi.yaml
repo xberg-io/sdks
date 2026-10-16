@@ -15062,6 +15062,9 @@ components:
             - boolean
             - "null"
           description: Insert page markers in content text. Omit to keep the library default.
+        keep_native_content:
+          type: boolean
+          description: Retain a PDF page's native text when OCR replaces its content. Omit to keep the library default.
         marker_format:
           type:
             - string

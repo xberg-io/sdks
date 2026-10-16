@@ -45,3 +45,16 @@ export const enterprisePresentPreprocessing: components["schemas"]["TesseractCon
 };
 export const proPresentPreprocessing: proComponents["schemas"]["TesseractConfig"]["preprocessing"] =
   enterprisePresentPreprocessing;
+
+export const enterpriseNativeContentPages: components["schemas"]["PageConfig"][] = [
+  { extract_pages: true, keep_native_content: true },
+  { extract_pages: true, keep_native_content: false },
+  { extract_pages: true },
+];
+export const proNativeContentPages: proComponents["schemas"]["PageConfig"][] = [
+  { extract_pages: true, keep_native_content: true },
+  { extract_pages: true, keep_native_content: false },
+  { extract_pages: true },
+];
+// @ts-expect-error -- ~keep The optional native-content flag accepts booleans, not strings.
+export const invalidNativeContentFlag: components["schemas"]["PageConfig"]["keep_native_content"] = "true";

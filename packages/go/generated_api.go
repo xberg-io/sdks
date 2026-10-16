@@ -8678,6 +8678,9 @@ type PageConfig struct {
 	// InsertPageMarkers Insert page markers in content text. Omit to keep the library default.
 	InsertPageMarkers *bool `json:"insert_page_markers,omitempty"`
 
+	// KeepNativeContent Retain a PDF page's native text when OCR replaces its content. Omit to keep the library default.
+	KeepNativeContent *bool `json:"keep_native_content,omitempty"`
+
 	// MarkerFormat Page marker format template (e.g., "\n\n<!-- PAGE {page_num} -->\n\n")
 	MarkerFormat *string `json:"marker_format,omitempty"`
 }
