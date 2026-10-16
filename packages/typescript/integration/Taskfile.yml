@@ -1,0 +1,12 @@
+version: '3'
+tasks:
+  test:
+    cmds:
+      - node --test '{{.TASKFILE_DIR}}/contracts.test.mjs' '{{.TASKFILE_DIR}}/transport.test.mjs' '{{.TASKFILE_DIR}}/orchestration.test.mjs' '{{.TASKFILE_DIR}}/project-scope.test.mjs'
+  live:
+    cmds:
+      - node '{{.TASKFILE_DIR}}/run.mjs'
+
+  test:scope:
+    cmds:
+      - node --test '{{.TASKFILE_DIR}}/project-scope.test.mjs'

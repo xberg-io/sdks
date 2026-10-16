@@ -204,7 +204,12 @@ export interface XbergClientOptions {
   sleep?: (ms: number) => Promise<void>;
 }
 
-export interface ExtractParams {
+export interface JobScopeParams {
+  /** ~keep Pro only: select a visible project instead of the credential's default project. */
+  projectId?: string;
+}
+
+export interface ExtractParams extends JobScopeParams {
   /** Enterprise document lineage UUID; omitted for a new document. */
   documentId?: string;
   file: FileLike;
@@ -218,7 +223,7 @@ export interface ExtractParams {
   config?: FileExtractionConfig;
 }
 
-export interface ExtractBatchParams {
+export interface ExtractBatchParams extends JobScopeParams {
   /** Enterprise lineage UUIDs aligned with files; null entries omit lineage. */
   documentIds?: readonly (string | null)[];
   files: readonly FileLike[];
@@ -235,7 +240,7 @@ export interface ExtractBatchParams {
   configs?: readonly (FileExtractionConfig | null)[];
 }
 
-export interface WaitOptions {
+export interface WaitOptions extends JobScopeParams {
   /** Total time to wait before throwing TimeoutError. Default 5 minutes. */
   timeoutMs?: number;
   /** Initial poll interval. Default 1000ms. */
@@ -246,7 +251,7 @@ export interface WaitOptions {
 
 export interface ExtractAndWaitParams extends ExtractParams, WaitOptions {}
 
-export interface ListJobsParams {
+export interface ListJobsParams extends JobScopeParams {
   limit?: number;
   offset?: number;
 }
@@ -800,6 +805,7 @@ export class XbergClient {
   public async extract(params: ExtractParams): Promise<Job> {
     const jobs = await this.extractBatch({
       files: [params.file],
+      ...(params.projectId !== undefined ? { projectId: params.projectId } : {}),
       ...(params.documentId !== undefined ? { documentIds: [params.documentId] } : {}),
       ...(params.options !== undefined ? { options: params.options } : {}),
       ...(params.webhook !== undefined ? { webhook: params.webhook } : {}),
@@ -824,6 +830,9 @@ export class XbergClient {
     const filenames = params.files.map(describeFile);
     const documentIds = prepareDocumentLineage(filenames, params.documentIds);
     if (documentIds.size > 0) await this.requireTier("enterprise", "extract document lineage");
+    if (params.projectId !== undefined) await this.requireTier("pro", "projectId");
+    const projectHeader =
+      Object.keys(this.headers).find((name) => name.toLowerCase() === "x-project-id") ?? "X-Project-ID";
     const form = new FormData();
     // ~keep The Enterprise parser captures lineage when reading each file part.
     for (const [filename, documentId] of documentIds) form.append(`document_id-${filename}`, documentId);
@@ -839,7 +848,10 @@ export class XbergClient {
     }
     appendPerFileConfigs(form, filenames, params.configs);
 
-    const body = await this.requestJson<ExtractResponse>("POST", "/v1/extract", { body: form });
+    const body = await this.requestJson<ExtractResponse>("POST", "/v1/extract", {
+      body: form,
+      ...(params.projectId !== undefined ? { headers: { [projectHeader]: params.projectId } } : {}),
+    });
     const jobIds = body.job_ids ?? [];
     const now = new Date().toISOString();
     // ~keep `POST /v1/extract` answers with job IDs alone, so the rest of each record is
@@ -863,8 +875,12 @@ export class XbergClient {
   }
 
   /** Fetch a tagged extraction or crawl job record (`GET /v1/jobs/{id}`). */
-  public async getJob(jobId: string): Promise<GetJobResponse> {
-    return parseJobResponse(await this.requestJson<unknown>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}`));
+  public async getJob(jobId: string, scope: JobScopeParams = {}): Promise<GetJobResponse> {
+    return parseJobResponse(
+      await this.requestJson<unknown>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}`, {
+        params: await this.jobScope(scope),
+      }),
+    );
   }
 
   /**
@@ -874,14 +890,16 @@ export class XbergClient {
    * extracted documents live in `results`. Distinct from {@link getJob}, which
    * returns the job's metadata record.
    */
-  public async getJobResult(jobId: string): Promise<JobResult> {
-    return await this.requestJson<JobResult>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}/result`);
+  public async getJobResult(jobId: string, scope: JobScopeParams = {}): Promise<JobResult> {
+    return await this.requestJson<JobResult>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}/result`, {
+      params: await this.jobScope(scope),
+    });
   }
 
   /** List jobs (paginated) via `GET /v1/jobs`. */
   public async listJobs(params: ListJobsParams = {}): Promise<ListJobsResponse> {
     return await this.requestJson<ListJobsResponse>("GET", JOBS_PATH, {
-      params: { limit: params.limit, offset: params.offset },
+      params: { ...(await this.jobScope(params)), limit: params.limit, offset: params.offset },
     });
   }
 
@@ -890,8 +908,10 @@ export class XbergClient {
    * cancellation and a job that already reached a terminal status answer
    * `204`.
    */
-  public async cancelJob(jobId: string): Promise<void> {
-    await this.requestJson("DELETE", `${JOBS_PATH}/${encodePathSegment(jobId)}`);
+  public async cancelJob(jobId: string, scope: JobScopeParams = {}): Promise<void> {
+    await this.requestJson("DELETE", `${JOBS_PATH}/${encodePathSegment(jobId)}`, {
+      params: await this.jobScope(scope),
+    });
   }
 
   /**
@@ -907,7 +927,7 @@ export class XbergClient {
     let interval = initialInterval;
 
     for (;;) {
-      const job = await this.getJob(jobId);
+      const job = await this.getJob(jobId, options);
       if (job.job_type !== "extraction") {
         throw new ValidationError("expected extraction job, received crawl job", { status: 200, body: job });
       }
@@ -940,6 +960,7 @@ export class XbergClient {
   public async extractAndWait(params: ExtractAndWaitParams): Promise<Job> {
     const extractParams: ExtractParams = {
       file: params.file,
+      ...(params.projectId !== undefined ? { projectId: params.projectId } : {}),
       ...(params.documentId !== undefined ? { documentId: params.documentId } : {}),
       ...(params.options !== undefined ? { options: params.options } : {}),
       ...(params.webhook !== undefined ? { webhook: params.webhook } : {}),
@@ -947,6 +968,7 @@ export class XbergClient {
     };
     const job = await this.extract(extractParams);
     const waitOptions: WaitOptions = {
+      ...(params.projectId !== undefined ? { projectId: params.projectId } : {}),
       ...(params.timeoutMs !== undefined ? { timeoutMs: params.timeoutMs } : {}),
       ...(params.pollIntervalMs !== undefined ? { pollIntervalMs: params.pollIntervalMs } : {}),
       ...(params.backoff !== undefined ? { backoff: params.backoff } : {}),
@@ -1524,6 +1546,11 @@ export class XbergClient {
   }
 
   // -- Internals ---------------------------------------------------------
+
+  private async jobScope(scope: JobScopeParams): Promise<QueryParams> {
+    if (scope.projectId !== undefined) await this.requireTier("pro", "projectId");
+    return { project_id: scope.projectId };
+  }
 
   /** Build `/v1/projects/{projectId}` with the id percent-encoded. */
   private projectPath(projectId: string): string {
