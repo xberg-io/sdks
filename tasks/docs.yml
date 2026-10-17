@@ -39,12 +39,23 @@ tasks:
     cmds:
       - pnpm exec textlint 'docs-site/src/content/docs/**/*.{md,mdx}'
 
-  snippets:test:
-    desc: "Build local packages and execute every documented snippet on both live tiers"
+  snippets:health:test:
+    desc: "Verify four native Pro health examples and their real HTTP negative controls"
     cmds:
       - task: :python:build
       - task: :typescript:build
       - pnpm --dir packages/typescript pack --pack-destination ../../dist
+      - |
+        version=$(cat VERSION)
+        uv run python scripts/test-health-snippets.py \
+          --python-wheel "dist/xberg_io_sdk-$version-py3-none-any.whl" \
+          --typescript-tarball "dist/xberg-io-sdk-$version.tgz" \
+          --go-source packages/go
+
+  snippets:test:
+    desc: "Build local packages and execute every documented snippet on both live tiers"
+    cmds:
+      - task: snippets:health:test
       - |
         set -eu
         : "${XBERG_PRO_STATE_DIR:?Set XBERG_PRO_STATE_DIR to the private Pro stack directory}"

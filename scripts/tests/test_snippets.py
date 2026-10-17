@@ -371,3 +371,43 @@ def test_pro_run_mints_fresh_keys_and_always_revokes(tmp_path: Path, failed: boo
         server.shutdown()
         server.server_close()
         thread.join()
+
+
+def test_pro_health_should_execute_all_four_native_clients_in_the_release_plan() -> None:
+    module = runner()
+    root = SCRIPT.parents[1] / "docs-site/src/snippets"
+    snippets = [item for item in module.discover(root) if "/pro_health.md:" in item.name]
+    assert [(item.name, item.language) for item in snippets] == [
+        ("go/pro_health.md:1", "go"),
+        ("python/pro_health.md:1", "python"),
+        ("python/pro_health.md:2", "python"),
+        ("typescript/pro_health.md:1", "typescript"),
+    ]
+    assert len(module.execution_plan(snippets, ["pro", "enterprise"])) == 4
+    assert all(item.targets == ["pro"] and item.requires == [] for item in snippets)
+    assert all(item.expect_stdout == "Pro health verified" for item in snippets)
+    for item, method in zip(
+        snippets,
+        ["client.ProHealthz(", "client.pro_healthz()", "await client.pro_healthz()", "await client.proHealthz()"],
+        strict=True,
+    ):
+        assert method in item.code
+    assert "AsyncXbergClient" in snippets[2].code
+    assert "health.license_.state" in snippets[1].code
+    assert "health.license_.state" in snippets[2].code
+    assert "health.License.State" in snippets[0].code
+    assert "health.license.state" in snippets[3].code
+
+
+def test_pro_health_http_controls_should_run_before_the_live_documentation_gate() -> None:
+    from ruamel.yaml import YAML
+
+    tasks = YAML(typ="safe").load((SCRIPT.parents[1] / "tasks/docs.yml").read_text())["tasks"]
+    commands = tasks["snippets:test"]["cmds"]
+    assert commands[0] == {"task": "snippets:health:test"}
+    health_commands = tasks["snippets:health:test"]["cmds"]
+    assert health_commands[:2] == [{"task": ":python:build"}, {"task": ":typescript:build"}]
+    assert (
+        sum("scripts/test-health-snippets.py" in command for command in health_commands if isinstance(command, str))
+        == 1
+    )
