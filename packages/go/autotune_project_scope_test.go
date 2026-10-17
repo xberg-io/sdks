@@ -187,7 +187,7 @@ func checkAutoTuneScopeBody(t *testing.T, r *http.Request, name string) {
 	}
 }
 
-func callAutoTuneScopeOperation(t *testing.T, c *Client, ctx context.Context, op autoTuneScopeOperation) {
+func callAutoTuneScopeOperation(ctx context.Context, t *testing.T, c *Client, op autoTuneScopeOperation) {
 	t.Helper()
 	got, err := op.call(c, ctx)
 	if err != nil {
@@ -272,7 +272,7 @@ func runAutoTuneScopeCase(t *testing.T, mode autoTuneScopeMode, op autoTuneScope
 			t.Errorf("blank selector error=%v", err)
 		}
 	} else {
-		callAutoTuneScopeOperation(t, c, ctx, op)
+		callAutoTuneScopeOperation(ctx, t, c, op)
 	}
 	wantCalls, wantProbes := 1, 0
 	if mode.blank && mode.tier == TargetPro {
@@ -316,7 +316,7 @@ func TestAutoTuneProjectShouldCacheAutomaticTierAcrossOperations(t *testing.T) {
 		return checkAutoTuneScopeRequest(t, r, operations[index], autoTuneScopeProject), nil
 	}))
 	for _, op := range operations {
-		callAutoTuneScopeOperation(t, c, WithProProject(context.Background(), autoTuneScopeProject), op)
+		callAutoTuneScopeOperation(WithProProject(context.Background(), autoTuneScopeProject), t, c, op)
 	}
 	if calls != 11 || probes != 1 {
 		t.Fatalf("calls/probes=%d/%d want=11/1", calls, probes)
@@ -346,7 +346,7 @@ func TestAutoTuneProjectShouldEscapeResourceSegments(t *testing.T) {
 		return checkAutoTuneScopeRequest(t, r, operations[index], autoTuneScopeProject), nil
 	}))
 	for _, op := range operations {
-		callAutoTuneScopeOperation(t, c, WithProProject(context.Background(), autoTuneScopeProject), op)
+		callAutoTuneScopeOperation(WithProProject(context.Background(), autoTuneScopeProject), t, c, op)
 	}
 	if calls != 11 {
 		t.Fatalf("calls=%d want=11", calls)
@@ -382,7 +382,7 @@ func TestAutoTuneProjectShouldKeepConcurrentContextsIsolated(t *testing.T) {
 				ctx = WithProProject(ctx, project)
 			}
 			for _, op := range operations {
-				callAutoTuneScopeOperation(t, c, ctx, op)
+				callAutoTuneScopeOperation(ctx, t, c, op)
 			}
 		})
 	}

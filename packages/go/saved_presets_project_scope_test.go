@@ -110,7 +110,7 @@ func checkPresetScopeRequest(t *testing.T, r *http.Request, op presetScopeOperat
 	return presetScopeReply(http.StatusOK, presetScopeResponse)
 }
 
-func callPresetScopeOperation(t *testing.T, c *Client, ctx context.Context, op presetScopeOperation) {
+func callPresetScopeOperation(ctx context.Context, t *testing.T, c *Client, op presetScopeOperation) {
 	t.Helper()
 	result, err := op.call(c, ctx)
 	if err != nil || result != op.result {
@@ -168,7 +168,7 @@ func runPresetScopeTier(t *testing.T, tier, target Target, selected, blank bool)
 				t.Errorf("%s blank selector error=%v", op.method, err)
 			}
 		} else {
-			callPresetScopeOperation(t, client, ctx, op)
+			callPresetScopeOperation(ctx, t, client, op)
 		}
 	}
 	wantCalls, wantProbes := 5, 0
@@ -210,7 +210,7 @@ func TestSavedPresetsProjectShouldEscapeResourceSegments(t *testing.T) {
 		return checkPresetScopeRequest(t, r, operations[index], presetScopeProject), nil
 	}))
 	for _, op := range operations {
-		callPresetScopeOperation(t, client, WithProProject(context.Background(), presetScopeProject), op)
+		callPresetScopeOperation(WithProProject(context.Background(), presetScopeProject), t, client, op)
 	}
 	if len(operations) != 3 || calls != 3 {
 		t.Fatalf("operations=%d calls=%d want=3/3", len(operations), calls)
@@ -246,7 +246,7 @@ func TestSavedPresetsProjectShouldKeepConcurrentContextsIsolated(t *testing.T) {
 				ctx = WithProProject(ctx, project)
 			}
 			for _, op := range operations {
-				callPresetScopeOperation(t, client, ctx, op)
+				callPresetScopeOperation(ctx, t, client, op)
 			}
 		})
 	}

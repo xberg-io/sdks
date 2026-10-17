@@ -80,7 +80,7 @@ func TestSelectedProjectAsyncRagUsesProHeadersAndPreservesEnterprise(t *testing.
 			})
 			client := ragProjectClient(t, tier.target, transport)
 			for _, operation := range cases {
-				callRagProjectCase(t, client, xberg.WithProProject(context.Background(), scopeProjectID), operation)
+				callRagProjectCase(xberg.WithProProject(context.Background(), scopeProjectID), t, client, operation)
 			}
 			wantProbes := 0
 			if tier.target == "" {
@@ -109,7 +109,7 @@ func TestUnscopedAsyncRagPreservesSharedSurfaceWithoutProbe(t *testing.T) {
 			})
 			client := ragProjectClient(t, target, transport)
 			for _, operation := range cases {
-				callRagProjectCase(t, client, context.Background(), operation)
+				callRagProjectCase(context.Background(), t, client, operation)
 			}
 			if operations != 4 {
 				t.Fatalf("operations=%d want=4 without tier probes", operations)
@@ -136,7 +136,7 @@ func TestSelectedProjectAsyncRagRejectsBlankOnProAndIgnoresBlankOnEnterprise(t *
 			ctx := xberg.WithProProject(context.Background(), " \t ")
 			for _, operation := range cases {
 				if tier.tier == "enterprise" {
-					callRagProjectCase(t, client, ctx, operation)
+					callRagProjectCase(ctx, t, client, operation)
 					continue
 				}
 				if _, err := operation.call(client, ctx); err == nil || err.Error() != "xberg: Pro project ID must not be blank" {
@@ -187,7 +187,7 @@ func TestSelectedProjectAsyncRagContextsDoNotLeak(t *testing.T) {
 				ctx = xberg.WithProProject(ctx, project)
 			}
 			for _, operation := range cases {
-				callRagProjectCase(t, client, ctx, operation)
+				callRagProjectCase(ctx, t, client, operation)
 			}
 		})
 	}
@@ -250,7 +250,7 @@ func TestSelectedProjectAsyncRagEscapesEachResourceSegment(t *testing.T) {
 			})
 			client := ragProjectClient(t, target, transport)
 			for _, operation := range cases {
-				callRagProjectCase(t, client, xberg.WithProProject(context.Background(), scopeProjectID), operation)
+				callRagProjectCase(xberg.WithProProject(context.Background(), scopeProjectID), t, client, operation)
 			}
 			wantProbes := 0
 			if target == "" {
@@ -309,7 +309,7 @@ func TestSelectedProjectAsyncRagMalformedAndUnrelatedRoutesStayUnselected(t *tes
 	})
 	client := ragProjectClient(t, "", transport)
 	for _, operation := range cases {
-		callRagProjectCase(t, client, xberg.WithProProject(context.Background(), " \t "), operation)
+		callRagProjectCase(xberg.WithProProject(context.Background(), " \t "), t, client, operation)
 	}
 	if len(cases) != 7 || operations != 7 {
 		t.Fatalf("cases=%d operations=%d want=7/7 without tier probes", len(cases), operations)

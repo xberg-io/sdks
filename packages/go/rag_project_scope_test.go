@@ -90,7 +90,7 @@ func checkRagProjectRequest(t *testing.T, r *http.Request, tc ragScopeCase, proj
 	return uploadResponse(http.StatusOK, ragScopeResponse)
 }
 
-func callRagProjectCase(t *testing.T, client *xberg.Client, ctx context.Context, tc ragScopeCase) {
+func callRagProjectCase(ctx context.Context, t *testing.T, client *xberg.Client, tc ragScopeCase) {
 	t.Helper()
 	value, err := tc.call(client, ctx)
 	want := ragScopeResponse
@@ -135,7 +135,7 @@ func TestSelectedProjectRagUsesProHeadersAndPreservesEnterprise(t *testing.T) {
 			})
 			client := ragProjectClient(t, tc.target, transport)
 			for _, operation := range cases {
-				callRagProjectCase(t, client, xberg.WithProProject(context.Background(), scopeProjectID), operation)
+				callRagProjectCase(xberg.WithProProject(context.Background(), scopeProjectID), t, client, operation)
 			}
 			wantProbes := 0
 			if tc.target == "" {
@@ -164,7 +164,7 @@ func TestUnscopedRagPreservesSharedSurfaceWithoutProbe(t *testing.T) {
 			})
 			client := ragProjectClient(t, target, transport)
 			for _, operation := range cases {
-				callRagProjectCase(t, client, context.Background(), operation)
+				callRagProjectCase(context.Background(), t, client, operation)
 			}
 			if operations != 7 {
 				t.Fatalf("operations=%d want=7 without tier probes", operations)
@@ -197,7 +197,7 @@ func TestSelectedProjectRagRejectsBlankOnProAndIgnoresBlankOnEnterprise(t *testi
 			ctx := xberg.WithProProject(context.Background(), " \t ")
 			for _, operation := range cases {
 				if tc.tier == "enterprise" {
-					callRagProjectCase(t, client, ctx, operation)
+					callRagProjectCase(ctx, t, client, operation)
 					continue
 				}
 				if _, err := operation.call(client, ctx); err == nil || err.Error() != "xberg: Pro project ID must not be blank" {
@@ -248,7 +248,7 @@ func TestSelectedProjectRagContextsDoNotLeak(t *testing.T) {
 				ctx = xberg.WithProProject(ctx, project)
 			}
 			for _, tc := range cases {
-				callRagProjectCase(t, client, ctx, tc)
+				callRagProjectCase(ctx, t, client, tc)
 			}
 		})
 	}
@@ -311,7 +311,7 @@ func TestSelectedProjectRagExcludedAndMalformedRoutesStayUnselected(t *testing.T
 	want := []string{}
 	for _, tc := range cases {
 		want = append(want, tc.method+" "+tc.uri)
-		callRagProjectCase(t, client, xberg.WithProProject(context.Background(), " \t "), tc)
+		callRagProjectCase(xberg.WithProProject(context.Background(), " \t "), t, client, tc)
 	}
 	if len(cases) != 6 || !slices.Equal(seen, want) {
 		t.Fatalf("excluded request trace=%v want=%v", seen, want)

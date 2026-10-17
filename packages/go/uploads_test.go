@@ -26,7 +26,7 @@ func uploadResponse(status int, body string) *http.Response {
 	return &http.Response{StatusCode: status, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(body))}
 }
 
-func callUploadPreparation(t *testing.T, client *xberg.Client, ctx context.Context) {
+func callUploadPreparation(ctx context.Context, t *testing.T, client *xberg.Client) {
 	t.Helper()
 	presign, err := client.PresignUpload(ctx, json.RawMessage(uploadPresignBody))
 	if err != nil || string(presign) != uploadPresignResponse {
@@ -94,7 +94,7 @@ func TestSelectedProjectUploadsUseProHeadersAndPreserveEnterprise(t *testing.T) 
 				return checkUploadPreparation(t, r, tc.project), nil
 			})
 			client := mustClient(t, xberg.WithBaseURL("https://uploads.example.test"), xberg.WithTarget(tc.target), xberg.WithAPIKey("synthetic-upload-owner"), xberg.WithRetries(0), xberg.WithHTTPClient(&http.Client{Transport: transport}))
-			callUploadPreparation(t, client, xberg.WithProProject(context.Background(), scopeProjectID))
+			callUploadPreparation(xberg.WithProProject(context.Background(), scopeProjectID), t, client)
 			wantProbes := 0
 			if tc.target == "" {
 				wantProbes = 1
@@ -191,7 +191,7 @@ func TestUnscopedUploadsPreserveSharedSurfaceWithoutProbe(t *testing.T) {
 				return checkUploadPreparation(t, r, ""), nil
 			})
 			client := mustClient(t, xberg.WithBaseURL("https://uploads.example.test"), xberg.WithTarget(target), xberg.WithAPIKey("synthetic-upload-owner"), xberg.WithRetries(0), xberg.WithHTTPClient(&http.Client{Transport: transport}))
-			callUploadPreparation(t, client, context.Background())
+			callUploadPreparation(context.Background(), t, client)
 			if calls != 2 {
 				t.Fatalf("calls=%d want=2 without a probe", calls)
 			}
