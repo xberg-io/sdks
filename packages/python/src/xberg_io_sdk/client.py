@@ -141,6 +141,7 @@ from xberg_io_sdk._generated_backend.models.webhook_test_response import (
 )
 from xberg_io_sdk._generated_pro.models.begin_o_auth_response import BeginOAuthResponse
 from xberg_io_sdk._generated_pro.models.create_api_key_response import CreateApiKeyResponse
+from xberg_io_sdk._generated_pro.models.health_response import HealthResponse as ProHealthResponse
 from xberg_io_sdk._generated_pro.models.integration_response import IntegrationResponse
 from xberg_io_sdk._generated_pro.models.integration_sync_response import IntegrationSyncResponse
 from xberg_io_sdk._generated_pro.models.license_info_response import LicenseInfoResponse
@@ -1407,6 +1408,12 @@ class XbergClient(_BaseClient):
 
     # -- Pro-only surface --------------------------------------------------
 
+    def pro_healthz(self) -> ProHealthResponse:
+        """Pro liveness and coarse license/capability state (``GET /healthz``), rather than dependency readiness."""
+        self._require_tier("pro", "pro_healthz")
+        payload = self._request_json("GET", "/healthz")
+        return ProHealthResponse.from_dict(_expect_object(payload, "Pro health"))
+
     def auth_config(self) -> Any:
         """Pro only: fetch the instance's accepted auth methods (unauthenticated ``GET /auth/config``)."""
         self._require_tier("pro", "auth_config")
@@ -2618,6 +2625,12 @@ class AsyncXbergClient(_BaseClient):
                     yield _parse_crawl_event(payload)
 
     # -- Pro-only surface --------------------------------------------------
+
+    async def pro_healthz(self) -> ProHealthResponse:
+        """Pro only: async equivalent of :meth:`XbergClient.pro_healthz`."""
+        await self._require_tier("pro", "pro_healthz")
+        payload = await self._request_json("GET", "/healthz")
+        return ProHealthResponse.from_dict(_expect_object(payload, "Pro health"))
 
     async def auth_config(self) -> Any:
         """Pro only: async equivalent of :meth:`XbergClient.auth_config`."""

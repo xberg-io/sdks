@@ -1,4 +1,4 @@
-import type { components, proComponents } from "../src/index.js";
+import type { components, proComponents, ProHealthResponse, XbergClient } from "../src/index.js";
 
 type EnterpriseSchemas = components["schemas"];
 type ProSchemas = proComponents["schemas"];
@@ -40,3 +40,10 @@ export const invalidShadedRows: EnterpriseSchemas["ImagePreprocessingConfig"] = 
   // @ts-expect-error -- ~keep Optionality must preserve the shaded-row flag's boolean type.
   normalize_shaded_rows: 1,
 };
+
+export function proHealthTypeContract(client: XbergClient): Promise<ProHealthResponse> {
+  return client.proHealthz();
+}
+export function readProHealthFields(health: ProHealthResponse): [string, string, string, boolean, boolean] {
+  return [health.status, health.tier, health.license.state, health.rag.enabled, health.auto_tune.enabled];
+}

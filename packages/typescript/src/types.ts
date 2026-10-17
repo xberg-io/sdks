@@ -144,6 +144,7 @@ export type LoginResponse = proComponents["schemas"]["LoginResponse"];
 export type SetRagConfigRequest = proComponents["schemas"]["SetRagConfigRequest"];
 export type RagConfigResponse = proComponents["schemas"]["RagConfigResponse"];
 /** Licensee, plan, expiry and grace window of the running Pro instance. */
+export type ProHealthResponse = proComponents["schemas"]["HealthResponse"];
 export type LicenseInfoResponse = proComponents["schemas"]["LicenseInfoResponse"];
 
 // -- Pro-only control plane (projects, API keys, integrations) --

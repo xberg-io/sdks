@@ -35,6 +35,18 @@ func integrationPath(projectID, integrationID, suffix string) string {
 
 // -- auth ---------------------------------------------------------------------
 
+// ProHealthz returns Pro liveness and coarse license/capability state, not dependency readiness. ~keep
+func (c *Client) ProHealthz(ctx context.Context) (*ProHealthResponse, error) {
+	if err := c.requireTier(ctx, TargetPro, "ProHealthz"); err != nil {
+		return nil, err
+	}
+	var out ProHealthResponse
+	if err := c.getJSON(ctx, "/healthz", &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // AuthConfig fetches the instance's accepted auth methods (GET /auth/config).
 // Pro only.
 func (c *Client) AuthConfig(ctx context.Context) (*AuthConfigResponse, error) {

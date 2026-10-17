@@ -87,6 +87,7 @@ export {
   type JobResultError,
   type JobStatus,
   type LicenseInfoResponse,
+  type ProHealthResponse,
   type ListApiKeysResponse,
   type ListAuditEntriesResponse,
   type ListAutoTuneJobsResponse,

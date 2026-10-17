@@ -215,6 +215,14 @@ All backend operations use the configured control-plane origin and credential.
 | `test_webhook` | Enterprise backend: Send a test delivery to a webhook endpoint (``POST /v1/projects/{id}/webhooks/{wh_id}/test``). |
 | `public_sandbox_extract` | Extract in the public sandbox; pass its optional OIDC bearer as ``sandbox_token``. |
 
+## Pro health
+
+Pro liveness and coarse license/capability state.
+
+| Method | Description |
+| --- | --- |
+| `pro_healthz` | Pro liveness and coarse license/capability state (``GET /healthz``), rather than dependency readiness. |
+
 ## Auth
 
 Pro-only session and configuration reads.

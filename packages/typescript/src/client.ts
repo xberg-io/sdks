@@ -113,6 +113,7 @@ import type {
   GetJobResponse,
   JobResult,
   LicenseInfoResponse,
+  ProHealthResponse,
   ListApiKeysResponse,
   ListAuditEntriesResponse,
   ListAutoTuneJobsResponse,
@@ -1284,6 +1285,15 @@ export class XbergClient {
   }
 
   // -- Pro-only surface --------------------------------------------------
+
+  /**
+   * Pro liveness and coarse license/capability state (`GET /healthz`).
+   * Use readiness checks to assess dependencies. ~keep
+   */
+  public async proHealthz(): Promise<ProHealthResponse> {
+    await this.requireTier("pro", "proHealthz");
+    return this.requestJson<ProHealthResponse>("GET", "/healthz");
+  }
 
   /** Pro only: fetch the instance's accepted auth methods (`GET /auth/config`). */
   public async authConfig(): Promise<AuthConfigResponse> {

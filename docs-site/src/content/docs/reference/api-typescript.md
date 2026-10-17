@@ -215,6 +215,14 @@ All backend operations use the configured control-plane origin and credential.
 | `testWebhook` |  |
 | `publicSandboxExtract` |  |
 
+## Pro health
+
+Pro liveness and coarse license/capability state.
+
+| Method | Description |
+| --- | --- |
+| `proHealthz` | Pro liveness and coarse license/capability state (`GET /healthz`). |
+
 ## Auth
 
 Pro-only session and configuration reads.

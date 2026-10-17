@@ -170,6 +170,7 @@ GROUPS: list[tuple[str, str, list[str]]] = [
             "public_sandbox_extract",
         ],
     ),
+    ("Pro health", "Pro liveness and coarse license/capability state.", ["pro_healthz"]),
     ("Auth", "Pro-only session and configuration reads.", ["auth_config", "login"]),
     (
         "Client accessors",
