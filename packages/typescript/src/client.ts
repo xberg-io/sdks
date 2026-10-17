@@ -35,7 +35,7 @@ import {
   toBlob,
 } from "./_internal.js";
 import type { BackoffStrategy, FileLike, QueryParams, Target } from "./_internal.js";
-import { RateLimitError, TimeoutError, ValidationError, XbergError, raiseForStatus } from "./errors.js";
+import { TimeoutError, ValidationError, XbergError, raiseForStatus } from "./errors.js";
 import type {
   AuthConfigResponse,
   BackendAcceptInvitationRequest,
@@ -1824,18 +1824,7 @@ export class XbergClient {
         continue;
       }
 
-      try {
-        await raiseForStatus(response);
-      } catch (error) {
-        if (error instanceof RateLimitError && error.retryAfter !== undefined && attempt < this.retries) {
-          attempt += 1;
-          await this.sleep(error.retryAfter * 1000);
-          interval = nextBackoffInterval(interval, this.retryBackoff);
-          continue;
-        }
-        throw error;
-      }
-      throw new XbergError("Unreachable", { status: response.status, body: null });
+      throw await raiseForStatus(response);
     }
   }
 }

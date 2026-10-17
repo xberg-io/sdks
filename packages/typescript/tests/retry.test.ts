@@ -173,6 +173,38 @@ describe("retry/backoff", () => {
     expect(attempts).toBe(2);
   });
 
+  it.each([{ retryOn: [] }, { retryOn: [503] }])(
+    "should_not_retry_429_with_retry_after_when_retry_on_is_$retryOn",
+    async ({ retryOn }) => {
+      let attempts = 0;
+      const sleeps: number[] = [];
+      server.use(
+        http.get(url("/v1/jobs/x"), () => {
+          attempts += 1;
+          return HttpResponse.json({ error: "wait" }, { status: 429, headers: { "retry-after": "3" } });
+        }),
+      );
+      const client = new XbergClient({
+        apiKey: "k",
+        baseUrl: TEST_BASE_URL,
+        retries: 2,
+        retryOn,
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        },
+      });
+
+      await expect(client.getJob("x")).rejects.toMatchObject({
+        name: "RateLimitError",
+        status: 429,
+        retryAfter: 3,
+        body: { error: "wait" },
+      });
+      expect(attempts).toBe(1);
+      expect(sleeps).toEqual([]);
+    },
+  );
+
   it("constant backoff keeps the same delay across attempts", async () => {
     const sleeps: number[] = [];
     let attempts = 0;
