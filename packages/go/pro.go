@@ -173,11 +173,11 @@ func (c *Client) ListIntegrations(
 	ctx context.Context,
 	projectID string,
 	limit, offset int,
-) (*ListIntegrationsResponse, error) {
+) (*ProIntegrationListResponse, error) {
 	if err := c.requireTier(ctx, TargetPro, "ListIntegrations"); err != nil {
 		return nil, err
 	}
-	var out ListIntegrationsResponse
+	var out ProIntegrationListResponse
 	path := projectPath(projectID, "/integrations") + pageQuery(limit, offset)
 	if err := c.getJSON(ctx, path, &out); err != nil {
 		return nil, err

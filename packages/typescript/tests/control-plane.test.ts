@@ -127,10 +127,25 @@ describe("pro control plane — API keys", () => {
 describe("pro control plane — integrations", () => {
   const base = `${PRO_URL}/v1/projects/${PROJECT}/integrations`;
 
-  it("listIntegrations lists a project's integrations", async () => {
-    server.use(http.get(base, () => HttpResponse.json({ integrations: [], total: 0, limit: 0, offset: 0 })));
-    const result = await makeClient().listIntegrations(PROJECT);
-    expect(result).toEqual({ integrations: [], total: 0, limit: 0, offset: 0 });
+  it.each([true, false])("should expose OAuth capability %s with the integration page", async (configured) => {
+    const payload = {
+      integrations: [{ id: INTEGRATION, name: "Drive", kind: "google_drive", auth_type: "oauth2", provider: "google" }],
+      total: 3,
+      limit: 1,
+      offset: 2,
+      oauth_configured: configured,
+    };
+    let query = "";
+    server.use(
+      http.get(base, ({ request }) => {
+        query = new URL(request.url).search;
+        return HttpResponse.json(payload);
+      }),
+    );
+    const result = await makeClient().listIntegrations(PROJECT, { limit: 1, offset: 2 });
+    expect(result.oauth_configured).toBe(configured);
+    expect(result).toEqual(payload);
+    expect(query).toBe("?limit=1&offset=2");
   });
 
   it("createIntegration posts the request body", async () => {

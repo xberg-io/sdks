@@ -13,7 +13,7 @@ import httpx
 import pytest
 import respx
 
-from xberg_io_sdk import AsyncXbergClient, XbergClient, XbergError
+from xberg_io_sdk import AsyncXbergClient, ListIntegrationsResponse, ProIntegrationListResponse, XbergClient, XbergError
 from xberg_io_sdk._generated_pro.models.create_api_key_request import CreateApiKeyRequest
 from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
 
@@ -159,16 +159,31 @@ def test_revoke_api_key_sync(api_key: str) -> None:
 # -- integrations — sync -------------------------------------------------------
 
 
+@pytest.mark.parametrize("configured", [True, False])
 @respx.mock
-def test_list_integrations_sync(api_key: str) -> None:
-    respx.get(f"{PRO_URL}/v1/projects/{PROJECT_ID}/integrations").mock(
-        return_value=httpx.Response(200, json={"integrations": [INTEGRATION], "total": 1, "limit": 25, "offset": 0}),
+def test_should_return_oauth_capability_and_page_sync(api_key: str, configured: bool) -> None:
+    route = respx.get(f"{PRO_URL}/v1/projects/{PROJECT_ID}/integrations").mock(
+        return_value=httpx.Response(
+            200,
+            json={"integrations": [INTEGRATION], "total": 3, "limit": 1, "offset": 2, "oauth_configured": configured},
+        ),
     )
     with _pro_client(api_key) as client:
-        response = client.list_integrations(PROJECT_ID)
+        response = client.list_integrations(PROJECT_ID, limit=1, offset=2)
 
-    assert response.total == 1
-    assert [integration.kind for integration in response.integrations] == ["google_drive"]
+    assert type(response) is ProIntegrationListResponse
+    assert isinstance(response, ListIntegrationsResponse)
+    assert response.oauth_configured is configured
+    assert (response.total, response.limit, response.offset) == (3, 1, 2)
+    assert response.to_dict() == {
+        "integrations": [INTEGRATION],
+        "total": 3,
+        "limit": 1,
+        "offset": 2,
+        "oauth_configured": configured,
+    }
+    assert route.call_count == 1
+    assert str(route.calls.last.request.url.query, "ascii") == "limit=1&offset=2"
 
 
 @respx.mock
@@ -387,15 +402,31 @@ async def test_revoke_api_key_async(api_key: str) -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("configured", [True, False])
 @respx.mock
-async def test_list_integrations_async(api_key: str) -> None:
-    respx.get(f"{PRO_URL}/v1/projects/{PROJECT_ID}/integrations").mock(
-        return_value=httpx.Response(200, json={"integrations": [INTEGRATION], "total": 1, "limit": 25, "offset": 0}),
+async def test_should_return_oauth_capability_and_page_async(api_key: str, configured: bool) -> None:
+    route = respx.get(f"{PRO_URL}/v1/projects/{PROJECT_ID}/integrations").mock(
+        return_value=httpx.Response(
+            200,
+            json={"integrations": [INTEGRATION], "total": 3, "limit": 1, "offset": 2, "oauth_configured": configured},
+        ),
     )
     async with _async_pro_client(api_key) as client:
-        response = await client.list_integrations(PROJECT_ID)
+        response = await client.list_integrations(PROJECT_ID, limit=1, offset=2)
 
-    assert response.integrations[0].auth_type == "oauth2"
+    assert type(response) is ProIntegrationListResponse
+    assert isinstance(response, ListIntegrationsResponse)
+    assert response.oauth_configured is configured
+    assert (response.total, response.limit, response.offset) == (3, 1, 2)
+    assert response.to_dict() == {
+        "integrations": [INTEGRATION],
+        "total": 3,
+        "limit": 1,
+        "offset": 2,
+        "oauth_configured": configured,
+    }
+    assert route.call_count == 1
+    assert str(route.calls.last.request.url.query, "ascii") == "limit=1&offset=2"
 
 
 @pytest.mark.asyncio

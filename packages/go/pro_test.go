@@ -2,6 +2,7 @@ package xberg_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -154,27 +155,40 @@ func TestRevokeApiKey_HandlesNoContent(t *testing.T) {
 
 // -- integrations -------------------------------------------------------------
 
-func TestListIntegrations_ReturnsTypedPage(t *testing.T) {
+func TestListIntegrations_ShouldReturnOAuthCapabilityAndPage(t *testing.T) {
 	t.Parallel()
-	var seen recordedRequest
-	client := proClient(t, http.StatusOK, `{
-		"integrations":[{"id":"dddddddd-0000-4000-8000-000000000001","name":"Drive","kind":"google_drive",
-			"auth_type":"oauth2","provider":"google","project_id":"bbbbbbbb-0000-4000-8000-000000000001"}],
-		"total":1,"limit":50,"offset":10
-	}`, &seen)
-
-	page, err := client.ListIntegrations(context.Background(), testProjectID, 50, 10)
-	if err != nil {
-		t.Fatalf("ListIntegrations: %v", err)
-	}
-	if seen.path != "/v1/projects/bbbbbbbb-0000-4000-8000-000000000001/integrations" {
-		t.Errorf("path = %q, want /v1/projects/bbbbbbbb-0000-4000-8000-000000000001/integrations", seen.path)
-	}
-	if seen.query != "limit=50&offset=10" {
-		t.Errorf("query = %q, want limit=50&offset=10", seen.query)
-	}
-	if len(page.Integrations) != 1 || page.Integrations[0].Provider != "google" {
-		t.Fatalf("page = %+v, want one google integration", page)
+	for _, configured := range []bool{true, false} {
+		t.Run(fmt.Sprint(configured), func(t *testing.T) {
+			t.Parallel()
+			var seen recordedRequest
+			body := fmt.Sprintf(`{
+                "integrations":[{"id":"dddddddd-0000-4000-8000-000000000001","name":"Drive",
+                "kind":"google_drive","auth_type":"oauth2","provider":"google"}],
+                "total":3,"limit":1,"offset":2,"oauth_configured":%t
+            }`, configured)
+			client := proClient(t, http.StatusOK, body, &seen)
+			page, err := client.ListIntegrations(context.Background(), testProjectID, 1, 2)
+			if err != nil {
+				t.Fatalf("ListIntegrations: %v", err)
+			}
+			if page.OauthConfigured != configured {
+				t.Errorf("oauth_configured = %t, want %t", page.OauthConfigured, configured)
+			}
+			if page.Total != 3 || page.Limit != 1 || page.Offset != 2 {
+				t.Errorf("pagination = %+v", page)
+			}
+			if len(page.Integrations) != 1 {
+				t.Fatalf("integration count = %d, want 1", len(page.Integrations))
+			}
+			row := page.Integrations[0]
+			if row.Id.String() != testIntegrationID || row.Name != "Drive" || row.Kind != "google_drive" ||
+				row.AuthType != "oauth2" || row.Provider != "google" || row.ProjectId != nil {
+				t.Errorf("integration = %+v", row)
+			}
+			if seen.path != "/v1/projects/"+testProjectID+"/integrations" || seen.query != "limit=1&offset=2" {
+				t.Errorf("request = %+v", seen)
+			}
+		})
 	}
 }
 

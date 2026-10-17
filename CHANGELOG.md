@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve the Pro integration list's `oauth_configured` capability in TypeScript and
+  Python public response types and Go decoding, for both enabled and disabled OAuth.
+  TypeScript and Python retain `ListIntegrationsResponse` as an alias of the generated
+  `ProIntegrationListResponse`; Enterprise backend integration responses are unchanged.
+
+### Changed
+
+- Go `ListIntegrations` now returns `*ProIntegrationListResponse`. Callers explicitly
+  assigning its result to `*ListIntegrationsResponse` must use the Pro response type;
+  the existing generated `ListIntegrationsResponse` and `BackendListIntegrations`
+  remain available for the Enterprise control plane.
+
 ## [0.8.0] - 2026-10-12
 
 ### Added

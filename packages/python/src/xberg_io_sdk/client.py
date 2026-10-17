@@ -147,8 +147,10 @@ from xberg_io_sdk._generated_pro.models.integration_sync_response import Integra
 from xberg_io_sdk._generated_pro.models.license_info_response import LicenseInfoResponse
 from xberg_io_sdk._generated_pro.models.list_api_keys_response import ListApiKeysResponse
 from xberg_io_sdk._generated_pro.models.list_documents_response import ListDocumentsResponse
-from xberg_io_sdk._generated_pro.models.list_integrations_response import ListIntegrationsResponse
 from xberg_io_sdk._generated_pro.models.list_projects_response import ListProjectsResponse
+from xberg_io_sdk._generated_pro.models.pro_integration_list_response import (
+    ProIntegrationListResponse as ListIntegrationsResponse,
+)
 from xberg_io_sdk._generated_pro.models.project_response import ProjectResponse
 from xberg_io_sdk.errors import TimeoutError as ClientTimeoutError
 from xberg_io_sdk.errors import ValidationError, XbergError, parse_retry_after, raise_for_status

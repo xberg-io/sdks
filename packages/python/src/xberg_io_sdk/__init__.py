@@ -10,6 +10,7 @@ from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.job_result_error import JobResultError
 from xberg_io_sdk._generated_api.models.job_status import JobStatus
 from xberg_io_sdk._generated_pro.models.health_response import HealthResponse as ProHealthResponse
+from xberg_io_sdk._generated_pro.models.pro_integration_list_response import ProIntegrationListResponse
 from xberg_io_sdk.client import AsyncXbergClient, GetJobResponse, XbergClient
 from xberg_io_sdk.errors import (
     AuthError,
@@ -21,6 +22,7 @@ from xberg_io_sdk.errors import (
     XbergError,
 )
 
+ListIntegrationsResponse = ProIntegrationListResponse
 ExtractionResult = ExtractedDocument
 # ~keep Upstream renamed this schema to `ExtractionJobResponse`; `JobResponse` was
 # ~keep already exported here, so it stays as an alias rather than breaking callers.
@@ -41,8 +43,10 @@ __all__ = [
     "JobResult",
     "JobResultError",
     "JobStatus",
+    "ListIntegrationsResponse",
     "NotFoundError",
     "ProHealthResponse",
+    "ProIntegrationListResponse",
     "RateLimitError",
     "ServerError",
     "TimeoutError",

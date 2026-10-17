@@ -1,4 +1,11 @@
-import type { components, proComponents, ProHealthResponse, XbergClient } from "../src/index.js";
+import type {
+  components,
+  proComponents,
+  ListIntegrationsResponse,
+  ProHealthResponse,
+  ProIntegrationListResponse,
+  XbergClient,
+} from "../src/index.js";
 
 type EnterpriseSchemas = components["schemas"];
 type ProSchemas = proComponents["schemas"];
@@ -46,4 +53,14 @@ export function proHealthTypeContract(client: XbergClient): Promise<ProHealthRes
 }
 export function readProHealthFields(health: ProHealthResponse): [string, string, string, boolean, boolean] {
   return [health.status, health.tier, health.license.state, health.rag.enabled, health.auto_tune.enabled];
+}
+
+export function readIntegrationOAuthCapability(
+  response: Awaited<ReturnType<XbergClient["listIntegrations"]>>,
+): boolean {
+  return response.oauth_configured;
+}
+
+export function preserveIntegrationResponseAlias(response: ListIntegrationsResponse): ProIntegrationListResponse {
+  return response;
 }

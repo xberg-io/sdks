@@ -88,6 +88,7 @@ export {
   type JobStatus,
   type LicenseInfoResponse,
   type ProHealthResponse,
+  type ProIntegrationListResponse,
   type ListApiKeysResponse,
   type ListAuditEntriesResponse,
   type ListAutoTuneJobsResponse,
