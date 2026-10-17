@@ -3,10 +3,10 @@ title: RAG, auto-tune and saved presets
 description: Retrieval collections, tuning extraction against ground truth, and reusable presets.
 ---
 
-RAG and auto-tune are part of the shared surface — identical routes on both tiers — but both are
-**licence-gated**, not tier-gated: whether they respond depends on the connected instance's
-licence entitlement, not on whether it is Enterprise or Pro. A licence without the entitlement
-gets a normal authorization error, not a tier error.
+RAG and auto-tune are part of the shared surface on both tiers. Pro requires a valid product
+licence; these features have no separate licence entitlements. Operators can disable them with
+`PRO_RAG_ENABLED` and `PRO_AUTO_TUNE_ENABLED`, both enabled by default. Project configuration
+and the caller's permissions also determine which operations are available.
 
 ## Saved presets
 
@@ -108,27 +108,47 @@ TypeScript, `json.RawMessage` in Go) — the schemas are still converging across
 against whichever fields you need.
 
 ```python title="Python"
-client.create_rag_collection({"name": "policies", "embedding_dim": 384})
-client.add_rag_documents("policies", {"documents": [{"id": "doc-1", "text": "..."}]})
-hits = client.rag_retrieve("policies", {"query": "refund window", "top_k": 5})
-client.delete_rag_collection("policies")
+from xberg_io_sdk.errors import XbergError
+
+try:
+    client.create_rag_collection({"name": "policies", "embedding_dim": 384})
+    ingest = client.add_rag_documents(
+        "policies", {"kind": "text", "external_id": "doc-1", "text": "Refunds are available within 30 days."}
+    )
+except XbergError as exc:
+    print(f"RAG ingest failed: {exc}")
+    raise
 ```
 
 ```ts title="TypeScript"
-await client.createRagCollection({ name: "policies", embedding_dim: 384 });
-await client.addRagDocuments("policies", { documents: [{ id: "doc-1", text: "..." }] });
-const hits = await client.ragRetrieve("policies", { query: "refund window", top_k: 5 });
-await client.deleteRagCollection("policies");
+try {
+  await client.createRagCollection({ name: "policies", embedding_dim: 384 });
+  const ingest = await client.addRagDocuments("policies", {
+    kind: "text", external_id: "doc-1", text: "Refunds are available within 30 days.",
+  });
+} catch (err) {
+  console.error("RAG ingest failed", err);
+  throw err;
+}
 ```
 
 ```go title="Go"
 _, err := client.CreateRagCollection(ctx, map[string]any{"name": "policies", "embedding_dim": 384})
+if err != nil {
+    log.Fatal(err)
+}
 _, err = client.AddRagDocuments(ctx, "policies", map[string]any{
-    "documents": []map[string]any{{"id": "doc-1", "text": "..."}},
+    "kind": "text", "external_id": "doc-1", "text": "Refunds are available within 30 days.",
 })
-hits, err := client.RagRetrieve(ctx, "policies", map[string]any{"query": "refund window", "top_k": 5})
-err = client.DeleteRagCollection(ctx, "policies")
+if err != nil {
+    log.Fatal(err)
+}
 ```
+
+Despite the plural SDK method name, each call submits one document using a flat request body.
+Text ingest returns HTTP 202 with `job_id` and `document_id`; poll that job with
+`get_rag_job` / `getRagJob` / `GetRagJob` and check successful completion before retrieving
+chunks or deleting the collection. Text ingest requires a working embedding configuration.
 
 `retrieve`'s `mode` defaults to `hybrid`; pass `"vector"`, `"full_text"` or a BYO `query_vector`
 matching the collection's `embedding_dim`. `top_k` is `1..=200` (default 10); `rerank` is

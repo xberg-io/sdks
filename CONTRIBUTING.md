@@ -8,7 +8,7 @@ Please begin by reading our AI section below, followed by the getting started gu
 
 ## Getting Started
 
-Make sure to have [Git](https://git-scm.com/), [Python](https://www.python.org/) 3.10+ with [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) 20+ with [pnpm](https://pnpm.io/) installed on your machine.
+Make sure to have [Git](https://git-scm.com/), [Python](https://www.python.org/) 3.10+ with [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) 22+ with [pnpm](https://pnpm.io/) installed on your machine.
 
 1. Install [Task](https://taskfile.dev/installation/) on your machine.
 2. run:
@@ -29,7 +29,7 @@ This will setup the dependencies, and pre-commit hooks via `poly`.
 | `task test`     | Run all test suites                   |
 | `task lint`     | Run all linters                       |
 | `task format`   | Format all code                       |
-| `task validate` | Validate the API spec                 |
+| `task validate` | Run lint, tests, API-operation coverage, reference checks and live snippets |
 
 ## What to keep in mind
 
@@ -84,7 +84,7 @@ We do vendor code from other libraries and allow this, in some situations. If yo
 ## Community
 
 - **Star the repo:** [Give us a star on GitHub](https://github.com/xberg-io/sdks) — it helps others discover our work!
-- **Documentation:** [docs.xberg.io](https://docs.xberg.io)
+- **Documentation:** [docs.sdks.xberg.io](https://docs.sdks.xberg.io)
 - **Discord:** [Join our community](https://discord.gg/xt9WY3GnKR)
 - **Issues:** [GitHub Issues](https://github.com/xberg-io/sdks/issues)
 - **Security:** see [SECURITY.md](SECURITY.md) — report privately, never in an issue

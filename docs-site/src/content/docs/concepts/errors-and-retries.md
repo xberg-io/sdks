@@ -31,10 +31,16 @@ All of them descend from one base error, so you can catch broadly or narrowly.
 
 ## What gets retried
 
-Retries are **off by default**; set the retry count to enable them. When enabled, only requests
-that are safe to repeat are retried — 429 and 5xx — with exponential backoff by default and the
-server's retry delay honoured when present. A 4xx that is not 429 is never retried, because
-repeating it cannot change the answer.
+Retries are **off by default**; set the retry count to enable them. For ordinary requests,
+all three clients retry transport failures and HTTP 429, 502, 503 and 504 by default,
+with exponential backoff. Python and TypeScript event streams are not retried.
+Python and TypeScript let you replace the status set with `retry_on` and `retryOn` respectively.
+Go uses the fixed status set. A server-provided `Retry-After` can override the delay;
+Go reads it for 429 responses and caps the delay at 30 seconds.
+
+Retries also apply to write requests; the clients do not filter by HTTP method or guarantee
+idempotency. After a transport failure, the server may already have accepted a submission.
+Keep retries disabled for writes unless repeating the operation is acceptable.
 
 ## Waiting for a job is not a retry
 
