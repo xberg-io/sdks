@@ -13,10 +13,10 @@ type proProjectKey struct{}
 
 // WithProProject selects a Pro project for extraction/job operations,
 // usage/audit, upload preparation and shared RAG collection/document,
-// retrieval, migration and job-status operations. Extraction and /v1/jobs
-// selection require Pro. Enterprise ignores shared usage/audit/upload/RAG
-// selection. Unrelated routes, including the embedding preset catalog, ignore
-// it. Context deadlines and cancellation are preserved. ~keep
+// retrieval, migration, job-status and saved-preset operations. Extraction
+// and /v1/jobs selection require Pro. Enterprise ignores shared saved-preset,
+// usage/audit/upload/RAG selection. Unrelated routes, including the embedding
+// preset catalog, ignore it. Context deadlines and cancellation are preserved. ~keep
 func WithProProject(ctx context.Context, projectID string) context.Context {
 	return context.WithValue(ctx, proProjectKey{}, projectID)
 }
@@ -96,6 +96,15 @@ func ownsRagHeaderProjectScope(method, path string) bool {
 		(parts[4] == "retrieve" && method == methodPost))
 }
 
+func ownsSavedPresetHeaderProjectScope(method, path string) bool {
+	if path == savedPresetsPath {
+		return method == methodGet || method == methodPost
+	}
+	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
+	return len(parts) == 3 && parts[0] == "v1" && parts[1] == "saved_presets" && parts[2] != "" &&
+		(method == methodGet || method == methodPatch || method == methodDelete)
+}
+
 func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (requestSpec, error) {
 	projectID, selected := ctx.Value(proProjectKey{}).(string)
 	if !selected {
@@ -107,7 +116,8 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 	}
 	if (spec.method == methodGet && (u.EscapedPath() == "/v1/usage" || u.EscapedPath() == "/v1/audit")) ||
 		(spec.method == methodPost && (u.EscapedPath() == presignUploadPath || u.EscapedPath() == confirmUploadPath)) ||
-		ownsRagHeaderProjectScope(spec.method, u.EscapedPath()) {
+		ownsRagHeaderProjectScope(spec.method, u.EscapedPath()) ||
+		ownsSavedPresetHeaderProjectScope(spec.method, u.EscapedPath()) {
 		return c.applyProHeaderProject(ctx, spec, projectID)
 	}
 	if !ownsJobProjectScope(spec.method, u.EscapedPath()) {
