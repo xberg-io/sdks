@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Respect TypeScript `retryOn` exclusions for HTTP 429 responses with `Retry-After`,
+  preserving the typed rate-limit error without extra requests. See [#47](https://github.com/xberg-io/sdks/issues/47).
 - Preserve the Pro integration list's `oauth_configured` capability in TypeScript and
   Python public response types and Go decoding, for both enabled and disabled OAuth.
   TypeScript and Python retain `ListIntegrationsResponse` as an alias of the generated
@@ -19,10 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Go `ListIntegrations` now returns `*ProIntegrationListResponse`. Callers explicitly
+- **Breaking, Go response type.** `ListIntegrations` now returns `*ProIntegrationListResponse`. Callers explicitly
   assigning its result to `*ListIntegrationsResponse` must use the Pro response type;
   the existing generated `ListIntegrationsResponse` and `BackendListIntegrations`
-  remain available for the Enterprise control plane.
+  remain available for the Enterprise control plane. See [#38](https://github.com/xberg-io/sdks/pull/38).
 
 ## [0.8.0] - 2026-10-12
 
