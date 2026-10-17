@@ -13,9 +13,9 @@ type proProjectKey struct{}
 
 // WithProProject selects a Pro project for extraction/job operations,
 // usage/audit, upload preparation and shared RAG collection/document,
-// retrieval, migration, job-status and saved-preset operations. Extraction
-// and /v1/jobs selection require Pro. Enterprise ignores shared saved-preset,
-// usage/audit/upload/RAG selection. Unrelated routes, including the embedding
+// retrieval, migration, job-status, saved-preset, auto-tune and tuning-profile
+// operations. Extraction and /v1/jobs selection require Pro. Enterprise ignores
+// shared saved-preset/auto-tune/profile/usage/audit/upload/RAG selection. Unrelated routes, including the embedding
 // preset catalog, ignore it. Context deadlines and cancellation are preserved. ~keep
 func WithProProject(ctx context.Context, projectID string) context.Context {
 	return context.WithValue(ctx, proProjectKey{}, projectID)
@@ -105,6 +105,38 @@ func ownsSavedPresetHeaderProjectScope(method, path string) bool {
 		(method == methodGet || method == methodPatch || method == methodDelete)
 }
 
+func ownsTuningProfileHeaderProjectScope(method string, parts []string) bool {
+	return (len(parts) == 2 && method == methodGet) ||
+		(len(parts) == 3 && parts[2] != "" && (method == methodGet || method == methodDelete))
+}
+
+func ownsAutoTuneHeaderProjectScope(method, path string) bool {
+	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
+	if len(parts) < 2 || parts[0] != "v1" {
+		return false
+	}
+	if parts[1] == "tuning-profiles" {
+		return ownsTuningProfileHeaderProjectScope(method, parts)
+	}
+	if parts[1] != "auto-tune" {
+		return false
+	}
+	if len(parts) == 2 {
+		return method == methodGet || method == methodPost
+	}
+	if parts[2] == "" {
+		return false
+	}
+	if len(parts) == 3 {
+		if parts[2] == "capabilities" {
+			return method == methodGet
+		}
+		return method == methodGet || method == methodDelete
+	}
+	return len(parts) == 4 && ((method == methodGet && parts[3] == "result") ||
+		(method == methodPost && (parts[3] == "stop" || parts[3] == "promote")))
+}
+
 func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (requestSpec, error) {
 	projectID, selected := ctx.Value(proProjectKey{}).(string)
 	if !selected {
@@ -117,7 +149,8 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 	if (spec.method == methodGet && (u.EscapedPath() == "/v1/usage" || u.EscapedPath() == "/v1/audit")) ||
 		(spec.method == methodPost && (u.EscapedPath() == presignUploadPath || u.EscapedPath() == confirmUploadPath)) ||
 		ownsRagHeaderProjectScope(spec.method, u.EscapedPath()) ||
-		ownsSavedPresetHeaderProjectScope(spec.method, u.EscapedPath()) {
+		ownsSavedPresetHeaderProjectScope(spec.method, u.EscapedPath()) ||
+		ownsAutoTuneHeaderProjectScope(spec.method, u.EscapedPath()) {
 		return c.applyProHeaderProject(ctx, spec, projectID)
 	}
 	if !ownsJobProjectScope(spec.method, u.EscapedPath()) {
