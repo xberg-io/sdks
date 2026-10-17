@@ -11,11 +11,12 @@ const extractPath = "/v1/extract"
 
 type proProjectKey struct{}
 
-// WithProProject selects a Pro project for extraction and job operations,
-// usage/audit, upload preparation, RAG collection CRUD, document add/delete
-// and retrieval. Extraction/job selection requires Pro. Enterprise ignores
-// selection for shared usage/audit/upload/RAG operations. Unrelated routes
-// ignore it. Context deadlines and cancellation are preserved. ~keep
+// WithProProject selects a Pro project for extraction/job operations,
+// usage/audit, upload preparation and shared RAG collection/document,
+// retrieval, migration and job-status operations. Extraction and /v1/jobs
+// selection require Pro. Enterprise ignores shared usage/audit/upload/RAG
+// selection. Unrelated routes, including the embedding preset catalog, ignore
+// it. Context deadlines and cancellation are preserved. ~keep
 func WithProProject(ctx context.Context, projectID string) context.Context {
 	return context.WithValue(ctx, proProjectKey{}, projectID)
 }
@@ -54,8 +55,31 @@ func ownsCrawlOrEnrichProjectScope(method string, parts []string) bool {
 		parts[2] != "" && parts[3] == "events"
 }
 
+func ownsAsyncRagHeaderProjectScope(method string, parts []string) bool {
+	if len(parts) < 4 || parts[0] != "v1" || parts[1] != "rag" {
+		return false
+	}
+	if parts[2] == "jobs" {
+		return method == methodGet && len(parts) == 4 && parts[3] != ""
+	}
+	if parts[2] != "collections" || parts[3] == "" {
+		return false
+	}
+	if len(parts) == 5 {
+		return method == methodPost && parts[4] == "migrate-embeddings"
+	}
+	if len(parts) == 6 {
+		return method == methodGet && parts[4] == "migrate-embeddings" && parts[5] != ""
+	}
+	return len(parts) == 7 && method == methodPost && parts[4] == "documents" && parts[5] != "" &&
+		parts[6] == "reindex"
+}
+
 func ownsRagHeaderProjectScope(method, path string) bool {
 	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
+	if ownsAsyncRagHeaderProjectScope(method, parts) {
+		return true
+	}
 	if len(parts) < 3 || parts[0] != "v1" || parts[1] != "rag" || parts[2] != "collections" {
 		return false
 	}

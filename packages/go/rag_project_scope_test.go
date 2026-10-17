@@ -267,22 +267,6 @@ func TestSelectedProjectRagContextsDoNotLeak(t *testing.T) {
 
 func ragExcludedProjectCases() []ragScopeCase {
 	return []ragScopeCase{
-		{"rag-job", "GET", "/v1/rag/jobs/owned-job", "",
-			func(c *xberg.Client, ctx context.Context) (json.RawMessage, error) {
-				return c.GetRagJob(ctx, "owned-job")
-			}},
-		{"reindex", "POST", "/v1/rag/collections/scope-owned/documents/owned-doc/reindex", `{}`,
-			func(c *xberg.Client, ctx context.Context) (json.RawMessage, error) {
-				return c.ReindexRagDocument(ctx, ragScopeCollection, "owned-doc", json.RawMessage(`{}`))
-			}},
-		{"migrate", "POST", "/v1/rag/collections/scope-owned/migrate-embeddings", `{}`,
-			func(c *xberg.Client, ctx context.Context) (json.RawMessage, error) {
-				return c.MigrateRagEmbeddings(ctx, ragScopeCollection, json.RawMessage(`{}`))
-			}},
-		{"migration-job", "GET", "/v1/rag/collections/scope-owned/migrate-embeddings/owned-job", "",
-			func(c *xberg.Client, ctx context.Context) (json.RawMessage, error) {
-				return c.GetRagMigrationJob(ctx, ragScopeCollection, "owned-job")
-			}},
 		{"embedding-presets", "GET", "/v1/rag/embedding-presets", "",
 			func(c *xberg.Client, ctx context.Context) (json.RawMessage, error) {
 				_, err := c.ListManagedEmbeddingPresets(ctx)
@@ -329,7 +313,7 @@ func TestSelectedProjectRagExcludedAndMalformedRoutesStayUnselected(t *testing.T
 		want = append(want, tc.method+" "+tc.uri)
 		callRagProjectCase(t, client, xberg.WithProProject(context.Background(), " \t "), tc)
 	}
-	if len(cases) != 10 || !slices.Equal(seen, want) {
+	if len(cases) != 6 || !slices.Equal(seen, want) {
 		t.Fatalf("excluded request trace=%v want=%v", seen, want)
 	}
 }
