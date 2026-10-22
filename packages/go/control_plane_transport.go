@@ -60,3 +60,11 @@ func (c *Client) controlPlaneEmpty(ctx context.Context, operation, method, path 
 	}
 	return transport.callJSON(ctx, method, path, nil, nil)
 }
+
+func (c *Client) controlPlaneSend(ctx context.Context, operation, method, path string, body any) error {
+	transport, err := c.controlPlaneClient(ctx, operation, controlPlaneAuthenticated)
+	if err != nil {
+		return err
+	}
+	return transport.callJSON(ctx, method, path, body, nil)
+}

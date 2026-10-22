@@ -97,7 +97,8 @@
       "id": "fixture",
       "user_id": "fixture",
       "role": "fixture",
-      "created_at": "fixture"
+      "created_at": "fixture",
+      "provisioning_source": "manual"
     },
     "model": "MemberResponse",
     "public": false
@@ -700,7 +701,8 @@
       "id": "fixture",
       "user_id": "fixture",
       "role": "fixture",
-      "created_at": "fixture"
+      "created_at": "fixture",
+      "provisioning_source": "manual"
     },
     "model": "MemberResponse",
     "public": false
@@ -1033,6 +1035,448 @@
       "display_name": "Updated"
     },
     "model": "UserProfileResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_integration_sync",
+    "name": "backend_get_integration_sync",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/integrations/{iid}/sync",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "enabled": true,
+      "interval_seconds": 900
+    },
+    "model": "IntegrationSyncResponse",
+    "public": false
+  },
+  {
+    "operation_id": "set_integration_sync",
+    "name": "backend_set_integration_sync",
+    "verb": "PUT",
+    "path": "/v1/projects/{id}/integrations/{iid}/sync",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "integration_id": "integration_id/?#",
+      "body": {
+        "enabled": false
+      }
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "assign_project_role",
+    "name": "assign_project_role",
+    "verb": "PATCH",
+    "path": "/v1/projects/{id}/members/{user_id}/custom-role",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "user_id": "user_id/?#",
+      "body": {
+        "custom_role_ids": ["22222222-2222-2222-2222-222222222222"]
+      }
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_project_roles",
+    "name": "list_project_roles",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/roles",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "limit": 1,
+      "offset": 1
+    },
+    "query": {
+      "limit": 1,
+      "offset": 1
+    },
+    "status": 200,
+    "response": {
+      "roles": [
+        {
+          "id": "22222222-2222-2222-2222-222222222222",
+          "name": "Reviewer",
+          "permissions": ["job.read", "document.read"],
+          "description": "Reads results"
+        }
+      ],
+      "total": 1,
+      "limit": 1,
+      "offset": 1
+    },
+    "model": "ListProjectRolesResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_project_role",
+    "name": "create_project_role",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/roles",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "name": "Reviewer",
+        "permissions": ["job.read"]
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "name": "Reviewer",
+      "permissions": ["job.read", "document.read"],
+      "description": "Reads results"
+    },
+    "model": "ProjectRoleResponse",
+    "public": false
+  },
+  {
+    "operation_id": "get_project_role",
+    "name": "get_project_role",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/roles/{role_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "role_id": "role_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "name": "Reviewer",
+      "permissions": ["job.read", "document.read"],
+      "description": "Reads results"
+    },
+    "model": "ProjectRoleResponse",
+    "public": false
+  },
+  {
+    "operation_id": "update_project_role",
+    "name": "update_project_role",
+    "verb": "PATCH",
+    "path": "/v1/projects/{id}/roles/{role_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "role_id": "role_id/?#",
+      "body": {
+        "name": "Reviewer",
+        "permissions": ["job.read", "document.read"]
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "name": "Reviewer",
+      "permissions": ["job.read", "document.read"],
+      "description": "Reads results"
+    },
+    "model": "ProjectRoleResponse",
+    "public": false
+  },
+  {
+    "operation_id": "delete_project_role",
+    "name": "delete_project_role",
+    "verb": "DELETE",
+    "path": "/v1/projects/{id}/roles/{role_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "role_id": "role_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_domains",
+    "name": "list_saml_domains",
+    "verb": "GET",
+    "path": "/v1/projects/{project_id}/saml/domains",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": [
+      {
+        "domain": "example.test",
+        "provider_id": "33333333-3333-3333-3333-333333333333",
+        "dns_txt_name": "_xberg.example.test",
+        "dns_txt_value": "challenge",
+        "verified_at": null
+      }
+    ],
+    "model": "SamlDomainResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_domain",
+    "name": "create_saml_domain",
+    "verb": "POST",
+    "path": "/v1/projects/{project_id}/saml/domains",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "provider_id": "33333333-3333-3333-3333-333333333333",
+        "domain": "example.test"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "domain": "example.test",
+      "provider_id": "33333333-3333-3333-3333-333333333333",
+      "dns_txt_name": "_xberg.example.test",
+      "dns_txt_value": "challenge",
+      "verified_at": null
+    },
+    "model": "SamlDomainResponse",
+    "public": false
+  },
+  {
+    "operation_id": "verify_domain",
+    "name": "verify_saml_domain",
+    "verb": "POST",
+    "path": "/v1/projects/{project_id}/saml/domains/{domain}/verify",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "domain": "domain/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_providers",
+    "name": "list_saml_providers",
+    "verb": "GET",
+    "path": "/v1/projects/{project_id}/saml/providers",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": [
+      {
+        "id": "33333333-3333-3333-3333-333333333333",
+        "project_id": "55555555-5555-5555-5555-555555555555",
+        "label": "Okta",
+        "entity_id": "https://idp.example.test",
+        "enabled": true,
+        "jit_enabled": false,
+        "idp_initiated_enabled": false,
+        "enforce_sso": true,
+        "acs_url": "https://control.example.test/auth/saml/acs",
+        "idp_initiated_relay_state": "relay"
+      }
+    ],
+    "model": "SamlProviderResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_provider",
+    "name": "create_saml_provider",
+    "verb": "POST",
+    "path": "/v1/projects/{project_id}/saml/providers",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "label": "Okta",
+        "metadata_xml": "<EntityDescriptor/>",
+        "enabled": true
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "project_id": "55555555-5555-5555-5555-555555555555",
+      "label": "Okta",
+      "entity_id": "https://idp.example.test",
+      "enabled": true,
+      "jit_enabled": false,
+      "idp_initiated_enabled": false,
+      "enforce_sso": true,
+      "acs_url": "https://control.example.test/auth/saml/acs",
+      "idp_initiated_relay_state": "relay"
+    },
+    "model": "SamlProviderResponse",
+    "public": false
+  },
+  {
+    "operation_id": "update_provider",
+    "name": "update_saml_provider",
+    "verb": "PUT",
+    "path": "/v1/projects/{project_id}/saml/providers/{provider_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "provider_id": "provider_id/?#",
+      "body": {
+        "label": "Okta",
+        "metadata_xml": "<EntityDescriptor/>",
+        "enabled": true
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "project_id": "55555555-5555-5555-5555-555555555555",
+      "label": "Okta",
+      "entity_id": "https://idp.example.test",
+      "enabled": true,
+      "jit_enabled": false,
+      "idp_initiated_enabled": false,
+      "enforce_sso": true,
+      "acs_url": "https://control.example.test/auth/saml/acs",
+      "idp_initiated_relay_state": "relay"
+    },
+    "model": "SamlProviderResponse",
+    "public": false
+  },
+  {
+    "operation_id": "delete_provider",
+    "name": "delete_saml_provider",
+    "verb": "DELETE",
+    "path": "/v1/projects/{project_id}/saml/providers/{provider_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "provider_id": "provider_id/?#"
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "list_scim_connections",
+    "name": "list_scim_connections",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/scim/connections",
+    "arguments": {
+      "project_id": "project_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "connections": [
+        {
+          "id": "44444444-4444-4444-4444-444444444444",
+          "display_name": "Okta SCIM",
+          "client_id": "scim-client",
+          "active": true,
+          "version": 1,
+          "client_secret_expires_at": "2027-01-01T00:00:00Z"
+        }
+      ]
+    },
+    "model": "ListScimConnectionsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_scim_connection",
+    "name": "create_scim_connection",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/scim/connections",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "display_name": "Okta SCIM"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "connection": {
+        "id": "44444444-4444-4444-4444-444444444444",
+        "display_name": "Okta SCIM",
+        "client_id": "scim-client",
+        "active": true,
+        "version": 1,
+        "client_secret_expires_at": "2027-01-01T00:00:00Z"
+      },
+      "client_secret": "fixture-secret",
+      "token_endpoint": "https://control.example.test/scim/v2/c/oauth2/token",
+      "base_url": "https://control.example.test/scim/v2/c"
+    },
+    "model": "CreateScimConnectionResponse",
+    "public": false
+  },
+  {
+    "operation_id": "list_scim_admin_groups",
+    "name": "list_scim_admin_groups",
+    "verb": "GET",
+    "path": "/v1/projects/{id}/scim/connections/{connection_id}/groups",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "connection_id": "connection_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "groups": [
+        {
+          "id": "44444444-4444-4444-4444-444444444444",
+          "display_name": "Engineering",
+          "role_ids": ["22222222-2222-2222-2222-222222222222"]
+        }
+      ]
+    },
+    "model": "ListScimAdminGroupsResponse",
+    "public": false
+  },
+  {
+    "operation_id": "replace_scim_group_roles",
+    "name": "replace_scim_group_roles",
+    "verb": "PUT",
+    "path": "/v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "connection_id": "connection_id/?#",
+      "group_id": "group_id/?#",
+      "body": {
+        "role_ids": ["22222222-2222-2222-2222-222222222222"]
+      }
+    },
+    "query": {},
+    "status": 204,
+    "public": false
+  },
+  {
+    "operation_id": "rotate_scim_connection_secret",
+    "name": "rotate_scim_connection_secret",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/scim/connections/{connection_id}/rotate",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "connection_id": "connection_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "connection": {
+        "id": "44444444-4444-4444-4444-444444444444",
+        "display_name": "Okta SCIM",
+        "client_id": "scim-client",
+        "active": true,
+        "version": 1,
+        "client_secret_expires_at": "2027-01-01T00:00:00Z"
+      },
+      "client_secret": "fixture-secret",
+      "token_endpoint": "https://control.example.test/scim/v2/c/oauth2/token",
+      "base_url": "https://control.example.test/scim/v2/c"
+    },
+    "model": "CreateScimConnectionResponse",
     "public": false
   }
 ]

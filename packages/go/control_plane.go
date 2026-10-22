@@ -322,6 +322,38 @@ func (c *Client) BackendListIntegrationDocuments(
 	)
 }
 
+// BackendGetIntegrationSync calls GET /v1/projects/{id}/integrations/{iid}/sync on the Enterprise control plane.
+func (c *Client) BackendGetIntegrationSync(
+	ctx context.Context,
+	projectID string,
+	integrationID string,
+) (*IntegrationSyncResponse, error) {
+	return controlPlaneJSON[IntegrationSyncResponse](
+		ctx,
+		c,
+		"BackendGetIntegrationSync",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID)+"/sync",
+		nil,
+	)
+}
+
+// BackendSetIntegrationSync calls PUT /v1/projects/{id}/integrations/{iid}/sync on the Enterprise control plane.
+func (c *Client) BackendSetIntegrationSync(
+	ctx context.Context,
+	projectID string,
+	integrationID string,
+	body SetIntegrationSyncRequest,
+) error {
+	return c.controlPlaneSend(
+		ctx,
+		"BackendSetIntegrationSync",
+		methodPut,
+		"/v1/projects/"+escapePathSegment(projectID)+"/integrations/"+escapePathSegment(integrationID)+"/sync",
+		body,
+	)
+}
+
 // ListInvitations calls GET /v1/projects/{id}/invitations on the Enterprise control plane.
 func (c *Client) ListInvitations(
 	ctx context.Context,
@@ -412,6 +444,22 @@ func (c *Client) UpdateMemberRole(
 	)
 }
 
+// AssignProjectRole calls PATCH /v1/projects/{id}/members/{user_id}/custom-role on the Enterprise control plane.
+func (c *Client) AssignProjectRole(
+	ctx context.Context,
+	projectID string,
+	userID string,
+	body AssignProjectRoleRequest,
+) error {
+	return c.controlPlaneSend(
+		ctx,
+		"AssignProjectRole",
+		methodPatch,
+		"/v1/projects/"+escapePathSegment(projectID)+"/members/"+escapePathSegment(userID)+"/custom-role",
+		body,
+	)
+}
+
 // BackendGetRAGConfig calls GET /v1/projects/{id}/rag-config on the Enterprise control plane.
 func (c *Client) BackendGetRAGConfig(ctx context.Context, projectID string) (*RagConfigResponse, error) {
 	return controlPlaneJSON[RagConfigResponse](
@@ -437,6 +485,260 @@ func (c *Client) BackendSetRAGConfig(
 		methodPut,
 		"/v1/projects/"+escapePathSegment(projectID)+"/rag-config",
 		body,
+	)
+}
+
+// ListProjectRoles calls GET /v1/projects/{id}/roles on the Enterprise control plane.
+func (c *Client) ListProjectRoles(
+	ctx context.Context,
+	projectID string,
+	params map[string]string,
+) (*ListProjectRolesResponse, error) {
+	return controlPlaneJSON[ListProjectRolesResponse](
+		ctx,
+		c,
+		"ListProjectRoles",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/roles"+encodeParams(params),
+		nil,
+	)
+}
+
+// CreateProjectRole calls POST /v1/projects/{id}/roles on the Enterprise control plane.
+func (c *Client) CreateProjectRole(
+	ctx context.Context,
+	projectID string,
+	body CreateProjectRoleRequest,
+) (*ProjectRoleResponse, error) {
+	return controlPlaneJSON[ProjectRoleResponse](
+		ctx,
+		c,
+		"CreateProjectRole",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/roles",
+		body,
+	)
+}
+
+// GetProjectRole calls GET /v1/projects/{id}/roles/{role_id} on the Enterprise control plane.
+func (c *Client) GetProjectRole(
+	ctx context.Context,
+	projectID string,
+	roleID string,
+) (*ProjectRoleResponse, error) {
+	return controlPlaneJSON[ProjectRoleResponse](
+		ctx,
+		c,
+		"GetProjectRole",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/roles/"+escapePathSegment(roleID),
+		nil,
+	)
+}
+
+// UpdateProjectRole calls PATCH /v1/projects/{id}/roles/{role_id} on the Enterprise control plane.
+func (c *Client) UpdateProjectRole(
+	ctx context.Context,
+	projectID string,
+	roleID string,
+	body UpdateProjectRoleRequest,
+) (*ProjectRoleResponse, error) {
+	return controlPlaneJSON[ProjectRoleResponse](
+		ctx,
+		c,
+		"UpdateProjectRole",
+		methodPatch,
+		"/v1/projects/"+escapePathSegment(projectID)+"/roles/"+escapePathSegment(roleID),
+		body,
+	)
+}
+
+// DeleteProjectRole calls DELETE /v1/projects/{id}/roles/{role_id} on the Enterprise control plane.
+func (c *Client) DeleteProjectRole(
+	ctx context.Context,
+	projectID string,
+	roleID string,
+) error {
+	return c.controlPlaneEmpty(
+		ctx,
+		"DeleteProjectRole",
+		methodDelete,
+		"/v1/projects/"+escapePathSegment(projectID)+"/roles/"+escapePathSegment(roleID),
+	)
+}
+
+// ListSamlDomains calls GET /v1/projects/{project_id}/saml/domains on the Enterprise control plane.
+func (c *Client) ListSamlDomains(ctx context.Context, projectID string) ([]SamlDomainResponse, error) {
+	out, err := controlPlaneJSON[[]SamlDomainResponse](ctx, c, "ListSamlDomains", methodGet, "/v1/projects/"+escapePathSegment(projectID)+"/saml/domains", nil)
+	if err != nil {
+		return nil, err
+	}
+	return *out, nil
+}
+
+// CreateSamlDomain calls POST /v1/projects/{project_id}/saml/domains on the Enterprise control plane.
+func (c *Client) CreateSamlDomain(
+	ctx context.Context,
+	projectID string,
+	body SamlDomainRequest,
+) (*SamlDomainResponse, error) {
+	return controlPlaneJSON[SamlDomainResponse](
+		ctx,
+		c,
+		"CreateSamlDomain",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/saml/domains",
+		body,
+	)
+}
+
+// VerifySamlDomain calls POST /v1/projects/{project_id}/saml/domains/{domain}/verify on the Enterprise control plane.
+func (c *Client) VerifySamlDomain(
+	ctx context.Context,
+	projectID string,
+	domain string,
+) error {
+	return c.controlPlaneEmpty(
+		ctx,
+		"VerifySamlDomain",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/saml/domains/"+escapePathSegment(domain)+"/verify",
+	)
+}
+
+// ListSamlProviders calls GET /v1/projects/{project_id}/saml/providers on the Enterprise control plane.
+func (c *Client) ListSamlProviders(ctx context.Context, projectID string) ([]SamlProviderResponse, error) {
+	out, err := controlPlaneJSON[[]SamlProviderResponse](ctx, c, "ListSamlProviders", methodGet, "/v1/projects/"+escapePathSegment(projectID)+"/saml/providers", nil)
+	if err != nil {
+		return nil, err
+	}
+	return *out, nil
+}
+
+// CreateSamlProvider calls POST /v1/projects/{project_id}/saml/providers on the Enterprise control plane.
+func (c *Client) CreateSamlProvider(
+	ctx context.Context,
+	projectID string,
+	body SamlProviderRequest,
+) (*SamlProviderResponse, error) {
+	return controlPlaneJSON[SamlProviderResponse](
+		ctx,
+		c,
+		"CreateSamlProvider",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/saml/providers",
+		body,
+	)
+}
+
+// UpdateSamlProvider calls PUT /v1/projects/{project_id}/saml/providers/{provider_id} on the Enterprise control plane.
+func (c *Client) UpdateSamlProvider(
+	ctx context.Context,
+	projectID string,
+	providerID string,
+	body SamlProviderRequest,
+) (*SamlProviderResponse, error) {
+	return controlPlaneJSON[SamlProviderResponse](
+		ctx,
+		c,
+		"UpdateSamlProvider",
+		methodPut,
+		"/v1/projects/"+escapePathSegment(projectID)+"/saml/providers/"+escapePathSegment(providerID),
+		body,
+	)
+}
+
+// DeleteSamlProvider calls DELETE /v1/projects/{project_id}/saml/providers/{provider_id} on the Enterprise control plane.
+func (c *Client) DeleteSamlProvider(
+	ctx context.Context,
+	projectID string,
+	providerID string,
+) error {
+	return c.controlPlaneEmpty(
+		ctx,
+		"DeleteSamlProvider",
+		methodDelete,
+		"/v1/projects/"+escapePathSegment(projectID)+"/saml/providers/"+escapePathSegment(providerID),
+	)
+}
+
+// ListScimConnections calls GET /v1/projects/{id}/scim/connections on the Enterprise control plane.
+func (c *Client) ListScimConnections(
+	ctx context.Context,
+	projectID string,
+) (*ListScimConnectionsResponse, error) {
+	return controlPlaneJSON[ListScimConnectionsResponse](
+		ctx,
+		c,
+		"ListScimConnections",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections",
+		nil,
+	)
+}
+
+// CreateScimConnection calls POST /v1/projects/{id}/scim/connections on the Enterprise control plane.
+func (c *Client) CreateScimConnection(
+	ctx context.Context,
+	projectID string,
+	body CreateScimConnectionRequest,
+) (*CreateScimConnectionResponse, error) {
+	return controlPlaneJSON[CreateScimConnectionResponse](
+		ctx,
+		c,
+		"CreateScimConnection",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections",
+		body,
+	)
+}
+
+// ListScimAdminGroups calls GET /v1/projects/{id}/scim/connections/{connection_id}/groups on the Enterprise control plane.
+func (c *Client) ListScimAdminGroups(
+	ctx context.Context,
+	projectID string,
+	connectionID string,
+) (*ListScimAdminGroupsResponse, error) {
+	return controlPlaneJSON[ListScimAdminGroupsResponse](
+		ctx,
+		c,
+		"ListScimAdminGroups",
+		methodGet,
+		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections/"+escapePathSegment(connectionID)+"/groups",
+		nil,
+	)
+}
+
+// ReplaceScimGroupRoles calls PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles on the Enterprise control plane.
+func (c *Client) ReplaceScimGroupRoles(
+	ctx context.Context,
+	projectID string,
+	connectionID string,
+	groupID string,
+	body ReplaceScimGroupRolesRequest,
+) error {
+	return c.controlPlaneSend(
+		ctx,
+		"ReplaceScimGroupRoles",
+		methodPut,
+		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections/"+escapePathSegment(connectionID)+"/groups/"+escapePathSegment(groupID)+"/roles",
+		body,
+	)
+}
+
+// RotateScimConnectionSecret calls POST /v1/projects/{id}/scim/connections/{connection_id}/rotate on the Enterprise control plane.
+func (c *Client) RotateScimConnectionSecret(
+	ctx context.Context,
+	projectID string,
+	connectionID string,
+) (*CreateScimConnectionResponse, error) {
+	return controlPlaneJSON[CreateScimConnectionResponse](
+		ctx,
+		c,
+		"RotateScimConnectionSecret",
+		methodPost,
+		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections/"+escapePathSegment(connectionID)+"/rotate",
+		nil,
 	)
 }
 

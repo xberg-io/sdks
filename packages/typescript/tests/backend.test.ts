@@ -412,6 +412,29 @@ const cases: BackendCase[] = [
     call: (client) => client.backendFetchIntegrationDocument(PATH_ID, PATH_ID, PATH_ID),
   },
   {
+    name: "backendGetIntegrationSync",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/integrations/project%20%2F%3F%23/sync",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.backendGetIntegrationSync(PATH_ID, PATH_ID),
+  },
+  {
+    name: "backendSetIntegrationSync",
+    method: "PUT",
+    path: "/v1/projects/project%20%2F%3F%23/integrations/project%20%2F%3F%23/sync",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { enabled: false },
+    call: (client) => client.backendSetIntegrationSync(PATH_ID, PATH_ID, { enabled: false }),
+  },
+  {
     name: "listInvitations",
     method: "GET",
     path: "/v1/projects/project%20%2F%3F%23/invitations",
@@ -502,6 +525,19 @@ const cases: BackendCase[] = [
     call: (client) => client.updateMemberRole(PATH_ID, PATH_ID, { role: "value" }),
   },
   {
+    name: "assignProjectRole",
+    method: "PATCH",
+    path: "/v1/projects/project%20%2F%3F%23/members/project%20%2F%3F%23/custom-role",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { custom_role_ids: ["22222222-2222-2222-2222-222222222222"] },
+    call: (client) =>
+      client.assignProjectRole(PATH_ID, PATH_ID, { custom_role_ids: ["22222222-2222-2222-2222-222222222222"] }),
+  },
+  {
     name: "backendGetRagConfig",
     method: "GET",
     path: "/v1/projects/project%20%2F%3F%23/rag-config",
@@ -527,6 +563,145 @@ const cases: BackendCase[] = [
     call: (client) => client.backendSetRagConfig(PATH_ID, { enabled: true }),
   },
   {
+    name: "listProjectRoles",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/roles",
+    query: { limit: "2", offset: "2" },
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.listProjectRoles(PATH_ID, { limit: 2, offset: 2 }),
+  },
+  {
+    name: "createProjectRole",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/roles",
+    query: {},
+    status: 201,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { name: "Reviewer", permissions: ["job.read"] },
+    call: (client) => client.createProjectRole(PATH_ID, { name: "Reviewer", permissions: ["job.read"] }),
+  },
+  {
+    name: "getProjectRole",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/roles/project%20%2F%3F%23",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.getProjectRole(PATH_ID, PATH_ID),
+  },
+  {
+    name: "updateProjectRole",
+    method: "PATCH",
+    path: "/v1/projects/project%20%2F%3F%23/roles/project%20%2F%3F%23",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { name: "Reviewer", permissions: ["job.read"] },
+    call: (client) => client.updateProjectRole(PATH_ID, PATH_ID, { name: "Reviewer", permissions: ["job.read"] }),
+  },
+  {
+    name: "deleteProjectRole",
+    method: "DELETE",
+    path: "/v1/projects/project%20%2F%3F%23/roles/project%20%2F%3F%23",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.deleteProjectRole(PATH_ID, PATH_ID),
+  },
+  {
+    name: "listSamlDomains",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/saml/domains",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.listSamlDomains(PATH_ID),
+  },
+  {
+    name: "createSamlDomain",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/saml/domains",
+    query: {},
+    status: 201,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { provider_id: "22222222-2222-2222-2222-222222222222", domain: "example.test" },
+    call: (client) =>
+      client.createSamlDomain(PATH_ID, { provider_id: "22222222-2222-2222-2222-222222222222", domain: "example.test" }),
+  },
+  {
+    name: "verifySamlDomain",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/saml/domains/project%20%2F%3F%23/verify",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.verifySamlDomain(PATH_ID, PATH_ID),
+  },
+  {
+    name: "listSamlProviders",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/saml/providers",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.listSamlProviders(PATH_ID),
+  },
+  {
+    name: "createSamlProvider",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/saml/providers",
+    query: {},
+    status: 201,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { label: "Okta", metadata_xml: "<EntityDescriptor/>" },
+    call: (client) => client.createSamlProvider(PATH_ID, { label: "Okta", metadata_xml: "<EntityDescriptor/>" }),
+  },
+  {
+    name: "updateSamlProvider",
+    method: "PUT",
+    path: "/v1/projects/project%20%2F%3F%23/saml/providers/project%20%2F%3F%23",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { label: "Okta", metadata_xml: "<EntityDescriptor/>" },
+    call: (client) =>
+      client.updateSamlProvider(PATH_ID, PATH_ID, { label: "Okta", metadata_xml: "<EntityDescriptor/>" }),
+  },
+  {
+    name: "deleteSamlProvider",
+    method: "DELETE",
+    path: "/v1/projects/project%20%2F%3F%23/saml/providers/project%20%2F%3F%23",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.deleteSamlProvider(PATH_ID, PATH_ID),
+  },
+  {
     name: "sandboxExtract",
     method: "POST",
     path: "/v1/projects/project%20%2F%3F%23/sandbox/extract",
@@ -536,6 +711,64 @@ const cases: BackendCase[] = [
     binary: false,
     multipart: true,
     call: (client) => client.sandboxExtract(PATH_ID, { file: new Uint8Array([65, 66]) }),
+  },
+  {
+    name: "listScimConnections",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/scim/connections",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.listScimConnections(PATH_ID),
+  },
+  {
+    name: "createScimConnection",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/scim/connections",
+    query: {},
+    status: 201,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { display_name: "Okta SCIM" },
+    call: (client) => client.createScimConnection(PATH_ID, { display_name: "Okta SCIM" }),
+  },
+  {
+    name: "listScimAdminGroups",
+    method: "GET",
+    path: "/v1/projects/project%20%2F%3F%23/scim/connections/project%20%2F%3F%23/groups",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.listScimAdminGroups(PATH_ID, PATH_ID),
+  },
+  {
+    name: "replaceScimGroupRoles",
+    method: "PUT",
+    path: "/v1/projects/project%20%2F%3F%23/scim/connections/project%20%2F%3F%23/groups/project%20%2F%3F%23/roles",
+    query: {},
+    status: 204,
+    public: false,
+    binary: false,
+    multipart: false,
+    body: { role_ids: ["22222222-2222-2222-2222-222222222222"] },
+    call: (client) =>
+      client.replaceScimGroupRoles(PATH_ID, PATH_ID, PATH_ID, { role_ids: ["22222222-2222-2222-2222-222222222222"] }),
+  },
+  {
+    name: "rotateScimConnectionSecret",
+    method: "POST",
+    path: "/v1/projects/project%20%2F%3F%23/scim/connections/project%20%2F%3F%23/rotate",
+    query: {},
+    status: 200,
+    public: false,
+    binary: false,
+    multipart: false,
+    call: (client) => client.rotateScimConnectionSecret(PATH_ID, PATH_ID),
   },
   {
     name: "getUsage",
@@ -667,7 +900,7 @@ const cases: BackendCase[] = [
 ];
 
 describe("Enterprise backend operations", () => {
-  it("covers every one of the 51 operations", () => expect(cases).toHaveLength(51));
+  it("covers every one of the 71 operations", () => expect(cases).toHaveLength(71));
   for (const scenario of cases) {
     it(`${scenario.name} uses the declared control-plane wire contract`, async () => {
       let calls = 0;
@@ -739,6 +972,38 @@ it("returns the user profile fields from both profile operations", async () => {
   expect(await client.getUserProfile()).toEqual(profile);
   expect(await client.updateUserProfile({ display_name: "Updated" })).toEqual(profile);
 });
+
+it("returns SAML lists as arrays and custom roles with their permissions", async () => {
+  const provider = { id: "33333333-3333-3333-3333-333333333333", label: "Okta", enabled: true };
+  const role = { id: "22222222-2222-2222-2222-222222222222", name: "Reviewer", permissions: ["job.read"] };
+  const client = new XbergClient({
+    baseUrl: DATA_URL,
+    controlPlaneBaseUrl: CONTROL_URL,
+    target: "enterprise",
+    fetch: async (input) =>
+      Response.json(new URL(String(input)).pathname.endsWith("/saml/providers") ? [provider] : role),
+  });
+  expect(await client.listSamlProviders("p")).toEqual([provider]);
+  expect(await client.getProjectRole("p", role.id)).toEqual(role);
+});
+
+for (const scenario of [
+  { name: "getProjectRole", call: (client: XbergClient) => client.getProjectRole("p", "missing") },
+  {
+    name: "replaceScimGroupRoles",
+    call: (client: XbergClient) => client.replaceScimGroupRoles("p", "c", "g", { role_ids: [] }),
+  },
+]) {
+  it(`${scenario.name} propagates a control-plane error status`, async () => {
+    const client = new XbergClient({
+      baseUrl: DATA_URL,
+      controlPlaneBaseUrl: CONTROL_URL,
+      target: "enterprise",
+      fetch: async () => Response.json({ error: { message: "not found" } }, { status: 404 }),
+    });
+    await expect(scenario.call(client)).rejects.toMatchObject({ status: 404 });
+  });
+}
 
 describe("backend credential and redirect boundaries", () => {
   for (const scenario of cases) {

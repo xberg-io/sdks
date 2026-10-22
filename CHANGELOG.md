@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Enterprise custom project roles: Python `list_project_roles` / `create_project_role` /
+  `get_project_role` / `update_project_role` / `delete_project_role` / `assign_project_role`
+  (sync and async), TypeScript `listProjectRoles` / `createProjectRole` / `getProjectRole` /
+  `updateProjectRole` / `deleteProjectRole` / `assignProjectRole`, and the matching Go methods.
+- Enterprise SAML administration: `list_saml_providers` / `create_saml_provider` /
+  `update_saml_provider` / `delete_saml_provider` and `list_saml_domains` / `create_saml_domain` /
+  `verify_saml_domain` in Python, with camelCase TypeScript and PascalCase Go equivalents.
+- Enterprise SCIM connection administration: `list_scim_connections` / `create_scim_connection` /
+  `rotate_scim_connection_secret` / `list_scim_admin_groups` / `replace_scim_group_roles` in Python,
+  with camelCase TypeScript and PascalCase Go equivalents.
+- Enterprise integration synchronization: Python `backend_get_integration_sync` /
+  `backend_set_integration_sync`, TypeScript `backendGetIntegrationSync` / `backendSetIntegrationSync`,
+  and Go `BackendGetIntegrationSync` / `BackendSetIntegrationSync`, distinct from the Pro methods.
+  The SAML and SCIM protocol endpoints called by identity providers stay deliberately unexposed.
+
 ## [0.8.1] - 2026-10-22
 
 ### Fixed

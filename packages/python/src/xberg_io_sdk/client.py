@@ -85,9 +85,15 @@ from xberg_io_sdk._generated_backend.models.create_api_key_response import (
 from xberg_io_sdk._generated_backend.models.create_invitation_response import (
     CreateInvitationResponse as BackendCreateInvitationResponse,
 )
+from xberg_io_sdk._generated_backend.models.create_scim_connection_response import (
+    CreateScimConnectionResponse as BackendCreateScimConnectionResponse,
+)
 from xberg_io_sdk._generated_backend.models.health_response import HealthResponse as BackendHealthResponse
 from xberg_io_sdk._generated_backend.models.integration_response import (
     IntegrationResponse as BackendIntegrationResponse,
+)
+from xberg_io_sdk._generated_backend.models.integration_sync_response import (
+    IntegrationSyncResponse as BackendIntegrationSyncResponse,
 )
 from xberg_io_sdk._generated_backend.models.list_api_keys_response import (
     ListApiKeysResponse as BackendListApiKeysResponse,
@@ -107,8 +113,17 @@ from xberg_io_sdk._generated_backend.models.list_invitations_response import (
 from xberg_io_sdk._generated_backend.models.list_members_response import (
     ListMembersResponse as BackendListMembersResponse,
 )
+from xberg_io_sdk._generated_backend.models.list_project_roles_response import (
+    ListProjectRolesResponse as BackendListProjectRolesResponse,
+)
 from xberg_io_sdk._generated_backend.models.list_projects_response import (
     ListProjectsResponse as BackendListProjectsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_scim_admin_groups_response import (
+    ListScimAdminGroupsResponse as BackendListScimAdminGroupsResponse,
+)
+from xberg_io_sdk._generated_backend.models.list_scim_connections_response import (
+    ListScimConnectionsResponse as BackendListScimConnectionsResponse,
 )
 from xberg_io_sdk._generated_backend.models.list_webhook_deliveries_response import (
     ListWebhookDeliveriesResponse as BackendListWebhookDeliveriesResponse,
@@ -120,10 +135,17 @@ from xberg_io_sdk._generated_backend.models.login_response import LoginResponse 
 from xberg_io_sdk._generated_backend.models.member_response import MemberResponse as BackendMemberResponse
 from xberg_io_sdk._generated_backend.models.portal_response import PortalResponse as BackendPortalResponse
 from xberg_io_sdk._generated_backend.models.project_response import ProjectResponse as BackendProjectResponse
+from xberg_io_sdk._generated_backend.models.project_role_response import (
+    ProjectRoleResponse as BackendProjectRoleResponse,
+)
 from xberg_io_sdk._generated_backend.models.rag_config_response import RagConfigResponse as BackendRagConfigResponse
 from xberg_io_sdk._generated_backend.models.readiness_response import ReadinessResponse as BackendReadinessResponse
 from xberg_io_sdk._generated_backend.models.retry_webhook_delivery_response import (
     RetryWebhookDeliveryResponse as BackendRetryWebhookDeliveryResponse,
+)
+from xberg_io_sdk._generated_backend.models.saml_domain_response import SamlDomainResponse as BackendSamlDomainResponse
+from xberg_io_sdk._generated_backend.models.saml_provider_response import (
+    SamlProviderResponse as BackendSamlProviderResponse,
 )
 from xberg_io_sdk._generated_backend.models.sandbox_extract_response import (
     SandboxExtractResponse as BackendSandboxExtractResponse,
@@ -168,6 +190,9 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_backend.models.accept_invitation_request import (
         AcceptInvitationRequest as BackendAcceptInvitationRequest,
     )
+    from xberg_io_sdk._generated_backend.models.assign_project_role_request import (
+        AssignProjectRoleRequest as BackendAssignProjectRoleRequest,
+    )
     from xberg_io_sdk._generated_backend.models.create_api_key_request import (
         CreateApiKeyRequest as BackendCreateApiKeyRequest,
     )
@@ -180,10 +205,26 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_backend.models.create_project_request import (
         CreateProjectRequest as BackendCreateProjectRequest,
     )
+    from xberg_io_sdk._generated_backend.models.create_project_role_request import (
+        CreateProjectRoleRequest as BackendCreateProjectRoleRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.create_scim_connection_request import (
+        CreateScimConnectionRequest as BackendCreateScimConnectionRequest,
+    )
     from xberg_io_sdk._generated_backend.models.create_webhook_request import (
         CreateWebhookRequest as BackendCreateWebhookRequest,
     )
     from xberg_io_sdk._generated_backend.models.login_request import LoginRequest as BackendLoginRequest
+    from xberg_io_sdk._generated_backend.models.replace_scim_group_roles_request import (
+        ReplaceScimGroupRolesRequest as BackendReplaceScimGroupRolesRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.saml_domain_request import SamlDomainRequest as BackendSamlDomainRequest
+    from xberg_io_sdk._generated_backend.models.saml_provider_request import (
+        SamlProviderRequest as BackendSamlProviderRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.set_integration_sync_request import (
+        SetIntegrationSyncRequest as BackendSetIntegrationSyncRequest,
+    )
     from xberg_io_sdk._generated_backend.models.set_rag_config_request import (
         SetRagConfigRequest as BackendSetRagConfigRequest,
     )
@@ -192,6 +233,9 @@ if TYPE_CHECKING:
     )
     from xberg_io_sdk._generated_backend.models.update_project_request import (
         UpdateProjectRequest as BackendUpdateProjectRequest,
+    )
+    from xberg_io_sdk._generated_backend.models.update_project_role_request import (
+        UpdateProjectRoleRequest as BackendUpdateProjectRoleRequest,
     )
     from xberg_io_sdk._generated_backend.models.update_user_profile_request import (
         UpdateUserProfileRequest as BackendUpdateUserProfileRequest,
@@ -512,6 +556,13 @@ def _expect_object(payload: Any, what: str) -> Mapping[str, Any]:
     cover it. The TypeScript client raises its base error here too.
     """
     if not isinstance(payload, Mapping):
+        raise XbergError(f"unexpected {what} response shape: {payload!r}", status_code=None)
+    return payload
+
+
+def _expect_list(payload: Any, what: str) -> list[Any]:
+    """Assert a decoded response body is a JSON array, raising :class:`XbergError` like :func:`_expect_object`."""
+    if not isinstance(payload, list):
         raise XbergError(f"unexpected {what} response shape: {payload!r}", status_code=None)
     return payload
 
@@ -1821,6 +1872,21 @@ class XbergClient(_BaseClient):
             "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents/{_q(document_id)}"
         )
 
+    def backend_get_integration_sync(self, project_id: str, integration_id: str) -> BackendIntegrationSyncResponse:
+        """Enterprise backend: Report the durable synchronization state for one source integration (``GET /v1/projects/{id}/integrations/{iid}/sync``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync"
+        )
+        return BackendIntegrationSyncResponse.from_dict(_expect_object(payload, "get_integration_sync"))
+
+    def backend_set_integration_sync(
+        self, project_id: str, integration_id: str, body: BackendSetIntegrationSyncRequest | Mapping[str, Any]
+    ) -> None:
+        """Enterprise backend: Enable or disable durable synchronization for one source integration (``PUT /v1/projects/{id}/integrations/{iid}/sync``)."""
+        self._request_control_none(
+            "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
+        )
+
     def list_invitations(
         self, project_id: str, *, limit: int | None = None, offset: int | None = None
     ) -> BackendListInvitationsResponse:
@@ -1869,6 +1935,14 @@ class XbergClient(_BaseClient):
         )
         return BackendMemberResponse.from_dict(_expect_object(payload, "update_member_role"))
 
+    def assign_project_role(
+        self, project_id: str, user_id: str, body: BackendAssignProjectRoleRequest | Mapping[str, Any]
+    ) -> None:
+        """Enterprise backend: Replace the additive custom roles for an existing MEMBER project membership (``PATCH /v1/projects/{id}/members/{user_id}/custom-role``)."""
+        self._request_control_none(
+            "PATCH", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}/custom-role", json_body=_coerce_body(body)
+        )
+
     def backend_get_rag_config(self, project_id: str) -> BackendRagConfigResponse:
         """Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``)."""
         payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/rag-config")
@@ -1883,12 +1957,141 @@ class XbergClient(_BaseClient):
         )
         return BackendRagConfigResponse.from_dict(_expect_object(payload, "set_rag_config"))
 
+    def list_project_roles(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListProjectRolesResponse:
+        """Enterprise backend: List the custom authorization roles configured for a project (``GET /v1/projects/{id}/roles``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/roles", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListProjectRolesResponse.from_dict(_expect_object(payload, "list_project_roles"))
+
+    def create_project_role(
+        self, project_id: str, body: BackendCreateProjectRoleRequest | Mapping[str, Any]
+    ) -> BackendProjectRoleResponse:
+        """Enterprise backend: Create a custom project role with an explicit set of permissions (``POST /v1/projects/{id}/roles``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/roles", json_body=_coerce_body(body)
+        )
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "create_project_role"))
+
+    def get_project_role(self, project_id: str, role_id: str) -> BackendProjectRoleResponse:
+        """Enterprise backend: Retrieve one custom project role and its exact permission set (``GET /v1/projects/{id}/roles/{role_id}``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}")
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "get_project_role"))
+
+    def update_project_role(
+        self, project_id: str, role_id: str, body: BackendUpdateProjectRoleRequest | Mapping[str, Any]
+    ) -> BackendProjectRoleResponse:
+        """Enterprise backend: Replace a custom project role's name, description, and permissions (``PATCH /v1/projects/{id}/roles/{role_id}``)."""
+        payload = self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}", json_body=_coerce_body(body)
+        )
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "update_project_role"))
+
+    def delete_project_role(self, project_id: str, role_id: str) -> None:
+        """Enterprise backend: Delete a custom project role and clear it from members and invitations (``DELETE /v1/projects/{id}/roles/{role_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}")
+
+    def list_saml_domains(self, project_id: str) -> list[BackendSamlDomainResponse]:
+        """Enterprise backend: List project SAML discovery domains and their DNS verification state (``GET /v1/projects/{project_id}/saml/domains``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/saml/domains")
+        return [
+            BackendSamlDomainResponse.from_dict(_expect_object(item, "list_domains"))
+            for item in _expect_list(payload, "list_domains")
+        ]
+
+    def create_saml_domain(
+        self, project_id: str, body: BackendSamlDomainRequest | Mapping[str, Any]
+    ) -> BackendSamlDomainResponse:
+        """Enterprise backend: Create a project SAML discovery domain with a DNS TXT verification challenge (``POST /v1/projects/{project_id}/saml/domains``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/domains", json_body=_coerce_body(body)
+        )
+        return BackendSamlDomainResponse.from_dict(_expect_object(payload, "create_domain"))
+
+    def verify_saml_domain(self, project_id: str, domain: str) -> None:
+        """Enterprise backend: Check the hosted DNS TXT challenge before enabling domain-based SAML discovery (``POST /v1/projects/{project_id}/saml/domains/{domain}/verify``)."""
+        self._request_control_none("POST", f"/v1/projects/{_q(project_id)}/saml/domains/{_q(domain)}/verify")
+
+    def list_saml_providers(self, project_id: str) -> list[BackendSamlProviderResponse]:
+        """Enterprise backend: List the SAML identity providers configured for a project (``GET /v1/projects/{project_id}/saml/providers``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/saml/providers")
+        return [
+            BackendSamlProviderResponse.from_dict(_expect_object(item, "list_providers"))
+            for item in _expect_list(payload, "list_providers")
+        ]
+
+    def create_saml_provider(
+        self, project_id: str, body: BackendSamlProviderRequest | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: Create a project SAML identity provider from uploaded metadata XML (``POST /v1/projects/{project_id}/saml/providers``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/providers", json_body=_coerce_body(body)
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "create_provider"))
+
+    def update_saml_provider(
+        self, project_id: str, provider_id: str, body: BackendSamlProviderRequest | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: Replace a project SAML provider configuration and its signing metadata (``PUT /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
+        payload = self._request_control_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}", json_body=_coerce_body(body)
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "update_provider"))
+
+    def delete_saml_provider(self, project_id: str, provider_id: str) -> None:
+        """Enterprise backend: Delete a project SAML provider and its dependent domains and identities (``DELETE /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
+        self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}")
+
     def sandbox_extract(self, project_id: str, file: FileInput) -> BackendSandboxExtractResponse:
         """Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``)."""
         payload = self._request_control_json(
             "POST", f"/v1/projects/{_q(project_id)}/sandbox/extract", files=_multipart_files([file])
         )
         return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "sandbox_extract"))
+
+    def list_scim_connections(self, project_id: str) -> BackendListScimConnectionsResponse:
+        """Enterprise backend: List the project's SCIM provisioning connections without client secrets (``GET /v1/projects/{id}/scim/connections``)."""
+        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/scim/connections")
+        return BackendListScimConnectionsResponse.from_dict(_expect_object(payload, "list_scim_connections"))
+
+    def create_scim_connection(
+        self, project_id: str, body: BackendCreateScimConnectionRequest | Mapping[str, Any]
+    ) -> BackendCreateScimConnectionResponse:
+        """Enterprise backend: Create the project's SCIM provisioning connection; the client secret is returned once (``POST /v1/projects/{id}/scim/connections``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections", json_body=_coerce_body(body)
+        )
+        return BackendCreateScimConnectionResponse.from_dict(_expect_object(payload, "create_scim_connection"))
+
+    def list_scim_admin_groups(self, project_id: str, connection_id: str) -> BackendListScimAdminGroupsResponse:
+        """Enterprise backend: List provisioned SCIM groups and the project roles mapped to each (``GET /v1/projects/{id}/scim/connections/{connection_id}/groups``)."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups"
+        )
+        return BackendListScimAdminGroupsResponse.from_dict(_expect_object(payload, "list_scim_admin_groups"))
+
+    def replace_scim_group_roles(
+        self,
+        project_id: str,
+        connection_id: str,
+        group_id: str,
+        body: BackendReplaceScimGroupRolesRequest | Mapping[str, Any],
+    ) -> None:
+        """Enterprise backend: Replace the complete project-role mapping for one provisioned SCIM group (``PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles``)."""
+        self._request_control_none(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups/{_q(group_id)}/roles",
+            json_body=_coerce_body(body),
+        )
+
+    def rotate_scim_connection_secret(self, project_id: str, connection_id: str) -> BackendCreateScimConnectionResponse:
+        """Enterprise backend: Rotate a SCIM connection credential and revoke every token issued before it (``POST /v1/projects/{id}/scim/connections/{connection_id}/rotate``)."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/rotate"
+        )
+        return BackendCreateScimConnectionResponse.from_dict(_expect_object(payload, "rotate_scim_connection_secret"))
 
     def get_usage(self, project_id: str, *, start_date: str, end_date: str) -> BackendUsageResponse:
         """Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``)."""
@@ -3048,6 +3251,23 @@ class AsyncXbergClient(_BaseClient):
             "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/documents/{_q(document_id)}"
         )
 
+    async def backend_get_integration_sync(
+        self, project_id: str, integration_id: str
+    ) -> BackendIntegrationSyncResponse:
+        """Enterprise backend: Report the durable synchronization state for one source integration (``GET /v1/projects/{id}/integrations/{iid}/sync``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync"
+        )
+        return BackendIntegrationSyncResponse.from_dict(_expect_object(payload, "get_integration_sync"))
+
+    async def backend_set_integration_sync(
+        self, project_id: str, integration_id: str, body: BackendSetIntegrationSyncRequest | Mapping[str, Any]
+    ) -> None:
+        """Enterprise backend: Enable or disable durable synchronization for one source integration (``PUT /v1/projects/{id}/integrations/{iid}/sync``)."""
+        await self._request_control_none(
+            "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
+        )
+
     async def list_invitations(
         self, project_id: str, *, limit: int | None = None, offset: int | None = None
     ) -> BackendListInvitationsResponse:
@@ -3096,6 +3316,14 @@ class AsyncXbergClient(_BaseClient):
         )
         return BackendMemberResponse.from_dict(_expect_object(payload, "update_member_role"))
 
+    async def assign_project_role(
+        self, project_id: str, user_id: str, body: BackendAssignProjectRoleRequest | Mapping[str, Any]
+    ) -> None:
+        """Enterprise backend: Replace the additive custom roles for an existing MEMBER project membership (``PATCH /v1/projects/{id}/members/{user_id}/custom-role``)."""
+        await self._request_control_none(
+            "PATCH", f"/v1/projects/{_q(project_id)}/members/{_q(user_id)}/custom-role", json_body=_coerce_body(body)
+        )
+
     async def backend_get_rag_config(self, project_id: str) -> BackendRagConfigResponse:
         """Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``)."""
         payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/rag-config")
@@ -3110,12 +3338,143 @@ class AsyncXbergClient(_BaseClient):
         )
         return BackendRagConfigResponse.from_dict(_expect_object(payload, "set_rag_config"))
 
+    async def list_project_roles(
+        self, project_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> BackendListProjectRolesResponse:
+        """Enterprise backend: List the custom authorization roles configured for a project (``GET /v1/projects/{id}/roles``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/roles", params=_query_params(limit=limit, offset=offset)
+        )
+        return BackendListProjectRolesResponse.from_dict(_expect_object(payload, "list_project_roles"))
+
+    async def create_project_role(
+        self, project_id: str, body: BackendCreateProjectRoleRequest | Mapping[str, Any]
+    ) -> BackendProjectRoleResponse:
+        """Enterprise backend: Create a custom project role with an explicit set of permissions (``POST /v1/projects/{id}/roles``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/roles", json_body=_coerce_body(body)
+        )
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "create_project_role"))
+
+    async def get_project_role(self, project_id: str, role_id: str) -> BackendProjectRoleResponse:
+        """Enterprise backend: Retrieve one custom project role and its exact permission set (``GET /v1/projects/{id}/roles/{role_id}``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}")
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "get_project_role"))
+
+    async def update_project_role(
+        self, project_id: str, role_id: str, body: BackendUpdateProjectRoleRequest | Mapping[str, Any]
+    ) -> BackendProjectRoleResponse:
+        """Enterprise backend: Replace a custom project role's name, description, and permissions (``PATCH /v1/projects/{id}/roles/{role_id}``)."""
+        payload = await self._request_control_json(
+            "PATCH", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}", json_body=_coerce_body(body)
+        )
+        return BackendProjectRoleResponse.from_dict(_expect_object(payload, "update_project_role"))
+
+    async def delete_project_role(self, project_id: str, role_id: str) -> None:
+        """Enterprise backend: Delete a custom project role and clear it from members and invitations (``DELETE /v1/projects/{id}/roles/{role_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/roles/{_q(role_id)}")
+
+    async def list_saml_domains(self, project_id: str) -> list[BackendSamlDomainResponse]:
+        """Enterprise backend: List project SAML discovery domains and their DNS verification state (``GET /v1/projects/{project_id}/saml/domains``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/saml/domains")
+        return [
+            BackendSamlDomainResponse.from_dict(_expect_object(item, "list_domains"))
+            for item in _expect_list(payload, "list_domains")
+        ]
+
+    async def create_saml_domain(
+        self, project_id: str, body: BackendSamlDomainRequest | Mapping[str, Any]
+    ) -> BackendSamlDomainResponse:
+        """Enterprise backend: Create a project SAML discovery domain with a DNS TXT verification challenge (``POST /v1/projects/{project_id}/saml/domains``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/domains", json_body=_coerce_body(body)
+        )
+        return BackendSamlDomainResponse.from_dict(_expect_object(payload, "create_domain"))
+
+    async def verify_saml_domain(self, project_id: str, domain: str) -> None:
+        """Enterprise backend: Check the hosted DNS TXT challenge before enabling domain-based SAML discovery (``POST /v1/projects/{project_id}/saml/domains/{domain}/verify``)."""
+        await self._request_control_none("POST", f"/v1/projects/{_q(project_id)}/saml/domains/{_q(domain)}/verify")
+
+    async def list_saml_providers(self, project_id: str) -> list[BackendSamlProviderResponse]:
+        """Enterprise backend: List the SAML identity providers configured for a project (``GET /v1/projects/{project_id}/saml/providers``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/saml/providers")
+        return [
+            BackendSamlProviderResponse.from_dict(_expect_object(item, "list_providers"))
+            for item in _expect_list(payload, "list_providers")
+        ]
+
+    async def create_saml_provider(
+        self, project_id: str, body: BackendSamlProviderRequest | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: Create a project SAML identity provider from uploaded metadata XML (``POST /v1/projects/{project_id}/saml/providers``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/providers", json_body=_coerce_body(body)
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "create_provider"))
+
+    async def update_saml_provider(
+        self, project_id: str, provider_id: str, body: BackendSamlProviderRequest | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: Replace a project SAML provider configuration and its signing metadata (``PUT /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
+        payload = await self._request_control_json(
+            "PUT", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}", json_body=_coerce_body(body)
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "update_provider"))
+
+    async def delete_saml_provider(self, project_id: str, provider_id: str) -> None:
+        """Enterprise backend: Delete a project SAML provider and its dependent domains and identities (``DELETE /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
+        await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}")
+
     async def sandbox_extract(self, project_id: str, file: FileInput) -> BackendSandboxExtractResponse:
         """Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``)."""
         payload = await self._request_control_json(
             "POST", f"/v1/projects/{_q(project_id)}/sandbox/extract", files=_multipart_files([file])
         )
         return BackendSandboxExtractResponse.from_dict(_expect_object(payload, "sandbox_extract"))
+
+    async def list_scim_connections(self, project_id: str) -> BackendListScimConnectionsResponse:
+        """Enterprise backend: List the project's SCIM provisioning connections without client secrets (``GET /v1/projects/{id}/scim/connections``)."""
+        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/scim/connections")
+        return BackendListScimConnectionsResponse.from_dict(_expect_object(payload, "list_scim_connections"))
+
+    async def create_scim_connection(
+        self, project_id: str, body: BackendCreateScimConnectionRequest | Mapping[str, Any]
+    ) -> BackendCreateScimConnectionResponse:
+        """Enterprise backend: Create the project's SCIM provisioning connection; the client secret is returned once (``POST /v1/projects/{id}/scim/connections``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections", json_body=_coerce_body(body)
+        )
+        return BackendCreateScimConnectionResponse.from_dict(_expect_object(payload, "create_scim_connection"))
+
+    async def list_scim_admin_groups(self, project_id: str, connection_id: str) -> BackendListScimAdminGroupsResponse:
+        """Enterprise backend: List provisioned SCIM groups and the project roles mapped to each (``GET /v1/projects/{id}/scim/connections/{connection_id}/groups``)."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups"
+        )
+        return BackendListScimAdminGroupsResponse.from_dict(_expect_object(payload, "list_scim_admin_groups"))
+
+    async def replace_scim_group_roles(
+        self,
+        project_id: str,
+        connection_id: str,
+        group_id: str,
+        body: BackendReplaceScimGroupRolesRequest | Mapping[str, Any],
+    ) -> None:
+        """Enterprise backend: Replace the complete project-role mapping for one provisioned SCIM group (``PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles``)."""
+        await self._request_control_none(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups/{_q(group_id)}/roles",
+            json_body=_coerce_body(body),
+        )
+
+    async def rotate_scim_connection_secret(
+        self, project_id: str, connection_id: str
+    ) -> BackendCreateScimConnectionResponse:
+        """Enterprise backend: Rotate a SCIM connection credential and revoke every token issued before it (``POST /v1/projects/{id}/scim/connections/{connection_id}/rotate``)."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/rotate"
+        )
+        return BackendCreateScimConnectionResponse.from_dict(_expect_object(payload, "rotate_scim_connection_secret"))
 
     async def get_usage(self, project_id: str, *, start_date: str, end_date: str) -> BackendUsageResponse:
         """Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``)."""

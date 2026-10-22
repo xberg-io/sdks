@@ -195,6 +195,8 @@ All backend operations use the configured control-plane origin and credential.
 | `backend_disconnect_integration` | Enterprise backend: Disconnect an integration (revoke OAuth connection) (``POST /v1/projects/{id}/integrations/{iid}/disconnect``). |
 | `backend_list_integration_documents` | Enterprise backend: List documents in a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents``). |
 | `backend_fetch_integration_document` | Enterprise backend: Fetch a single document from a connected integration (``GET /v1/projects/{id}/integrations/{iid}/documents/{doc_id}``). |
+| `backend_get_integration_sync` | Enterprise backend: Report the durable synchronization state for one source integration (``GET /v1/projects/{id}/integrations/{iid}/sync``). |
+| `backend_set_integration_sync` | Enterprise backend: Enable or disable durable synchronization for one source integration (``PUT /v1/projects/{id}/integrations/{iid}/sync``). |
 | `list_invitations` | Enterprise backend: List pending invitations for a project (``GET /v1/projects/{id}/invitations``). |
 | `invite_user` | Enterprise backend: Create a project invitation (sends token for email delivery by frontend) (``POST /v1/projects/{id}/invitations``). |
 | `revoke_invitation` | Enterprise backend: Revoke a pending invitation (``DELETE /v1/projects/{id}/invitations/{inv_id}``). |
@@ -202,9 +204,27 @@ All backend operations use the configured control-plane origin and credential.
 | `list_members` | Enterprise backend: List all members of a project (``GET /v1/projects/{id}/members``). |
 | `remove_member` | Enterprise backend: Remove a member from a project (``DELETE /v1/projects/{id}/members/{user_id}``). |
 | `update_member_role` | Enterprise backend: Update a member's role in a project (``PATCH /v1/projects/{id}/members/{user_id}``). |
+| `assign_project_role` | Enterprise backend: Replace the additive custom roles for an existing MEMBER project membership (``PATCH /v1/projects/{id}/members/{user_id}/custom-role``). |
 | `backend_get_rag_config` | Enterprise backend: Read a project's RAG configuration. (``GET /v1/projects/{id}/rag-config``). |
 | `backend_set_rag_config` | Enterprise backend: Set a project's RAG configuration. (``PUT /v1/projects/{id}/rag-config``). |
+| `list_project_roles` | Enterprise backend: List the custom authorization roles configured for a project (``GET /v1/projects/{id}/roles``). |
+| `create_project_role` | Enterprise backend: Create a custom project role with an explicit set of permissions (``POST /v1/projects/{id}/roles``). |
+| `get_project_role` | Enterprise backend: Retrieve one custom project role and its exact permission set (``GET /v1/projects/{id}/roles/{role_id}``). |
+| `update_project_role` | Enterprise backend: Replace a custom project role's name, description, and permissions (``PATCH /v1/projects/{id}/roles/{role_id}``). |
+| `delete_project_role` | Enterprise backend: Delete a custom project role and clear it from members and invitations (``DELETE /v1/projects/{id}/roles/{role_id}``). |
+| `list_saml_domains` | Enterprise backend: List project SAML discovery domains and their DNS verification state (``GET /v1/projects/{project_id}/saml/domains``). |
+| `create_saml_domain` | Enterprise backend: Create a project SAML discovery domain with a DNS TXT verification challenge (``POST /v1/projects/{project_id}/saml/domains``). |
+| `verify_saml_domain` | Enterprise backend: Check the hosted DNS TXT challenge before enabling domain-based SAML discovery (``POST /v1/projects/{project_id}/saml/domains/{domain}/verify``). |
+| `list_saml_providers` | Enterprise backend: List the SAML identity providers configured for a project (``GET /v1/projects/{project_id}/saml/providers``). |
+| `create_saml_provider` | Enterprise backend: Create a project SAML identity provider from uploaded metadata XML (``POST /v1/projects/{project_id}/saml/providers``). |
+| `update_saml_provider` | Enterprise backend: Replace a project SAML provider configuration and its signing metadata (``PUT /v1/projects/{project_id}/saml/providers/{provider_id}``). |
+| `delete_saml_provider` | Enterprise backend: Delete a project SAML provider and its dependent domains and identities (``DELETE /v1/projects/{project_id}/saml/providers/{provider_id}``). |
 | `sandbox_extract` | Enterprise backend: Extract a document in the sandbox (first page only) (``POST /v1/projects/{id}/sandbox/extract``). |
+| `list_scim_connections` | Enterprise backend: List the project's SCIM provisioning connections without client secrets (``GET /v1/projects/{id}/scim/connections``). |
+| `create_scim_connection` | Enterprise backend: Create the project's SCIM provisioning connection; the client secret is returned once (``POST /v1/projects/{id}/scim/connections``). |
+| `list_scim_admin_groups` | Enterprise backend: List provisioned SCIM groups and the project roles mapped to each (``GET /v1/projects/{id}/scim/connections/{connection_id}/groups``). |
+| `replace_scim_group_roles` | Enterprise backend: Replace the complete project-role mapping for one provisioned SCIM group (``PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles``). |
+| `rotate_scim_connection_secret` | Enterprise backend: Rotate a SCIM connection credential and revoke every token issued before it (``POST /v1/projects/{id}/scim/connections/{connection_id}/rotate``). |
 | `get_usage` | Enterprise backend: Get usage statistics for a project within a date range (``GET /v1/projects/{id}/usage``). |
 | `list_webhooks` | Enterprise backend: List all webhooks for a project (``GET /v1/projects/{id}/webhooks``). |
 | `create_webhook` | Enterprise backend: Create a new webhook for a project (``POST /v1/projects/{id}/webhooks``). |

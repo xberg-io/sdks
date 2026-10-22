@@ -81,6 +81,22 @@ import type {
   BackendWebhookDeliveryDetailResponse,
   BackendWebhookResponse,
   BackendWebhookTestResponse,
+  BackendAssignProjectRoleRequest,
+  BackendCreateProjectRoleRequest,
+  BackendCreateScimConnectionRequest,
+  BackendCreateScimConnectionResponse,
+  BackendIntegrationSyncResponse,
+  BackendListProjectRolesResponse,
+  BackendListScimAdminGroupsResponse,
+  BackendListScimConnectionsResponse,
+  BackendProjectRoleResponse,
+  BackendReplaceScimGroupRolesRequest,
+  BackendSamlDomainRequest,
+  BackendSamlDomainResponse,
+  BackendSamlProviderRequest,
+  BackendSamlProviderResponse,
+  BackendSetIntegrationSyncRequest,
+  BackendUpdateProjectRoleRequest,
   AutoTuneCapabilitiesResponse,
   AutoTuneJobStatus,
   AutoTuneResult,
@@ -617,6 +633,28 @@ export class XbergClient {
       { controlPlane: true },
     );
   }
+  /** Enterprise backend `GET /v1/projects/{id}/integrations/{iid}/sync`. */
+  public async backendGetIntegrationSync(
+    projectId: string,
+    integrationId: string,
+  ): Promise<BackendIntegrationSyncResponse> {
+    return await this.backendRequest<BackendIntegrationSyncResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/sync`,
+    );
+  }
+  /** Enterprise backend `PUT /v1/projects/{id}/integrations/{iid}/sync`. */
+  public async backendSetIntegrationSync(
+    projectId: string,
+    integrationId: string,
+    body: BackendSetIntegrationSyncRequest,
+  ): Promise<void> {
+    return await this.backendRequest<void>(
+      "PUT",
+      `/v1/projects/${encodePathSegment(projectId)}/integrations/${encodePathSegment(integrationId)}/sync`,
+      { json: body },
+    );
+  }
   /** Enterprise backend `GET /v1/projects/{id}/invitations`. */
   public async listInvitations(
     projectId: string,
@@ -677,6 +715,20 @@ export class XbergClient {
       { json: body },
     );
   }
+  /** Enterprise backend `PATCH /v1/projects/{id}/members/{user_id}/custom-role`. */
+  public async assignProjectRole(
+    projectId: string,
+    userId: string,
+    body: BackendAssignProjectRoleRequest,
+  ): Promise<void> {
+    return await this.backendRequest<void>(
+      "PATCH",
+      `/v1/projects/${encodePathSegment(projectId)}/members/${encodePathSegment(userId)}/custom-role`,
+      {
+        json: body,
+      },
+    );
+  }
   /** Enterprise backend `GET /v1/projects/{id}/rag-config`. */
   public async backendGetRagConfig(projectId: string): Promise<BackendRagConfigResponse> {
     return await this.backendRequest<BackendRagConfigResponse>(
@@ -695,6 +747,119 @@ export class XbergClient {
       { json: body },
     );
   }
+  /** Enterprise backend `GET /v1/projects/{id}/roles`. */
+  public async listProjectRoles(
+    projectId: string,
+    params: PaginationParams = {},
+  ): Promise<BackendListProjectRolesResponse> {
+    return await this.backendRequest<BackendListProjectRolesResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/roles`,
+      {
+        params: { limit: params.limit, offset: params.offset },
+      },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/roles`. */
+  public async createProjectRole(
+    projectId: string,
+    body: BackendCreateProjectRoleRequest,
+  ): Promise<BackendProjectRoleResponse> {
+    return await this.backendRequest<BackendProjectRoleResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/roles`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/roles/{role_id}`. */
+  public async getProjectRole(projectId: string, roleId: string): Promise<BackendProjectRoleResponse> {
+    return await this.backendRequest<BackendProjectRoleResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/roles/${encodePathSegment(roleId)}`,
+    );
+  }
+  /** Enterprise backend `PATCH /v1/projects/{id}/roles/{role_id}`. */
+  public async updateProjectRole(
+    projectId: string,
+    roleId: string,
+    body: BackendUpdateProjectRoleRequest,
+  ): Promise<BackendProjectRoleResponse> {
+    return await this.backendRequest<BackendProjectRoleResponse>(
+      "PATCH",
+      `/v1/projects/${encodePathSegment(projectId)}/roles/${encodePathSegment(roleId)}`,
+      {
+        json: body,
+      },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{id}/roles/{role_id}`. */
+  public async deleteProjectRole(projectId: string, roleId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/roles/${encodePathSegment(roleId)}`,
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{project_id}/saml/domains`. */
+  public async listSamlDomains(projectId: string): Promise<BackendSamlDomainResponse[]> {
+    return await this.backendRequest<BackendSamlDomainResponse[]>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/domains`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{project_id}/saml/domains`. */
+  public async createSamlDomain(projectId: string, body: BackendSamlDomainRequest): Promise<BackendSamlDomainResponse> {
+    return await this.backendRequest<BackendSamlDomainResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/domains`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{project_id}/saml/domains/{domain}/verify`. */
+  public async verifySamlDomain(projectId: string, domain: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/domains/${encodePathSegment(domain)}/verify`,
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{project_id}/saml/providers`. */
+  public async listSamlProviders(projectId: string): Promise<BackendSamlProviderResponse[]> {
+    return await this.backendRequest<BackendSamlProviderResponse[]>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/providers`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{project_id}/saml/providers`. */
+  public async createSamlProvider(
+    projectId: string,
+    body: BackendSamlProviderRequest,
+  ): Promise<BackendSamlProviderResponse> {
+    return await this.backendRequest<BackendSamlProviderResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/providers`,
+      {
+        json: body,
+      },
+    );
+  }
+  /** Enterprise backend `PUT /v1/projects/{project_id}/saml/providers/{provider_id}`. */
+  public async updateSamlProvider(
+    projectId: string,
+    providerId: string,
+    body: BackendSamlProviderRequest,
+  ): Promise<BackendSamlProviderResponse> {
+    return await this.backendRequest<BackendSamlProviderResponse>(
+      "PUT",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/providers/${encodePathSegment(providerId)}`,
+      { json: body },
+    );
+  }
+  /** Enterprise backend `DELETE /v1/projects/{project_id}/saml/providers/{provider_id}`. */
+  public async deleteSamlProvider(projectId: string, providerId: string): Promise<void> {
+    return await this.backendRequest<void>(
+      "DELETE",
+      `/v1/projects/${encodePathSegment(projectId)}/saml/providers/${encodePathSegment(providerId)}`,
+    );
+  }
   /** Enterprise backend `POST /v1/projects/{id}/sandbox/extract`. */
   public async sandboxExtract(
     projectId: string,
@@ -704,6 +869,61 @@ export class XbergClient {
       "POST",
       `/v1/projects/${encodePathSegment(projectId)}/sandbox/extract`,
       { body: sandboxForm(params) },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/scim/connections`. */
+  public async listScimConnections(projectId: string): Promise<BackendListScimConnectionsResponse> {
+    return await this.backendRequest<BackendListScimConnectionsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/scim/connections`,
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/scim/connections`. */
+  public async createScimConnection(
+    projectId: string,
+    body: BackendCreateScimConnectionRequest,
+  ): Promise<BackendCreateScimConnectionResponse> {
+    return await this.backendRequest<BackendCreateScimConnectionResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/scim/connections`,
+      {
+        json: body,
+      },
+    );
+  }
+  /** Enterprise backend `GET /v1/projects/{id}/scim/connections/{connection_id}/groups`. */
+  public async listScimAdminGroups(
+    projectId: string,
+    connectionId: string,
+  ): Promise<BackendListScimAdminGroupsResponse> {
+    return await this.backendRequest<BackendListScimAdminGroupsResponse>(
+      "GET",
+      `/v1/projects/${encodePathSegment(projectId)}/scim/connections/${encodePathSegment(connectionId)}/groups`,
+    );
+  }
+  /** Enterprise backend `PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles`. */
+  public async replaceScimGroupRoles(
+    projectId: string,
+    connectionId: string,
+    groupId: string,
+    body: BackendReplaceScimGroupRolesRequest,
+  ): Promise<void> {
+    return await this.backendRequest<void>(
+      "PUT",
+      `/v1/projects/${encodePathSegment(projectId)}/scim/connections/${encodePathSegment(connectionId)}/groups/${encodePathSegment(groupId)}/roles`,
+      {
+        json: body,
+      },
+    );
+  }
+  /** Enterprise backend `POST /v1/projects/{id}/scim/connections/{connection_id}/rotate`. */
+  public async rotateScimConnectionSecret(
+    projectId: string,
+    connectionId: string,
+  ): Promise<BackendCreateScimConnectionResponse> {
+    return await this.backendRequest<BackendCreateScimConnectionResponse>(
+      "POST",
+      `/v1/projects/${encodePathSegment(projectId)}/scim/connections/${encodePathSegment(connectionId)}/rotate`,
     );
   }
   /** Enterprise backend `GET /v1/projects/{id}/usage`. */

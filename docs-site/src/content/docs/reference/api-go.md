@@ -195,6 +195,8 @@ All backend operations use the configured control-plane origin and credential.
 | `BackendDisconnectIntegration` | BackendDisconnectIntegration calls POST /v1/projects/{id}/integrations/{iid}/disconnect on the Enterprise control plane. |
 | `BackendListIntegrationDocuments` | BackendListIntegrationDocuments calls GET /v1/projects/{id}/integrations/{iid}/documents on the Enterprise control plane. |
 | `BackendFetchIntegrationDocument` | BackendFetchIntegrationDocument downloads original document bytes from the Enterprise control plane. |
+| `BackendGetIntegrationSync` | BackendGetIntegrationSync calls GET /v1/projects/{id}/integrations/{iid}/sync on the Enterprise control plane. |
+| `BackendSetIntegrationSync` | BackendSetIntegrationSync calls PUT /v1/projects/{id}/integrations/{iid}/sync on the Enterprise control plane. |
 | `ListInvitations` | ListInvitations calls GET /v1/projects/{id}/invitations on the Enterprise control plane. |
 | `InviteUser` | InviteUser calls POST /v1/projects/{id}/invitations on the Enterprise control plane. |
 | `RevokeInvitation` | RevokeInvitation calls DELETE /v1/projects/{id}/invitations/{inv_id} on the Enterprise control plane. |
@@ -202,9 +204,27 @@ All backend operations use the configured control-plane origin and credential.
 | `ListMembers` | ListMembers calls GET /v1/projects/{id}/members on the Enterprise control plane. |
 | `RemoveMember` | RemoveMember calls DELETE /v1/projects/{id}/members/{user_id} on the Enterprise control plane. |
 | `UpdateMemberRole` | UpdateMemberRole calls PATCH /v1/projects/{id}/members/{user_id} on the Enterprise control plane. |
+| `AssignProjectRole` | AssignProjectRole calls PATCH /v1/projects/{id}/members/{user_id}/custom-role on the Enterprise control plane. |
 | `BackendGetRAGConfig` | BackendGetRAGConfig calls GET /v1/projects/{id}/rag-config on the Enterprise control plane. |
 | `BackendSetRAGConfig` | BackendSetRAGConfig calls PUT /v1/projects/{id}/rag-config on the Enterprise control plane. |
+| `ListProjectRoles` | ListProjectRoles calls GET /v1/projects/{id}/roles on the Enterprise control plane. |
+| `CreateProjectRole` | CreateProjectRole calls POST /v1/projects/{id}/roles on the Enterprise control plane. |
+| `GetProjectRole` | GetProjectRole calls GET /v1/projects/{id}/roles/{role_id} on the Enterprise control plane. |
+| `UpdateProjectRole` | UpdateProjectRole calls PATCH /v1/projects/{id}/roles/{role_id} on the Enterprise control plane. |
+| `DeleteProjectRole` | DeleteProjectRole calls DELETE /v1/projects/{id}/roles/{role_id} on the Enterprise control plane. |
+| `ListSamlDomains` | ListSamlDomains calls GET /v1/projects/{project_id}/saml/domains on the Enterprise control plane. |
+| `CreateSamlDomain` | CreateSamlDomain calls POST /v1/projects/{project_id}/saml/domains on the Enterprise control plane. |
+| `VerifySamlDomain` | VerifySamlDomain calls POST /v1/projects/{project_id}/saml/domains/{domain}/verify on the Enterprise control plane. |
+| `ListSamlProviders` | ListSamlProviders calls GET /v1/projects/{project_id}/saml/providers on the Enterprise control plane. |
+| `CreateSamlProvider` | CreateSamlProvider calls POST /v1/projects/{project_id}/saml/providers on the Enterprise control plane. |
+| `UpdateSamlProvider` | UpdateSamlProvider calls PUT /v1/projects/{project_id}/saml/providers/{provider_id} on the Enterprise control plane. |
+| `DeleteSamlProvider` | DeleteSamlProvider calls DELETE /v1/projects/{project_id}/saml/providers/{provider_id} on the Enterprise control plane. |
 | `SandboxExtract` | SandboxExtract extracts a single file using a project's Enterprise sandbox. |
+| `ListScimConnections` | ListScimConnections calls GET /v1/projects/{id}/scim/connections on the Enterprise control plane. |
+| `CreateScimConnection` | CreateScimConnection calls POST /v1/projects/{id}/scim/connections on the Enterprise control plane. |
+| `ListScimAdminGroups` | ListScimAdminGroups calls GET /v1/projects/{id}/scim/connections/{connection_id}/groups on the Enterprise control plane. |
+| `ReplaceScimGroupRoles` | ReplaceScimGroupRoles calls PUT /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles on the Enterprise control plane. |
+| `RotateScimConnectionSecret` | RotateScimConnectionSecret calls POST /v1/projects/{id}/scim/connections/{connection_id}/rotate on the Enterprise control plane. |
 | `GetUsage` | GetUsage calls GET /v1/projects/{id}/usage on the Enterprise control plane. |
 | `ListWebhooks` | ListWebhooks calls GET /v1/projects/{id}/webhooks on the Enterprise control plane. |
 | `CreateWebhook` | CreateWebhook calls POST /v1/projects/{id}/webhooks on the Enterprise control plane. |

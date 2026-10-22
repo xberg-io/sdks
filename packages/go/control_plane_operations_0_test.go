@@ -15,6 +15,7 @@ type controlPlaneCase struct {
 	query              map[string]string
 	body               bool
 	public             bool
+	response           string
 	call               func(context.Context, *Client) error
 }
 
@@ -52,7 +53,11 @@ func runControlPlaneCase(t *testing.T, test controlPlaneCase) {
 			t.Errorf("unexpected body %q", body)
 		}
 		w.Header().Set("Content-Type", contentTypeJSON)
-		_, _ = io.WriteString(w, "{}")
+		response := test.response
+		if response == "" {
+			response = "{}"
+		}
+		_, _ = io.WriteString(w, response)
 	}))
 	defer control.Close()
 	client, err := New(WithBaseURL("http://127.0.0.1:1"), WithControlPlaneBaseURL(control.URL), WithAPIKey("data"), WithControlPlaneToken("control"), WithTarget(TargetEnterprise))

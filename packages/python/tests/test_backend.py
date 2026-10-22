@@ -1,4 +1,4 @@
-"""Wire contracts for all 51 Enterprise backend operations, distinct from Pro."""
+"""Wire contracts for all 71 Enterprise backend operations, distinct from Pro."""
 
 from __future__ import annotations
 
@@ -28,7 +28,8 @@ def case_path(case: dict[str, Any]) -> str:
     path = case["path"]
     for name, value in case["arguments"].items():
         original = next((key for key, renamed in PATH_NAMES.items() if renamed == name), name)
-        path = path.replace("{" + original + "}", quote(str(value), safe=""))
+        for placeholder in {original, name}:
+            path = path.replace("{" + placeholder + "}", quote(str(value), safe=""))
     return path
 
 
@@ -48,7 +49,7 @@ def response_for(case: dict[str, Any]) -> httpx.Response:
 async def test_backend_operation_wire_contract(
     base_url: str, api_key: str, asynchronous: bool, case: dict[str, Any]
 ) -> None:
-    assert len(CASES) == 51
+    assert len(CASES) == 71
     route = respx.request(case["verb"], CONTROL_URL + case_path(case)).mock(return_value=response_for(case))
     arguments = dict(case["arguments"])
     if case.get("multipart"):
@@ -70,7 +71,11 @@ async def test_backend_operation_wire_contract(
         assert request.headers["Content-Type"].startswith("multipart/form-data;")
         assert b'name="file"' in request.content
         assert b"document bytes" in request.content
-    if "model" in case:
+    if "model" in case and isinstance(case["response"], list):
+        assert [type(item).__name__ for item in result] == [case["model"]] * len(case["response"])
+        assert all("_generated_backend" in type(item).__module__ for item in result)
+        assert [item.to_dict() for item in result] == case["response"]
+    elif "model" in case:
         assert type(result).__name__ == case["model"]
         assert "_generated_backend" in type(result).__module__
         assert result.to_dict() == case["response"]
@@ -297,3 +302,19 @@ async def test_explicit_empty_control_token_disables_api_key_fallback(
         with XbergClient(**options) as sync_client:
             sync_client.backend_list_projects()
     assert "Authorization" not in route.calls.last.request.headers
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("name", ["list_saml_domains", "list_saml_providers"])
+@respx.mock
+async def test_saml_list_operations_reject_a_non_array_body(base_url: str, asynchronous: bool, name: str) -> None:
+    case = next(case for case in CASES if case["name"] == name)
+    respx.get(CONTROL_URL + case_path(case)).respond(200, json={"items": case["response"]})
+    options = {"base_url": base_url, "control_plane_base_url": CONTROL_URL, "target": "enterprise"}
+    if asynchronous:
+        async with AsyncXbergClient(**options) as client:
+            with pytest.raises(XbergError, match="response shape"):
+                await getattr(client, name)(**case["arguments"])
+    else:
+        with XbergClient(**options) as sync_client, pytest.raises(XbergError, match="response shape"):
+            getattr(sync_client, name)(**case["arguments"])
