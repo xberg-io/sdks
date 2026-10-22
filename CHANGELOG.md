@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-22
+
 ### Added
 
 - Enterprise custom project roles: Python `list_project_roles` / `create_project_role` /
@@ -23,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `backend_set_integration_sync`, TypeScript `backendGetIntegrationSync` / `backendSetIntegrationSync`,
   and Go `BackendGetIntegrationSync` / `BackendSetIntegrationSync`, distinct from the Pro methods.
   The SAML and SCIM protocol endpoints called by identity providers stay deliberately unexposed.
+
+### Changed
+
+- Align the Enterprise control-plane schema with the current xberg-enterprise contract (SAML, SCIM,
+  custom roles, integration sync) and regenerate all three SDKs. `MemberResponse` now always carries
+  `provisioning_source`.
 
 ## [0.8.1] - 2026-10-22
 
