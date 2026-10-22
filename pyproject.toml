@@ -23,7 +23,7 @@ classifiers = [
 [dependency-groups]
 dev = [
   "covdefaults>=2.3.0",
-  "mypy>=2.4.0",
+  "pyrefly>=1.4",
   "openapi-python-client>=0.28.4",
   "prek>=0.5.5",
   "pyproject-fmt>=2.30.2",
@@ -124,31 +124,16 @@ lint.pylint.max-returns = 10
 keep_full_version = true
 max_supported_python = "3.14"
 
-[tool.mypy]
-packages = ["xberg_io_sdk"]
-exclude = [
-  "packages/python/src/xberg_io_sdk/_generated_api",
-  "packages/python/src/xberg_io_sdk/_generated_backend",
-  "packages/python/src/xberg_io_sdk/_generated_pro",
-  "packages/python/tests",
+[tool.pyrefly]
+python-version = "3.10"
+preset = "strict"
+project-includes = ["packages/python/src/xberg_io_sdk"]
+project-excludes = [
+  "packages/python/src/xberg_io_sdk/_generated_api/**",
+  "packages/python/src/xberg_io_sdk/_generated_backend/**",
+  "packages/python/src/xberg_io_sdk/_generated_pro/**",
 ]
-python_version = "3.10"
-disable_error_code = ["import-untyped", "untyped-decorator"]
-implicit_reexport = false
-show_error_codes = true
-strict = true
-namespace_packages = true
-overrides = [
-  { module = [
-    "httpx",
-    "respx",
-  ], ignore_missing_imports = true },
-  { module = [
-    "xberg_io_sdk._generated_api.*",
-    "xberg_io_sdk._generated_backend.*",
-    "xberg_io_sdk._generated_pro.*",
-  ], ignore_errors = true, ignore_missing_imports = true },
-]
+
 
 [tool.pytest]
 ini_options.testpaths = ["packages/python/tests"]

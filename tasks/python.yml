@@ -124,10 +124,10 @@ tasks:
       - uv run pytest {{.PKG_DIR}}/tests --cov=xberg_io_sdk --cov-report=term --cov-report=html
 
   lint:
-    desc: "Lint Python sources (ruff + mypy)"
+    desc: "Lint Python sources (ruff + Pyrefly)"
     cmds:
       - uv run ruff check {{.PKG_DIR}}/src {{.PKG_DIR}}/tests
-      - uv run mypy {{.PKG_DIR}}/src
+      - uv run pyrefly check
 
   format:
     desc: "Format Python sources (ruff)"

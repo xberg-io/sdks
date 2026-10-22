@@ -154,7 +154,7 @@ tasks:
       - rm -f packages/go/oapi-codegen-pro.gen.yaml packages/go/spec-pro.gen.yaml
       - rm -f packages/go/oapi-codegen-backend.gen.yaml packages/go/spec-backend.gen.yaml
       - rm -rf packages/python/dist packages/typescript/dist
-      - rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage
+      - rm -rf .pytest_cache .ruff_cache htmlcov coverage
 
   versions:sync:
     desc: "Propagate root VERSION to all language package manifests"

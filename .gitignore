@@ -13,7 +13,6 @@ __pycache__/
 .venv/
 .python-version
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
 htmlcov/
 .coverage
