@@ -58,4 +58,4 @@ def test_go_workflows_use_the_verified_patched_toolchain(filename: str) -> None:
         if step.get("uses", "").startswith("actions/setup-go@")
     ]
     assert setups
-    assert all(step["with"]["go-version"] == "1.27.2" for step in setups)
+    assert all(step["with"]["go-version"] == "1.27.3" for step in setups)
