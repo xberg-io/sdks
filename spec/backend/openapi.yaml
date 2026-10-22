@@ -275,6 +275,164 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /auth/saml/acs:
+    post:
+      tags:
+        - saml
+      description: Validates a solicited SAML response and returns a short-lived browser exchange code.
+      operationId: acs
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SamlAcsForm'
+        required: true
+      responses:
+        "303":
+          description: Redirect with a one-time exchange code
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid SAML response
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/saml/exchange:
+    post:
+      tags:
+        - saml
+      description: Consumes a single-use SAML exchange code and returns the authenticated browser session token.
+      operationId: exchange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamlExchangeRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlExchangeResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Expired or consumed exchange code
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/saml/login:
+    get:
+      tags:
+        - saml
+      description: Discovers a project identity provider by email domain and starts a signed SAML login.
+      operationId: login
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: redirect
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "303":
+          description: Redirect to the discovered IdP
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: No verified SAML domain
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/saml/metadata:
+    get:
+      tags:
+        - saml
+      description: Returns the service provider metadata used to configure a SAML identity provider.
+      operationId: metadata
+      responses:
+        "200":
+          description: SP metadata XML
+        "404":
+          description: SAML is not configured
   /healthz:
     get:
       tags:
@@ -321,6 +479,1311 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadinessResponse'
+  /scim/v2/{connection_id}/Groups:
+    get:
+      tags:
+        - scim
+      description: List and filter groups provisioned through a SCIM connection
+      operationId: list_scim_groups
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: filter
+          in: query
+          description: SCIM equality filter
+          required: false
+          schema:
+            type: string
+        - name: startIndex
+          in: query
+          description: One-based result offset
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: count
+          in: query
+          description: Maximum results to return
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: SCIM group list
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid filter or pagination
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - scim
+      description: Provision a group through a SCIM connection
+      operationId: create_scim_group
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroupInput'
+        required: true
+      responses:
+        "201":
+          description: SCIM group created
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM group
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "409":
+          description: SCIM group already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/Groups/{group_id}:
+    get:
+      tags:
+        - scim
+      description: Retrieve a provisioned SCIM group
+      operationId: get_scim_group
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: group_id
+          in: path
+          description: SCIM group ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SCIM group
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM group not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    put:
+      tags:
+        - scim
+      description: Replace a provisioned SCIM group
+      operationId: replace_scim_group
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: group_id
+          in: path
+          description: SCIM group ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroupInput'
+        required: true
+      responses:
+        "200":
+          description: SCIM group updated
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM group update
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM group not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "412":
+          description: SCIM group version mismatch
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    delete:
+      tags:
+        - scim
+      description: Delete a provisioned group from a SCIM connection
+      operationId: delete_scim_group
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: group_id
+          in: path
+          description: SCIM group ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: SCIM group deleted
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM group not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - scim
+      description: Apply SCIM patch operations to a provisioned group
+      operationId: patch_scim_group
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: group_id
+          in: path
+          description: SCIM group ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimPatchRequest'
+        required: true
+      responses:
+        "200":
+          description: SCIM group updated
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM group update
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM group not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "412":
+          description: SCIM group version mismatch
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/ResourceTypes:
+    get:
+      tags:
+        - scim
+      description: List the SCIM resource types supported by this connection
+      operationId: resource_types
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Supported SCIM resource types
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/Schemas:
+    get:
+      tags:
+        - scim
+      description: List the SCIM schemas supported by this connection
+      operationId: schemas
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Supported SCIM schemas
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/ServiceProviderConfig:
+    get:
+      tags:
+        - scim
+      description: Describe the SCIM protocol features supported by this connection
+      operationId: service_provider_config
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SCIM service provider configuration
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/Users:
+    get:
+      tags:
+        - scim
+      description: List and filter users provisioned through a SCIM connection
+      operationId: list_scim_users
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: filter
+          in: query
+          description: SCIM equality filter
+          required: false
+          schema:
+            type: string
+        - name: startIndex
+          in: query
+          description: One-based result offset
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: count
+          in: query
+          description: Maximum results to return
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: SCIM user list
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid filter or pagination
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - scim
+      description: Provision a user through a SCIM connection
+      operationId: create_scim_user
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUserInput'
+        required: true
+      responses:
+        "201":
+          description: SCIM user created
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM user
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "409":
+          description: SCIM user already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/Users/{user_id}:
+    get:
+      tags:
+        - scim
+      description: Retrieve a provisioned SCIM user
+      operationId: get_scim_user
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: SCIM user ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SCIM user
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM user not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    put:
+      tags:
+        - scim
+      description: Replace all attributes of a provisioned SCIM user
+      operationId: replace_scim_user
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: SCIM user ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUserInput'
+        required: true
+      responses:
+        "200":
+          description: SCIM user updated
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM user update
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM user not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "412":
+          description: SCIM user version mismatch
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    delete:
+      tags:
+        - scim
+      description: Deactivate a provisioned SCIM user
+      operationId: delete_scim_user
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: SCIM user ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: SCIM user deactivated
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM user not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "412":
+          description: SCIM user changed concurrently
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - scim
+      description: Apply SCIM patch operations to a provisioned user
+      operationId: patch_scim_user
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: SCIM user ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimPatchRequest'
+        required: true
+      responses:
+        "200":
+          description: SCIM user updated
+          content:
+            application/scim+json:
+              schema: {}
+        "400":
+          description: Invalid SCIM user update
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "401":
+          description: Invalid or expired SCIM bearer token
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "404":
+          description: SCIM user not found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "412":
+          description: SCIM user version mismatch
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: SCIM media type required
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: SCIM operation failed
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimErrorBody'
+      security:
+        - bearer_auth: []
+  /scim/v2/{connection_id}/oauth2/token:
+    post:
+      tags:
+        - scim
+      description: Issue a SCIM bearer token using OAuth 2.0 client credentials
+      operationId: issue_scim_token
+      parameters:
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScimTokenRequest'
+        required: true
+      responses:
+        "200":
+          description: Bearer token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimTokenResponse'
+        "400":
+          description: Unsupported OAuth grant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthErrorBody'
+        "401":
+          description: Invalid SCIM client credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthErrorBody'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Token issuance failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthErrorBody'
   /v1/invitations/accept:
     post:
       tags:
@@ -2355,6 +3818,147 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{id}/integrations/{iid}/sync:
+    get:
+      tags:
+        - integrations
+      summary: Report the durable synchronization state for one source integration.
+      description: Requires integration-read permission and returns the persisted per-integration opt-in state.
+      operationId: get_integration_sync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Synchronization preference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Integration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    put:
+      tags:
+        - integrations
+      summary: Enable or disable durable synchronization for one source integration.
+      description: Requires integration-connect permission and preserves the choice across scheduler restarts.
+      operationId: set_integration_sync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetIntegrationSyncRequest'
+        required: true
+      responses:
+        "204":
+          description: Synchronization preference updated
+        "400":
+          description: Integration kind does not support durable synchronization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Integration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{id}/invitations:
     get:
       tags:
@@ -2953,6 +4557,93 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{id}/members/{user_id}/custom-role:
+    patch:
+      tags:
+        - roles
+      description: Replace the additive custom roles for an existing MEMBER project membership.
+      operationId: assign_project_role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignProjectRoleRequest'
+        required: true
+      responses:
+        "204": {}
+        "400":
+          description: The target membership cannot receive a custom role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot assign this role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The member or project role does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{id}/rag-config:
     get:
       tags:
@@ -3116,6 +4807,420 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{id}/roles:
+    get:
+      tags:
+        - roles
+      description: List the custom authorization roles configured for a project.
+      operationId: list_project_roles
+      parameters:
+        - name: limit
+          in: query
+          description: |-
+            Page size. A value outside 1..=1000 is rejected with a 400, on both
+            tiers.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 100
+            maximum: 1000
+            minimum: 1
+          example: 100
+        - name: offset
+          in: query
+          description: |-
+            Number of items to skip. A negative value is rejected with a 400; a
+            value above 1,000,000 is accepted but clamped to 1,000,000, which
+            selects an empty page rather than erroring.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+          example: 0
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectRolesResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot read project roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - roles
+      description: Create a custom project role with an explicit set of permissions.
+      operationId: create_project_role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRoleRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRoleResponse'
+        "400":
+          description: The role definition is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot create this role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: A role with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/roles/{role_id}:
+    get:
+      tags:
+        - roles
+      description: Retrieve one custom project role and its exact permission set.
+      operationId: get_project_role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRoleResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot read project roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The project role does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    delete:
+      tags:
+        - roles
+      description: Delete a custom project role and clear it from members and invitations.
+      operationId: delete_project_role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204": {}
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot delete this role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The project role does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - roles
+      description: Replace a custom project role's name, description, and permissions.
+      operationId: update_project_role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRoleRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRoleResponse'
+        "400":
+          description: The role definition is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot update this role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The project role does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: A role with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{id}/sandbox/extract:
     post:
       tags:
@@ -3205,6 +5310,349 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
           description: Sandbox not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/scim/connections:
+    get:
+      tags:
+        - scim
+      description: List the project's SCIM provisioning connections without returning client secrets.
+      operationId: list_scim_connections
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SCIM connections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListScimConnectionsResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Insufficient project permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - scim
+      description: Create the project's SCIM provisioning connection and return its client secret once.
+      operationId: create_scim_connection
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScimConnectionRequest'
+        required: true
+      responses:
+        "201":
+          description: SCIM connection created; client secret is returned once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateScimConnectionResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Insufficient project permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/scim/connections/{connection_id}/groups:
+    get:
+      tags:
+        - scim
+      description: List provisioned SCIM groups and the project roles currently mapped to each group.
+      operationId: list_scim_admin_groups
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Provisioned groups and mapped roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListScimAdminGroupsResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/scim/connections/{connection_id}/groups/{group_id}/roles:
+    put:
+      tags:
+        - scim
+      description: Replace the complete project-role mapping for one provisioned SCIM group.
+      operationId: replace_scim_group_roles
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: group_id
+          in: path
+          description: SCIM group ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplaceScimGroupRolesRequest'
+        required: true
+      responses:
+        "204":
+          description: Group role mappings replaced
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Owner role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/scim/connections/{connection_id}/rotate:
+    post:
+      tags:
+        - scim
+      description: Rotate a SCIM connection credential and revoke every access token issued before rotation.
+      operationId: rotate_scim_connection_secret
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Credential rotated and prior access tokens revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateScimConnectionResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: SCIM connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
           content:
             application/json:
               schema:
@@ -4015,6 +6463,408 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{project_id}/saml/domains:
+    get:
+      tags:
+        - saml
+      description: Lists project SAML discovery domains and their DNS verification state.
+      operationId: list_domains
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SamlDomainResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - saml
+      description: Creates a project SAML discovery domain with a DNS TXT verification challenge.
+      operationId: create_domain
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamlDomainRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlDomainResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/projects/{project_id}/saml/domains/{domain}/verify:
+    post:
+      tags:
+        - saml
+      description: Checks the hosted DNS TXT challenge before enabling domain-based SAML discovery.
+      operationId: verify_domain
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Domain verified
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/projects/{project_id}/saml/providers:
+    get:
+      tags:
+        - saml
+      description: Lists the SAML identity providers configured for a project owner.
+      operationId: list_providers
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SamlProviderResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - saml
+      description: Creates a project SAML identity provider from bounded uploaded metadata XML.
+      operationId: create_provider
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamlProviderRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlProviderResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/projects/{project_id}/saml/providers/{provider_id}:
+    put:
+      tags:
+        - saml
+      description: Replaces a project SAML provider configuration and its uploaded signing metadata.
+      operationId: update_provider
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamlProviderRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlProviderResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - saml
+      description: Deletes a project SAML provider and its dependent domains and identities.
+      operationId: delete_provider
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Provider deleted
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /v1/sandbox/public/extract:
     post:
       tags:
@@ -4415,6 +7265,21 @@ components:
           format: int64
           description: Total uncompressed size in bytes
           minimum: 0
+    AssignProjectRoleRequest:
+      type: object
+      properties:
+        custom_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        custom_role_ids:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            format: uuid
     Attributes:
       type: object
       description: |-
@@ -4545,6 +7410,13 @@ components:
           description: |-
             OIDC-specific detail, used by the frontend to decide whether to render
             a "Sign in with Google" button.
+        saml:
+          oneOf:
+            - $ref: '#/components/schemas/SamlInfo'
+              description: |-
+                SAML discovery endpoint. Provider details remain project-scoped and are
+                disclosed only after a verified email-domain lookup.
+            - type: "null"
     AuthMode:
       type: string
       description: Authentication policy advertised by the instance.
@@ -5288,12 +8160,16 @@ components:
           description: Client secret or password. Enterprise-only submission shape.
         config:
           type: object
-          description: Additional configuration as a JSON object.
+          description: |-
+            Additional configuration as a JSON object. Object stores require
+            `bucket`; S3 also requires `region`; all accept an optional `root`.
         credentials:
           type: object
           description: |-
-            Free-form BYO credentials object (e.g. `client_id`/`client_secret` as
-            object keys). Pro-only submission shape.
+            Free-form BYO credentials object. Static object stores accept:
+            S3 `access_key_id`/`secret_access_key` (optional `session_token`), GCS
+            `credential` (service-account JSON string), and Azure Blob
+            `account_name`/`account_key`.
         kind:
           type: string
           description: Integration kind (e.g. `"stripe"`, `"hubspot"`, `"google_drive"`).
@@ -5314,6 +8190,20 @@ components:
         - email
         - role
       properties:
+        custom_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: Legacy singular custom role. Only valid with `MEMBER`.
+        custom_role_ids:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            format: uuid
+          description: Additive custom roles. Only valid with `MEMBER`.
         email:
           type: string
           description: Email address to invite.
@@ -5333,6 +8223,18 @@ components:
         - token
         - expires_at
       properties:
+        custom_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: First custom role for compatibility with singular-role clients.
+        custom_role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Additive custom roles assigned on acceptance.
         email:
           type: string
           description: Invited email address.
@@ -5398,6 +8300,45 @@ components:
             URL-safe project slug. Enterprise-only omission: Enterprise derives a
             unique slug from `name` server-side and rejects this field being
             meaningfully used; Pro requires the caller to supply it.
+    CreateProjectRoleRequest:
+      type: object
+      required:
+        - name
+        - permissions
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectPermission'
+    CreateScimConnectionRequest:
+      type: object
+      required:
+        - display_name
+      properties:
+        display_name:
+          type: string
+    CreateScimConnectionResponse:
+      type: object
+      required:
+        - connection
+        - client_secret
+        - token_endpoint
+        - base_url
+      properties:
+        base_url:
+          type: string
+        client_secret:
+          type: string
+        connection:
+          $ref: '#/components/schemas/ScimConnectionResponse'
+        token_endpoint:
+          type: string
     CreateWebhookRequest:
       type: object
       description: Request to create a new webhook.
@@ -6659,6 +9600,18 @@ components:
             converting to plain text or markdown output formats.
 
             Only populated when `OcrElementConfig.include_elements` is true.
+        ocr_page_failures:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: '#/components/schemas/OcrPageFailure'
+          description: |-
+            Pages whose OCR failed while extraction continued, in the order the failures were reported.
+
+            A record with `recovered` set means the document still has content for that page
+            from native text or from embedded images. Xberg-produced results use `None` when
+            no page failed.
         page_classifications:
           type:
             - array
@@ -7720,6 +10673,17 @@ components:
         provider:
           type: string
           description: Provider name.
+    IntegrationSyncResponse:
+      type: object
+      required:
+        - enabled
+        - interval_seconds
+      properties:
+        enabled:
+          type: boolean
+        interval_seconds:
+          type: integer
+          format: int32
     InvitationResponse:
       type: object
       description: Invitation details, as returned by list.
@@ -7734,6 +10698,18 @@ components:
         created_at:
           type: string
           description: ISO 8601 creation timestamp.
+        custom_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: First custom role for compatibility with singular-role clients.
+        custom_role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Additive custom roles assigned on acceptance.
         email:
           type: string
           description: Invited email address.
@@ -8115,6 +11091,27 @@ components:
           type: integer
           format: int64
           description: Total number of members in the project.
+    ListProjectRolesResponse:
+      type: object
+      required:
+        - roles
+        - total
+        - limit
+        - offset
+      properties:
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectRoleResponse'
+        total:
+          type: integer
+          format: int64
     ListProjectsResponse:
       type: object
       description: Response for the paginated project list endpoint.
@@ -8141,6 +11138,24 @@ components:
           type: integer
           format: int64
           description: Total number of projects for the caller.
+    ListScimAdminGroupsResponse:
+      type: object
+      required:
+        - groups
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimAdminGroupResponse'
+    ListScimConnectionsResponse:
+      type: object
+      required:
+        - connections
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimConnectionResponse'
     ListWebhookDeliveriesResponse:
       type: object
       description: Response for the paginated webhook delivery-history endpoint.
@@ -8345,11 +11360,24 @@ components:
         - id
         - user_id
         - role
+        - provisioning_source
         - created_at
       properties:
         created_at:
           type: string
           description: ISO 8601 creation timestamp.
+        custom_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: First custom role for compatibility with singular-role clients.
+        custom_role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Additive custom roles for a `MEMBER`.
         display_name:
           type:
             - string
@@ -8363,6 +11391,9 @@ components:
         id:
           type: string
           description: Unique member identifier.
+        provisioning_source:
+          type: string
+          description: 'Membership authority: `manual` or `scim`.'
         role:
           type: string
           description: Member's role in the project (e.g. `"OWNER"`, `"MEMBER"`).
@@ -8905,6 +11936,16 @@ components:
         Uses `u32` for cross-platform consistency (WASM is 32-bit) and to avoid
         confusion with page numbers or other `usize` values.
       minimum: 0
+    OAuthErrorBody:
+      type: object
+      required:
+        - error
+        - error_description
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
     OcrBoundingGeometry:
       oneOf:
         - type: object
@@ -9091,6 +12132,32 @@ components:
           format: int32
           description: Number of rows in the detected table (if a single table was found).
           minimum: 0
+    OcrPageFailure:
+      type: object
+      description: |-
+        A page whose OCR failed while extraction of the document continued.
+
+        The warning in `ExtractedDocument::processing_warnings` stays available. One warning
+        can cover several pages: when an automatic OCR run of selected pages fails as a whole,
+        it adds one warning and one record for each selected page. A failure of the OCR fallback
+        for the whole document adds a warning and no record. Repeated failures on one page make
+        one record.
+      required:
+        - page
+        - error
+        - recovered
+      properties:
+        error:
+          type: string
+          description: OCR backend error text.
+        page:
+          type: integer
+          format: int32
+          description: One-based page number in the source document.
+          minimum: 0
+        recovered:
+          type: boolean
+          description: Whether content for this page was retained or recovered through another route.
     OcrPoint:
       type: object
       required:
@@ -9249,6 +12316,15 @@ components:
 
             Contains detected layout regions with class, confidence, bounding box,
             and area fraction. Only populated when layout detection is configured.
+        native_content:
+          type:
+            - string
+            - "null"
+          description: |-
+            Text layer of this page, kept when OCR output replaced it in `content`.
+
+            Set only when `PageConfig::keep_native_content` is on, an OCR route replaced this page's `content`, and the
+            text layer is not blank and differs from the OCR text. `None` on every other page. PDF only.
         ocr_confidence:
           $ref: '#/components/schemas/PageOcrConfidence'
           description: Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
@@ -9989,6 +13065,61 @@ components:
           type: string
           description: User role in this project
           example: OWNER
+    ProjectPermission:
+      type: string
+      enum:
+        - project.read
+        - project.update
+        - project.delete
+        - rag.read
+        - rag.update
+        - extraction.execute
+        - extraction.read
+        - job.read
+        - job.cancel
+        - document.read
+        - preset.read
+        - preset.manage
+        - auto_tune.read
+        - auto_tune.manage
+        - member.read
+        - member.update
+        - member.remove
+        - member.leave
+        - role.read
+        - role.create
+        - role.update
+        - role.delete
+        - role.assign
+        - invitation.read
+        - invitation.create
+        - invitation.revoke
+        - api_key.read
+        - api_key.create
+        - api_key.regenerate
+        - api_key.revoke
+        - audit.read
+        - scim.read
+        - scim.manage
+        - integration.read
+        - integration.create
+        - integration.delete
+        - integration.connect
+        - integration.disconnect
+        - integration_document.read
+        - webhook.read
+        - webhook.create
+        - webhook.update
+        - webhook.delete
+        - webhook.test
+        - webhook_delivery.read
+        - webhook_delivery.retry
+        - usage.read
+        - analytics.read
+        - sandbox.execute
+        - billing.read
+        - billing.checkout
+        - billing.portal
     ProjectResponse:
       type: object
       description: |-
@@ -10048,6 +13179,26 @@ components:
           type: integer
           format: int32
           description: Number of active (non-deleted) webhooks.
+    ProjectRoleResponse:
+      type: object
+      required:
+        - id
+        - name
+        - permissions
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectPermission'
     PropertyChange:
       type: object
       description: |-
@@ -10291,6 +13442,16 @@ components:
         - label
         - toc_entry
         - cross_reference
+    ReplaceScimGroupRolesRequest:
+      type: object
+      required:
+        - role_ids
+      properties:
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
     RetryWebhookDeliveryResponse:
       type: object
       description: |-
@@ -10440,6 +13601,159 @@ components:
         - deletion
         - format_change
         - comment
+    SamlAcsForm:
+      type: object
+      required:
+        - SAMLResponse
+      properties:
+        RelayState:
+          type:
+            - string
+            - "null"
+        SAMLResponse:
+          type: string
+    SamlDomainRequest:
+      type: object
+      required:
+        - provider_id
+        - domain
+      properties:
+        domain:
+          type: string
+        provider_id:
+          type: string
+          format: uuid
+      additionalProperties: false
+    SamlDomainResponse:
+      type: object
+      required:
+        - domain
+        - provider_id
+      properties:
+        dns_txt_name:
+          type:
+            - string
+            - "null"
+        dns_txt_value:
+          type:
+            - string
+            - "null"
+        domain:
+          type: string
+        provider_id:
+          type: string
+          format: uuid
+        verified_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    SamlExchangeRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+      additionalProperties: false
+    SamlExchangeResponse:
+      type: object
+      required:
+        - token
+        - project_id
+        - user_id
+        - role
+      properties:
+        email:
+          type:
+            - string
+            - "null"
+        name:
+          type:
+            - string
+            - "null"
+        project_id:
+          type: string
+          format: uuid
+        redirect_path:
+          type:
+            - string
+            - "null"
+        role:
+          type: string
+        token:
+          type: string
+        user_id:
+          type: string
+    SamlInfo:
+      type: object
+      description: SAML login configuration visible before authentication.
+      required:
+        - enabled
+        - label
+        - login_url
+      properties:
+        enabled:
+          type: boolean
+        label:
+          type: string
+        login_url:
+          type: string
+    SamlProviderRequest:
+      type: object
+      required:
+        - label
+        - metadata_xml
+      properties:
+        enabled:
+          type: boolean
+        enforce_sso:
+          type: boolean
+        idp_initiated_enabled:
+          type: boolean
+        jit_enabled:
+          type: boolean
+        label:
+          type: string
+        metadata_xml:
+          type: string
+      additionalProperties: false
+    SamlProviderResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - label
+        - entity_id
+        - enabled
+        - jit_enabled
+        - idp_initiated_enabled
+        - enforce_sso
+        - acs_url
+        - idp_initiated_relay_state
+      properties:
+        acs_url:
+          type: string
+        enabled:
+          type: boolean
+        enforce_sso:
+          type: boolean
+        entity_id:
+          type: string
+        id:
+          type: string
+          format: uuid
+        idp_initiated_enabled:
+          type: boolean
+        idp_initiated_relay_state:
+          type: string
+        jit_enabled:
+          type: boolean
+        label:
+          type: string
+        project_id:
+          type: string
+          format: uuid
     SandboxExtractResponse:
       type: object
       description: Sandbox extraction response — mirrors the real API `GET /v1/jobs/{id}` response
@@ -10488,6 +13802,176 @@ components:
         - all_valid
         - partial_valid
         - all_invalid
+    ScimAdminGroupResponse:
+      type: object
+      required:
+        - id
+        - display_name
+        - role_ids
+      properties:
+        display_name:
+          type: string
+        id:
+          type: string
+          format: uuid
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    ScimConnectionResponse:
+      type: object
+      required:
+        - id
+        - display_name
+        - client_id
+        - active
+        - version
+        - client_secret_expires_at
+      properties:
+        active:
+          type: boolean
+        client_id:
+          type: string
+        client_secret_expires_at:
+          type: string
+        display_name:
+          type: string
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+    ScimErrorBody:
+      type: object
+      required:
+        - schemas
+        - status
+        - detail
+      properties:
+        detail:
+          type: string
+        schemas:
+          type: array
+          items:
+            type: string
+        scimType:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+    ScimGroupInput:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+        externalId:
+          type:
+            - string
+            - "null"
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimMemberInput'
+        schemas:
+          type: array
+          items:
+            type: string
+    ScimMemberInput:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          format: uuid
+    ScimPatchOperation:
+      type: object
+      required:
+        - op
+      properties:
+        op:
+          type: string
+        path:
+          type:
+            - string
+            - "null"
+        value: {}
+    ScimPatchRequest:
+      type: object
+      required:
+        - schemas
+        - Operations
+      properties:
+        Operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPatchOperation'
+        schemas:
+          type: array
+          items:
+            type: string
+    ScimTokenRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        client_id:
+          type:
+            - string
+            - "null"
+        client_secret:
+          type:
+            - string
+            - "null"
+        grant_type:
+          type: string
+    ScimTokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+          format: int64
+        token_type:
+          type: string
+    ScimUserInput:
+      type: object
+      required:
+        - userName
+      properties:
+        active:
+          type: boolean
+        displayName:
+          type:
+            - string
+            - "null"
+        externalId:
+          type:
+            - string
+            - "null"
+        schemas:
+          type: array
+          items:
+            type: string
+        userName:
+          type: string
+    SetIntegrationSyncRequest:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
     SetRagConfigRequest:
       type: object
       description: Request to set a project's RAG configuration (`PUT .../rag-config`).
@@ -10848,6 +14332,22 @@ components:
             - string
             - "null"
           description: Updated project name.
+    UpdateProjectRoleRequest:
+      type: object
+      required:
+        - name
+        - permissions
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectPermission'
     UpdateUserProfileRequest:
       type: object
       description: Fields the authenticated user may change on their profile.
@@ -11347,6 +14847,8 @@ tags:
     description: Project members management
   - name: api_keys
     description: API key management
+  - name: scim
+    description: SCIM directory provisioning configuration
   - name: audit
     description: Audit log
   - name: integrations

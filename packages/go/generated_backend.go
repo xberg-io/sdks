@@ -6,10 +6,179 @@ package xberg
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for ProjectPermission.
+const (
+	ProjectPermissionAnalyticsRead           ProjectPermission = "analytics.read"
+	ProjectPermissionApiKeyCreate            ProjectPermission = "api_key.create"
+	ProjectPermissionApiKeyRead              ProjectPermission = "api_key.read"
+	ProjectPermissionApiKeyRegenerate        ProjectPermission = "api_key.regenerate"
+	ProjectPermissionApiKeyRevoke            ProjectPermission = "api_key.revoke"
+	ProjectPermissionAuditRead               ProjectPermission = "audit.read"
+	ProjectPermissionAutoTuneManage          ProjectPermission = "auto_tune.manage"
+	ProjectPermissionAutoTuneRead            ProjectPermission = "auto_tune.read"
+	ProjectPermissionBillingCheckout         ProjectPermission = "billing.checkout"
+	ProjectPermissionBillingPortal           ProjectPermission = "billing.portal"
+	ProjectPermissionBillingRead             ProjectPermission = "billing.read"
+	ProjectPermissionDocumentRead            ProjectPermission = "document.read"
+	ProjectPermissionExtractionExecute       ProjectPermission = "extraction.execute"
+	ProjectPermissionExtractionRead          ProjectPermission = "extraction.read"
+	ProjectPermissionIntegrationConnect      ProjectPermission = "integration.connect"
+	ProjectPermissionIntegrationCreate       ProjectPermission = "integration.create"
+	ProjectPermissionIntegrationDelete       ProjectPermission = "integration.delete"
+	ProjectPermissionIntegrationDisconnect   ProjectPermission = "integration.disconnect"
+	ProjectPermissionIntegrationDocumentRead ProjectPermission = "integration_document.read"
+	ProjectPermissionIntegrationRead         ProjectPermission = "integration.read"
+	ProjectPermissionInvitationCreate        ProjectPermission = "invitation.create"
+	ProjectPermissionInvitationRead          ProjectPermission = "invitation.read"
+	ProjectPermissionInvitationRevoke        ProjectPermission = "invitation.revoke"
+	ProjectPermissionJobCancel               ProjectPermission = "job.cancel"
+	ProjectPermissionJobRead                 ProjectPermission = "job.read"
+	ProjectPermissionMemberLeave             ProjectPermission = "member.leave"
+	ProjectPermissionMemberRead              ProjectPermission = "member.read"
+	ProjectPermissionMemberRemove            ProjectPermission = "member.remove"
+	ProjectPermissionMemberUpdate            ProjectPermission = "member.update"
+	ProjectPermissionPresetManage            ProjectPermission = "preset.manage"
+	ProjectPermissionPresetRead              ProjectPermission = "preset.read"
+	ProjectPermissionProjectDelete           ProjectPermission = "project.delete"
+	ProjectPermissionProjectRead             ProjectPermission = "project.read"
+	ProjectPermissionProjectUpdate           ProjectPermission = "project.update"
+	ProjectPermissionRagRead                 ProjectPermission = "rag.read"
+	ProjectPermissionRagUpdate               ProjectPermission = "rag.update"
+	ProjectPermissionRoleAssign              ProjectPermission = "role.assign"
+	ProjectPermissionRoleCreate              ProjectPermission = "role.create"
+	ProjectPermissionRoleDelete              ProjectPermission = "role.delete"
+	ProjectPermissionRoleRead                ProjectPermission = "role.read"
+	ProjectPermissionRoleUpdate              ProjectPermission = "role.update"
+	ProjectPermissionSandboxExecute          ProjectPermission = "sandbox.execute"
+	ProjectPermissionScimManage              ProjectPermission = "scim.manage"
+	ProjectPermissionScimRead                ProjectPermission = "scim.read"
+	ProjectPermissionUsageRead               ProjectPermission = "usage.read"
+	ProjectPermissionWebhookCreate           ProjectPermission = "webhook.create"
+	ProjectPermissionWebhookDelete           ProjectPermission = "webhook.delete"
+	ProjectPermissionWebhookDeliveryRead     ProjectPermission = "webhook_delivery.read"
+	ProjectPermissionWebhookDeliveryRetry    ProjectPermission = "webhook_delivery.retry"
+	ProjectPermissionWebhookRead             ProjectPermission = "webhook.read"
+	ProjectPermissionWebhookTest             ProjectPermission = "webhook.test"
+	ProjectPermissionWebhookUpdate           ProjectPermission = "webhook.update"
+)
+
+// Valid indicates whether the value is a known member of the ProjectPermission enum.
+func (e ProjectPermission) Valid() bool {
+	switch e {
+	case ProjectPermissionAnalyticsRead:
+		return true
+	case ProjectPermissionApiKeyCreate:
+		return true
+	case ProjectPermissionApiKeyRead:
+		return true
+	case ProjectPermissionApiKeyRegenerate:
+		return true
+	case ProjectPermissionApiKeyRevoke:
+		return true
+	case ProjectPermissionAuditRead:
+		return true
+	case ProjectPermissionAutoTuneManage:
+		return true
+	case ProjectPermissionAutoTuneRead:
+		return true
+	case ProjectPermissionBillingCheckout:
+		return true
+	case ProjectPermissionBillingPortal:
+		return true
+	case ProjectPermissionBillingRead:
+		return true
+	case ProjectPermissionDocumentRead:
+		return true
+	case ProjectPermissionExtractionExecute:
+		return true
+	case ProjectPermissionExtractionRead:
+		return true
+	case ProjectPermissionIntegrationConnect:
+		return true
+	case ProjectPermissionIntegrationCreate:
+		return true
+	case ProjectPermissionIntegrationDelete:
+		return true
+	case ProjectPermissionIntegrationDisconnect:
+		return true
+	case ProjectPermissionIntegrationDocumentRead:
+		return true
+	case ProjectPermissionIntegrationRead:
+		return true
+	case ProjectPermissionInvitationCreate:
+		return true
+	case ProjectPermissionInvitationRead:
+		return true
+	case ProjectPermissionInvitationRevoke:
+		return true
+	case ProjectPermissionJobCancel:
+		return true
+	case ProjectPermissionJobRead:
+		return true
+	case ProjectPermissionMemberLeave:
+		return true
+	case ProjectPermissionMemberRead:
+		return true
+	case ProjectPermissionMemberRemove:
+		return true
+	case ProjectPermissionMemberUpdate:
+		return true
+	case ProjectPermissionPresetManage:
+		return true
+	case ProjectPermissionPresetRead:
+		return true
+	case ProjectPermissionProjectDelete:
+		return true
+	case ProjectPermissionProjectRead:
+		return true
+	case ProjectPermissionProjectUpdate:
+		return true
+	case ProjectPermissionRagRead:
+		return true
+	case ProjectPermissionRagUpdate:
+		return true
+	case ProjectPermissionRoleAssign:
+		return true
+	case ProjectPermissionRoleCreate:
+		return true
+	case ProjectPermissionRoleDelete:
+		return true
+	case ProjectPermissionRoleRead:
+		return true
+	case ProjectPermissionRoleUpdate:
+		return true
+	case ProjectPermissionSandboxExecute:
+		return true
+	case ProjectPermissionScimManage:
+		return true
+	case ProjectPermissionScimRead:
+		return true
+	case ProjectPermissionUsageRead:
+		return true
+	case ProjectPermissionWebhookCreate:
+		return true
+	case ProjectPermissionWebhookDelete:
+		return true
+	case ProjectPermissionWebhookDeliveryRead:
+		return true
+	case ProjectPermissionWebhookDeliveryRetry:
+		return true
+	case ProjectPermissionWebhookRead:
+		return true
+	case ProjectPermissionWebhookTest:
+		return true
+	case ProjectPermissionWebhookUpdate:
+		return true
+	default:
+		return false
+	}
+}
 
 // AcceptInvitationRequest Request to accept an invitation using its token.
 type AcceptInvitationRequest struct {
@@ -39,6 +208,12 @@ type AnalyticsResponse struct {
 
 	// StartDate Start date of the analytics period
 	StartDate string `json:"start_date"`
+}
+
+// AssignProjectRoleRequest defines model for AssignProjectRoleRequest.
+type AssignProjectRoleRequest struct {
+	CustomRoleId  *openapi_types.UUID   `json:"custom_role_id,omitempty"`
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
 }
 
 // BackendArchiveEntry A single file extracted from an archive.
@@ -101,22 +276,6 @@ type BackendAudioMetadata struct {
 
 	// SampleRateHz Sample rate in Hz after decode (always 16000 when resampled for Whisper).
 	SampleRateHz *int32 `json:"sample_rate_hz,omitempty"`
-}
-
-// BackendAuthConfigResponse `GET /auth/config` response: which auth methods this instance accepts.
-type BackendAuthConfigResponse struct {
-	// Identity Local operator identity when authentication is disabled.
-	Identity *LocalIdentity `json:"identity,omitempty"`
-
-	// Methods Accepted authentication methods (`"api_key"`, optionally `"oidc"`).
-	Methods []string `json:"methods"`
-
-	// Mode Explicit instance authentication policy; older servers require authentication.
-	Mode *AuthMode `json:"mode,omitempty"`
-
-	// Oidc OIDC-specific detail, used by the frontend to decide whether to render
-	// a "Sign in with Google" button.
-	Oidc OidcInfo `json:"oidc"`
 }
 
 // BackendBibtexMetadata BibTeX bibliography metadata.
@@ -187,11 +346,14 @@ type BackendCreateIntegrationRequest struct {
 	// ClientSecret Client secret or password. Enterprise-only submission shape.
 	ClientSecret *string `json:"client_secret,omitempty"`
 
-	// Config Additional configuration as a JSON object.
+	// Config Additional configuration as a JSON object. Object stores require
+	// `bucket`; S3 also requires `region`; all accept an optional `root`.
 	Config *map[string]interface{} `json:"config,omitempty"`
 
-	// Credentials Free-form BYO credentials object (e.g. `client_id`/`client_secret` as
-	// object keys). Pro-only submission shape.
+	// Credentials Free-form BYO credentials object. Static object stores accept:
+	// S3 `access_key_id`/`secret_access_key` (optional `session_token`), GCS
+	// `credential` (service-account JSON string), and Azure Blob
+	// `account_name`/`account_key`.
 	Credentials *map[string]interface{} `json:"credentials,omitempty"`
 
 	// Kind Integration kind (e.g. `"stripe"`, `"hubspot"`, `"google_drive"`).
@@ -556,6 +718,13 @@ type BackendExtractedDocument struct {
 	// Only populated when `OcrElementConfig.include_elements` is true.
 	OcrElements *[]OcrElement `json:"ocr_elements,omitempty"`
 
+	// OcrPageFailures Pages whose OCR failed while extraction continued, in the order the failures were reported.
+	//
+	// A record with `recovered` set means the document still has content for that page
+	// from native text or from embedded images. Xberg-produced results use `None` when
+	// no page failed.
+	OcrPageFailures *[]OcrPageFailure `json:"ocr_page_failures,omitempty"`
+
 	// PageClassifications Per-page classifications produced by the page-classification post-processor.
 	//
 	// `None` when classification is not configured.
@@ -565,7 +734,7 @@ type BackendExtractedDocument struct {
 	//
 	// When page extraction is configured, the document is split into per-page content
 	// with tables and images mapped to their respective pages.
-	Pages *[]BackendPageContent `json:"pages,omitempty"`
+	Pages *[]PageContent `json:"pages,omitempty"`
 
 	// ProcessingWarnings Non-fatal warnings collected during processing pipeline stages.
 	//
@@ -957,84 +1126,6 @@ type BackendOcrMetadata struct {
 	TableRows *int32 `json:"table_rows,omitempty"`
 }
 
-// BackendPageContent Content for a single page/slide.
-//
-// When page extraction is enabled, documents are split into per-page content
-// with associated tables and images mapped to each page.
-//
-// # Performance
-//
-// Uses Arc-wrapped tables and images for memory efficiency:
-// - `Vec<Arc<Table>>` enables zero-copy sharing of table data
-// - `Vec<Arc<ExtractedImage>>` enables zero-copy sharing of image data
-// - Maintains exact JSON compatibility via custom Serialize/Deserialize
-//
-// This reduces memory overhead for documents with shared tables/images
-// by avoiding redundant copies during serialization.
-type BackendPageContent struct {
-	// Content Text content for this page
-	Content string `json:"content"`
-
-	// Hierarchy Hierarchy information for the page (when hierarchy extraction is enabled)
-	//
-	// Contains text hierarchy levels (H1-H6) extracted from the page content.
-	Hierarchy *PageHierarchy `json:"hierarchy,omitempty"`
-
-	// ImageIndices Indices into `ExtractedDocument.images` for images found on this page.
-	//
-	// Each value is a zero-based index into the top-level `images` collection.
-	// Only populated when `extract_images = true` in the extraction config.
-	ImageIndices *[]int32 `json:"image_indices,omitempty"`
-
-	// ImagePreprocessing OCR image preprocessing applied to this page's raster.
-	ImagePreprocessing *ImagePreprocessingMetadata `json:"image_preprocessing,omitempty"`
-
-	// IsBlank Whether this page is blank (no meaningful text content)
-	//
-	// Determined during extraction based on text content analysis.
-	// A page is blank if it has fewer than 3 non-whitespace characters
-	// and contains no tables or images.
-	IsBlank *bool `json:"is_blank,omitempty"`
-
-	// LayoutRegions Layout detection regions for this page (when layout detection is enabled).
-	//
-	// Contains detected layout regions with class, confidence, bounding box,
-	// and area fraction. Only populated when layout detection is configured.
-	LayoutRegions *[]LayoutRegion `json:"layout_regions,omitempty"`
-
-	// OcrConfidence Aggregate OCR confidence for this page. `None` when the page was not OCR'd.
-	OcrConfidence *PageOcrConfidence `json:"ocr_confidence,omitempty"`
-
-	// PageNumber Page number (1-indexed)
-	PageNumber int32 `json:"page_number"`
-
-	// SectionName Section name this slide belongs to (PPTX only).
-	//
-	// PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in
-	// `ppt/presentation.xml`). Only populated when the source is a PPTX file and
-	// the slide belongs to a named section.
-	SectionName *string `json:"section_name,omitempty"`
-
-	// SheetName Sheet name for this page (XLSX/ODS only).
-	//
-	// Each spreadsheet sheet maps to one `PageContent` entry. This field carries the
-	// sheet's display name as it appears in the workbook. `None` for all non-spreadsheet
-	// formats and for sheets with an empty name.
-	SheetName *string `json:"sheet_name,omitempty"`
-
-	// SpeakerNotes Speaker notes for this slide (PPTX only).
-	//
-	// Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`).
-	// Only populated when the source is a PPTX file and notes are present.
-	SpeakerNotes *string `json:"speaker_notes,omitempty"`
-
-	// Tables Tables found on this page (uses Arc for memory efficiency)
-	//
-	// Serializes as `Vec<Table>` for JSON compatibility while maintaining
-	// Arc semantics in-memory for zero-copy sharing.
-	Tables *[]Table `json:"tables,omitempty"`
-}
-
 // BackendPdfMetadata PDF-specific metadata.
 //
 // Contains metadata fields specific to PDF documents that are not in the common
@@ -1274,6 +1365,12 @@ type CheckoutResponse struct {
 
 // CreateInvitationRequest Request to create a project invitation.
 type CreateInvitationRequest struct {
+	// CustomRoleId Legacy singular custom role. Only valid with `MEMBER`.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles. Only valid with `MEMBER`.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
 	// Email Email address to invite.
 	Email string `json:"email"`
 
@@ -1285,6 +1382,12 @@ type CreateInvitationRequest struct {
 // token (for email delivery by the caller) and omits `status`/`created_at`,
 // which are implicit (`PENDING`, "now") at creation time.
 type CreateInvitationResponse struct {
+	// CustomRoleId First custom role for compatibility with singular-role clients.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles assigned on acceptance.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
 	// Email Invited email address.
 	Email string `json:"email"`
 
@@ -1300,6 +1403,26 @@ type CreateInvitationResponse struct {
 	// Token Invitation token to include in the invitation email link. Only
 	// returned once, at creation time.
 	Token string `json:"token"`
+}
+
+// CreateProjectRoleRequest defines model for CreateProjectRoleRequest.
+type CreateProjectRoleRequest struct {
+	Description *string             `json:"description,omitempty"`
+	Name        string              `json:"name"`
+	Permissions []ProjectPermission `json:"permissions"`
+}
+
+// CreateScimConnectionRequest defines model for CreateScimConnectionRequest.
+type CreateScimConnectionRequest struct {
+	DisplayName string `json:"display_name"`
+}
+
+// CreateScimConnectionResponse defines model for CreateScimConnectionResponse.
+type CreateScimConnectionResponse struct {
+	BaseUrl       string                 `json:"base_url"`
+	ClientSecret  string                 `json:"client_secret"`
+	Connection    ScimConnectionResponse `json:"connection"`
+	TokenEndpoint string                 `json:"token_endpoint"`
 }
 
 // CreateWebhookRequest Request to create a new webhook.
@@ -1416,6 +1539,12 @@ type InvitationResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt string `json:"created_at"`
 
+	// CustomRoleId First custom role for compatibility with singular-role clients.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles assigned on acceptance.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
 	// Email Invited email address.
 	Email string `json:"email"`
 
@@ -1479,6 +1608,24 @@ type ListMembersResponse struct {
 	Total int64 `json:"total"`
 }
 
+// ListProjectRolesResponse defines model for ListProjectRolesResponse.
+type ListProjectRolesResponse struct {
+	Limit  int64                 `json:"limit"`
+	Offset int64                 `json:"offset"`
+	Roles  []ProjectRoleResponse `json:"roles"`
+	Total  int64                 `json:"total"`
+}
+
+// ListScimAdminGroupsResponse defines model for ListScimAdminGroupsResponse.
+type ListScimAdminGroupsResponse struct {
+	Groups []ScimAdminGroupResponse `json:"groups"`
+}
+
+// ListScimConnectionsResponse defines model for ListScimConnectionsResponse.
+type ListScimConnectionsResponse struct {
+	Connections []ScimConnectionResponse `json:"connections"`
+}
+
 // ListWebhooksResponse Response for the paginated webhook list endpoint.
 type ListWebhooksResponse struct {
 	// Limit Page size used.
@@ -1499,6 +1646,12 @@ type MemberResponse struct {
 	// CreatedAt ISO 8601 creation timestamp.
 	CreatedAt string `json:"created_at"`
 
+	// CustomRoleId First custom role for compatibility with singular-role clients.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles for a `MEMBER`.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
 	// DisplayName Member's display name, when known.
 	DisplayName *string `json:"display_name,omitempty"`
 
@@ -1507,6 +1660,9 @@ type MemberResponse struct {
 
 	// Id Unique member identifier.
 	Id string `json:"id"`
+
+	// ProvisioningSource Membership authority: `manual` or `scim`.
+	ProvisioningSource string `json:"provisioning_source"`
 
 	// Role Member's role in the project (e.g. `"OWNER"`, `"MEMBER"`).
 	Role string `json:"role"`
@@ -1525,6 +1681,12 @@ type MimeTypeUsage struct {
 
 	// Pages Total pages extracted
 	Pages int64 `json:"pages"`
+}
+
+// OAuthErrorBody defines model for OAuthErrorBody.
+type OAuthErrorBody struct {
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
 }
 
 // PlanInfo Plan limits for the project
@@ -1560,6 +1722,17 @@ type ProcessingStatsEntry struct {
 	SampleCount int32 `json:"sample_count"`
 }
 
+// ProjectPermission defines model for ProjectPermission.
+type ProjectPermission string
+
+// ProjectRoleResponse defines model for ProjectRoleResponse.
+type ProjectRoleResponse struct {
+	Description *string             `json:"description,omitempty"`
+	Id          openapi_types.UUID  `json:"id"`
+	Name        string              `json:"name"`
+	Permissions []ProjectPermission `json:"permissions"`
+}
+
 // PublicSandboxExtractForm Multipart form fields accepted by the public sandbox extract endpoint.
 //
 // Documented so the generated OpenAPI client is aware of every field; the
@@ -1579,6 +1752,11 @@ type PublicSandboxExtractForm struct {
 	Url *string `json:"url,omitempty"`
 }
 
+// ReplaceScimGroupRolesRequest defines model for ReplaceScimGroupRolesRequest.
+type ReplaceScimGroupRolesRequest struct {
+	RoleIds []openapi_types.UUID `json:"role_ids"`
+}
+
 // RetryWebhookDeliveryResponse A manual redelivery request has been queued. Delivery itself happens out
 // of band (the same NATS-consumer delivery path automatic retries use), so
 // this is an accepted-style response rather than a completed delivery
@@ -1593,6 +1771,67 @@ type RetryWebhookDeliveryResponse struct {
 	// Status Always `"queued"` today; a stable string so future states
 	// (`"delivered"`, `"failed"`) can be added without a breaking change.
 	Status string `json:"status"`
+}
+
+// SamlAcsForm defines model for SamlAcsForm.
+type SamlAcsForm struct {
+	RelayState   *string `json:"RelayState,omitempty"`
+	SAMLResponse string  `json:"SAMLResponse"`
+}
+
+// SamlDomainRequest defines model for SamlDomainRequest.
+type SamlDomainRequest struct {
+	Domain     string             `json:"domain"`
+	ProviderId openapi_types.UUID `json:"provider_id"`
+}
+
+// SamlDomainResponse defines model for SamlDomainResponse.
+type SamlDomainResponse struct {
+	DnsTxtName  *string            `json:"dns_txt_name,omitempty"`
+	DnsTxtValue *string            `json:"dns_txt_value,omitempty"`
+	Domain      string             `json:"domain"`
+	ProviderId  openapi_types.UUID `json:"provider_id"`
+	VerifiedAt  *time.Time         `json:"verified_at,omitempty"`
+}
+
+// SamlExchangeRequest defines model for SamlExchangeRequest.
+type SamlExchangeRequest struct {
+	Code string `json:"code"`
+}
+
+// SamlExchangeResponse defines model for SamlExchangeResponse.
+type SamlExchangeResponse struct {
+	Email        *string            `json:"email,omitempty"`
+	Name         *string            `json:"name,omitempty"`
+	ProjectId    openapi_types.UUID `json:"project_id"`
+	RedirectPath *string            `json:"redirect_path,omitempty"`
+	Role         string             `json:"role"`
+	Token        string             `json:"token"`
+	UserId       string             `json:"user_id"`
+}
+
+// SamlProviderRequest defines model for SamlProviderRequest.
+type SamlProviderRequest struct {
+	Enabled             *bool  `json:"enabled,omitempty"`
+	EnforceSso          *bool  `json:"enforce_sso,omitempty"`
+	IdpInitiatedEnabled *bool  `json:"idp_initiated_enabled,omitempty"`
+	JitEnabled          *bool  `json:"jit_enabled,omitempty"`
+	Label               string `json:"label"`
+	MetadataXml         string `json:"metadata_xml"`
+}
+
+// SamlProviderResponse defines model for SamlProviderResponse.
+type SamlProviderResponse struct {
+	AcsUrl                 string             `json:"acs_url"`
+	Enabled                bool               `json:"enabled"`
+	EnforceSso             bool               `json:"enforce_sso"`
+	EntityId               string             `json:"entity_id"`
+	Id                     openapi_types.UUID `json:"id"`
+	IdpInitiatedEnabled    bool               `json:"idp_initiated_enabled"`
+	IdpInitiatedRelayState string             `json:"idp_initiated_relay_state"`
+	JitEnabled             bool               `json:"jit_enabled"`
+	Label                  string             `json:"label"`
+	ProjectId              openapi_types.UUID `json:"project_id"`
 }
 
 // SandboxExtractResponse Sandbox extraction response — mirrors the real API `GET /v1/jobs/{id}` response
@@ -1614,6 +1853,80 @@ type SandboxExtractResponse struct {
 	Status string `json:"status"`
 }
 
+// ScimAdminGroupResponse defines model for ScimAdminGroupResponse.
+type ScimAdminGroupResponse struct {
+	DisplayName string               `json:"display_name"`
+	Id          openapi_types.UUID   `json:"id"`
+	RoleIds     []openapi_types.UUID `json:"role_ids"`
+}
+
+// ScimConnectionResponse defines model for ScimConnectionResponse.
+type ScimConnectionResponse struct {
+	Active                bool               `json:"active"`
+	ClientId              string             `json:"client_id"`
+	ClientSecretExpiresAt string             `json:"client_secret_expires_at"`
+	DisplayName           string             `json:"display_name"`
+	Id                    openapi_types.UUID `json:"id"`
+	Version               int64              `json:"version"`
+}
+
+// ScimErrorBody defines model for ScimErrorBody.
+type ScimErrorBody struct {
+	Detail   string   `json:"detail"`
+	Schemas  []string `json:"schemas"`
+	ScimType *string  `json:"scimType,omitempty"`
+	Status   string   `json:"status"`
+}
+
+// ScimGroupInput defines model for ScimGroupInput.
+type ScimGroupInput struct {
+	DisplayName string             `json:"displayName"`
+	ExternalId  *string            `json:"externalId,omitempty"`
+	Members     *[]ScimMemberInput `json:"members,omitempty"`
+	Schemas     *[]string          `json:"schemas,omitempty"`
+}
+
+// ScimMemberInput defines model for ScimMemberInput.
+type ScimMemberInput struct {
+	Value openapi_types.UUID `json:"value"`
+}
+
+// ScimPatchOperation defines model for ScimPatchOperation.
+type ScimPatchOperation struct {
+	Op    string      `json:"op"`
+	Path  *string     `json:"path,omitempty"`
+	Value interface{} `json:"value,omitempty"`
+}
+
+// ScimPatchRequest defines model for ScimPatchRequest.
+type ScimPatchRequest struct {
+	Operations []ScimPatchOperation `json:"Operations"`
+	Schemas    []string             `json:"schemas"`
+}
+
+// ScimTokenRequest defines model for ScimTokenRequest.
+type ScimTokenRequest struct {
+	ClientId     *string `json:"client_id,omitempty"`
+	ClientSecret *string `json:"client_secret,omitempty"`
+	GrantType    string  `json:"grant_type"`
+}
+
+// ScimTokenResponse defines model for ScimTokenResponse.
+type ScimTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
+// ScimUserInput defines model for ScimUserInput.
+type ScimUserInput struct {
+	Active      *bool     `json:"active,omitempty"`
+	DisplayName *string   `json:"displayName,omitempty"`
+	ExternalId  *string   `json:"externalId,omitempty"`
+	Schemas     *[]string `json:"schemas,omitempty"`
+	UserName    string    `json:"userName"`
+}
+
 // UpdateMemberRoleRequest Request to update a member's role within a project.
 type UpdateMemberRoleRequest struct {
 	// Role New role: `"OWNER"` or `"MEMBER"`.
@@ -1625,6 +1938,13 @@ type UpdateMemberRoleRequest struct {
 type UpdateProjectRequest struct {
 	// Name Updated project name.
 	Name *string `json:"name,omitempty"`
+}
+
+// UpdateProjectRoleRequest defines model for UpdateProjectRoleRequest.
+type UpdateProjectRoleRequest struct {
+	Description *string             `json:"description,omitempty"`
+	Name        string              `json:"name"`
+	Permissions []ProjectPermission `json:"permissions"`
 }
 
 // UpdateUserProfileRequest Fields the authenticated user may change on their profile.
@@ -1766,6 +2086,30 @@ type WebhookTestResponse struct {
 	Success bool `json:"success"`
 }
 
+// ListScimGroupsParams defines parameters for ListScimGroups.
+type ListScimGroupsParams struct {
+	// Filter SCIM equality filter
+	Filter *string `form:"filter,omitempty" json:"filter,omitempty"`
+
+	// StartIndex One-based result offset
+	StartIndex *int64 `form:"startIndex,omitempty" json:"startIndex,omitempty"`
+
+	// Count Maximum results to return
+	Count *int64 `form:"count,omitempty" json:"count,omitempty"`
+}
+
+// ListScimUsersParams defines parameters for ListScimUsers.
+type ListScimUsersParams struct {
+	// Filter SCIM equality filter
+	Filter *string `form:"filter,omitempty" json:"filter,omitempty"`
+
+	// StartIndex One-based result offset
+	StartIndex *int64 `form:"startIndex,omitempty" json:"startIndex,omitempty"`
+
+	// Count Maximum results to return
+	Count *int64 `form:"count,omitempty" json:"count,omitempty"`
+}
+
 // DeleteProjectParams defines parameters for DeleteProject.
 type DeleteProjectParams struct {
 	// Erase Erase the project's content, not only its rows.
@@ -1823,6 +2167,18 @@ type ListMembersParams struct {
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
+// ListProjectRolesParams defines parameters for ListProjectRoles.
+type ListProjectRolesParams struct {
+	// Limit Page size. A value outside 1..=1000 is rejected with a 400, on both
+	// tiers.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of items to skip. A negative value is rejected with a 400; a
+	// value above 1,000,000 is accepted but clamped to 1,000,000, which
+	// selects an empty page rather than erroring.
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // SandboxExtractMultipartBody defines parameters for SandboxExtract.
 type SandboxExtractMultipartBody interface{}
 
@@ -1847,6 +2203,33 @@ type RetryWebhookDeliveryParams struct {
 // UpdateUserProfileJSONRequestBody defines body for UpdateUserProfile for application/json ContentType.
 type UpdateUserProfileJSONRequestBody = UpdateUserProfileRequest
 
+// AcsFormdataRequestBody defines body for Acs for application/x-www-form-urlencoded ContentType.
+type AcsFormdataRequestBody = SamlAcsForm
+
+// ExchangeJSONRequestBody defines body for Exchange for application/json ContentType.
+type ExchangeJSONRequestBody = SamlExchangeRequest
+
+// CreateScimGroupApplicationScimPlusJSONRequestBody defines body for CreateScimGroup for application/scim+json ContentType.
+type CreateScimGroupApplicationScimPlusJSONRequestBody = ScimGroupInput
+
+// PatchScimGroupApplicationScimPlusJSONRequestBody defines body for PatchScimGroup for application/scim+json ContentType.
+type PatchScimGroupApplicationScimPlusJSONRequestBody = ScimPatchRequest
+
+// ReplaceScimGroupApplicationScimPlusJSONRequestBody defines body for ReplaceScimGroup for application/scim+json ContentType.
+type ReplaceScimGroupApplicationScimPlusJSONRequestBody = ScimGroupInput
+
+// CreateScimUserApplicationScimPlusJSONRequestBody defines body for CreateScimUser for application/scim+json ContentType.
+type CreateScimUserApplicationScimPlusJSONRequestBody = ScimUserInput
+
+// PatchScimUserApplicationScimPlusJSONRequestBody defines body for PatchScimUser for application/scim+json ContentType.
+type PatchScimUserApplicationScimPlusJSONRequestBody = ScimPatchRequest
+
+// ReplaceScimUserApplicationScimPlusJSONRequestBody defines body for ReplaceScimUser for application/scim+json ContentType.
+type ReplaceScimUserApplicationScimPlusJSONRequestBody = ScimUserInput
+
+// IssueScimTokenFormdataRequestBody defines body for IssueScimToken for application/x-www-form-urlencoded ContentType.
+type IssueScimTokenFormdataRequestBody = ScimTokenRequest
+
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
 type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
 
@@ -1859,14 +2242,38 @@ type InviteUserJSONRequestBody = CreateInvitationRequest
 // UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
 type UpdateMemberRoleJSONRequestBody = UpdateMemberRoleRequest
 
+// AssignProjectRoleJSONRequestBody defines body for AssignProjectRole for application/json ContentType.
+type AssignProjectRoleJSONRequestBody = AssignProjectRoleRequest
+
+// CreateProjectRoleJSONRequestBody defines body for CreateProjectRole for application/json ContentType.
+type CreateProjectRoleJSONRequestBody = CreateProjectRoleRequest
+
+// UpdateProjectRoleJSONRequestBody defines body for UpdateProjectRole for application/json ContentType.
+type UpdateProjectRoleJSONRequestBody = UpdateProjectRoleRequest
+
 // SandboxExtractMultipartRequestBody defines body for SandboxExtract for multipart/form-data ContentType.
 type SandboxExtractMultipartRequestBody SandboxExtractMultipartBody
+
+// CreateScimConnectionJSONRequestBody defines body for CreateScimConnection for application/json ContentType.
+type CreateScimConnectionJSONRequestBody = CreateScimConnectionRequest
+
+// ReplaceScimGroupRolesJSONRequestBody defines body for ReplaceScimGroupRoles for application/json ContentType.
+type ReplaceScimGroupRolesJSONRequestBody = ReplaceScimGroupRolesRequest
 
 // CreateWebhookJSONRequestBody defines body for CreateWebhook for application/json ContentType.
 type CreateWebhookJSONRequestBody = CreateWebhookRequest
 
 // UpdateWebhookJSONRequestBody defines body for UpdateWebhook for application/json ContentType.
 type UpdateWebhookJSONRequestBody = UpdateWebhookRequest
+
+// CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
+type CreateDomainJSONRequestBody = SamlDomainRequest
+
+// CreateProviderJSONRequestBody defines body for CreateProvider for application/json ContentType.
+type CreateProviderJSONRequestBody = SamlProviderRequest
+
+// UpdateProviderJSONRequestBody defines body for UpdateProvider for application/json ContentType.
+type UpdateProviderJSONRequestBody = SamlProviderRequest
 
 // PublicSandboxExtractMultipartRequestBody defines body for PublicSandboxExtract for multipart/form-data ContentType.
 type PublicSandboxExtractMultipartRequestBody = PublicSandboxExtractForm
