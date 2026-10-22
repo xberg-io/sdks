@@ -35,7 +35,7 @@ and Xberg Pro document-processing APIs. One `XbergClient` speaks to either
 product: the shared surface (extraction, jobs, audit, curated presets, RAG) is
 written once, and tier-specific methods are capability-gated.
 
-- ESM-only, modern (Node 22+, Bun, Deno, Cloudflare Workers)
+- ESM-only, modern (Node 24+, Bun, Deno, Cloudflare Workers)
 - Dual-target: two generated schema sets (Enterprise + Pro), never merged
 - Generated types via `openapi-typescript`, runtime via `openapi-fetch`
 - Tree-shakable, no bundled dependencies

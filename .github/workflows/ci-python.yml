@@ -44,7 +44,7 @@ jobs:
       UV_PYTHON: "3.10"
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.1
         with:
           enable-cache: true
       - name: Pin Python

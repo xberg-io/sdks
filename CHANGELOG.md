@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-10-22
+
 ### Fixed
 
 - Respect TypeScript `retryOn` exclusions for HTTP 429 responses with `Retry-After`,
@@ -22,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   assigning its result to `*ListIntegrationsResponse` must use the Pro response type;
   the existing generated `ListIntegrationsResponse` and `BackendListIntegrations`
   remain available for the Enterprise control plane. See [#38](https://github.com/xberg-io/sdks/pull/38).
+- **Breaking, TypeScript runtime.** `@xberg-io/sdk` now requires Node.js 24 or later (previously 22); the bundle
+  targets `node24` and the published types build against `@types/node` 24. CI and publishing run on Node 24.22.1.
+- Refresh npm, Python and documentation-site dependencies and CI action pins. `pnpm audit` reports no known
+  vulnerabilities in the SDK workspace.
 
 ## [0.8.0] - 2026-10-12
 
