@@ -355,15 +355,6 @@ type ListApiKeysResponse struct {
 	Total int64 `json:"total"`
 }
 
-// ListDocumentsResponse Response body for the integration document list endpoint.
-//
-// See the module-level doc for why this intentionally omits
-// `total`/`limit`/`offset`.
-type ListDocumentsResponse struct {
-	// Documents Documents matching the filter, in source-reported order.
-	Documents []DocumentResponse `json:"documents"`
-}
-
 // ListIntegrationsResponse Response for the paginated integration list endpoint.
 type ListIntegrationsResponse struct {
 	// Integrations Integrations in the current page.
@@ -905,6 +896,15 @@ type ProJobSummary struct {
 
 	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
+}
+
+// ProListDocumentsResponse Response body for the integration document list endpoint.
+//
+// See the module-level doc for why this intentionally omits
+// `total`/`limit`/`offset`.
+type ProListDocumentsResponse struct {
+	// Documents Documents matching the filter, in source-reported order.
+	Documents []DocumentResponse `json:"documents"`
 }
 
 // ProListJobsResponse Response for `GET /v1/jobs` (paginated job list).

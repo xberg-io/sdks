@@ -12139,9 +12139,9 @@ components:
 
         The warning in `ExtractedDocument::processing_warnings` stays available. One warning
         can cover several pages: when an automatic OCR run of selected pages fails as a whole,
-        it adds one warning and one record for each selected page. A failure of the OCR fallback
-        for the whole document adds a warning and no record. Repeated failures on one page make
-        one record.
+        it adds one warning and one record for each selected page. When the OCR fallback for the
+        whole document fails, it adds one warning and one record for each page that has no native
+        text. Repeated failures on one page make one record.
       required:
         - page
         - error
@@ -13120,6 +13120,16 @@ components:
         - billing.read
         - billing.checkout
         - billing.portal
+        - data_room.read
+        - data_room.create
+        - data_room.manage
+        - data_room.update
+        - data_room.delete
+        - data_room.item.write
+        - data_room.member.manage
+        - data_room.transfer
+        - data_room.publish
+        - data_room.audit.read
     ProjectResponse:
       type: object
       description: |-
