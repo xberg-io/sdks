@@ -235,6 +235,14 @@ All backend operations use the configured control-plane origin and credential.
 | `testWebhook` |  |
 | `publicSandboxExtract` |  |
 
+## Enterprise health
+
+Enterprise liveness and feature availability.
+
+| Method | Description |
+| --- | --- |
+| `enterpriseHealthz` | Enterprise liveness and feature availability (`GET /healthz` on the data plane). |
+
 ## Pro health
 
 Pro liveness and coarse license/capability state.
@@ -242,14 +250,6 @@ Pro liveness and coarse license/capability state.
 | Method | Description |
 | --- | --- |
 | `proHealthz` | Pro liveness and coarse license/capability state (`GET /healthz`). |
-
-## Enterprise health
-
-Enterprise liveness and feature availability on the data plane.
-
-| Method | Description |
-| --- | --- |
-| `enterpriseHealthz` | Enterprise liveness and feature availability (`GET /healthz` on the data plane). |
 
 ## Auth
 

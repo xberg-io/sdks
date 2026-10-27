@@ -151,8 +151,8 @@ raises a clear error instead of a raw 404:
 Three documented routes have no client method, on purpose:
 
 - `GET /readyz` — an infrastructure readiness probe for orchestrators, not
-  caller-facing API surface. `GET /healthz` is exposed indirectly: it is the
-  tier probe behind `target=None`.
+  caller-facing API surface. `GET /healthz` is the tier
+  probe behind `target=None`, and `enterprise_healthz` returns it on Enterprise.
 - `GET /v1/oauth/callback` (Pro) — a browser redirect leg of the OIDC flow. The
   provider calls it, not an API client.
 - `DELETE /auth/account` (Pro) — a session-cookie account-deletion flow, not

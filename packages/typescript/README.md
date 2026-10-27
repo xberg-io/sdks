@@ -131,7 +131,7 @@ control plane — `listProjects` / `createProject`, `listApiKeys` / `createApiKe
 `deleteIntegration`, `connectIntegration` / `disconnectIntegration`,
 `listIntegrationDocuments` / `fetchIntegrationDocument`.
 
-Xberg Enterprise only: `getDocument`, `versions`, `diff` / `getDiffJob`,
+Xberg Enterprise only: `enterpriseHealthz`, `getDocument`, `versions`, `diff` / `getDiffJob`,
 `listExtractionEvents`, `listSubscriptionDeliveries` / `getSubscriptionDelivery`.
 
 Both tiers also carry `stopAutoTuneJob` and `listManagedEmbeddingPresets`.
@@ -149,15 +149,30 @@ a Server-Sent Events stream).
 A few documented endpoints are deliberately left out of the client:
 
 - `GET /readyz` — an infrastructure readiness probe for orchestrators, not
-  application surface. `GET /healthz` *is* used: it backs the tier probe.
+  application surface. `GET /healthz` *is* used: it backs the tier probe
+  and `enterpriseHealthz`.
 - `GET /v1/oauth/callback` and `DELETE /auth/account` (Pro) — browser
   redirect/cookie flows, not API-key surface. `POST /auth/login`, which does
   work with a verified ID token, is exposed.
 
 Errors throw subclasses of `XbergError` (`AuthError`, `RateLimitError`,
-`ValidationError`, `NotFoundError`, `ServerError`, `TimeoutError`). Each
-carries `status: number` and `body: unknown`. `RateLimitError.retryAfter`
-is parsed from the `Retry-After` response header.
+`ValidationError`, `NotFoundError`, `ServerError`, `TimeoutError`, plus
+`RequestTimeoutError` (408), `ResultExpiredError` (410), `PreconditionFailedError`
+(412), `PreconditionRequiredError` (428) and `GatewayTimeoutError` (504, a
+`ServerError`)). Each carries `status: number`, `body: unknown`, and the
+envelope's `code` and `details`; the two timeout errors also expose `limit` and
+`timeoutSeconds`. `RateLimitError.retryAfter` is parsed from the `Retry-After`
+response header.
+
+`retries` enables retries (off by default). 429 and transport failures are
+retried for every method; 502, 503 and 504 only for GET, HEAD, OPTIONS, PUT and
+DELETE, because a POST or PATCH the gateway timed out on may still have run. Set
+`retryNonIdempotent: true` to retry POST and PATCH on them too. 408 is not
+retried by default.
+
+`verifyWebhookSignature(secret, header, rawBody)` checks a delivery's
+`X-Webhook-Signature` header in constant time and rejects timestamps older or
+newer than five minutes.
 
 The low-level `createClient(...)` factory (a thin `openapi-fetch` wrapper)
 is still exported for direct OpenAPI access.

@@ -237,6 +237,14 @@ All backend operations use the configured control-plane origin and credential.
 | `TestWebhook` | TestWebhook calls POST /v1/projects/{id}/webhooks/{wh_id}/test on the Enterprise control plane. |
 | `PublicSandboxExtract` | PublicSandboxExtract submits a file, or a URL in web mode, to the Enterprise public sandbox |
 
+## Enterprise health
+
+Enterprise liveness and feature availability.
+
+| Method | Description |
+| --- | --- |
+| `EnterpriseHealthz` | EnterpriseHealthz returns Enterprise data-plane liveness and feature availability (GET /healthz) |
+
 ## Pro health
 
 Pro liveness and coarse license/capability state.
@@ -244,14 +252,6 @@ Pro liveness and coarse license/capability state.
 | Method | Description |
 | --- | --- |
 | `ProHealthz` | ProHealthz returns Pro liveness and coarse license/capability state, not dependency readiness |
-
-## Enterprise health
-
-Enterprise data-plane liveness and feature availability.
-
-| Method | Description |
-| --- | --- |
-| `EnterpriseHealthz` | EnterpriseHealthz returns Enterprise data-plane liveness and feature availability (GET /healthz) |
 
 ## Auth
 

@@ -72,7 +72,7 @@ control plane — projects
 `RevokeAPIKey`) and integrations (`ListIntegrations`, `CreateIntegration`,
 `GetIntegration`, `DeleteIntegration`, `ConnectIntegration`,
 `DisconnectIntegration`, `ListIntegrationDocuments`, `FetchIntegrationDocument`).
-Enterprise-only: `GetDocument`, `Versions`, `Diff`, `GetDiffJob`,
+Enterprise-only: `EnterpriseHealthz`, `GetDocument`, `Versions`, `Diff`, `GetDiffJob`,
 `ListExtractionEvents`, and the webhook-subscription delivery history
 (`ListSubscriptionDeliveries`, `GetSubscriptionDelivery`). Available on both
 tiers, though earlier releases wrongly gated them to Enterprise: `GetJobPage`,
@@ -88,7 +88,7 @@ A few endpoints in the two specs are intentionally not surfaced:
 
 - `GET /readyz` — an infrastructure readiness probe for orchestrators, not
   client surface. (`GET /healthz` *is* used: it is how an untargeted client
-  discovers the tier.)
+  discovers the tier, and `EnterpriseHealthz` returns it on Enterprise.)
 - Pro's `GET /v1/oauth/callback` and `DELETE /auth/account` — browser redirect
   and cookie-session flows that a bearer-token client cannot drive. Pro's
   `POST /auth/login` is exposed because it exchanges a verified OIDC ID token
