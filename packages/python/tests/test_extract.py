@@ -322,7 +322,7 @@ def test_retrying_a_seekable_upload_resends_the_body_because_httpx_rewinds_it(
     stream = io.BytesIO(payload)
     stream.name = "big.pdf"
 
-    with XbergClient(api_key=api_key, base_url=base_url, retries=1) as client:
+    with XbergClient(api_key=api_key, base_url=base_url, retries=1, retry_non_idempotent=True) as client:
         client.extract(file=stream)
 
     assert route.call_count == 2
@@ -384,7 +384,7 @@ async def test_async_retrying_a_seekable_upload_resends_the_body_because_httpx_r
     stream = io.BytesIO(payload)
     stream.name = "big.pdf"
 
-    async with AsyncXbergClient(api_key=api_key, base_url=base_url, retries=1) as client:
+    async with AsyncXbergClient(api_key=api_key, base_url=base_url, retries=1, retry_non_idempotent=True) as client:
         await client.extract(file=stream)
 
     assert route.call_count == 2

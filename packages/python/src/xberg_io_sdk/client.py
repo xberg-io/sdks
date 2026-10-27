@@ -287,6 +287,12 @@ _BACKOFF_FACTOR = 2.0
 
 _DEFAULT_RETRIES = 0
 _DEFAULT_RETRY_STATUSES: frozenset[int] = frozenset({429, 502, 503, 504})
+# ~keep A 502/503/504 can arrive after the server already accepted the work (a
+# ~keep handler 504 races a job that was enqueued), so replaying a non-idempotent
+# ~keep method duplicates it. 429 is refused before any work starts, so it is safe
+# ~keep to replay for every method.
+_IDEMPOTENT_METHODS: frozenset[str] = frozenset({"GET", "HEAD", "OPTIONS", "PUT", "DELETE"})
+_ALWAYS_RETRYABLE_STATUSES: frozenset[int] = frozenset({429})
 _RETRY_BACKOFF_BASE = 0.2
 
 FileInput = Path | bytes | BinaryIO
@@ -800,7 +806,7 @@ def _parse_probed_tier(body: Any) -> str:
 class _BaseClient:
     """Shared configuration and tier-gating state for the sync and async clients."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 ~keep Keyword-only configuration surface, mirrored across the three SDKs.
         self,
         *,
         api_key: str | None = None,
@@ -813,6 +819,7 @@ class _BaseClient:
         retries: int = _DEFAULT_RETRIES,
         retry_on: Iterable[int] | None = None,
         retry_backoff: BackoffStrategy = "exponential",
+        retry_non_idempotent: bool = False,
     ) -> None:
         self._control_plane_token = control_plane_token if control_plane_token is not None else api_key
         self._api_key = api_key
@@ -829,12 +836,26 @@ class _BaseClient:
         self._retries = retries
         self._retry_on: frozenset[int] = frozenset(retry_on) if retry_on is not None else _DEFAULT_RETRY_STATUSES
         self._retry_backoff: BackoffStrategy = retry_backoff
+        self._retry_non_idempotent = retry_non_idempotent
         self._probed_tier: str | None = None
         self._headers = httpx.Headers({"User-Agent": _user_agent()})
         if headers:
             self._headers.update(headers)
         if api_key is not None:
             self._headers["Authorization"] = f"Bearer {api_key}"
+
+    def _should_retry_status(self, method: str, status: int) -> bool:
+        """Whether a response with ``status`` to a ``method`` request is replayed.
+
+        ``status`` must be in ``retry_on``. 429 is then replayed for every method;
+        any other status only for an idempotent method, or for ``POST``/``PATCH``
+        when the client was built with ``retry_non_idempotent=True``.
+        """
+        if status not in self._retry_on:
+            return False
+        if status in _ALWAYS_RETRYABLE_STATUSES or method.upper() in _IDEMPOTENT_METHODS:
+            return True
+        return self._retry_non_idempotent
 
     def _require_tier_or_raise(self, tier: str, required: Target, method_name: str) -> None:
         if tier != required:
@@ -864,7 +885,7 @@ class XbergClient(_BaseClient):
     ...     result = client.wait_for_job(str(job.id))
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 ~keep Keyword-only configuration surface, mirrored across the three SDKs.
         self,
         *,
         api_key: str | None = None,
@@ -877,6 +898,7 @@ class XbergClient(_BaseClient):
         retries: int = _DEFAULT_RETRIES,
         retry_on: Iterable[int] | None = None,
         retry_backoff: BackoffStrategy = "exponential",
+        retry_non_idempotent: bool = False,
     ) -> None:
         super().__init__(
             api_key=api_key,
@@ -889,6 +911,7 @@ class XbergClient(_BaseClient):
             retries=retries,
             retry_on=retry_on,
             retry_backoff=retry_backoff,
+            retry_non_idempotent=retry_non_idempotent,
         )
         self._http = httpx.Client(base_url=self._base_url, timeout=self._timeout, headers=self._headers)
         self._tier_lock = threading.Lock()
@@ -981,7 +1004,7 @@ class XbergClient(_BaseClient):
                 raise XbergError(f"network error contacting {path}", status_code=None) from exc
             if response.is_success:
                 return response
-            if response.status_code in self._retry_on and attempt < self._retries:
+            if attempt < self._retries and self._should_retry_status(method, response.status_code):
                 attempt += 1
                 retry_after = parse_retry_after(response.headers.get("Retry-After"))
                 time.sleep(retry_after if retry_after is not None else interval)
@@ -2259,7 +2282,7 @@ class AsyncXbergClient(_BaseClient):
     ...     result = await client.extract_and_wait(file=Path("invoice.pdf"))
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 ~keep Keyword-only configuration surface, mirrored across the three SDKs.
         self,
         *,
         api_key: str | None = None,
@@ -2272,6 +2295,7 @@ class AsyncXbergClient(_BaseClient):
         retries: int = _DEFAULT_RETRIES,
         retry_on: Iterable[int] | None = None,
         retry_backoff: BackoffStrategy = "exponential",
+        retry_non_idempotent: bool = False,
     ) -> None:
         super().__init__(
             api_key=api_key,
@@ -2284,6 +2308,7 @@ class AsyncXbergClient(_BaseClient):
             retries=retries,
             retry_on=retry_on,
             retry_backoff=retry_backoff,
+            retry_non_idempotent=retry_non_idempotent,
         )
         self._http = httpx.AsyncClient(base_url=self._base_url, timeout=self._timeout, headers=self._headers)
         self._tier_lock = asyncio.Lock()
@@ -2376,7 +2401,7 @@ class AsyncXbergClient(_BaseClient):
                 raise XbergError(f"network error contacting {path}", status_code=None) from exc
             if response.is_success:
                 return response
-            if response.status_code in self._retry_on and attempt < self._retries:
+            if attempt < self._retries and self._should_retry_status(method, response.status_code):
                 attempt += 1
                 retry_after = parse_retry_after(response.headers.get("Retry-After"))
                 await asyncio.sleep(retry_after if retry_after is not None else interval)
