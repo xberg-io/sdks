@@ -5,12 +5,16 @@ on:
     paths:
       - ".ai-rulez/**"
       - ".gitignore"
+      - "Taskfile.yml"
+      - "tasks/**"
       - ".github/workflows/ai-rulez-validation.yml"
   pull_request:
     branches: [main]
     paths:
       - ".ai-rulez/**"
       - ".gitignore"
+      - "Taskfile.yml"
+      - "tasks/**"
       - ".github/workflows/ai-rulez-validation.yml"
 permissions:
   contents: read
