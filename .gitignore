@@ -88,3 +88,28 @@ plugin/.ai-rulez/.generated-manifest.json
 .codex/plugins.json
 .cursor/
 .github/commands/
+
+# BEGIN ai-rulez (DO NOT EDIT - managed by ai-rulez)
+.agents/skills/
+.claude/agents/
+.claude/rules/csharp.md
+.claude/rules/elixir.md
+.claude/rules/go.md
+.claude/rules/java.md
+.claude/rules/kotlin-android.md
+.claude/rules/php.md
+.claude/rules/python.md
+.claude/rules/r.md
+.claude/rules/ruby.md
+.claude/rules/rust.md
+.claude/rules/shell.md
+.claude/rules/typescript.md
+.claude/skills/
+.codex/agents/
+.mcp.json
+.opencode/agents/
+.opencode/commands/
+AGENTS.md
+CLAUDE.md
+opencode.json
+# END ai-rulez
