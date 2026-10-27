@@ -94,6 +94,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /auth/config:
@@ -128,6 +134,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /auth/login:
@@ -177,6 +189,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -224,6 +242,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /healthz:
@@ -246,6 +270,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /readyz:
@@ -275,6 +305,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadinessResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /v1/audit:
@@ -395,6 +431,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune:
@@ -502,6 +544,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -558,6 +606,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -611,6 +665,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune/capabilities:
@@ -690,6 +750,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune/{id}:
@@ -785,6 +851,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -885,6 +957,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune/{id}/promote:
@@ -952,6 +1030,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: The job has not completed, has failed, scored no document, or the name is already taken
           content:
@@ -1011,6 +1095,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune/{id}/result:
@@ -1111,6 +1201,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/auto-tune/{id}/stop:
@@ -1213,6 +1309,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/crawl-jobs/{crawl_job_id}/events:
@@ -1312,6 +1414,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/enrich:
@@ -1368,6 +1476,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -1415,6 +1529,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/enrich/{job_id}:
@@ -1498,6 +1618,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/extract:
@@ -1578,6 +1704,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: Decoded document exceeds the configured upload limit
           content:
@@ -1627,6 +1759,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/jobs:
@@ -1731,6 +1869,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/jobs/{id}:
@@ -1820,6 +1964,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -1910,6 +2060,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/jobs/{id}/result:
@@ -2006,6 +2162,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/jobs/{job_id}/pages/{page_number}:
@@ -2104,6 +2266,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/license:
@@ -2164,6 +2332,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/oauth/callback:
@@ -2256,6 +2430,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /v1/presets:
@@ -2278,6 +2458,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PresetSummary'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /v1/presets/{id}:
@@ -2317,6 +2503,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /v1/presets/{id}/sample/{name}:
@@ -2362,6 +2554,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - {}
   /v1/projects:
@@ -2469,6 +2667,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -2515,6 +2719,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: Project slug already exists
           content:
@@ -2574,6 +2784,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/api-keys:
@@ -2694,6 +2910,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -2753,6 +2975,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -2806,6 +3034,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/api-keys/{key_id}:
@@ -2902,6 +3136,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations:
@@ -3021,6 +3261,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -3081,6 +3327,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: An integration with this name already exists in the project
           content:
@@ -3140,6 +3392,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}:
@@ -3240,6 +3498,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -3335,6 +3599,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}/connect:
@@ -3435,6 +3705,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}/disconnect:
@@ -3533,6 +3809,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}/documents:
@@ -3689,6 +3971,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}/documents/{doc_id}:
@@ -3818,6 +4106,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/integrations/{iid}/sync:
@@ -3894,6 +4188,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     put:
@@ -3942,6 +4242,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -3983,6 +4289,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/projects/{project_id}/rag-config:
@@ -4072,6 +4384,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     put:
@@ -4132,6 +4450,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -4179,6 +4503,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections:
@@ -4280,6 +4610,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -4336,6 +4672,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: Collection name already exists in this project
           content:
@@ -4395,6 +4737,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}:
@@ -4485,6 +4833,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -4579,6 +4933,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/documents:
@@ -4665,6 +5025,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -4718,6 +5084,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -4780,6 +5152,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -4833,6 +5211,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/documents/{id}/reindex:
@@ -4909,6 +5293,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -4962,6 +5352,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/migrate-embeddings:
@@ -5028,6 +5424,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -5081,6 +5483,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/migrate-embeddings/{job_id}:
@@ -5179,6 +5587,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/retrieve:
@@ -5240,6 +5654,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -5299,6 +5719,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/embedding-presets:
@@ -5385,6 +5811,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/rag/jobs/{job_id}:
@@ -5484,6 +5916,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/saved_presets:
@@ -5591,6 +6029,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     post:
@@ -5651,6 +6095,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: A preset with this name already exists
           content:
@@ -5710,6 +6160,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/saved_presets/{preset_id}:
@@ -5803,6 +6259,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -5897,6 +6359,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     patch:
@@ -5961,6 +6429,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: A preset with this name already exists
           content:
@@ -6020,6 +6494,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/tuning-profiles:
@@ -6127,6 +6607,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/tuning-profiles/{id}:
@@ -6216,6 +6702,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
     delete:
@@ -6310,6 +6802,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/uploads/confirm:
@@ -6364,6 +6862,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
           description: Confirmation is in progress or uploaded bytes changed; retry
           content:
@@ -6419,6 +6923,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/uploads/local/{project_id}/{token}:
@@ -6464,6 +6974,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: Document too large
           content:
@@ -6476,6 +6992,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security: []
   /v1/uploads/presign:
     post:
@@ -6533,6 +7055,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -6580,6 +7108,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
   /v1/usage:
@@ -6673,6 +7207,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
 components:
@@ -11597,16 +12137,14 @@ components:
             - "null"
           format: int64
           description: |-
-            Per-file extraction timeout in seconds (default: 600, min: 1, max: 600).
+            Per-file extraction timeout in seconds (min: 1).
 
-            The engine clamps a client-supplied value lower-only against its own
-            default (`crates/engine/src/config_convert.rs`'s `wire_to_xberg`, which
-            `wire_to_xberg_file` delegates to for a per-file override): a value
-            above 600 is silently reduced to 600, never rejected. `maximum` here
-            documents that existing ceiling for the SDK rather than enforcing a
-            second one — this field is otherwise unvalidated at the API boundary.
+            A value above the deployment's `XBERG_EXTRACTION_TIMEOUT_CEILING_SECS`
+            (default 600) is clamped to it, never rejected. When omitted, the
+            deployment's `XBERG_EXTRACTION_TIMEOUT_DEFAULT_SECS` applies (default
+            600, at most the ceiling). The upper bound is deployment-specific, so
+            no `maximum` is declared.
           example: 600
-          maximum: 600
           minimum: 1
         force_ocr:
           type:
@@ -17871,6 +18409,66 @@ components:
           format: int32
           description: Number of words
           minimum: 0
+    TimeoutErrorBody:
+      type: object
+      description: Error body of a request-timeout response.
+      required:
+        - code
+        - message
+        - details
+      properties:
+        code:
+          $ref: '#/components/schemas/TimeoutErrorCode'
+          description: '`request_timeout` for `408`, `gateway_timeout` for `504`.'
+        details:
+          $ref: '#/components/schemas/TimeoutErrorDetails'
+          description: Which limit fired and how long it allows.
+        message:
+          type: string
+          description: Human-readable description of the timeout.
+    TimeoutErrorCode:
+      type: string
+      description: Stable error code of a request-timeout response.
+      enum:
+        - request_timeout
+        - gateway_timeout
+    TimeoutErrorDetails:
+      type: object
+      description: Which timeout fired.
+      required:
+        - limit
+        - timeout_seconds
+      properties:
+        limit:
+          $ref: '#/components/schemas/TimeoutLimit'
+          description: |-
+            `body_idle` when no request-body bytes arrived within the limit, `handler` when the
+            handler did not answer within it.
+        timeout_seconds:
+          type: integer
+          format: int64
+          description: |-
+            The configured limit in seconds. Deployments tune it with `HTTP_BODY_IDLE_TIMEOUT_SECS`
+            and `HTTP_REQUEST_TIMEOUT_SECS`.
+          minimum: 0
+    TimeoutErrorResponse:
+      type: object
+      description: |-
+        Error envelope of a request-timeout response.
+
+        Structurally an `ErrorResponse` whose `details` is always present and typed.
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/TimeoutErrorBody'
+          description: The nested error body.
+    TimeoutLimit:
+      type: string
+      description: The limit that produced a timeout response.
+      enum:
+        - body_idle
+        - handler
     TokenReductionConfig:
       type: object
       description: Token reduction configuration for LLM consumption.

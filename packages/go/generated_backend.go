@@ -1030,33 +1030,6 @@ type BackendImageMetadata struct {
 	Width int32 `json:"width"`
 }
 
-// BackendInvitationResponse Invitation details, as returned by list.
-type BackendInvitationResponse struct {
-	// CreatedAt ISO 8601 creation timestamp.
-	CreatedAt string `json:"created_at"`
-
-	// CustomRoleId First custom role for compatibility with singular-role clients.
-	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
-
-	// CustomRoleIds Additive custom roles assigned on acceptance.
-	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
-
-	// Email Invited email address.
-	Email string `json:"email"`
-
-	// ExpiresAt ISO 8601 expiration timestamp.
-	ExpiresAt string `json:"expires_at"`
-
-	// Id Unique invitation identifier.
-	Id string `json:"id"`
-
-	// Role Assigned role.
-	Role string `json:"role"`
-
-	// Status Invitation status (e.g. `"PENDING"`, `"ACCEPTED"`, `"REVOKED"`).
-	Status string `json:"status"`
-}
-
 // BackendJatsMetadata JATS (Journal Article Tag Suite) metadata.
 type BackendJatsMetadata struct {
 	// ContributorRoles Authors and contributors with their stated roles.
@@ -1070,75 +1043,6 @@ type BackendJatsMetadata struct {
 
 	// License Open-access license URI from the article's `<license>` element.
 	License *string `json:"license,omitempty"`
-}
-
-// BackendListDocumentsResponse Response body for the integration document list endpoint.
-//
-// See the module-level doc for why this intentionally omits
-// `total`/`limit`/`offset`.
-type BackendListDocumentsResponse struct {
-	// Documents Documents matching the filter, in source-reported order.
-	Documents []DocumentResponse `json:"documents"`
-}
-
-// BackendListInvitationsResponse Response for the paginated pending-invitation list endpoint.
-type BackendListInvitationsResponse struct {
-	// Invitations Pending invitations in the current page.
-	Invitations []BackendInvitationResponse `json:"invitations"`
-
-	// Limit Page size used.
-	Limit int64 `json:"limit"`
-
-	// Offset Offset used for pagination.
-	Offset int64 `json:"offset"`
-
-	// Total Total number of pending invitations for the project.
-	Total int64 `json:"total"`
-}
-
-// BackendListMembersResponse Response for the paginated project member list endpoint.
-type BackendListMembersResponse struct {
-	// Limit Page size used.
-	Limit int64 `json:"limit"`
-
-	// Members Members in the current page.
-	Members []BackendMemberResponse `json:"members"`
-
-	// Offset Offset used for pagination.
-	Offset int64 `json:"offset"`
-
-	// Total Total number of members in the project.
-	Total int64 `json:"total"`
-}
-
-// BackendMemberResponse Project member details.
-type BackendMemberResponse struct {
-	// CreatedAt ISO 8601 creation timestamp.
-	CreatedAt string `json:"created_at"`
-
-	// CustomRoleId First custom role for compatibility with singular-role clients.
-	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
-
-	// CustomRoleIds Additive custom roles for a `MEMBER`.
-	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
-
-	// DisplayName Member's display name, when known.
-	DisplayName *string `json:"display_name,omitempty"`
-
-	// Email Member's email address, when known.
-	Email *string `json:"email,omitempty"`
-
-	// Id Unique member identifier.
-	Id string `json:"id"`
-
-	// ProvisioningSource Membership authority: `manual` or `scim`.
-	ProvisioningSource string `json:"provisioning_source"`
-
-	// Role Member's role in the project (e.g. `"OWNER"`, `"MEMBER"`).
-	Role string `json:"role"`
-
-	// UserId User ID of the member.
-	UserId string `json:"user_id"`
 }
 
 // BackendMetadata Extraction result metadata.
@@ -1660,6 +1564,33 @@ type ErrorDetail struct {
 	Timestamp string `json:"timestamp"`
 }
 
+// InvitationResponse Invitation details, as returned by list.
+type InvitationResponse struct {
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt string `json:"created_at"`
+
+	// CustomRoleId First custom role for compatibility with singular-role clients.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles assigned on acceptance.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
+	// Email Invited email address.
+	Email string `json:"email"`
+
+	// ExpiresAt ISO 8601 expiration timestamp.
+	ExpiresAt string `json:"expires_at"`
+
+	// Id Unique invitation identifier.
+	Id string `json:"id"`
+
+	// Role Assigned role.
+	Role string `json:"role"`
+
+	// Status Invitation status (e.g. `"PENDING"`, `"ACCEPTED"`, `"REVOKED"`).
+	Status string `json:"status"`
+}
+
 // ListDocumentsQuery Query parameters for listing integration documents
 type ListDocumentsQuery struct {
 	// FolderId Source-specific folder ID to restrict results to (e.g., Google Drive folder ID).
@@ -1675,6 +1606,36 @@ type ListDocumentsQuery struct {
 
 	// Offset Number of matching documents to skip.
 	Offset *int64 `json:"offset,omitempty"`
+}
+
+// ListInvitationsResponse Response for the paginated pending-invitation list endpoint.
+type ListInvitationsResponse struct {
+	// Invitations Pending invitations in the current page.
+	Invitations []InvitationResponse `json:"invitations"`
+
+	// Limit Page size used.
+	Limit int64 `json:"limit"`
+
+	// Offset Offset used for pagination.
+	Offset int64 `json:"offset"`
+
+	// Total Total number of pending invitations for the project.
+	Total int64 `json:"total"`
+}
+
+// ListMembersResponse Response for the paginated project member list endpoint.
+type ListMembersResponse struct {
+	// Limit Page size used.
+	Limit int64 `json:"limit"`
+
+	// Members Members in the current page.
+	Members []MemberResponse `json:"members"`
+
+	// Offset Offset used for pagination.
+	Offset int64 `json:"offset"`
+
+	// Total Total number of members in the project.
+	Total int64 `json:"total"`
 }
 
 // ListProjectRolesResponse defines model for ListProjectRolesResponse.
@@ -1708,6 +1669,36 @@ type ListWebhooksResponse struct {
 
 	// Webhooks Webhooks in the current page.
 	Webhooks []WebhookResponse `json:"webhooks"`
+}
+
+// MemberResponse Project member details.
+type MemberResponse struct {
+	// CreatedAt ISO 8601 creation timestamp.
+	CreatedAt string `json:"created_at"`
+
+	// CustomRoleId First custom role for compatibility with singular-role clients.
+	CustomRoleId *openapi_types.UUID `json:"custom_role_id,omitempty"`
+
+	// CustomRoleIds Additive custom roles for a `MEMBER`.
+	CustomRoleIds *[]openapi_types.UUID `json:"custom_role_ids,omitempty"`
+
+	// DisplayName Member's display name, when known.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Email Member's email address, when known.
+	Email *string `json:"email,omitempty"`
+
+	// Id Unique member identifier.
+	Id string `json:"id"`
+
+	// ProvisioningSource Membership authority: `manual` or `scim`.
+	ProvisioningSource string `json:"provisioning_source"`
+
+	// Role Member's role in the project (e.g. `"OWNER"`, `"MEMBER"`).
+	Role string `json:"role"`
+
+	// UserId User ID of the member.
+	UserId string `json:"user_id"`
 }
 
 // MimeTypeUsage Per-MIME-type usage breakdown

@@ -366,6 +366,15 @@ type ListApiKeysResponse struct {
 	Total int64 `json:"total"`
 }
 
+// ListDocumentsResponse Response body for the integration document list endpoint.
+//
+// See the module-level doc for why this intentionally omits
+// `total`/`limit`/`offset`.
+type ListDocumentsResponse struct {
+	// Documents Documents matching the filter, in source-reported order.
+	Documents []DocumentResponse `json:"documents"`
+}
+
 // ListIntegrationsResponse Response for the paginated integration list endpoint.
 type ListIntegrationsResponse struct {
 	// Integrations Integrations in the current page.
@@ -638,14 +647,13 @@ type ProFileExtractionConfig struct {
 	DisableOcr              *bool `json:"disable_ocr,omitempty"`
 	EnableQualityProcessing *bool `json:"enable_quality_processing,omitempty"`
 
-	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (default: 600, min: 1, max: 600).
+	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (min: 1).
 	//
-	// The engine clamps a client-supplied value lower-only against its own
-	// default (`crates/engine/src/config_convert.rs`'s `wire_to_xberg`, which
-	// `wire_to_xberg_file` delegates to for a per-file override): a value
-	// above 600 is silently reduced to 600, never rejected. `maximum` here
-	// documents that existing ceiling for the SDK rather than enforcing a
-	// second one — this field is otherwise unvalidated at the API boundary.
+	// A value above the deployment's `XBERG_EXTRACTION_TIMEOUT_CEILING_SECS`
+	// (default 600) is clamped to it, never rejected. When omitted, the
+	// deployment's `XBERG_EXTRACTION_TIMEOUT_DEFAULT_SECS` applies (default
+	// 600, at most the ceiling). The upper bound is deployment-specific, so
+	// no `maximum` is declared.
 	ExtractionTimeoutSecs *int64                  `json:"extraction_timeout_secs,omitempty"`
 	ForceOcr              *bool                   `json:"force_ocr,omitempty"`
 	ForceOcrPages         *[]int32                `json:"force_ocr_pages,omitempty"`
@@ -907,15 +915,6 @@ type ProJobSummary struct {
 
 	// WebhookDelivery Inline webhook delivery state, when this job configured one.
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
-}
-
-// ProListDocumentsResponse Response body for the integration document list endpoint.
-//
-// See the module-level doc for why this intentionally omits
-// `total`/`limit`/`offset`.
-type ProListDocumentsResponse struct {
-	// Documents Documents matching the filter, in source-reported order.
-	Documents []DocumentResponse `json:"documents"`
 }
 
 // ProListJobsResponse Response for `GET /v1/jobs` (paginated job list).

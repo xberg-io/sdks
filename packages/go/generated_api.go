@@ -2899,6 +2899,42 @@ func (e TextMetadataFormatType) Valid() bool {
 	}
 }
 
+// Defines values for TimeoutErrorCode.
+const (
+	GatewayTimeout TimeoutErrorCode = "gateway_timeout"
+	RequestTimeout TimeoutErrorCode = "request_timeout"
+)
+
+// Valid indicates whether the value is a known member of the TimeoutErrorCode enum.
+func (e TimeoutErrorCode) Valid() bool {
+	switch e {
+	case GatewayTimeout:
+		return true
+	case RequestTimeout:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TimeoutLimit.
+const (
+	BodyIdle TimeoutLimit = "body_idle"
+	Handler  TimeoutLimit = "handler"
+)
+
+// Valid indicates whether the value is a known member of the TimeoutLimit enum.
+func (e TimeoutLimit) Valid() bool {
+	switch e {
+	case BodyIdle:
+		return true
+	case Handler:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UriKind.
 const (
 	UriKindAnchor    UriKind = "anchor"
@@ -3284,11 +3320,6 @@ func (e ListRoomsParamsState) Valid() bool {
 	default:
 		return false
 	}
-}
-
-// AcceptRequest defines model for AcceptRequest.
-type AcceptRequest struct {
-	Token string `json:"token"`
 }
 
 // AcceptedInvitationResponse defines model for AcceptedInvitationResponse.
@@ -3845,12 +3876,6 @@ type CellChange struct {
 
 	// To Value after the change.
 	To string `json:"to"`
-}
-
-// ChangeRoleRequest defines model for ChangeRoleRequest.
-type ChangeRoleRequest struct {
-	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
-	Role GrantableRole `json:"role"`
 }
 
 // Chunk A text chunk with optional embedding and metadata.
@@ -5195,24 +5220,6 @@ type DocumentInput struct {
 	MimeType string `json:"mime_type"`
 }
 
-// DocumentListEntry One document in the project document list.
-type DocumentListEntry struct {
-	// DocumentId Logical document ID, the value `POST /v1/rooms/{id}/items` takes.
-	DocumentId openapi_types.UUID `json:"document_id"`
-
-	// Filename Original filename of the newest finished version.
-	Filename string `json:"filename"`
-
-	// MimeType MIME type of the newest finished version.
-	MimeType string `json:"mime_type"`
-
-	// SizeBytes Size in bytes of the newest finished version.
-	SizeBytes int64 `json:"size_bytes"`
-
-	// UpdatedAt When the newest finished version was last updated.
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 // DocumentNode A single node in the document tree.
 //
 // Each node has deterministic `id`, typed `content`, optional `parent`/`children`
@@ -6372,13 +6379,13 @@ type ExtractionConfig struct {
 
 	// ExtractionTimeoutSecs Extraction timeout in seconds, applied to every document in the batch
 	// unless a per-file `FileExtractionConfig.extraction_timeout_secs`
-	// overrides it (default: 600, min: 1, max: 600).
+	// overrides it (min: 1).
 	//
-	// The engine clamps a client-supplied value lower-only against its own
-	// default (`crates/engine/src/config_convert.rs`'s `wire_to_xberg`): a
-	// value above 600 is silently reduced to 600, never rejected. `maximum`
-	// here documents that existing ceiling for the SDK rather than enforcing
-	// a second one — this field is otherwise unvalidated at the API boundary.
+	// A value above the deployment's `XBERG_EXTRACTION_TIMEOUT_CEILING_SECS`
+	// (default 600) is clamped to it, never rejected. When omitted, the
+	// deployment's `XBERG_EXTRACTION_TIMEOUT_DEFAULT_SECS` applies (default
+	// 600, at most the ceiling). The upper bound is deployment-specific, so
+	// no `maximum` is declared.
 	ExtractionTimeoutSecs *int64 `json:"extraction_timeout_secs,omitempty"`
 
 	// ForceOcr Force OCR on all pages (bypass native text extraction)
@@ -6663,14 +6670,13 @@ type FileExtractionConfig struct {
 	DisableOcr              *bool `json:"disable_ocr,omitempty"`
 	EnableQualityProcessing *bool `json:"enable_quality_processing,omitempty"`
 
-	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (default: 600, min: 1, max: 600).
+	// ExtractionTimeoutSecs Per-file extraction timeout in seconds (min: 1).
 	//
-	// The engine clamps a client-supplied value lower-only against its own
-	// default (`crates/engine/src/config_convert.rs`'s `wire_to_xberg`, which
-	// `wire_to_xberg_file` delegates to for a per-file override): a value
-	// above 600 is silently reduced to 600, never rejected. `maximum` here
-	// documents that existing ceiling for the SDK rather than enforcing a
-	// second one — this field is otherwise unvalidated at the API boundary.
+	// A value above the deployment's `XBERG_EXTRACTION_TIMEOUT_CEILING_SECS`
+	// (default 600) is clamped to it, never rejected. When omitted, the
+	// deployment's `XBERG_EXTRACTION_TIMEOUT_DEFAULT_SECS` applies (default
+	// 600, at most the ceiling). The upper bound is deployment-specific, so
+	// no `maximum` is declared.
 	ExtractionTimeoutSecs *int64                  `json:"extraction_timeout_secs,omitempty"`
 	ForceOcr              *bool                   `json:"force_ocr,omitempty"`
 	ForceOcrPages         *[]int32                `json:"force_ocr_pages,omitempty"`
@@ -7331,30 +7337,6 @@ type InvitationPreviewResponse struct {
 	RoomName      string  `json:"room_name"`
 }
 
-// InvitationResponse defines model for InvitationResponse.
-type InvitationResponse struct {
-	CreatedAt       time.Time          `json:"created_at"`
-	DeliveryChannel string             `json:"delivery_channel"`
-	Email           string             `json:"email"`
-	ExpiresAt       time.Time          `json:"expires_at"`
-	Id              openapi_types.UUID `json:"id"`
-	InvitedBy       string             `json:"invited_by"`
-	Role            string             `json:"role"`
-	RoleName        string             `json:"role_name"`
-	Status          string             `json:"status"`
-
-	// Token Present on the create answer only, and only when the delivery channel returns it.
-	Token *string `json:"token,omitempty"`
-}
-
-// InviteRequest defines model for InviteRequest.
-type InviteRequest struct {
-	Email string `json:"email"`
-
-	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
-	Role GrantableRole `json:"role"`
-}
-
 // ItemContentResponse The extraction result of one room item.
 type ItemContentResponse struct {
 	DocumentId openapi_types.UUID `json:"document_id"`
@@ -7362,16 +7344,6 @@ type ItemContentResponse struct {
 	MimeType   string             `json:"mime_type"`
 	Result     *ExtractedDocument `json:"result,omitempty"`
 	Status     string             `json:"status"`
-}
-
-// ItemResponse defines model for ItemResponse.
-type ItemResponse struct {
-	DocumentId openapi_types.UUID `json:"document_id"`
-	Filename   string             `json:"filename"`
-	MimeType   string             `json:"mime_type"`
-	Position   int64              `json:"position"`
-	SizeBytes  int64              `json:"size_bytes"`
-	UpdatedAt  time.Time          `json:"updated_at"`
 }
 
 // JatsMetadata JATS (Journal Article Tag Suite) metadata.
@@ -7868,16 +7840,6 @@ type ListCollectionsResponse struct {
 	Total int32 `json:"total"`
 }
 
-// ListDocumentsResponse A page of the project's documents.
-type ListDocumentsResponse struct {
-	Documents []DocumentListEntry `json:"documents"`
-	Limit     int64               `json:"limit"`
-	Offset    int64               `json:"offset"`
-
-	// Total Number of documents in the project.
-	Total int64 `json:"total"`
-}
-
 // ListExtractionEventsResponse Response from listing extraction events.
 type ListExtractionEventsResponse struct {
 	// Events List of extraction events for the current project.
@@ -7893,20 +7855,12 @@ type ListExtractionEventsResponse struct {
 	Total int64 `json:"total"`
 }
 
-// ListInvitationsResponse defines model for ListInvitationsResponse.
-type ListInvitationsResponse struct {
-	Invitations []InvitationResponse `json:"invitations"`
-	Limit       int64                `json:"limit"`
-	Offset      int64                `json:"offset"`
-	Total       int64                `json:"total"`
-}
-
 // ListItemsResponse defines model for ListItemsResponse.
 type ListItemsResponse struct {
-	Items  []ItemResponse `json:"items"`
-	Limit  int64          `json:"limit"`
-	Offset int64          `json:"offset"`
-	Total  int64          `json:"total"`
+	Items  []RoomItemResponse `json:"items"`
+	Limit  int64              `json:"limit"`
+	Offset int64              `json:"offset"`
+	Total  int64              `json:"total"`
 
 	// Version The room version to send in `If-Match` when the caller reorders.
 	Version int64 `json:"version"`
@@ -7933,12 +7887,30 @@ type ListManagedEmbeddingPresetsResponse struct {
 	Presets []ManagedEmbeddingPreset `json:"presets"`
 }
 
-// ListMembersResponse defines model for ListMembersResponse.
-type ListMembersResponse struct {
-	Limit   int64            `json:"limit"`
-	Members []MemberResponse `json:"members"`
-	Offset  int64            `json:"offset"`
-	Total   int64            `json:"total"`
+// ListProjectDocumentsResponse A page of the project's documents.
+type ListProjectDocumentsResponse struct {
+	Documents []ProjectDocumentEntry `json:"documents"`
+	Limit     int64                  `json:"limit"`
+	Offset    int64                  `json:"offset"`
+
+	// Total Number of documents in the project.
+	Total int64 `json:"total"`
+}
+
+// ListRoomInvitationsResponse defines model for ListRoomInvitationsResponse.
+type ListRoomInvitationsResponse struct {
+	Invitations []RoomInvitationResponse `json:"invitations"`
+	Limit       int64                    `json:"limit"`
+	Offset      int64                    `json:"offset"`
+	Total       int64                    `json:"total"`
+}
+
+// ListRoomMembersResponse defines model for ListRoomMembersResponse.
+type ListRoomMembersResponse struct {
+	Limit   int64                `json:"limit"`
+	Members []RoomMemberResponse `json:"members"`
+	Offset  int64                `json:"offset"`
+	Total   int64                `json:"total"`
 }
 
 // ListRoomsResponse defines model for ListRoomsResponse.
@@ -8084,19 +8056,6 @@ type MarkdownCodeBlock struct {
 type MarkdownLink struct {
 	Text string `json:"text"`
 	Url  string `json:"url"`
-}
-
-// MemberResponse defines model for MemberResponse.
-type MemberResponse struct {
-	AddedBy     string    `json:"added_by"`
-	CreatedAt   time.Time `json:"created_at"`
-	DisplayName *string   `json:"display_name,omitempty"`
-	Email       *string   `json:"email,omitempty"`
-	IsOwner     bool      `json:"is_owner"`
-	Kind        string    `json:"kind"`
-	Role        string    `json:"role"`
-	RoleName    string    `json:"role_name"`
-	UserId      string    `json:"user_id"`
 }
 
 // Metadata Extraction result metadata.
@@ -9681,6 +9640,24 @@ type ProcessingWarning struct {
 	Source string `json:"source"`
 }
 
+// ProjectDocumentEntry One document in the project document list.
+type ProjectDocumentEntry struct {
+	// DocumentId Logical document ID, the value `POST /v1/rooms/{id}/items` takes.
+	DocumentId openapi_types.UUID `json:"document_id"`
+
+	// Filename Original filename of the newest finished version.
+	Filename string `json:"filename"`
+
+	// MimeType MIME type of the newest finished version.
+	MimeType string `json:"mime_type"`
+
+	// SizeBytes Size in bytes of the newest finished version.
+	SizeBytes int64 `json:"size_bytes"`
+
+	// UpdatedAt When the newest finished version was last updated.
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // PromoteProfileRequest Request to promote a completed auto-tune result to a named, reusable
 // tuning profile.
 type PromoteProfileRequest struct {
@@ -10256,6 +10233,64 @@ type RevisionDelta struct {
 // RevisionKind Semantic classification of a tracked change.
 type RevisionKind string
 
+// RoomAcceptInvitationRequest defines model for RoomAcceptInvitationRequest.
+type RoomAcceptInvitationRequest struct {
+	Token string `json:"token"`
+}
+
+// RoomChangeRoleRequest defines model for RoomChangeRoleRequest.
+type RoomChangeRoleRequest struct {
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role GrantableRole `json:"role"`
+}
+
+// RoomInvitationResponse defines model for RoomInvitationResponse.
+type RoomInvitationResponse struct {
+	CreatedAt       time.Time          `json:"created_at"`
+	DeliveryChannel string             `json:"delivery_channel"`
+	Email           string             `json:"email"`
+	ExpiresAt       time.Time          `json:"expires_at"`
+	Id              openapi_types.UUID `json:"id"`
+	InvitedBy       string             `json:"invited_by"`
+	Role            string             `json:"role"`
+	RoleName        string             `json:"role_name"`
+	Status          string             `json:"status"`
+
+	// Token Present on the create answer only, and only when the delivery channel returns it.
+	Token *string `json:"token,omitempty"`
+}
+
+// RoomInviteRequest defines model for RoomInviteRequest.
+type RoomInviteRequest struct {
+	Email string `json:"email"`
+
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role GrantableRole `json:"role"`
+}
+
+// RoomItemResponse defines model for RoomItemResponse.
+type RoomItemResponse struct {
+	DocumentId openapi_types.UUID `json:"document_id"`
+	Filename   string             `json:"filename"`
+	MimeType   string             `json:"mime_type"`
+	Position   int64              `json:"position"`
+	SizeBytes  int64              `json:"size_bytes"`
+	UpdatedAt  time.Time          `json:"updated_at"`
+}
+
+// RoomMemberResponse defines model for RoomMemberResponse.
+type RoomMemberResponse struct {
+	AddedBy     string    `json:"added_by"`
+	CreatedAt   time.Time `json:"created_at"`
+	DisplayName *string   `json:"display_name,omitempty"`
+	Email       *string   `json:"email,omitempty"`
+	IsOwner     bool      `json:"is_owner"`
+	Kind        string    `json:"kind"`
+	Role        string    `json:"role"`
+	RoleName    string    `json:"role_name"`
+	UserId      string    `json:"user_id"`
+}
+
 // RoomResponse defines model for RoomResponse.
 type RoomResponse struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -10285,6 +10320,11 @@ type RoomResponse struct {
 type RoomRightsResponse struct {
 	Permissions []string `json:"permissions"`
 	Role        *string  `json:"role,omitempty"`
+}
+
+// RoomTransferOwnershipRequest defines model for RoomTransferOwnershipRequest.
+type RoomTransferOwnershipRequest struct {
+	UserId string `json:"user_id"`
 }
 
 // RoutingFallbackReason Why a routing-enabled run produced a global-only profile.
@@ -10835,6 +10875,43 @@ type TextMetadata struct {
 // TextMetadataFormatType defines model for TextMetadata.FormatType.
 type TextMetadataFormatType string
 
+// TimeoutErrorBody Error body of a request-timeout response.
+type TimeoutErrorBody struct {
+	// Code `request_timeout` for `408`, `gateway_timeout` for `504`.
+	Code TimeoutErrorCode `json:"code"`
+
+	// Details Which limit fired and how long it allows.
+	Details TimeoutErrorDetails `json:"details"`
+
+	// Message Human-readable description of the timeout.
+	Message string `json:"message"`
+}
+
+// TimeoutErrorCode Stable error code of a request-timeout response.
+type TimeoutErrorCode string
+
+// TimeoutErrorDetails Which timeout fired.
+type TimeoutErrorDetails struct {
+	// Limit `body_idle` when no request-body bytes arrived within the limit, `handler` when the
+	// handler did not answer within it.
+	Limit TimeoutLimit `json:"limit"`
+
+	// TimeoutSeconds The configured limit in seconds. Deployments tune it with `HTTP_BODY_IDLE_TIMEOUT_SECS`
+	// and `HTTP_REQUEST_TIMEOUT_SECS`.
+	TimeoutSeconds int64 `json:"timeout_seconds"`
+}
+
+// TimeoutErrorResponse Error envelope of a request-timeout response.
+//
+// Structurally an `ErrorResponse` whose `details` is always present and typed.
+type TimeoutErrorResponse struct {
+	// Error The nested error body.
+	Error TimeoutErrorBody `json:"error"`
+}
+
+// TimeoutLimit The limit that produced a timeout response.
+type TimeoutLimit string
+
 // TokenReductionConfig Token reduction configuration for LLM consumption.
 type TokenReductionConfig struct {
 	// Mode Reduction mode: "off", "light", "moderate", "aggressive", "maximum".
@@ -10843,11 +10920,6 @@ type TokenReductionConfig struct {
 
 	// PreserveImportantWords Preserve capitalized/technical terms. Defaults to true when omitted.
 	PreserveImportantWords *bool `json:"preserve_important_words,omitempty"`
-}
-
-// TransferRequest defines model for TransferRequest.
-type TransferRequest struct {
-	UserId string `json:"user_id"`
 }
 
 // Translation Translation of the extracted content.
@@ -11532,10 +11604,10 @@ type MigrateEmbeddingsJSONRequestBody = MigrateEmbeddingsRequest
 type RetrieveJSONRequestBody = RetrieveRequest
 
 // AcceptRoomInvitationJSONRequestBody defines body for AcceptRoomInvitation for application/json ContentType.
-type AcceptRoomInvitationJSONRequestBody = AcceptRequest
+type AcceptRoomInvitationJSONRequestBody = RoomAcceptInvitationRequest
 
 // PreviewRoomInvitationJSONRequestBody defines body for PreviewRoomInvitation for application/json ContentType.
-type PreviewRoomInvitationJSONRequestBody = AcceptRequest
+type PreviewRoomInvitationJSONRequestBody = RoomAcceptInvitationRequest
 
 // CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
 type CreateRoomJSONRequestBody = CreateRoomRequest
@@ -11544,7 +11616,7 @@ type CreateRoomJSONRequestBody = CreateRoomRequest
 type UpdateRoomJSONRequestBody = UpdateRoomRequest
 
 // CreateRoomInvitationJSONRequestBody defines body for CreateRoomInvitation for application/json ContentType.
-type CreateRoomInvitationJSONRequestBody = InviteRequest
+type CreateRoomInvitationJSONRequestBody = RoomInviteRequest
 
 // AddRoomItemJSONRequestBody defines body for AddRoomItem for application/json ContentType.
 type AddRoomItemJSONRequestBody = AddItemRequest
@@ -11556,10 +11628,10 @@ type ReorderRoomItemsJSONRequestBody = ReorderItemsRequest
 type AddRoomMemberJSONRequestBody = AddMemberRequest
 
 // ChangeRoomMemberRoleJSONRequestBody defines body for ChangeRoomMemberRole for application/json ContentType.
-type ChangeRoomMemberRoleJSONRequestBody = ChangeRoleRequest
+type ChangeRoomMemberRoleJSONRequestBody = RoomChangeRoleRequest
 
 // TransferRoomOwnershipJSONRequestBody defines body for TransferRoomOwnership for application/json ContentType.
-type TransferRoomOwnershipJSONRequestBody = TransferRequest
+type TransferRoomOwnershipJSONRequestBody = RoomTransferOwnershipRequest
 
 // SetRoomPublicationJSONRequestBody defines body for SetRoomPublication for application/json ContentType.
 type SetRoomPublicationJSONRequestBody = SetPublicationRequest

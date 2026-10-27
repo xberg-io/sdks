@@ -70,6 +70,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `WithRetryNonIdempotent(true)`, because a gateway timeout on a submission can leave the job running
   and a resend creates a duplicate. 429 (honoring `Retry-After`) and transport failures are still
   retried for every method; 408 is not retried.
+- Specifications re-synced with xberg-enterprise `a55e7ffd1`. The Enterprise data plane gains the
+  data-room and project-document operations, whose schemas carry their own names
+  (`ListProjectDocumentsResponse`, `ProjectDocumentEntry`, `Room*`), so `ListDocumentsResponse`,
+  `InvitationResponse`, `ListInvitationsResponse`, `ListMembersResponse` and `MemberResponse` keep
+  their v0.9.0 meaning. `extraction_timeout_secs` no longer declares a maximum of 600: the
+  deployment's ceiling clamps it. Every Enterprise data-plane and Pro operation documents 504, and
+  every one that takes a body documents 408, both as `TimeoutErrorResponse`.
+- **Breaking, generated `ExtractedImage`.** The server may now omit an image's inline `data`, so the
+  field is optional in all three clients; in Go, `ExtractedImage.Data` and
+  `BackendExtractedImage.Data` change from `[]int` to `*[]int`.
+- Toolchain: oapi-codegen v2.8.1 with runtime v1.8.0 and Go 1.27, openapi-python-client 0.29.1,
+  ruff 0.17.3, tsdown 0.23.2 and pnpm 12.15.0; CI runs Python 3.10 and 3.14 and Node 24 and 26.
 
 ### Fixed
 

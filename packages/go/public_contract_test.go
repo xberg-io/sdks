@@ -22,20 +22,14 @@ const (
 	contractSnapshot = "testdata/public-v0.9.0/fields.json"
 	// Set to a directory holding the v0.9.0 package sources to rewrite the snapshot.
 	contractSourceEnv = "XBERG_CONTRACT_SOURCE_DIR"
-	// Type names whose meaning moves in this spec sync until upstream renames the colliding
-	// data-room schemas; delete the entries when the re-sync lands.
+	// Set to any value to check the intended breaks below as well.
 	contractExemptEnv = "XBERG_CONTRACT_NO_EXEMPT"
 )
 
-// ~keep TODO(xberg-enterprise data-room schema rename): remove with the upstream Room* rename.
-var contractKnownCollisions = map[string]bool{
-	"ListDocumentsResponse":   true,
-	"DocumentListEntry":       true,
-	"InvitationResponse":      true,
-	"ListInvitationsResponse": true,
-	"ListMembersResponse":     true,
-	"MemberResponse":          true,
-	// Intended: upstream made ExtractedImage.data optional (inline bytes can be omitted).
+// ~keep Intended, documented breaks only. A spec-sync collision is never exempted here: rename the
+// schema upstream instead (the data-room schemas became Room*/ProjectDocument* names for this reason).
+var contractIntendedBreaks = map[string]bool{
+	// Upstream made ExtractedImage.data optional (inline bytes can be omitted).
 	"ExtractedImage":        true,
 	"BackendExtractedImage": true,
 }
@@ -149,7 +143,7 @@ func TestPublicContractV090FieldsAreStable(t *testing.T) {
 
 	var problems []string
 	for _, name := range names {
-		if exempt && contractKnownCollisions[name] {
+		if exempt && contractIntendedBreaks[name] {
 			continue
 		}
 		got, ok := current[name]
