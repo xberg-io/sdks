@@ -24,14 +24,16 @@ classifiers = [
 dev = [
   "covdefaults>=2.3.0",
   "pyrefly>=1.4",
-  "openapi-python-client>=0.28.4",
+  # ~keep 0.29 requires Python 3.11; the 3.10 CI leg stays on the last release that supports it.
+  "openapi-python-client>=0.28.4; python_full_version < '3.11'",
+  "openapi-python-client>=0.29.1; python_full_version >= '3.11'",
   "prek>=0.5.5",
   "pyproject-fmt>=2.30.2",
   "pytest>=9.1.1",
   "pytest-asyncio>=1.4.0",
   "pytest-cov>=7.1.0",
   "respx>=0.23.1",
-  "ruff>=0.17.0",
+  "ruff>=0.17.3",
   "validate-pyproject>=0.26",
   "xberg-io-sdk",
 ]

@@ -38,17 +38,21 @@ permissions:
 
 jobs:
   test:
-    name: test (python 3.10)
+    name: test (python ${{ matrix.python }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.14"]
     env:
-      UV_PYTHON: "3.10"
+      UV_PYTHON: ${{ matrix.python }}
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
       - name: Pin Python
-        run: uv python install 3.10
+        run: uv python install ${{ matrix.python }}
       - name: Install task
         uses: arduino/setup-task@v3.0.0
         with:
@@ -62,8 +66,6 @@ jobs:
         run: task python:lint
       - name: Test packaging and repository tooling
         run: task scripts:test
-        env:
-          UV_PYTHON: "3.10"
       - name: Test (with coverage)
         run: task python:test:cov
       - name: Build wheel + sdist

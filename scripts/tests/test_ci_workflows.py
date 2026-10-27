@@ -45,7 +45,10 @@ def test_typescript_ci_tracks_lockfile_and_workflow_changes() -> None:
 
 def test_python_ci_executes_every_step_with_the_minimum_supported_interpreter() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/ci-python.yml")
-    assert workflow["jobs"]["test"]["env"]["UV_PYTHON"] == "3.10"
+    job = workflow["jobs"]["test"]
+    assert job["strategy"]["matrix"]["python"] == ["3.10", "3.14"]
+    assert job["strategy"]["fail-fast"] is False
+    assert job["env"]["UV_PYTHON"] == "${{ matrix.python }}"
 
 
 @pytest.mark.parametrize("filename", ("ci-go.yml", "spec-sync.yml", "publish.yaml"))
