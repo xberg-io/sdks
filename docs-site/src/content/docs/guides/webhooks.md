@@ -56,18 +56,17 @@ When `secret` is set, deliveries carry an `X-Webhook-Signature` header shaped
 older than five minutes — that is the replay window the server itself enforces.
 
 ```python title="Python"
-import hashlib
-import hmac
-import time
+from xberg_io_sdk import WEBHOOK_SIGNATURE_HEADER, verify_webhook_signature
 
-def verify_webhook(body: bytes, header: str, secret: str) -> bool:
-    parts = dict(part.split("=", 1) for part in header.split(","))
-    timestamp, signature = parts["t"], parts["v1"]
-    if abs(time.time() - int(timestamp)) > 300:
-        return False
-    expected = hmac.new(secret.encode(), f"{timestamp}.{body.decode()}".encode(), hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+def handle(headers: dict[str, str], body: bytes) -> bool:
+    # `body` must be the raw bytes received; re-serialized JSON will not verify.
+    return verify_webhook_signature("whsec_...", headers[WEBHOOK_SIGNATURE_HEADER], body)
 ```
+
+`verify_webhook_signature(secret, header, body, tolerance=300, now=None)` returns `False` for a
+missing element, a stale timestamp or a mismatched digest; `verify_webhook_signature_or_raise`
+raises a `WebhookSignatureError` whose `reason` says which. Both accept every `v1` element in the
+header, so a delivery signed with two secrets during a rotation still verifies.
 
 ```ts title="TypeScript"
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -106,8 +105,8 @@ func verifyWebhook(body []byte, header, secret string) bool {
 }
 ```
 
-None of the three clients ships a verification helper today — the logic above is short enough that
-each language's standard library covers it without a dependency.
+The Python client ships the helper above. The TypeScript and Go recipes use only the standard
+library.
 
 ## Webhooks versus polling
 

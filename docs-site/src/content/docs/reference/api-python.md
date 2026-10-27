@@ -133,7 +133,7 @@ Enterprise-only upload staging and metering.
 
 | Method | Description |
 | --- | --- |
-| `presign_upload` | Request presigned upload URLs (``POST /v1/uploads/presign``). Returns the decoded body. |
+| `presign_upload` | Request presigned upload URLs (``POST /v1/uploads/presign``). |
 | `confirm_upload` | Confirm a presigned upload batch and enqueue extraction (``POST /v1/uploads/confirm``, 202). |
 | `usage` | Fetch aggregate extraction usage for a date range (``GET /v1/usage``). |
 | `list_extraction_events` | Enterprise only: list recent extraction events (``GET /v1/extractions``). |
@@ -234,6 +234,14 @@ All backend operations use the configured control-plane origin and credential.
 | `retry_webhook_delivery` | Enterprise backend: Manually retry one past delivery attempt. (``POST /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}/retry``). |
 | `test_webhook` | Enterprise backend: Send a test delivery to a webhook endpoint (``POST /v1/projects/{id}/webhooks/{wh_id}/test``). |
 | `public_sandbox_extract` | Extract in the public sandbox; pass its optional OIDC bearer as ``sandbox_token``. |
+
+## Enterprise health
+
+Enterprise liveness and feature availability.
+
+| Method | Description |
+| --- | --- |
+| `enterprise_healthz` | Enterprise only: liveness and feature availability (``GET /healthz``), decoded leniently. |
 
 ## Pro health
 

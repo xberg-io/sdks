@@ -105,7 +105,10 @@ asyncio.run(main())
 
 One `XbergClient` (sync) / `AsyncXbergClient` (async) serves both products.
 Constructor: `(api_key=None, base_url=None, target=None, timeout=30,
-headers=None, retries=0, retry_on=..., retry_backoff="exponential")`.
+headers=None, retries=0, retry_on=..., retry_backoff="exponential",
+retry_non_idempotent=False)`. With `retries` set, 429 is retried for every
+method and 502/503/504 only for `GET`/`HEAD`/`OPTIONS`/`PUT`/`DELETE`;
+`retry_non_idempotent=True` extends those statuses to `POST`/`PATCH`.
 `base_url` must name the deployment; omitting it raises `XbergError`.
 
 Shared methods (both tiers):
@@ -125,7 +128,7 @@ Shared methods (both tiers):
 | `delete_rag_documents(name, body)` | Delete documents from a collection by ID list or metadata filter. |
 | `presets()`, `get_preset(id)`, `get_preset_sample(id, name)` | Curated managed presets. |
 | `usage(...)` | Per-project usage totals for a date window. |
-| `presign_upload(body)`, `confirm_upload(body)` | Stage a large document in object storage, then submit it. |
+| `presign_upload(body)`, `confirm_upload(body)` | Stage a large document in object storage, then submit it; return `PresignUploadResponse` / `ConfirmUploadResponse`. |
 | `get_job_page(job_id, page_number)` | A rendered page image, as raw `image/png` bytes. |
 | `submit_enrich(body)`, `get_enrich_status(job_id)` | Keyword, entity and label enrichment over extracted text. |
 | `stream_crawl_events(crawl_job_id)` | A generator of Server-Sent Events for a running crawl. |
@@ -141,7 +144,7 @@ raises a clear error instead of a raw 404:
 
 - **Pro only:** `login`, `auth_config`, `get_rag_config`/`set_rag_config`, `get_license_info`, `put_local_upload`
 - **Pro only (control plane):** `list_projects`/`create_project`, `list_api_keys`/`create_api_key`/`revoke_api_key`, `list_integrations`/`create_integration`/`get_integration`/`delete_integration`, `connect_integration`/`disconnect_integration`, `list_integration_documents`/`fetch_integration_document`
-- **Enterprise only:** `versions`, `get_document`, `diff`/`get_diff_job`, `list_extraction_events`, `list_subscription_deliveries`/`get_subscription_delivery`
+- **Enterprise only:** `enterprise_healthz` (returns `EnterpriseHealth`: `tier`, `rag`, `auto_tune`, `data_rooms`, decoded leniently), `versions`, `get_document`, `diff`/`get_diff_job`, `list_extraction_events`, `list_subscription_deliveries`/`get_subscription_delivery`
 
 ### Deliberately not exposed
 
@@ -158,8 +161,15 @@ Three documented routes have no client method, on purpose:
 
 Errors are raised as one of:
 `XbergError` (base), `AuthError` (401 **and** 403), `ValidationError`,
-`NotFoundError`, `RateLimitError` (carries `retry_after`), `ServerError`,
-`TimeoutError`.
+`NotFoundError`, `RequestTimeoutError` (408), `ResultExpiredError` (410),
+`PreconditionFailedError` (412), `PreconditionRequiredError` (428),
+`RateLimitError` (carries `retry_after`), `ServerError`, `GatewayTimeoutError`
+(504, a `ServerError`), `TimeoutError`. Every HTTP error carries the server's
+`message`, plus `status`, `code` and `details` when sent; the two timeout errors
+also expose `limit` and `timeout_seconds`.
+
+`verify_webhook_signature(secret, header, body)` checks a delivery's
+`X-Webhook-Signature` header (see the webhooks guide).
 
 ## Documentation
 

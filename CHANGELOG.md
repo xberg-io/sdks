@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Python errors decode the nested `{"error": {"code", "message", "details"}}` envelope as well as the
+  older flat shape: `XbergError` gains `status`, `code`, `details` and `message`, and the message is
+  now the server's own instead of a bare `HTTP <status>`.
+- Python `RequestTimeoutError` (408) and `GatewayTimeoutError` (504, a `ServerError` subclass), both
+  exposing `limit` and `timeout_seconds`; `ResultExpiredError` (410); `PreconditionFailedError`
+  (412) and `PreconditionRequiredError` (428).
+- Python `verify_webhook_signature(secret, header, body, tolerance=300, now=None)` and
+  `verify_webhook_signature_or_raise` for the `X-Webhook-Signature` header, with
+  `WebhookSignatureError`, `WEBHOOK_SIGNATURE_HEADER` and `DEFAULT_WEBHOOK_TOLERANCE_SECONDS`.
+- Python `enterprise_healthz()` (sync and async), returning `EnterpriseHealth` with `tier`, `rag`,
+  `auto_tune` and `data_rooms`; a field an older server omits decodes as `None`.
+- Python client option `retry_non_idempotent` to retry `POST`/`PATCH` on 502, 503 and 504.
+
+### Changed
+
+- **Behaviour, Python retries.** With `retries` set, 502, 503 and 504 are retried only for `GET`,
+  `HEAD`, `OPTIONS`, `PUT` and `DELETE`; a `POST` or `PATCH` is no longer replayed on them, because
+  the server may already have accepted the work and a replay can create duplicate jobs. 429 is still
+  retried for every method, honouring `Retry-After`. 408 is not retried by default.
+- **Breaking, Python response types.** `presign_upload` and `confirm_upload` return the generated
+  `PresignUploadResponse` and `ConfirmUploadResponse` models instead of a decoded `dict`, and accept
+  the generated request models as well as a mapping.
+- Python 410, 412 and 428 responses raise their new error classes instead of the base `XbergError`,
+  and 408 raises `RequestTimeoutError` instead of the base `XbergError`.
+
 ## [0.9.0] - 2026-10-22
 
 ### Added
