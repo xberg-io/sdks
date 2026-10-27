@@ -33,6 +33,8 @@ exclude = [
   "spec/openapi.yaml/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
+  "/.mcp.json",
 ]
 
 [per-file-ignores]
@@ -254,6 +256,8 @@ lint = { exclude = [
   "spec/openapi.yaml/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
+  "/.mcp.json",
 ] }
 fmt = { exclude = [
   "docs-site/src/snippets/**",
@@ -283,6 +287,8 @@ fmt = { exclude = [
   "spec/openapi.yaml/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
+  "/.mcp.json",
 ] }
 commit = { stages = ["commit-msg"] }
 file_safety = { exclude = [
@@ -313,6 +319,8 @@ file_safety = { exclude = [
   "spec/openapi.yaml/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
+  "/.mcp.json",
 ] }
 
 [tools.actionlint]
@@ -331,3 +339,9 @@ enabled = true
 [fmt.shell.shfmt]
 enabled = true
 indent_width = 2
+
+[[hooks.sources]]
+id = "ai-rulez"
+git = "https://github.com/Goldziher/ai-rulez.git"
+revision = "v5.7.0"
+hooks = ["ai-rulez-validate"]
