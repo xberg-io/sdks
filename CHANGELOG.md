@@ -21,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python `enterprise_healthz()` (sync and async), returning `EnterpriseHealth` with `tier`, `rag`,
   `auto_tune` and `data_rooms`; a field an older server omits decodes as `None`.
 - Python client option `retry_non_idempotent` to retry `POST`/`PATCH` on 502, 503 and 504.
+- TypeScript: `RequestTimeoutError` (408), `GatewayTimeoutError` (504), `ResultExpiredError` (410),
+  `PreconditionFailedError` (412) and `PreconditionRequiredError` (428). The timeout classes carry
+  `limit` and `timeoutSeconds` from the error `details`. Each extends the class its status mapped to
+  before (`ValidationError`, or `ServerError` for 504), so existing `instanceof` checks still match.
+- TypeScript: every `XbergError` exposes `code` and `details` from the response envelope.
+- TypeScript: `verifyWebhookSignature(secret, header, body, { toleranceSeconds, now })` checks an
+  `X-Webhook-Signature` header in constant time with WebCrypto and rejects stale timestamps.
+- TypeScript: `enterpriseHealthz()` returns the Enterprise data-plane `/healthz` as
+  `EnterpriseHealthResponse` (`tier`, `rag`, `auto_tune`, `data_rooms`); a missing feature reads as
+  disabled.
+- TypeScript: `retryNonIdempotent` client option to retry POST and PATCH on 502/503/504.
 
 ### Changed
 
@@ -33,6 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the generated request models as well as a mapping.
 - Python 410, 412 and 428 responses raise their new error classes instead of the base `XbergError`,
   and 408 raises `RequestTimeoutError` instead of the base `XbergError`.
+- TypeScript: 502, 503 and 504 are no longer retried for POST or PATCH by default, because the
+  server may already have accepted the request; 429 is still retried for every method. Set
+  `retryNonIdempotent: true` to restore the previous behaviour.
+
+### Fixed
+
+- TypeScript: read the message of the nested `{"error":{"code","message","details"}}` envelope,
+  which was previously ignored in favour of the generic `Request failed with status N`.
 
 ## [0.9.0] - 2026-10-22
 
