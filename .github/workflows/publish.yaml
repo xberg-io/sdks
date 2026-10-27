@@ -230,7 +230,7 @@ jobs:
           path: dist/
       - name: Publish to PyPI (OIDC trusted publisher)
         if: needs.prepare.outputs.dry_run != 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@v1.14.3
         with:
           packages-dir: dist
           skip-existing: true
