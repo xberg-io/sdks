@@ -4,6 +4,14 @@ version: "3"
 # ============================================================================
 # ============================================================================
 
+env:
+  # ~keep bats_load_library searches BATS_LIB_PATH and nothing else; every bats run (local and CI)
+  # loads the vendored xberg-io/actions xberg-bats library from here.
+  BATS_LIB_PATH: "{{.ROOT_DIR}}/scripts/tests/lib"
+
+vars:
+  BATS_CORE_VERSION: 1.13.0
+
 includes:
   python:
     taskfile: ./tasks/python.yml
@@ -87,11 +95,17 @@ tasks:
       - task: typescript:test
       - task: go:test
       - task: scripts:test
+      - task: scripts:test:shell
 
   scripts:test:
     desc: "Run the contract tests for the repo tooling under scripts/"
     cmds:
       - uv run -m pytest scripts/tests -v
+
+  scripts:test:shell:
+    desc: "Run the bats suites for the shell tooling under scripts/"
+    cmds:
+      - npx --yes bats@{{.BATS_CORE_VERSION}} scripts/tests
 
   lint:
     desc: "Lint all code via poly"

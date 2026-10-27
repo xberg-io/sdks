@@ -1,0 +1,41 @@
+name: ci-shell
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "tasks/spec.yml"
+      - "Taskfile.yml"
+      - ".github/workflows/ci-shell.yml"
+      - ".github/workflows/spec-sync.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "tasks/spec.yml"
+      - "Taskfile.yml"
+      - ".github/workflows/ci-shell.yml"
+      - ".github/workflows/spec-sync.yml"
+
+concurrency:
+  group: ci-shell-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bats:
+    name: bats
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: xberg-io/actions/install-bats@v1
+        with:
+          version: "1.14.0"
+      - uses: xberg-io/actions/run-bats@v1
+        with:
+          path: scripts/tests
+          lib-path: scripts/tests/lib
