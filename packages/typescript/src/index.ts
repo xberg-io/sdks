@@ -27,8 +27,13 @@ export {
 } from "./client.js";
 export {
   AuthError,
+  GatewayTimeoutError,
   NotFoundError,
+  PreconditionFailedError,
+  PreconditionRequiredError,
   RateLimitError,
+  RequestTimeoutError,
+  ResultExpiredError,
   ServerError,
   TimeoutError,
   ValidationError,
