@@ -30,6 +30,7 @@ exclude = [
   "packages/python/src/xberg_io_sdk/_generated_pro/**",
   "packages/typescript/src/_generated/**",
   "spec/**",
+  "packages/go/testdata/public-v0.9.0/fields.json",
   "spec/openapi.yaml/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
