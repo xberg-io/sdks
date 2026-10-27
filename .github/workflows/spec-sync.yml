@@ -2,8 +2,9 @@ name: spec-sync
 
 # Cross-repo spec alignment. Primary trigger is release-driven: xberg-enterprise's
 # release pipeline sends a `repository_dispatch` (type: spec-updated) carrying the
-# released API version, and this workflow opens a regenerate-and-commit PR pinned to
-# that version. The weekly cron is a fallback safety net; workflow_dispatch is manual.
+# ref and version (`{"ref": "pro-vX.Y.Z", "version": "X.Y.Z"}`), and this workflow opens a
+# regenerate-and-commit PR on a per-ref branch, recording the ref and the resolved upstream
+# commit. The weekly cron is a fallback safety net; workflow_dispatch is manual.
 on:
   repository_dispatch:
     types: [spec-updated]
@@ -43,6 +44,12 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
 
+      - name: Install task
+        uses: arduino/setup-task@v3.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Resolve upstream ref
         # ~keep The fallback is `development`, NOT `main`. `development` is xberg-enterprise's
         # default branch and where its spec work actually lands; `main` is a deploy-only
@@ -56,9 +63,7 @@ jobs:
         env:
           PAYLOAD_REF: ${{ github.event.client_payload.ref }}
           PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
-        run: |
-          echo "ref=${PAYLOAD_REF:-development}" >> "$GITHUB_OUTPUT"
-          echo "version=${PAYLOAD_VERSION:-latest}" >> "$GITHUB_OUTPUT"
+        run: task spec:sync:resolve
 
       - name: Checkout sibling xberg-enterprise
         uses: actions/checkout@v7
@@ -67,6 +72,10 @@ jobs:
           path: _xberg-enterprise
           ref: ${{ steps.ref.outputs.ref }}
           token: ${{ steps.app-token.outputs.token }}
+
+      - name: Resolve upstream commit
+        id: upstream
+        run: task spec:sync:sha
 
       - name: Install yq
         run: |
@@ -79,33 +88,49 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Normalise all three upstream specs into the vendored copies
-        run: |
-          yq -P -oy '.' \
-            _xberg-enterprise/services/api/spec/openapi.json \
-            > spec/api/openapi.yaml
-          yq -P -oy '.' \
-            _xberg-enterprise/services/pro/spec/openapi.json \
-            > spec/pro/openapi.yaml
-          # The control plane's spec is vendored by the frontend and is already
-          # YAML; it still goes through yq so all three copies share one
-          # formatting and a drift diff stays readable.
-          yq -P -oy '.' \
-            _xberg-enterprise/frontend/openapi-backend.yaml \
-            > spec/backend/openapi.yaml
+        run: task spec:fetch
+        env:
+          XBERG_ENTERPRISE_DIR: _xberg-enterprise
 
       - uses: actions/setup-go@v7
         with:
           go-version: "1.27.3"
           cache: true
 
-      - name: Install task
-        uses: arduino/setup-task@v3.0.0
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          enable-cache: true
 
-      - name: Regenerate tracked Go clients
-        run: task go:generate
+      - uses: pnpm/action-setup@v6.1.0
+        with:
+          version: "12.15.0"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.22.1"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: |
+          uv sync
+          pnpm install --frozen-lockfile
+
+      - name: Regenerate Python, TypeScript and Go clients
+        run: task generate
+
+      - name: Report spec coverage
+        run: task spec:sync:coverage
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/spec-coverage.txt
+
+      - name: Compose pull request body
+        run: task spec:sync:body
+        env:
+          REF: ${{ steps.ref.outputs.ref }}
+          VERSION: ${{ steps.ref.outputs.version }}
+          SHA: ${{ steps.upstream.outputs.sha }}
+          COVERAGE_FILE: ${{ runner.temp }}/spec-coverage.txt
+          BODY_FILE: ${{ runner.temp }}/spec-sync-body.md
 
       - name: Detect drift
         id: diff
@@ -122,21 +147,14 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
-          commit-message: "chore(spec): sync api + pro + backend openapi specs from xberg-enterprise (${{ steps.ref.outputs.version }})"
-          title: "chore(spec): sync openapi specs from xberg-enterprise (${{ steps.ref.outputs.version }})"
-          body: |
-            Automated sync of `spec/api/openapi.yaml`, `spec/pro/openapi.yaml` and
-            `spec/backend/openapi.yaml` and regeneration of the committed Go clients
-            from `xberg-io/xberg-enterprise@${{ steps.ref.outputs.ref }}`
-            (`services/api/spec/openapi.json` + `services/pro/spec/openapi.json` +
-            `frontend/openapi-backend.yaml`).
+          commit-message: |
+            chore(spec): sync openapi specs from xberg-enterprise ${{ steps.ref.outputs.ref }}
 
-            API version: `${{ steps.ref.outputs.version }}`
-
-            Per-language CI (ci-python / ci-typescript / ci-go) regenerates clients from
-            these specs and runs the full test suite on this PR — that is the consistency
-            gate. Review per-language diffs before merging.
-          branch: chore/spec-sync
+            Upstream: xberg-io/xberg-enterprise ${{ steps.ref.outputs.ref }} at ${{ steps.upstream.outputs.sha }}
+            Version: ${{ steps.ref.outputs.version }}
+          title: "chore(spec): sync openapi specs from xberg-enterprise ${{ steps.ref.outputs.ref }}"
+          body-path: ${{ runner.temp }}/spec-sync-body.md
+          branch: ${{ steps.ref.outputs.branch }}
           delete-branch: true
           add-paths: |
             spec/api/openapi.yaml

@@ -15,11 +15,11 @@ def test_go_ci_tracks_shared_contract_tooling() -> None:
         assert "scripts/**" in workflow["on"][event]["paths"]
 
 
-def test_spec_sync_regenerates_and_commits_go_clients_before_detecting_drift() -> None:
+def test_spec_sync_regenerates_every_language_before_detecting_drift() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/spec-sync.yml")
     steps = workflow["jobs"]["sync"]["steps"]
-    generation = next(index for index, step in enumerate(steps) if step.get("run") == "task go:generate")
-    for action in ("actions/setup-go@", "arduino/setup-task@"):
+    generation = next(index for index, step in enumerate(steps) if step.get("run") == "task generate")
+    for action in ("actions/setup-go@", "astral-sh/setup-uv@", "actions/setup-node@", "arduino/setup-task@"):
         assert any(step.get("uses", "").startswith(action) for step in steps[:generation]), action
     drift = next(index for index, step in enumerate(steps) if step.get("id") == "diff")
     assert generation < drift
@@ -28,6 +28,20 @@ def test_spec_sync_regenerates_and_commits_go_clients_before_detecting_drift() -
     for path in GENERATED_GO:
         assert path in steps[drift]["run"]
         assert path in committed
+
+
+def test_spec_sync_records_the_upstream_ref_and_commit_on_a_per_ref_branch() -> None:
+    workflow = YAML(typ="safe").load(ROOT / ".github/workflows/spec-sync.yml")
+    steps = workflow["jobs"]["sync"]["steps"]
+    ids = [step.get("id") for step in steps]
+    assert ids.index("ref") < ids.index("upstream") < ids.index("diff")
+    pull_request = next(step for step in steps if step.get("uses", "").startswith("peter-evans/create-pull-request@"))
+    settings = pull_request["with"]
+    assert settings["branch"] == "${{ steps.ref.outputs.branch }}"
+    for field in ("commit-message", "title"):
+        assert "steps.ref.outputs.ref" in settings[field]
+    assert "steps.upstream.outputs.sha" in settings["commit-message"]
+    assert "body-path" in settings
 
 
 @pytest.mark.parametrize("language", ("python", "typescript", "go"))

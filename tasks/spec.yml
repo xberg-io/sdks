@@ -60,6 +60,27 @@ tasks:
       - diff -q <(yq -P -oy '.' {{.UPSTREAM_PRO_LOCAL}}) {{.PRO_SPEC}}
       - diff -q <(yq -P -oy '.' {{.UPSTREAM_BACKEND_LOCAL}}) {{.BACKEND_SPEC}}
 
+  sync:resolve:
+    desc: "spec-sync: validate PAYLOAD_REF/PAYLOAD_VERSION and emit ref, version and branch to GITHUB_OUTPUT"
+    cmds:
+      - bash scripts/spec-sync.sh resolve
+
+  sync:sha:
+    desc: "spec-sync: emit the resolved upstream commit of the sibling checkout to GITHUB_OUTPUT"
+    cmds:
+      - UPSTREAM_DIR={{.UPSTREAM_ROOT}} bash scripts/spec-sync.sh sha
+
+  sync:coverage:
+    desc: "spec-sync: write the spec coverage report to COVERAGE_FILE; gaps are reported, not fatal"
+    cmds:
+      - cmd: uv run python scripts/spec-coverage.py > "$COVERAGE_FILE" 2>&1
+        ignore_error: true
+
+  sync:body:
+    desc: "spec-sync: write the PR body (REF, VERSION, SHA, COVERAGE_FILE) to BODY_FILE"
+    cmds:
+      - bash scripts/spec-sync.sh body
+
   show:
     desc: "Print the vendored spec paths"
     cmds:
