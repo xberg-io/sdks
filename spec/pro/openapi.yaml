@@ -2,6 +2,9 @@ openapi: 3.1.0
 info:
   title: Xberg Pro API
   description: Self-hosted, single-container document extraction API powered by Xberg. Audio/video transcription is currently available only through Xberg Core/CLI; this API rejects those inputs.
+  contact:
+    name: Na'aman Hirschfeld
+    email: naaman@xberg.io
   license:
     name: Proprietary
   version: 1.0.0
@@ -1962,6 +1965,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           headers:
@@ -2050,6 +2059,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Job or page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
           content:
             application/json:
               schema:
@@ -6320,7 +6335,7 @@ paths:
         required: true
       responses:
         "202":
-          description: Uploads confirmed, processing started
+          description: Uploads confirmed, durably queued for processing
           content:
             application/json:
               schema:
@@ -9298,6 +9313,33 @@ components:
           format: int64
           description: Number of documents deleted
           minimum: 0
+    DeploymentReadiness:
+      type: object
+      required:
+        - installation_id
+        - generation_id
+        - registered
+        - compatible
+        - admitted
+        - retired
+        - maintenance
+      properties:
+        admitted:
+          type: boolean
+        compatible:
+          type: boolean
+        generation_id:
+          type: string
+          format: uuid
+        installation_id:
+          type: string
+          format: uuid
+        maintenance:
+          type: boolean
+        registered:
+          type: boolean
+        retired:
+          type: boolean
     DiffLine:
       oneOf:
         - type: object
@@ -11117,7 +11159,6 @@ components:
         Raw bytes allow cross-language compatibility - users can convert to
         PIL.Image (Python), Sharp (Node.js), or other formats as needed.
       required:
-        - data
         - format
         - image_index
       properties:
@@ -14722,9 +14763,9 @@ components:
 
         The warning in `ExtractedDocument::processing_warnings` stays available. One warning
         can cover several pages: when an automatic OCR run of selected pages fails as a whole,
-        it adds one warning and one record for each selected page. A failure of the OCR fallback
-        for the whole document adds a warning and no record. Repeated failures on one page make
-        one record.
+        it adds one warning and one record for each selected page. When the OCR fallback for the
+        whole document fails, it adds one warning and one record for each page that has no native
+        text. Repeated failures on one page make one record.
       required:
         - page
         - error
@@ -16184,6 +16225,10 @@ components:
         database:
           type: string
           description: '`ok` or `unhealthy`: a connection was checked out of the pool.'
+        deployment:
+          oneOf:
+            - $ref: '#/components/schemas/DeploymentReadiness'
+            - type: "null"
         maintenance_database:
           type: string
           description: '`ok` or `unhealthy`: the maintenance login acquired a connection.'

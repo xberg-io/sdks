@@ -259,6 +259,17 @@ type CreateProjectRequest struct {
 	Slug string `json:"slug"`
 }
 
+// DeploymentReadiness defines model for DeploymentReadiness.
+type DeploymentReadiness struct {
+	Admitted       bool               `json:"admitted"`
+	Compatible     bool               `json:"compatible"`
+	GenerationId   openapi_types.UUID `json:"generation_id"`
+	InstallationId openapi_types.UUID `json:"installation_id"`
+	Maintenance    bool               `json:"maintenance"`
+	Registered     bool               `json:"registered"`
+	Retired        bool               `json:"retired"`
+}
+
 // DocumentResponse Single document's metadata, as reported by a connected integration.
 type DocumentResponse struct {
 	// Id Source-specific stable document identifier (opaque; format depends on
@@ -353,15 +364,6 @@ type ListApiKeysResponse struct {
 
 	// Total Total number of API keys for the project.
 	Total int64 `json:"total"`
-}
-
-// ListDocumentsResponse Response body for the integration document list endpoint.
-//
-// See the module-level doc for why this intentionally omits
-// `total`/`limit`/`offset`.
-type ListDocumentsResponse struct {
-	// Documents Documents matching the filter, in source-reported order.
-	Documents []DocumentResponse `json:"documents"`
 }
 
 // ListIntegrationsResponse Response for the paginated integration list endpoint.
@@ -907,6 +909,15 @@ type ProJobSummary struct {
 	WebhookDelivery *WebhookDelivery `json:"webhook_delivery,omitempty"`
 }
 
+// ProListDocumentsResponse Response body for the integration document list endpoint.
+//
+// See the module-level doc for why this intentionally omits
+// `total`/`limit`/`offset`.
+type ProListDocumentsResponse struct {
+	// Documents Documents matching the filter, in source-reported order.
+	Documents []DocumentResponse `json:"documents"`
+}
+
 // ProListJobsResponse Response for `GET /v1/jobs` (paginated job list).
 type ProListJobsResponse struct {
 	// Jobs Jobs in the current page, most recent first.
@@ -996,7 +1007,8 @@ type ProPresignUploadRequest struct {
 // ProReadinessChecks Per-dependency readiness results.
 type ProReadinessChecks struct {
 	// Database `ok` or `unhealthy`: a connection was checked out of the pool.
-	Database string `json:"database"`
+	Database   string               `json:"database"`
+	Deployment *DeploymentReadiness `json:"deployment,omitempty"`
 
 	// MaintenanceDatabase `ok` or `unhealthy`: the maintenance login acquired a connection.
 	MaintenanceDatabase string `json:"maintenance_database"`

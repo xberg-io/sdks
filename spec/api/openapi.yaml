@@ -36,6 +36,303 @@ paths:
                   enabled: true
                 rag:
                   enabled: true
+                data_rooms:
+                  enabled: true
+      security: []
+  /public/rooms/{slug}:
+    get:
+      tags:
+        - public-rooms
+      summary: Get a published data room
+      description: Returns the name and description of a published room, read by its slug with no credential. A room that is not published answers 404, so the answer tells nothing about it.
+      operationId: get_public_room
+      parameters:
+        - name: slug
+          in: path
+          description: Public slug of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The published room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicRoomResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room is not published, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: The room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security: []
+  /public/rooms/{slug}/items:
+    get:
+      tags:
+        - public-rooms
+      summary: List the items of a published data room
+      description: Lists the items of a published room in room order, one page at a time, with no credential. Each item carries the public reference that its content and download routes take.
+      operationId: list_public_room_items
+      parameters:
+        - name: slug
+          in: path
+          description: Public slug of the room
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+      responses:
+        "200":
+          description: The items of the published room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicItemsResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room is not published, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: The room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security: []
+  /public/rooms/{slug}/items/{item_ref}/content:
+    get:
+      tags:
+        - public-rooms
+      summary: Get the extraction result of a published room item
+      description: Returns the extraction result of one item of a published room, with no credential. `result` is null until the extraction finishes. A result kept in protected storage is refused with a 409.
+      operationId: get_public_room_item_content
+      parameters:
+        - name: slug
+          in: path
+          description: Public slug of the room
+          required: true
+          schema:
+            type: string
+        - name: item_ref
+          in: path
+          description: Public reference of the room item
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The item and its extraction result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicItemContentResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room is not published, or has no such item, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The job does not support document results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: The room store or the document result is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security: []
+  /public/rooms/{slug}/items/{item_ref}/download:
+    get:
+      tags:
+        - public-rooms
+      summary: Download the original file of a published room item
+      description: Returns the original bytes of one item of a published room as an attachment, with no credential. A room that does not allow downloads answers 404. `HEAD` returns the same headers without the body.
+      operationId: download_public_room_item
+      parameters:
+        - name: slug
+          in: path
+          description: Public slug of the room
+          required: true
+          schema:
+            type: string
+        - name: item_ref
+          in: path
+          description: Public reference of the room item
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The original file
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room is not published, has no such item, or does not allow downloads, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The original file is larger than the document limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: The room store or the original file is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security: []
   /readyz:
     get:
@@ -77,11 +374,10 @@ paths:
       description: |-
         Returns a page of `audit_log` rows for the credential's own project, most
         recent first, optionally filtered to entries whose `action` matches
-        exactly (e.g. `"job.submit"`). Unlike Pro's `GET /v1/audit`, which is
-        gated to an admin or the project's session-JWT owner, any of the
-        project's API keys may read this endpoint — Enterprise has no per-key
-        role concept, so every project key already has full read/write of the
-        project's data plane.
+        exactly (e.g. `"job.submit"`). Room events are filtered by room access: a
+        project manager reads every event, and any other member reads the events
+        of the rooms where its role carries `data_room.audit.read`. `room_id`
+        narrows the page to the events of one room.
       operationId: list_audit_entries
       parameters:
         - name: action
@@ -128,6 +424,25 @@ paths:
               - scim.connection.create
               - scim.connection.rotate
               - scim.group_roles.replace
+              - data_room.create
+              - data_room.update
+              - data_room.delete
+              - data_room.restore
+              - data_room.item_add
+              - data_room.item_remove
+              - data_room.item_reorder
+              - data_room.member_add
+              - data_room.member_role_update
+              - data_room.member_remove
+              - data_room.link_create
+              - data_room.link_revoke
+              - data_room.ownership_transfer
+              - data_room.invitation_create
+              - data_room.invitation_revoke
+              - data_room.invitation_accept
+              - data_room.publish
+              - data_room.unpublish
+              - data_room.publication_update
               - db.api_keys.insert
               - db.api_keys.delete
               - db.api_keys.update
@@ -156,6 +471,15 @@ paths:
             default: 0
             maximum: 1000000
             minimum: 0
+        - name: room_id
+          in: query
+          description: |-
+            Only the events of this data room. The caller needs `data_room.audit.read` on the room; a room
+            the caller cannot see, or a room of another project, answers 404 as an unknown room does.
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Audit entries listed
@@ -164,7 +488,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListAuditEntriesResponse'
         "400":
-          description: Invalid action or pagination parameters
+          description: Invalid action, room id or pagination parameters
           content:
             application/json:
               schema:
@@ -176,13 +500,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "403":
-          description: An API key's project_id or x-project-id names a project other than the key's own
+          description: The caller lacks `audit.read` on the project, or `data_room.audit.read` on the named room
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
-          description: The current session has no membership in the requested project
+          description: The named room is unknown to the caller, or the plan does not offer data rooms (`data_room.disabled`)
           content:
             application/json:
               schema:
@@ -1102,6 +1426,99 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/documents:
+    get:
+      tags:
+        - documents
+      summary: List the documents of the caller's project
+      description: |-
+        Returns each logical document once, shown by its newest finished version
+        (`COMPLETED` or `PARTIAL_SUCCESS`), most recently updated first. A document with no
+        finished version is absent. The `document_id` of an entry is the id that adds the
+        document to a data room.
+      operationId: list_documents
+      parameters:
+        - name: limit
+          in: query
+          description: Page size (default 50, max 100).
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          description: Pagination offset (default 0, clamped to a maximum of 1,000,000).
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Documents listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDocumentsResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: An API key's project_id or x-project-id names a project other than the key's own
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The current session has no membership in the requested project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/documents/{document_id}:
     get:
       tags:
@@ -1155,6 +1572,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Job does not support document results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           headers:
@@ -1179,7 +1602,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Session authentication or document result access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -1270,7 +1693,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "409":
-          description: Version extraction is unavailable
+          description: Version extraction or document diff capability is unavailable
           content:
             application/json:
               schema:
@@ -1305,7 +1728,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Session authentication or document result access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -1378,7 +1801,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "409":
-          description: Version extraction is unavailable
+          description: Version extraction or document diff capability is unavailable
           content:
             application/json:
               schema:
@@ -1413,7 +1836,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Session authentication or document result access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -2172,6 +2595,12 @@ paths:
                 error:
                   code: job_not_found
                   message: Job not found
+        "409":
+          description: Protected job cohort or retention capability is unsupported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           headers:
@@ -2206,7 +2635,7 @@ paths:
                   code: internal
                   message: Database connection failed
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Authentication or protected result configuration, authority or payload access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -2304,13 +2733,20 @@ paths:
       tags:
         - jobs
       summary: Get job result
-      description: 'The result envelope of a job in a terminal successful state (`completed` or `partial_success`). Xberg Pro serves the same envelope on the same route, so one polling loop works on both tiers: poll until the route stops answering 409. A result that has passed its retention period answers 404.'
+      description: 'The result envelope of a job in a terminal successful state (`completed` or `partial_success`). Xberg Pro serves the same envelope on the same route, so one polling loop works on both tiers: poll until the route stops answering 409. An enrolled result whose retention period has elapsed returns 410.'
       operationId: get_job_result
       parameters:
         - name: id
           in: path
           description: Job ID (UUID)
           required: true
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: Must match the authenticated project
+          required: false
           schema:
             type: string
             format: uuid
@@ -2322,7 +2758,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobResult'
         "400":
-          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          description: Invalid job ID or query scope
           content:
             application/json:
               schema:
@@ -2340,13 +2776,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
-          description: Job not found, or its result has expired
+          description: Job or result not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "409":
-          description: Job has not reached a terminal successful state
+          description: Job is not ready or its protected result capability is unsupported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
           content:
             application/json:
               schema:
@@ -2375,7 +2817,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Authentication or protected result configuration, authority or payload access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -2389,7 +2831,7 @@ paths:
       summary: Get page raster from extraction job
       description: |-
         Serves page images that were persisted during structured extraction.
-        Page numbers are 1-indexed. Images are cached for 1 hour.
+        Page numbers are 1-indexed. Retained images disable HTTP caching.
 
         # Response format
         - **200 OK** with PNG image data and cache headers
@@ -2445,6 +2887,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Job does not support page images
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "429":
           description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
           headers:
@@ -2475,7 +2929,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Session authentication is temporarily unavailable
+          description: Session authentication or page access is temporarily unavailable
           content:
             application/json:
               schema:
@@ -3844,6 +4298,2455 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearer_auth: []
+  /v1/room-invitations/accept:
+    post:
+      tags:
+        - rooms
+      summary: Accept a room invitation
+      description: Accepts an invitation token for the signed-in user and gives the user a grant on the room. A token that cannot be accepted answers 404, whatever the reason.
+      operationId: accept_room_invitation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptRequest'
+        required: true
+      responses:
+        "200":
+          description: Invitation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedInvitationResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller is not a signed-in user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The invitation does not exist or is no longer valid, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The caller is in the room already, or the room holds its limit of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/room-invitations/preview:
+    post:
+      tags:
+        - rooms
+      summary: Preview a room invitation
+      description: Shows a signed-in invitee the room an invitation token opens before they accept it. The answer names no ID, address or token. A token that cannot be accepted answers 404, whatever the reason.
+      operationId: preview_room_invitation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptRequest'
+        required: true
+      responses:
+        "200":
+          description: The room the invitation opens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationPreviewResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller is not a signed-in user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The invitation does not exist or is no longer valid, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The caller is in the room already, or the room holds its limit of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms:
+    get:
+      tags:
+        - rooms
+      summary: List data rooms
+      description: Lists the rooms the caller can see, with the rights the caller holds on each. A caller with `data_room.manage` sees every room of the project; any other caller sees the rooms it holds a grant on. `state=deleted` lists the deleted rooms that can still be restored.
+      operationId: list_rooms
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+            description: 'Which rooms a list asks for: the live ones, or the deleted ones that can still be restored.'
+            enum:
+              - live
+              - deleted
+      responses:
+        "200":
+          description: Rooms listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRoomsResponse'
+        "400":
+          description: Invalid pagination or state parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot read rooms in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The current session has no membership in the requested project, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - rooms
+      summary: Create a data room
+      description: Creates a data room in the caller's project and makes the caller its owner. The caller needs `data_room.create` in the project. A project holds a limited number of rooms; at the limit the request is refused with a 409 `quota_exceeded`.
+      operationId: create_room
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+        required: true
+      responses:
+        "201":
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        "400":
+          description: Invalid name or description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot create a room in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The project does not exist, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The project holds its limit of rooms
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}:
+    get:
+      tags:
+        - rooms
+      summary: Get a data room
+      description: Returns one live room with the rights the caller holds on it. The guest count and the publication state are present only for a caller who can manage the members of the room. A room the caller cannot see answers 404.
+      operationId: get_room
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    delete:
+      tags:
+        - rooms
+      summary: Delete a data room
+      description: Deletes a live room. The room stays restorable for the restore window that its `restorable_until` field shows, and lists with `state=deleted` until then.
+      operationId: delete_room
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Room deleted
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the delete right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - rooms
+      summary: Rename a data room or change its description
+      description: Changes the name or the description of a room. Send the room version you read in `If-Match`; a stale version is refused with a 412 and a missing one with a 428. A `null` description clears it, and an absent field keeps its value.
+      operationId: update_room
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          description: The room version the caller read, quoted or bare
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomRequest'
+        required: true
+      responses:
+        "200":
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        "400":
+          description: Invalid name, description or If-Match value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the update right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "412":
+          description: The room changed since the caller read it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "428":
+          description: The If-Match header is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/invitations:
+    get:
+      tags:
+        - rooms
+      summary: List the invitations of a data room
+      description: Lists the invitations of the room with their status, role and expiry. The answer never carries an invitation token.
+      operationId: list_room_invitations
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+      responses:
+        "200":
+          description: Invitations listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListInvitationsResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - rooms
+      summary: Invite a person to a data room by email
+      description: Creates a pending invitation for an email address with the role sent, and delivers it on the configured channel. The token is in the answer only when the delivery channel returns it.
+      operationId: create_room_invitation
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteRequest'
+        required: true
+      responses:
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationResponse'
+        "400":
+          description: The email address is not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The address is a member or has a pending invitation, or the room holds its limit of pending invitations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: The address is on a domain that cannot sign in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/invitations/{invitation_id}:
+    delete:
+      tags:
+        - rooms
+      summary: Revoke a pending room invitation
+      description: Revokes one pending invitation of the room, so that its token can no longer be accepted.
+      operationId: revoke_room_invitation
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: invitation_id
+          in: path
+          description: Invitation ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Invitation revoked
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room has no such pending invitation, or the caller cannot see the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items:
+    get:
+      tags:
+        - rooms
+      summary: List the items of a data room
+      description: Lists the documents of a room in their room order, one page at a time. The answer carries the room version that a reorder sends in `If-Match`.
+      operationId: list_room_items
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+      responses:
+        "200":
+          description: Room items listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListItemsResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - rooms
+      summary: Add a document to a data room
+      description: Adds a document of the room's project to the end of the room. The caller needs `data_room.item.write` on the room and `document.read` on the project. The document needs a finished version.
+      operationId: add_room_item
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItemRequest'
+        required: true
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot add items to the room or read the project documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The document is in the room already, or the room holds its limit of items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: The document is not in the room's project or has no finished version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items/order:
+    put:
+      tags:
+        - rooms
+      summary: Reorder the items of a data room
+      description: Sets the order of every item in the room. `document_ids` must name each item exactly once. Send the room version you read in `If-Match`; a stale version is refused with a 412 and a missing one with a 428.
+      operationId: reorder_room_items
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          description: The room version the caller read, quoted or bare
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderItemsRequest'
+        required: true
+      responses:
+        "200":
+          description: Items reordered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReorderItemsResponse'
+        "400":
+          description: The If-Match value is not a room version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the item write right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "412":
+          description: The room changed since the caller read it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: The document IDs do not name every room item exactly once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "428":
+          description: The If-Match header is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items/{document_id}:
+    delete:
+      tags:
+        - rooms
+      summary: Remove a document from a data room
+      description: Removes one document from the room. The document itself stays in the project; only its place in the room goes.
+      operationId: remove_room_item
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: Logical document ID of the room item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Item removed
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the item write right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist, the caller cannot see it, or the document is not in the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items/{document_id}/content:
+    get:
+      tags:
+        - rooms
+      summary: Get the extraction result of a room item
+      description: Returns the extraction result of the newest finished version of a room item. `result` is null while the extraction has not finished. A result kept in protected storage is refused with a 409.
+      operationId: get_room_item_content
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: Logical document ID of the room item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The item and its extraction result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemContentResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist, the caller cannot see it, or the document is not in the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The job does not support document results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the document result is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items/{document_id}/download:
+    get:
+      tags:
+        - rooms
+      summary: Download the original file of a room item
+      description: Returns the original bytes of a room item as an attachment, with its stored media type. A room that does not allow downloads refuses with a 403. `HEAD` returns the same headers without the body.
+      operationId: download_room_item
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: Logical document ID of the room item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The original file
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The room does not allow downloads, or the caller holds a grant without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room, the item or its original file does not exist, or the caller cannot see the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The original file is larger than the document limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/items/{document_id}/pages/{page_number}:
+    get:
+      tags:
+        - rooms
+      summary: Get a page raster of a room item
+      description: Returns one page of a room item as a PNG image, read through the same reader as the job page route. Every reader of the room can open it, whatever the download setting of the room.
+      operationId: get_room_item_page
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: Logical document ID of the room item
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page_number
+          in: path
+          description: 1-indexed page number
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Page PNG image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room, the item or the page does not exist, or the caller cannot see the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The job does not support page images
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: The job result has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Storage error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or page access is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/leave:
+    post:
+      tags:
+        - rooms
+      summary: Leave a data room
+      description: Removes the caller's own grant on the room. The owner cannot leave; transfer the room to another owner first.
+      operationId: leave_room
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: The caller left the room
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the read right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist, the caller cannot see it, or the caller has no grant on it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The caller owns the room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/members:
+    get:
+      tags:
+        - rooms
+      summary: List the members of a data room
+      description: Lists the users who hold a grant on the room, with the preset each grant stands for. `role` is `CUSTOM` for a grant whose role is not a room preset.
+      operationId: list_room_members
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            maximum: 1000000
+            minimum: 0
+      responses:
+        "200":
+          description: Room members listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMembersResponse'
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    post:
+      tags:
+        - rooms
+      summary: Add a project member to a data room
+      description: Gives a member of the room's project a grant on the room with the role sent. Anyone outside the project joins by an email invitation instead. A room holds a limited number of members.
+      operationId: add_room_member
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberRequest'
+        required: true
+      responses:
+        "201":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The user is in the room already, or the room holds its limit of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: The user is not a member of the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/members/{user_id}:
+    delete:
+      tags:
+        - rooms
+      summary: Remove a member from a data room
+      description: Removes the grant one member holds on the room. The owner stays in the room; transfer the room to another owner first.
+      operationId: remove_room_member
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: User ID of the room member
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Member removed
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room or the member does not exist, or the caller cannot see the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The member owns the room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - rooms
+      summary: Change the role of a room member
+      description: Changes the role of one room member to an editor or a viewer. The role of the owner does not change this way; ownership moves by a transfer.
+      operationId: change_room_member_role
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          description: User ID of the room member
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRoleRequest'
+        required: true
+      responses:
+        "200":
+          description: Role changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room or the member does not exist, or the caller cannot see the room, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The member owns the room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/ownership:
+    post:
+      tags:
+        - rooms
+      summary: Transfer the ownership of a data room
+      description: Makes another member of the room its owner. The new owner must be a project member who already holds a grant on the room.
+      operationId: transfer_room_ownership
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+        required: true
+      responses:
+        "204":
+          description: Ownership transferred
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the transfer right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: The user cannot take the room, or owns it already
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/publication:
+    get:
+      tags:
+        - rooms
+      summary: Get the publication settings of a data room
+      description: Returns whether the room has a public view, its slug, mode and download setting, and the room version to send in `If-Match` when the settings change. The caller needs `data_room.publish` in the project.
+      operationId: get_room_publication
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The publication settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot read the room or does not hold `data_room.publish` in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+    put:
+      tags:
+        - rooms
+      summary: Publish or unpublish a data room
+      description: Sets the publication state of the room, and optionally its mode and download setting; an absent field keeps its stored value. Send the room version you read in `If-Match`; a stale version is refused with a 412 and a missing one with a 428.
+      operationId: set_room_publication
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          description: The room version the caller read, quoted or bare
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPublicationRequest'
+        required: true
+      responses:
+        "200":
+          description: Publication settings set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationResponse'
+        "400":
+          description: The If-Match value is not a room version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller cannot read the room or does not hold `data_room.publish` in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "412":
+          description: The room changed since the caller read it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "428":
+          description: The If-Match header is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/rooms/{id}/restore:
+    post:
+      tags:
+        - rooms
+      summary: Restore a deleted data room
+      description: Restores a deleted room inside its restore window and returns it live again. A project at its limit of rooms refuses the restore with a 409 `quota_exceeded`.
+      operationId: restore_room
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Room restored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller holds a grant on the room without the delete right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: No restorable room has this ID, or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: The project holds its limit of rooms
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/saved_presets:
     get:
       tags:
@@ -5163,6 +8066,52 @@ paths:
         - bearer_auth: []
 components:
   schemas:
+    AcceptRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+      additionalProperties: false
+    AcceptedInvitationResponse:
+      type: object
+      required:
+        - room_id
+        - project_id
+        - kind
+        - role
+      properties:
+        kind:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+        room_id:
+          type: string
+          format: uuid
+    AddItemRequest:
+      type: object
+      required:
+        - document_id
+      properties:
+        document_id:
+          type: string
+          format: uuid
+      additionalProperties: false
+    AddMemberRequest:
+      type: object
+      required:
+        - user_id
+        - role
+      properties:
+        role:
+          $ref: '#/components/schemas/GrantableRole'
+        user_id:
+          type: string
+      additionalProperties: false
     AnnotationKind:
       oneOf:
         - type: object
@@ -6031,6 +8980,14 @@ components:
         to:
           type: string
           description: Value after the change.
+    ChangeRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          $ref: '#/components/schemas/GrantableRole'
+      additionalProperties: false
     Chunk:
       type: object
       description: |-
@@ -7590,6 +10547,20 @@ components:
         text:
           type: string
           description: Raw text content
+    CreateRoomRequest:
+      type: object
+      required:
+        - name
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+      additionalProperties: false
     CreateSavedPresetRequest:
       type: object
       description: Request to create a saved preset.
@@ -8134,6 +11105,35 @@ components:
             a hint only — the receiving service prefers the connector-reported
             type at fetch time.
       additionalProperties: false
+    DocumentListEntry:
+      type: object
+      description: One document in the project document list.
+      required:
+        - document_id
+        - filename
+        - mime_type
+        - size_bytes
+        - updated_at
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          description: Logical document ID, the value `POST /v1/rooms/{id}/items` takes.
+          example: 550e8400-e29b-41d4-a716-446655440000
+        filename:
+          type: string
+          description: Original filename of the newest finished version.
+        mime_type:
+          type: string
+          description: MIME type of the newest finished version.
+        size_bytes:
+          type: integer
+          format: int64
+          description: Size in bytes of the newest finished version.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the newest finished version was last updated.
     DocumentNode:
       type: object
       description: |-
@@ -9696,7 +12696,6 @@ components:
         Raw bytes allow cross-language compatibility - users can convert to
         PIL.Image (Python), Sharp (Node.js), or other formats as needed.
       required:
-        - data
         - format
         - image_index
       properties:
@@ -10634,6 +13633,12 @@ components:
 
         `job_type` is the stable wire discriminator. Keeping selection explicit
         lets clients accept future fields without making the variants ambiguous.
+    GrantableRole:
+      type: string
+      description: The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+      enum:
+        - EDITOR
+        - VIEWER
     GridCell:
       type: object
       description: Individual grid cell with position and span metadata.
@@ -10774,10 +13779,23 @@ components:
         - tier
         - auto_tune
         - rag
+        - data_rooms
       properties:
         auto_tune:
           $ref: '#/components/schemas/AutoTuneHealth'
           description: Auto-tune readiness, read by the frontend to gate the auto-tune UI.
+        data_rooms:
+          allOf:
+            - type: object
+              description: Whether the plan of this deployment offers data rooms.
+              required:
+                - enabled
+              properties:
+                enabled:
+                  type: boolean
+                  description: False when the plan does not offer data rooms; every room route then answers 404 `data_room.disabled`.
+            - type: object
+              description: Data room availability on this plan (`DATA_ROOMS_ENABLED`).
         rag:
           allOf:
             - type: object
@@ -11344,6 +14362,120 @@ components:
           format: uuid
           description: Connector-specific document identifier (e.g. a Google Drive file id).
       additionalProperties: false
+    InvitationPreviewResponse:
+      type: object
+      description: What a signed-in invitee sees of a room before they accept. It names no id, address or token.
+      required:
+        - room_name
+        - item_count
+      properties:
+        invited_by_name:
+          type:
+            - string
+            - "null"
+        item_count:
+          type: integer
+          format: int64
+        room_name:
+          type: string
+    InvitationResponse:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - role_name
+        - status
+        - invited_by
+        - delivery_channel
+        - expires_at
+        - created_at
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        delivery_channel:
+          type: string
+        email:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        invited_by:
+          type: string
+        role:
+          type: string
+        role_name:
+          type: string
+        status:
+          type: string
+        token:
+          type:
+            - string
+            - "null"
+          description: Present on the create answer only, and only when the delivery channel returns it.
+    InviteRequest:
+      type: object
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/GrantableRole'
+      additionalProperties: false
+    ItemContentResponse:
+      type: object
+      description: The extraction result of one room item.
+      required:
+        - document_id
+        - filename
+        - mime_type
+        - status
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        mime_type:
+          type: string
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ExtractedDocument'
+            - type: "null"
+        status:
+          type: string
+    ItemResponse:
+      type: object
+      required:
+        - document_id
+        - position
+        - filename
+        - mime_type
+        - size_bytes
+        - updated_at
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        mime_type:
+          type: string
+        position:
+          type: integer
+          format: int64
+        size_bytes:
+          type: integer
+          format: int64
+        updated_at:
+          type: string
+          format: date-time
     JatsMetadata:
       type: object
       description: JATS (Journal Article Tag Suite) metadata.
@@ -12134,6 +15266,29 @@ components:
           type: integer
           format: int32
           description: Total number of collections for this project
+    ListDocumentsResponse:
+      type: object
+      description: A page of the project's documents.
+      required:
+        - documents
+        - total
+        - limit
+        - offset
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentListEntry'
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+          description: Number of documents in the project.
     ListExtractionEventsResponse:
       type: object
       description: Response from listing extraction events.
@@ -12160,6 +15315,53 @@ components:
           type: integer
           format: int64
           description: Total count of events.
+    ListInvitationsResponse:
+      type: object
+      required:
+        - invitations
+        - total
+        - limit
+        - offset
+      properties:
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvitationResponse'
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+    ListItemsResponse:
+      type: object
+      required:
+        - items
+        - total
+        - limit
+        - offset
+        - version
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemResponse'
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+        version:
+          type: integer
+          format: int64
+          description: The room version to send in `If-Match` when the caller reorders.
     ListJobsResponse:
       type: object
       description: Response for `GET /v1/jobs` (paginated job list).
@@ -12198,6 +15400,48 @@ components:
             $ref: '#/components/schemas/ManagedEmbeddingPreset'
           description: Available presets, in the canonical backend order.
           maxItems: 32
+    ListMembersResponse:
+      type: object
+      required:
+        - members
+        - total
+        - limit
+        - offset
+      properties:
+        limit:
+          type: integer
+          format: int64
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberResponse'
+        offset:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+    ListRoomsResponse:
+      type: object
+      required:
+        - rooms
+        - total
+        - limit
+        - offset
+      properties:
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomResponse'
+        total:
+          type: integer
+          format: int64
     ListSavedPresetsResponse:
       type: object
       description: Response from listing saved presets.
@@ -12432,6 +15676,40 @@ components:
         text:
           type: string
         url:
+          type: string
+    MemberResponse:
+      type: object
+      required:
+        - user_id
+        - kind
+        - role
+        - role_name
+        - is_owner
+        - added_by
+        - created_at
+      properties:
+        added_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        display_name:
+          type:
+            - string
+            - "null"
+        email:
+          type:
+            - string
+            - "null"
+        is_owner:
+          type: boolean
+        kind:
+          type: string
+        role:
+          type: string
+        role_name:
+          type: string
+        user_id:
           type: string
     Metadata:
       type: object
@@ -13436,9 +16714,9 @@ components:
 
         The warning in `ExtractedDocument::processing_warnings` stays available. One warning
         can cover several pages: when an automatic OCR run of selected pages fails as a whole,
-        it adds one warning and one record for each selected page. A failure of the OCR fallback
-        for the whole document adds a warning and no record. Repeated failures on one page make
-        one record.
+        it adds one warning and one record for each selected page. When the OCR fallback for the
+        whole document fails, it adds one warning and one record for each page that has no native
+        text. Repeated failures on one page make one record.
       required:
         - page
         - error
@@ -14959,6 +18237,131 @@ components:
           type: integer
           description: Total number of email messages found in the PST archive.
           minimum: 0
+    PublicItemContentResponse:
+      type: object
+      description: The extraction result of one item of a published room. It is `null` until the extraction finishes.
+      required:
+        - item_ref
+        - filename
+        - mime_type
+      properties:
+        filename:
+          type: string
+        item_ref:
+          type: string
+        mime_type:
+          type: string
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ExtractedDocument'
+            - type: "null"
+    PublicItemResponse:
+      type: object
+      description: One item of a published room.
+      required:
+        - item_ref
+        - filename
+        - mime_type
+        - size_bytes
+        - updated_at
+      properties:
+        filename:
+          type: string
+        item_ref:
+          type: string
+        mime_type:
+          type: string
+        size_bytes:
+          type: integer
+          format: int64
+        updated_at:
+          type: string
+          format: date-time
+    PublicItemsResponse:
+      type: object
+      description: One page of the items of a published room.
+      required:
+        - items
+        - total
+        - limit
+        - offset
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicItemResponse'
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+    PublicRoomResponse:
+      type: object
+      description: A published room as a visitor sees it.
+      required:
+        - name
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        name:
+          type: string
+    PublicationModeName:
+      type: string
+      enum:
+        - live
+        - reviewed
+    PublicationResponse:
+      type: object
+      required:
+        - room_version
+        - state
+        - mode
+        - download_allowed
+        - generation
+      properties:
+        download_allowed:
+          type: boolean
+        generation:
+          type: integer
+          format: int64
+        mode:
+          $ref: '#/components/schemas/PublicationModeName'
+        pending_changes:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: The documents that differ from the pinned revision. Null unless the room is reviewed and published.
+        published_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        published_revision:
+          type:
+            - integer
+            - "null"
+          format: int64
+        room_version:
+          type: integer
+          format: int64
+        slug:
+          type:
+            - string
+            - "null"
+        state:
+          $ref: '#/components/schemas/PublicationStateName'
+    PublicationStateName:
+      type: string
+      enum:
+        - unpublished
+        - published
     QrBoundingBox:
       type: object
       description: Pixel-space bounding box of a QR code inside its source image.
@@ -15139,6 +18542,10 @@ components:
           type: string
           description: Database connectivity
           example: ok
+        enterprise_runtime:
+          type:
+            - string
+            - "null"
         maintenance_database:
           type: string
           description: Maintenance database connectivity.
@@ -15245,6 +18652,31 @@ components:
         - label
         - toc_entry
         - cross_reference
+    ReorderItemsRequest:
+      type: object
+      required:
+        - document_ids
+      properties:
+        document_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      additionalProperties: false
+    ReorderItemsResponse:
+      type: object
+      required:
+        - document_ids
+        - version
+      properties:
+        document_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        version:
+          type: integer
+          format: int64
     RerankFallbackReason:
       type: string
       description: Why a requested rerank did not order the results.
@@ -15675,6 +19107,80 @@ components:
         - deletion
         - format_change
         - comment
+    RoomResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - name
+        - version
+        - created_by
+        - created_at
+        - updated_at
+        - rights
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+        deleted_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Present on a deleted room only.
+        description:
+          type:
+            - string
+            - "null"
+        guest_count:
+          type:
+            - integer
+            - "null"
+          format: int64
+          description: The guests whose grant is in force. Null for a caller who cannot manage the members of the room.
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        publication_state:
+          oneOf:
+            - $ref: '#/components/schemas/PublicationStateName'
+              description: Whether the room has a public view. Null for a caller who cannot manage the members of the room.
+            - type: "null"
+        restorable_until:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: The end of the restore window. Present on a deleted room only.
+        rights:
+          $ref: '#/components/schemas/RoomRightsResponse'
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+    RoomRightsResponse:
+      type: object
+      description: What the caller may do in the room. `role` is null for a caller with no grant on the room.
+      required:
+        - permissions
+      properties:
+        permissions:
+          type: array
+          items:
+            type: string
+        role:
+          type:
+            - string
+            - "null"
     RoutingFallbackReason:
       type: string
       description: Why a routing-enabled run produced a global-only profile.
@@ -15958,6 +19464,23 @@ components:
           description: Maximum XML depth (1024 levels)
           default: 1024
           minimum: 0
+      additionalProperties: false
+    SetPublicationRequest:
+      type: object
+      description: The settings to make true. A field that is absent keeps its stored value.
+      required:
+        - state
+      properties:
+        download_allowed:
+          type:
+            - boolean
+            - "null"
+        mode:
+          oneOf:
+            - $ref: '#/components/schemas/PublicationModeName'
+            - type: "null"
+        state:
+          $ref: '#/components/schemas/PublicationStateName'
       additionalProperties: false
     SparseEmbedding:
       type: object
@@ -16487,6 +20010,14 @@ components:
             - "null"
           description: Preserve capitalized/technical terms. Defaults to true when omitted.
       additionalProperties: false
+    TransferRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+      additionalProperties: false
     Translation:
       type: object
       description: |-
@@ -16588,6 +20119,20 @@ components:
         name:
           type: string
           description: Tuning profile name.
+    UpdateRoomRequest:
+      type: object
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        name:
+          type:
+            - string
+            - "null"
+          maxLength: 100
+          minLength: 1
+      additionalProperties: false
     UpdateSavedPresetRequest:
       type: object
       description: Request to update a saved preset.
@@ -17164,5 +20709,9 @@ tags:
     description: Health check endpoints
   - name: rag
     description: RAG ingest, document lifecycle, and collection migration endpoints
+  - name: rooms
+    description: 'Data rooms: their items, members, invitations and publication'
+  - name: public-rooms
+    description: Anonymous reads of a published data room
   - name: auto-tune
     description: Auto-tune job submission, polling, and tuning-profile lifecycle endpoints

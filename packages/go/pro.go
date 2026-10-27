@@ -281,11 +281,11 @@ func (c *Client) ListIntegrationDocuments(
 	ctx context.Context,
 	projectID, integrationID string,
 	params *ListIntegrationDocumentsParams,
-) (*ListDocumentsResponse, error) {
+) (*ProListDocumentsResponse, error) {
 	if err := c.requireTier(ctx, TargetPro, "ListIntegrationDocuments"); err != nil {
 		return nil, err
 	}
-	var out ListDocumentsResponse
+	var out ProListDocumentsResponse
 	path := integrationPath(projectID, integrationID, "/documents") + encodeDocumentParams(params)
 	if err := c.getJSON(ctx, path, &out); err != nil {
 		return nil, err

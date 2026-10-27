@@ -1171,6 +1171,24 @@ func (e GetJobResponse1JobType) Valid() bool {
 	}
 }
 
+// Defines values for GrantableRole.
+const (
+	EDITOR GrantableRole = "EDITOR"
+	VIEWER GrantableRole = "VIEWER"
+)
+
+// Valid indicates whether the value is a known member of the GrantableRole enum.
+func (e GrantableRole) Valid() bool {
+	switch e {
+	case EDITOR:
+		return true
+	case VIEWER:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GroundTruthKind.
 const (
 	Markdown   GroundTruthKind = "markdown"
@@ -2335,6 +2353,42 @@ func (e PstMetadataFormatType) Valid() bool {
 	}
 }
 
+// Defines values for PublicationModeName.
+const (
+	PublicationModeNameLive     PublicationModeName = "live"
+	PublicationModeNameReviewed PublicationModeName = "reviewed"
+)
+
+// Valid indicates whether the value is a known member of the PublicationModeName enum.
+func (e PublicationModeName) Valid() bool {
+	switch e {
+	case PublicationModeNameLive:
+		return true
+	case PublicationModeNameReviewed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PublicationStateName.
+const (
+	Published   PublicationStateName = "published"
+	Unpublished PublicationStateName = "unpublished"
+)
+
+// Valid indicates whether the value is a known member of the PublicationStateName enum.
+func (e PublicationStateName) Valid() bool {
+	switch e {
+	case Published:
+		return true
+	case Unpublished:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RagJobKind.
 const (
 	Ingest  RagJobKind = "ingest"
@@ -3021,48 +3075,67 @@ func (e XmlMetadataFormatType) Valid() bool {
 
 // Defines values for ListAuditEntriesParamsAction.
 const (
-	ApiKeyCreate             ListAuditEntriesParamsAction = "api_key.create"
-	ApiKeyRegenerate         ListAuditEntriesParamsAction = "api_key.regenerate"
-	ApiKeyRevoke             ListAuditEntriesParamsAction = "api_key.revoke"
-	AuthFailure              ListAuditEntriesParamsAction = "auth.failure"
-	AuthLogin                ListAuditEntriesParamsAction = "auth.login"
-	CrawlSubmit              ListAuditEntriesParamsAction = "crawl.submit"
-	DbApiKeysDelete          ListAuditEntriesParamsAction = "db.api_keys.delete"
-	DbApiKeysInsert          ListAuditEntriesParamsAction = "db.api_keys.insert"
-	DbApiKeysUpdate          ListAuditEntriesParamsAction = "db.api_keys.update"
-	DbAuditLogBackfill       ListAuditEntriesParamsAction = "db.audit_log.backfill"
-	DbIntegrationsDelete     ListAuditEntriesParamsAction = "db.integrations.delete"
-	DbIntegrationsInsert     ListAuditEntriesParamsAction = "db.integrations.insert"
-	DbOauthConnectionsUpdate ListAuditEntriesParamsAction = "db.oauth_connections.update"
-	IntegrationCreate        ListAuditEntriesParamsAction = "integration.create"
-	IntegrationDelete        ListAuditEntriesParamsAction = "integration.delete"
-	IntegrationDisconnect    ListAuditEntriesParamsAction = "integration.disconnect"
-	InvitationAccept         ListAuditEntriesParamsAction = "invitation.accept"
-	InvitationCreate         ListAuditEntriesParamsAction = "invitation.create"
-	InvitationRevoke         ListAuditEntriesParamsAction = "invitation.revoke"
-	JobSubmit                ListAuditEntriesParamsAction = "job.submit"
-	MemberLeave              ListAuditEntriesParamsAction = "member.leave"
-	MemberRemove             ListAuditEntriesParamsAction = "member.remove"
-	MemberRoleUpdate         ListAuditEntriesParamsAction = "member.role_update"
-	PresetCreate             ListAuditEntriesParamsAction = "preset.create"
-	PresetDelete             ListAuditEntriesParamsAction = "preset.delete"
-	PresetUpdate             ListAuditEntriesParamsAction = "preset.update"
-	ProjectCreate            ListAuditEntriesParamsAction = "project.create"
-	ProjectDelete            ListAuditEntriesParamsAction = "project.delete"
-	ProjectRagConfigUpdate   ListAuditEntriesParamsAction = "project.rag_config_update"
-	ProjectRoleAssign        ListAuditEntriesParamsAction = "project_role.assign"
-	ProjectRoleCreate        ListAuditEntriesParamsAction = "project_role.create"
-	ProjectRoleDelete        ListAuditEntriesParamsAction = "project_role.delete"
-	ProjectRoleUpdate        ListAuditEntriesParamsAction = "project_role.update"
-	RagCollectionCreate      ListAuditEntriesParamsAction = "rag_collection.create"
-	RagCollectionDelete      ListAuditEntriesParamsAction = "rag_collection.delete"
-	RagCollectionMigrate     ListAuditEntriesParamsAction = "rag_collection.migrate"
-	RagDocumentDelete        ListAuditEntriesParamsAction = "rag_document.delete"
-	ScimConnectionCreate     ListAuditEntriesParamsAction = "scim.connection.create"
-	ScimConnectionRotate     ListAuditEntriesParamsAction = "scim.connection.rotate"
-	ScimGroupRolesReplace    ListAuditEntriesParamsAction = "scim.group_roles.replace"
-	WebhookCreate            ListAuditEntriesParamsAction = "webhook.create"
-	WebhookDelete            ListAuditEntriesParamsAction = "webhook.delete"
+	ApiKeyCreate              ListAuditEntriesParamsAction = "api_key.create"
+	ApiKeyRegenerate          ListAuditEntriesParamsAction = "api_key.regenerate"
+	ApiKeyRevoke              ListAuditEntriesParamsAction = "api_key.revoke"
+	AuthFailure               ListAuditEntriesParamsAction = "auth.failure"
+	AuthLogin                 ListAuditEntriesParamsAction = "auth.login"
+	CrawlSubmit               ListAuditEntriesParamsAction = "crawl.submit"
+	DataRoomCreate            ListAuditEntriesParamsAction = "data_room.create"
+	DataRoomDelete            ListAuditEntriesParamsAction = "data_room.delete"
+	DataRoomInvitationAccept  ListAuditEntriesParamsAction = "data_room.invitation_accept"
+	DataRoomInvitationCreate  ListAuditEntriesParamsAction = "data_room.invitation_create"
+	DataRoomInvitationRevoke  ListAuditEntriesParamsAction = "data_room.invitation_revoke"
+	DataRoomItemAdd           ListAuditEntriesParamsAction = "data_room.item_add"
+	DataRoomItemRemove        ListAuditEntriesParamsAction = "data_room.item_remove"
+	DataRoomItemReorder       ListAuditEntriesParamsAction = "data_room.item_reorder"
+	DataRoomLinkCreate        ListAuditEntriesParamsAction = "data_room.link_create"
+	DataRoomLinkRevoke        ListAuditEntriesParamsAction = "data_room.link_revoke"
+	DataRoomMemberAdd         ListAuditEntriesParamsAction = "data_room.member_add"
+	DataRoomMemberRemove      ListAuditEntriesParamsAction = "data_room.member_remove"
+	DataRoomMemberRoleUpdate  ListAuditEntriesParamsAction = "data_room.member_role_update"
+	DataRoomOwnershipTransfer ListAuditEntriesParamsAction = "data_room.ownership_transfer"
+	DataRoomPublicationUpdate ListAuditEntriesParamsAction = "data_room.publication_update"
+	DataRoomPublish           ListAuditEntriesParamsAction = "data_room.publish"
+	DataRoomRestore           ListAuditEntriesParamsAction = "data_room.restore"
+	DataRoomUnpublish         ListAuditEntriesParamsAction = "data_room.unpublish"
+	DataRoomUpdate            ListAuditEntriesParamsAction = "data_room.update"
+	DbApiKeysDelete           ListAuditEntriesParamsAction = "db.api_keys.delete"
+	DbApiKeysInsert           ListAuditEntriesParamsAction = "db.api_keys.insert"
+	DbApiKeysUpdate           ListAuditEntriesParamsAction = "db.api_keys.update"
+	DbAuditLogBackfill        ListAuditEntriesParamsAction = "db.audit_log.backfill"
+	DbIntegrationsDelete      ListAuditEntriesParamsAction = "db.integrations.delete"
+	DbIntegrationsInsert      ListAuditEntriesParamsAction = "db.integrations.insert"
+	DbOauthConnectionsUpdate  ListAuditEntriesParamsAction = "db.oauth_connections.update"
+	IntegrationCreate         ListAuditEntriesParamsAction = "integration.create"
+	IntegrationDelete         ListAuditEntriesParamsAction = "integration.delete"
+	IntegrationDisconnect     ListAuditEntriesParamsAction = "integration.disconnect"
+	InvitationAccept          ListAuditEntriesParamsAction = "invitation.accept"
+	InvitationCreate          ListAuditEntriesParamsAction = "invitation.create"
+	InvitationRevoke          ListAuditEntriesParamsAction = "invitation.revoke"
+	JobSubmit                 ListAuditEntriesParamsAction = "job.submit"
+	MemberLeave               ListAuditEntriesParamsAction = "member.leave"
+	MemberRemove              ListAuditEntriesParamsAction = "member.remove"
+	MemberRoleUpdate          ListAuditEntriesParamsAction = "member.role_update"
+	PresetCreate              ListAuditEntriesParamsAction = "preset.create"
+	PresetDelete              ListAuditEntriesParamsAction = "preset.delete"
+	PresetUpdate              ListAuditEntriesParamsAction = "preset.update"
+	ProjectCreate             ListAuditEntriesParamsAction = "project.create"
+	ProjectDelete             ListAuditEntriesParamsAction = "project.delete"
+	ProjectRagConfigUpdate    ListAuditEntriesParamsAction = "project.rag_config_update"
+	ProjectRoleAssign         ListAuditEntriesParamsAction = "project_role.assign"
+	ProjectRoleCreate         ListAuditEntriesParamsAction = "project_role.create"
+	ProjectRoleDelete         ListAuditEntriesParamsAction = "project_role.delete"
+	ProjectRoleUpdate         ListAuditEntriesParamsAction = "project_role.update"
+	RagCollectionCreate       ListAuditEntriesParamsAction = "rag_collection.create"
+	RagCollectionDelete       ListAuditEntriesParamsAction = "rag_collection.delete"
+	RagCollectionMigrate      ListAuditEntriesParamsAction = "rag_collection.migrate"
+	RagDocumentDelete         ListAuditEntriesParamsAction = "rag_document.delete"
+	ScimConnectionCreate      ListAuditEntriesParamsAction = "scim.connection.create"
+	ScimConnectionRotate      ListAuditEntriesParamsAction = "scim.connection.rotate"
+	ScimGroupRolesReplace     ListAuditEntriesParamsAction = "scim.group_roles.replace"
+	WebhookCreate             ListAuditEntriesParamsAction = "webhook.create"
+	WebhookDelete             ListAuditEntriesParamsAction = "webhook.delete"
 )
 
 // Valid indicates whether the value is a known member of the ListAuditEntriesParamsAction enum.
@@ -3079,6 +3152,44 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 	case AuthLogin:
 		return true
 	case CrawlSubmit:
+		return true
+	case DataRoomCreate:
+		return true
+	case DataRoomDelete:
+		return true
+	case DataRoomInvitationAccept:
+		return true
+	case DataRoomInvitationCreate:
+		return true
+	case DataRoomInvitationRevoke:
+		return true
+	case DataRoomItemAdd:
+		return true
+	case DataRoomItemRemove:
+		return true
+	case DataRoomItemReorder:
+		return true
+	case DataRoomLinkCreate:
+		return true
+	case DataRoomLinkRevoke:
+		return true
+	case DataRoomMemberAdd:
+		return true
+	case DataRoomMemberRemove:
+		return true
+	case DataRoomMemberRoleUpdate:
+		return true
+	case DataRoomOwnershipTransfer:
+		return true
+	case DataRoomPublicationUpdate:
+		return true
+	case DataRoomPublish:
+		return true
+	case DataRoomRestore:
+		return true
+	case DataRoomUnpublish:
+		return true
+	case DataRoomUpdate:
 		return true
 	case DbApiKeysDelete:
 		return true
@@ -3155,6 +3266,49 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Defines values for ListRoomsParamsState.
+const (
+	ListRoomsParamsStateDeleted ListRoomsParamsState = "deleted"
+	ListRoomsParamsStateLive    ListRoomsParamsState = "live"
+)
+
+// Valid indicates whether the value is a known member of the ListRoomsParamsState enum.
+func (e ListRoomsParamsState) Valid() bool {
+	switch e {
+	case ListRoomsParamsStateDeleted:
+		return true
+	case ListRoomsParamsStateLive:
+		return true
+	default:
+		return false
+	}
+}
+
+// AcceptRequest defines model for AcceptRequest.
+type AcceptRequest struct {
+	Token string `json:"token"`
+}
+
+// AcceptedInvitationResponse defines model for AcceptedInvitationResponse.
+type AcceptedInvitationResponse struct {
+	Kind      string             `json:"kind"`
+	ProjectId openapi_types.UUID `json:"project_id"`
+	Role      string             `json:"role"`
+	RoomId    openapi_types.UUID `json:"room_id"`
+}
+
+// AddItemRequest defines model for AddItemRequest.
+type AddItemRequest struct {
+	DocumentId openapi_types.UUID `json:"document_id"`
+}
+
+// AddMemberRequest defines model for AddMemberRequest.
+type AddMemberRequest struct {
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role   GrantableRole `json:"role"`
+	UserId string        `json:"user_id"`
 }
 
 // AnnotationKind Types of inline text annotations.
@@ -3691,6 +3845,12 @@ type CellChange struct {
 
 	// To Value after the change.
 	To string `json:"to"`
+}
+
+// ChangeRoleRequest defines model for ChangeRoleRequest.
+type ChangeRoleRequest struct {
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role GrantableRole `json:"role"`
 }
 
 // Chunk A text chunk with optional embedding and metadata.
@@ -4646,6 +4806,12 @@ type CreateDocumentSourceText struct {
 // CreateDocumentSourceTextKind defines model for CreateDocumentSourceText.Kind.
 type CreateDocumentSourceTextKind string
 
+// CreateRoomRequest defines model for CreateRoomRequest.
+type CreateRoomRequest struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
 // CreateSavedPresetRequest Request to create a saved preset.
 type CreateSavedPresetRequest struct {
 	// ContextTemplate Optional context template.
@@ -5027,6 +5193,24 @@ type DocumentInput struct {
 	// a hint only — the receiving service prefers the connector-reported
 	// type at fetch time.
 	MimeType string `json:"mime_type"`
+}
+
+// DocumentListEntry One document in the project document list.
+type DocumentListEntry struct {
+	// DocumentId Logical document ID, the value `POST /v1/rooms/{id}/items` takes.
+	DocumentId openapi_types.UUID `json:"document_id"`
+
+	// Filename Original filename of the newest finished version.
+	Filename string `json:"filename"`
+
+	// MimeType MIME type of the newest finished version.
+	MimeType string `json:"mime_type"`
+
+	// SizeBytes Size in bytes of the newest finished version.
+	SizeBytes int64 `json:"size_bytes"`
+
+	// UpdatedAt When the newest finished version was last updated.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // DocumentNode A single node in the document tree.
@@ -6074,7 +6258,7 @@ type ExtractedImage struct {
 
 	// Data Raw image data (PNG, JPEG, WebP, etc. bytes).
 	// Uses `bytes::Bytes` for cheap cloning of large buffers.
-	Data []int `json:"data"`
+	Data *[]int `json:"data,omitempty"`
 
 	// DataBase64 Base64-encoded copy of `data`; populated when `ImageExtractionConfig::include_data_base64`
 	// is `true`. Omitted from JSON by default; use instead of `data` in JSON-only clients.
@@ -6713,6 +6897,9 @@ type GetJobResponse1 struct {
 // GetJobResponse1JobType defines model for GetJobResponse.1.JobType.
 type GetJobResponse1JobType string
 
+// GrantableRole The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+type GrantableRole string
+
 // GridCell Individual grid cell with position and span metadata.
 type GridCell struct {
 	// Bbox Bounding box for this cell (if available).
@@ -6796,8 +6983,12 @@ type HeadingLevel struct {
 // HealthResponse Liveness and deployment feature availability.
 type HealthResponse struct {
 	// AutoTune Auto-tune readiness, read by the frontend to gate the auto-tune UI.
-	AutoTune AutoTuneHealth `json:"auto_tune"`
-	Rag      struct {
+	AutoTune  AutoTuneHealth `json:"auto_tune"`
+	DataRooms struct {
+		// Enabled False when the plan does not offer data rooms; every room route then answers 404 `data_room.disabled`.
+		Enabled bool `json:"enabled"`
+	} `json:"data_rooms"`
+	Rag struct {
 		// Enabled Always true because Enterprise mounts the RAG API unconditionally.
 		Enabled bool `json:"enabled"`
 	} `json:"rag"`
@@ -7131,6 +7322,56 @@ type IntegrationInput struct {
 
 	// ResourceId Connector-specific document identifier (e.g. a Google Drive file id).
 	ResourceId openapi_types.UUID `json:"resource_id"`
+}
+
+// InvitationPreviewResponse What a signed-in invitee sees of a room before they accept. It names no id, address or token.
+type InvitationPreviewResponse struct {
+	InvitedByName *string `json:"invited_by_name,omitempty"`
+	ItemCount     int64   `json:"item_count"`
+	RoomName      string  `json:"room_name"`
+}
+
+// InvitationResponse defines model for InvitationResponse.
+type InvitationResponse struct {
+	CreatedAt       time.Time          `json:"created_at"`
+	DeliveryChannel string             `json:"delivery_channel"`
+	Email           string             `json:"email"`
+	ExpiresAt       time.Time          `json:"expires_at"`
+	Id              openapi_types.UUID `json:"id"`
+	InvitedBy       string             `json:"invited_by"`
+	Role            string             `json:"role"`
+	RoleName        string             `json:"role_name"`
+	Status          string             `json:"status"`
+
+	// Token Present on the create answer only, and only when the delivery channel returns it.
+	Token *string `json:"token,omitempty"`
+}
+
+// InviteRequest defines model for InviteRequest.
+type InviteRequest struct {
+	Email string `json:"email"`
+
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role GrantableRole `json:"role"`
+}
+
+// ItemContentResponse The extraction result of one room item.
+type ItemContentResponse struct {
+	DocumentId openapi_types.UUID `json:"document_id"`
+	Filename   string             `json:"filename"`
+	MimeType   string             `json:"mime_type"`
+	Result     *ExtractedDocument `json:"result,omitempty"`
+	Status     string             `json:"status"`
+}
+
+// ItemResponse defines model for ItemResponse.
+type ItemResponse struct {
+	DocumentId openapi_types.UUID `json:"document_id"`
+	Filename   string             `json:"filename"`
+	MimeType   string             `json:"mime_type"`
+	Position   int64              `json:"position"`
+	SizeBytes  int64              `json:"size_bytes"`
+	UpdatedAt  time.Time          `json:"updated_at"`
 }
 
 // JatsMetadata JATS (Journal Article Tag Suite) metadata.
@@ -7627,6 +7868,16 @@ type ListCollectionsResponse struct {
 	Total int32 `json:"total"`
 }
 
+// ListDocumentsResponse A page of the project's documents.
+type ListDocumentsResponse struct {
+	Documents []DocumentListEntry `json:"documents"`
+	Limit     int64               `json:"limit"`
+	Offset    int64               `json:"offset"`
+
+	// Total Number of documents in the project.
+	Total int64 `json:"total"`
+}
+
 // ListExtractionEventsResponse Response from listing extraction events.
 type ListExtractionEventsResponse struct {
 	// Events List of extraction events for the current project.
@@ -7640,6 +7891,25 @@ type ListExtractionEventsResponse struct {
 
 	// Total Total count of events.
 	Total int64 `json:"total"`
+}
+
+// ListInvitationsResponse defines model for ListInvitationsResponse.
+type ListInvitationsResponse struct {
+	Invitations []InvitationResponse `json:"invitations"`
+	Limit       int64                `json:"limit"`
+	Offset      int64                `json:"offset"`
+	Total       int64                `json:"total"`
+}
+
+// ListItemsResponse defines model for ListItemsResponse.
+type ListItemsResponse struct {
+	Items  []ItemResponse `json:"items"`
+	Limit  int64          `json:"limit"`
+	Offset int64          `json:"offset"`
+	Total  int64          `json:"total"`
+
+	// Version The room version to send in `If-Match` when the caller reorders.
+	Version int64 `json:"version"`
 }
 
 // ListJobsResponse Response for `GET /v1/jobs` (paginated job list).
@@ -7661,6 +7931,22 @@ type ListJobsResponse struct {
 type ListManagedEmbeddingPresetsResponse struct {
 	// Presets Available presets, in the canonical backend order.
 	Presets []ManagedEmbeddingPreset `json:"presets"`
+}
+
+// ListMembersResponse defines model for ListMembersResponse.
+type ListMembersResponse struct {
+	Limit   int64            `json:"limit"`
+	Members []MemberResponse `json:"members"`
+	Offset  int64            `json:"offset"`
+	Total   int64            `json:"total"`
+}
+
+// ListRoomsResponse defines model for ListRoomsResponse.
+type ListRoomsResponse struct {
+	Limit  int64          `json:"limit"`
+	Offset int64          `json:"offset"`
+	Rooms  []RoomResponse `json:"rooms"`
+	Total  int64          `json:"total"`
 }
 
 // ListSavedPresetsResponse Response from listing saved presets.
@@ -7798,6 +8084,19 @@ type MarkdownCodeBlock struct {
 type MarkdownLink struct {
 	Text string `json:"text"`
 	Url  string `json:"url"`
+}
+
+// MemberResponse defines model for MemberResponse.
+type MemberResponse struct {
+	AddedBy     string    `json:"added_by"`
+	CreatedAt   time.Time `json:"created_at"`
+	DisplayName *string   `json:"display_name,omitempty"`
+	Email       *string   `json:"email,omitempty"`
+	IsOwner     bool      `json:"is_owner"`
+	Kind        string    `json:"kind"`
+	Role        string    `json:"role"`
+	RoleName    string    `json:"role_name"`
+	UserId      string    `json:"user_id"`
 }
 
 // Metadata Extraction result metadata.
@@ -8496,9 +8795,9 @@ type OcrMetadataFormatType string
 //
 // The warning in `ExtractedDocument::processing_warnings` stays available. One warning
 // can cover several pages: when an automatic OCR run of selected pages fails as a whole,
-// it adds one warning and one record for each selected page. A failure of the OCR fallback
-// for the whole document adds a warning and no record. Repeated failures on one page make
-// one record.
+// it adds one warning and one record for each selected page. When the OCR fallback for the
+// whole document fails, it adds one warning and one record for each page that has no native
+// text. Repeated failures on one page make one record.
 type OcrPageFailure struct {
 	// Error OCR backend error text.
 	Error string `json:"error"`
@@ -9438,6 +9737,58 @@ type PstMetadata struct {
 // PstMetadataFormatType defines model for PstMetadata.FormatType.
 type PstMetadataFormatType string
 
+// PublicItemContentResponse The extraction result of one item of a published room. It is `null` until the extraction finishes.
+type PublicItemContentResponse struct {
+	Filename string             `json:"filename"`
+	ItemRef  string             `json:"item_ref"`
+	MimeType string             `json:"mime_type"`
+	Result   *ExtractedDocument `json:"result,omitempty"`
+}
+
+// PublicItemResponse One item of a published room.
+type PublicItemResponse struct {
+	Filename  string    `json:"filename"`
+	ItemRef   string    `json:"item_ref"`
+	MimeType  string    `json:"mime_type"`
+	SizeBytes int64     `json:"size_bytes"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// PublicItemsResponse One page of the items of a published room.
+type PublicItemsResponse struct {
+	Items  []PublicItemResponse `json:"items"`
+	Limit  int64                `json:"limit"`
+	Offset int64                `json:"offset"`
+	Total  int64                `json:"total"`
+}
+
+// PublicRoomResponse A published room as a visitor sees it.
+type PublicRoomResponse struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
+// PublicationModeName defines model for PublicationModeName.
+type PublicationModeName string
+
+// PublicationResponse defines model for PublicationResponse.
+type PublicationResponse struct {
+	DownloadAllowed bool                `json:"download_allowed"`
+	Generation      int64               `json:"generation"`
+	Mode            PublicationModeName `json:"mode"`
+
+	// PendingChanges The documents that differ from the pinned revision. Null unless the room is reviewed and published.
+	PendingChanges    *int64               `json:"pending_changes,omitempty"`
+	PublishedAt       *time.Time           `json:"published_at,omitempty"`
+	PublishedRevision *int64               `json:"published_revision,omitempty"`
+	RoomVersion       int64                `json:"room_version"`
+	Slug              *string              `json:"slug,omitempty"`
+	State             PublicationStateName `json:"state"`
+}
+
+// PublicationStateName defines model for PublicationStateName.
+type PublicationStateName string
+
 // QrBoundingBox Pixel-space bounding box of a QR code inside its source image.
 type QrBoundingBox struct {
 	// Height Height of the bounding box in pixels.
@@ -9541,7 +9892,8 @@ type RakeParams struct {
 // ReadinessChecks Individual dependency check results
 type ReadinessChecks struct {
 	// Database Database connectivity
-	Database string `json:"database"`
+	Database          string  `json:"database"`
+	EnterpriseRuntime *string `json:"enterprise_runtime,omitempty"`
 
 	// MaintenanceDatabase Maintenance database connectivity.
 	MaintenanceDatabase string `json:"maintenance_database"`
@@ -9606,6 +9958,17 @@ type ReindexRequest struct {
 
 // RelationshipKind Semantic kind of a relationship between document elements.
 type RelationshipKind string
+
+// ReorderItemsRequest defines model for ReorderItemsRequest.
+type ReorderItemsRequest struct {
+	DocumentIds []openapi_types.UUID `json:"document_ids"`
+}
+
+// ReorderItemsResponse defines model for ReorderItemsResponse.
+type ReorderItemsResponse struct {
+	DocumentIds []openapi_types.UUID `json:"document_ids"`
+	Version     int64                `json:"version"`
+}
 
 // RerankFallbackReason Why a requested rerank did not order the results.
 type RerankFallbackReason string
@@ -9893,6 +10256,37 @@ type RevisionDelta struct {
 // RevisionKind Semantic classification of a tracked change.
 type RevisionKind string
 
+// RoomResponse defines model for RoomResponse.
+type RoomResponse struct {
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+
+	// DeletedAt Present on a deleted room only.
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+
+	// GuestCount The guests whose grant is in force. Null for a caller who cannot manage the members of the room.
+	GuestCount       *int64                `json:"guest_count,omitempty"`
+	Id               openapi_types.UUID    `json:"id"`
+	Name             string                `json:"name"`
+	ProjectId        openapi_types.UUID    `json:"project_id"`
+	PublicationState *PublicationStateName `json:"publication_state,omitempty"`
+
+	// RestorableUntil The end of the restore window. Present on a deleted room only.
+	RestorableUntil *time.Time `json:"restorable_until,omitempty"`
+
+	// Rights What the caller may do in the room. `role` is null for a caller with no grant on the room.
+	Rights    RoomRightsResponse `json:"rights"`
+	UpdatedAt time.Time          `json:"updated_at"`
+	Version   int64              `json:"version"`
+}
+
+// RoomRightsResponse What the caller may do in the room. `role` is null for a caller with no grant on the room.
+type RoomRightsResponse struct {
+	Permissions []string `json:"permissions"`
+	Role        *string  `json:"role,omitempty"`
+}
+
 // RoutingFallbackReason Why a routing-enabled run produced a global-only profile.
 type RoutingFallbackReason string
 
@@ -10088,6 +10482,13 @@ type SecurityLimits struct {
 
 	// MaxXmlDepth Maximum XML depth (1024 levels)
 	MaxXmlDepth *int `json:"max_xml_depth,omitempty"`
+}
+
+// SetPublicationRequest The settings to make true. A field that is absent keeps its stored value.
+type SetPublicationRequest struct {
+	DownloadAllowed *bool                `json:"download_allowed,omitempty"`
+	Mode            *PublicationModeName `json:"mode,omitempty"`
+	State           PublicationStateName `json:"state"`
 }
 
 // SparseEmbedding A sparse learned embedding: vocabulary term indices and their weights.
@@ -10444,6 +10845,11 @@ type TokenReductionConfig struct {
 	PreserveImportantWords *bool `json:"preserve_important_words,omitempty"`
 }
 
+// TransferRequest defines model for TransferRequest.
+type TransferRequest struct {
+	UserId string `json:"user_id"`
+}
+
 // Translation Translation of the extracted content.
 //
 // Holds the translated rendition of `ExtractedDocument::content` and (when
@@ -10510,6 +10916,12 @@ type TuningProfileSummary struct {
 
 	// Name Tuning profile name.
 	Name string `json:"name"`
+}
+
+// UpdateRoomRequest defines model for UpdateRoomRequest.
+type UpdateRoomRequest struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // UpdateSavedPresetRequest Request to update a saved preset.
@@ -10862,6 +11274,12 @@ type YearRange struct {
 	Years *[]int32 `json:"years,omitempty"`
 }
 
+// ListPublicRoomItemsParams defines parameters for ListPublicRoomItems.
+type ListPublicRoomItemsParams struct {
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // ListAuditEntriesParams defines parameters for ListAuditEntries.
 type ListAuditEntriesParams struct {
 	// Action Filter to entries matching a known audit action exactly (e.g. `"job.submit"`).
@@ -10873,6 +11291,10 @@ type ListAuditEntriesParams struct {
 
 	// Offset Number of items to skip. Values outside 0..=1,000,000 are rejected.
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// RoomId Only the events of this data room. The caller needs `data_room.audit.read` on the room; a room
+	// the caller cannot see, or a room of another project, answers 404 as an unknown room does.
+	RoomId *openapi_types.UUID `form:"room_id,omitempty" json:"room_id,omitempty"`
 }
 
 // ListAuditEntriesParamsAction defines parameters for ListAuditEntries.
@@ -10884,6 +11306,15 @@ type ListAutoTuneJobsParams struct {
 	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset Pagination offset (default 0, accepted range 0..=1,000,000).
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListDocumentsParams defines parameters for ListDocuments.
+type ListDocumentsParams struct {
+	// Limit Page size (default 50, max 100).
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Pagination offset (default 0, clamped to a maximum of 1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
@@ -10958,10 +11389,62 @@ type GetJobParams struct {
 	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
+// GetJobResultParams defines parameters for GetJobResult.
+type GetJobResultParams struct {
+	// ProjectId Must match the authenticated project
+	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
+}
+
 // ListCollectionsParams defines parameters for ListCollections.
 type ListCollectionsParams struct {
 	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListRoomsParams defines parameters for ListRooms.
+type ListRoomsParams struct {
+	Limit  *int64                `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64                `form:"offset,omitempty" json:"offset,omitempty"`
+	State  *ListRoomsParamsState `form:"state,omitempty" json:"state,omitempty"`
+}
+
+// ListRoomsParamsState defines parameters for ListRooms.
+type ListRoomsParamsState string
+
+// UpdateRoomParams defines parameters for UpdateRoom.
+type UpdateRoomParams struct {
+	// IfMatch The room version the caller read, quoted or bare
+	IfMatch string `json:"If-Match"`
+}
+
+// ListRoomInvitationsParams defines parameters for ListRoomInvitations.
+type ListRoomInvitationsParams struct {
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListRoomItemsParams defines parameters for ListRoomItems.
+type ListRoomItemsParams struct {
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ReorderRoomItemsParams defines parameters for ReorderRoomItems.
+type ReorderRoomItemsParams struct {
+	// IfMatch The room version the caller read, quoted or bare
+	IfMatch string `json:"If-Match"`
+}
+
+// ListRoomMembersParams defines parameters for ListRoomMembers.
+type ListRoomMembersParams struct {
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// SetRoomPublicationParams defines parameters for SetRoomPublication.
+type SetRoomPublicationParams struct {
+	// IfMatch The room version the caller read, quoted or bare
+	IfMatch string `json:"If-Match"`
 }
 
 // ListSavedPresetsParams defines parameters for ListSavedPresets.
@@ -11047,6 +11530,39 @@ type MigrateEmbeddingsJSONRequestBody = MigrateEmbeddingsRequest
 
 // RetrieveJSONRequestBody defines body for Retrieve for application/json ContentType.
 type RetrieveJSONRequestBody = RetrieveRequest
+
+// AcceptRoomInvitationJSONRequestBody defines body for AcceptRoomInvitation for application/json ContentType.
+type AcceptRoomInvitationJSONRequestBody = AcceptRequest
+
+// PreviewRoomInvitationJSONRequestBody defines body for PreviewRoomInvitation for application/json ContentType.
+type PreviewRoomInvitationJSONRequestBody = AcceptRequest
+
+// CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
+type CreateRoomJSONRequestBody = CreateRoomRequest
+
+// UpdateRoomJSONRequestBody defines body for UpdateRoom for application/json ContentType.
+type UpdateRoomJSONRequestBody = UpdateRoomRequest
+
+// CreateRoomInvitationJSONRequestBody defines body for CreateRoomInvitation for application/json ContentType.
+type CreateRoomInvitationJSONRequestBody = InviteRequest
+
+// AddRoomItemJSONRequestBody defines body for AddRoomItem for application/json ContentType.
+type AddRoomItemJSONRequestBody = AddItemRequest
+
+// ReorderRoomItemsJSONRequestBody defines body for ReorderRoomItems for application/json ContentType.
+type ReorderRoomItemsJSONRequestBody = ReorderItemsRequest
+
+// AddRoomMemberJSONRequestBody defines body for AddRoomMember for application/json ContentType.
+type AddRoomMemberJSONRequestBody = AddMemberRequest
+
+// ChangeRoomMemberRoleJSONRequestBody defines body for ChangeRoomMemberRole for application/json ContentType.
+type ChangeRoomMemberRoleJSONRequestBody = ChangeRoleRequest
+
+// TransferRoomOwnershipJSONRequestBody defines body for TransferRoomOwnership for application/json ContentType.
+type TransferRoomOwnershipJSONRequestBody = TransferRequest
+
+// SetRoomPublicationJSONRequestBody defines body for SetRoomPublication for application/json ContentType.
+type SetRoomPublicationJSONRequestBody = SetPublicationRequest
 
 // CreateSavedPresetJSONRequestBody defines body for CreateSavedPreset for application/json ContentType.
 type CreateSavedPresetJSONRequestBody = CreateSavedPresetRequest
