@@ -133,6 +133,7 @@ func TestRetry_DoesNotRetryOn400(t *testing.T) {
 // full multipart body: the file part read by the server on the successful
 // (second) attempt must carry the complete original content, not an
 // already-exhausted or partially-read stream from the failed first attempt.
+// A POST is retried on 503 only after the caller opts in.
 func TestRetry_RewindsMultipartBodyOnRetry(t *testing.T) {
 	t.Parallel()
 	var calls atomic.Int32
@@ -175,7 +176,7 @@ func TestRetry_RewindsMultipartBodyOnRetry(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithRetries(2))
+	client := mustClient(t, xberg.WithBaseURL(server.URL), xberg.WithRetries(2), xberg.WithRetryNonIdempotent(true))
 	if _, err := client.Extract(
 		context.Background(),
 		xberg.FileSource{Name: "a.pdf", Reader: strings.NewReader("hello world")},

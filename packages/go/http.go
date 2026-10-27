@@ -146,7 +146,7 @@ func (c *Client) do(ctx context.Context, spec requestSpec) (io.ReadCloser, error
 		if err == nil {
 			return body, nil
 		}
-		if attempt >= c.cfg.retries || !shouldRetry(err) || ctx.Err() != nil {
+		if attempt >= c.cfg.retries || !c.shouldRetry(spec.method, err) || ctx.Err() != nil {
 			return nil, err
 		}
 		delay := nextBackoff(attempt, retryAfter(err))
@@ -235,8 +235,37 @@ func (c *Client) urlFor(path string) string {
 	return base + path
 }
 
-// shouldRetry mirrors IsRetryable but tolerates wrapped errors.
-func shouldRetry(err error) bool { return IsRetryable(err) }
+// shouldRetry applies the method-aware retry policy on top of [IsRetryable].
+// A 429 means the request was rejected before any work started, and a
+// [ConnectionError] produced no response, so both retry for every method.
+// A 502/503/504 retries only an idempotent method unless the caller opted in
+// with [WithRetryNonIdempotent]: the server may already have acted on a
+// POST or PATCH it then failed to answer, and a resend can duplicate a job.
+func (c *Client) shouldRetry(method string, err error) bool {
+	if !IsRetryable(err) {
+		return false
+	}
+	var rate *RateLimitError
+	if errors.As(err, &rate) {
+		return true
+	}
+	var conn *ConnectionError
+	if errors.As(err, &conn) {
+		return true
+	}
+	return c.cfg.retryNonIdempotent || isIdempotentMethod(method)
+}
+
+// isIdempotentMethod reports whether repeating method is safe by HTTP
+// semantics (RFC 9110 section 9.2.2).
+func isIdempotentMethod(method string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
+}
 
 // retryAfter returns the server-suggested backoff for 429 responses or zero.
 func retryAfter(err error) time.Duration {

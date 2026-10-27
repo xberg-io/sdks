@@ -80,10 +80,22 @@ func WithTimeout(d time.Duration) Option {
 	return func(c *clientConfig) { c.timeout = d }
 }
 
-// WithRetries sets the maximum number of automatic retry attempts on
-// retryable HTTP responses (429, 502, 503, 504). Default: 0 (no retries).
+// WithRetries sets the maximum number of automatic retry attempts. Default: 0
+// (no retries). A transport failure and a 429 (honoring Retry-After) are
+// retried for every method; a 502, 503 or 504 only for GET, HEAD, OPTIONS, PUT
+// and DELETE. POST and PATCH are not retried on those statuses unless
+// [WithRetryNonIdempotent] is also given. A 408 is never retried.
 func WithRetries(n int) Option {
 	return func(c *clientConfig) { c.retries = n }
+}
+
+// WithRetryNonIdempotent extends [WithRetries] to POST and PATCH requests that
+// fail with 502, 503 or 504. It is off by default because the server may have
+// accepted the submission before the gateway gave up — a retried extraction
+// can create a second job. Enable it only when repeating the operation is
+// acceptable.
+func WithRetryNonIdempotent(enabled bool) Option {
+	return func(c *clientConfig) { c.retryNonIdempotent = enabled }
 }
 
 type clientConfig struct {
@@ -97,6 +109,7 @@ type clientConfig struct {
 	httpClient             *http.Client
 	timeout                time.Duration
 	retries                int
+	retryNonIdempotent     bool
 	target                 Target
 }
 
