@@ -210,12 +210,39 @@ if errors.As(err, &rateLimited) {
 ```
 
 The full hierarchy is `XbergError` (base) plus `AuthError`, `ValidationError`,
-`NotFoundError`, `RateLimitError`, `ServerError`, `TimeoutError` (for
-`WaitForJob` deadline expiry, distinct from context cancellation), and
-`TierError` (a tier-specific method called against the wrong product tier).
+`NotFoundError`, `RateLimitError`, `ServerError`, `GatewayTimeoutError` (504, a
+`ServerError`), `RequestTimeoutError` (408), `ResultExpiredError` (410),
+`PreconditionFailedError` (412), `PreconditionRequiredError` (428),
+`ConnectionError` (no response), `TimeoutError` (for `WaitForJob` deadline
+expiry, distinct from context cancellation), and `TierError` (a tier-specific
+method called against the wrong product tier). `XbergError.Code` and
+`XbergError.Details` carry the server's stable error code and its details
+object; the two timeout errors also expose `Limit` and `TimeoutSeconds`.
 Every subtype — including `TimeoutError` and `TierError`, which do not
 originate from an HTTP response — embeds `XbergError`, so a single
 `errors.As(err, &xberg.XbergError{})` catches any error this package raises.
+
+## Retries
+
+`WithRetries(n)` enables retries (off by default). Transport failures and 429
+(honoring `Retry-After`) are retried for every method; 502, 503 and 504 only for
+GET, HEAD, OPTIONS, PUT and DELETE. A POST or PATCH the gateway timed out on may
+still have run, so it is retried only with `WithRetryNonIdempotent(true)`. A 408
+is never retried.
+
+## Webhook signatures
+
+```go
+err := xberg.VerifyWebhookSignature(secret, r.Header.Get(xberg.WebhookSignatureHeader), body)
+if err != nil {
+    http.Error(w, "bad signature", http.StatusUnauthorized)
+    return
+}
+```
+
+`body` must be the raw request bytes. Deliveries older or newer than five minutes
+are rejected (`errors.Is(err, xberg.ErrWebhookStale)`); `WithWebhookTolerance`
+and `WithWebhookClock` change the window and the clock.
 
 ## Documentation
 

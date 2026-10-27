@@ -12,7 +12,8 @@ Every error response carries the same JSON shape:
 ```
 
 `code` is a stable identifier you can branch on; `message` is for humans and may change. Some errors
-add a `details` object with structured context — a request timeout, for example:
+add a `details` object with structured context; a timeout carries the limit that fired and its
+length:
 
 ```json
 {
@@ -24,45 +25,40 @@ add a `details` object with structured context — a request timeout, for exampl
 }
 ```
 
-Older servers send a flat `{ "error": "<code>", "message": "..." }` body instead. The Python client
-decodes both shapes onto the error it raises: `message` (also its `str()`) is the server's message,
-and `status`, `code` and `details` are set when the server sent them.
+Older servers send a flat `{ "error": "<code>", "message": "..." }` body instead. All three clients
+decode both shapes and use the server's message as the error message:
 
-The TypeScript client reads the same two shapes and exposes `status`, `code`, `message` and `details`
-on every error.
+| Client | Fields on every error |
+| --- | --- |
+| Python | `status`, `code`, `message`, `details` (a `dict`) |
+| TypeScript | `status`, `code`, `message`, `details` |
+| Go | `Status`, `Code`, `Message`, `Details` (`json.RawMessage`) |
 
 ## The hierarchy
 
-Each client maps status codes onto typed errors rather than making you inspect numbers:
+Each client maps status codes onto typed errors:
 
 | Condition | Error |
 | --- | --- |
 | 401, 403 | authentication error |
-| 400, 409, 422 and other 4xx | validation error |
+| 400 | validation error; Go also maps 422, and TypeScript 422 and every 4xx not listed here |
 | 404 | not-found error |
-| 408 | request-timeout error (`RequestTimeoutError`), carrying `limit` and `timeout_seconds` |
-| 410 | result-expired error (`ResultExpiredError`) |
-| 412 | precondition-failed error (`PreconditionFailedError`): the `If-Match` version is stale |
-| 428 | precondition-required error (`PreconditionRequiredError`): the request needs `If-Match` |
+| 408 | `RequestTimeoutError`: the request body stopped arriving; carries the limit and timeout length |
+| 410 | `ResultExpiredError`: the stored result has expired |
+| 412 | `PreconditionFailedError`: the `If-Match` version is stale |
+| 428 | `PreconditionRequiredError`: the request needs `If-Match` |
 | 429 | rate-limit error, carrying the retry delay when the server sends one |
-| 504 | gateway-timeout error (`GatewayTimeoutError`), a server error carrying `limit` and `timeout_seconds` |
+| 504 | `GatewayTimeoutError`, a server error; carries the limit and timeout length |
 | other 5xx | server error |
 | client-side timeout | timeout error |
 | method not on this tier | tier error, raised before the request |
 
-All of them descend from one base error, so you can catch broadly or narrowly. The class names in
-the table are the Python ones.
-
-TypeScript narrows five statuses further. Each new class extends the class the status mapped to
-before, so an existing `instanceof ValidationError` or `instanceof ServerError` check still matches:
-
-| Status | TypeScript class | Extends |
-| --- | --- | --- |
-| 408 | `RequestTimeoutError` — the upload body stopped arriving; carries `limit` and `timeoutSeconds` | `ValidationError` |
-| 410 | `ResultExpiredError` — the stored result has expired | `ValidationError` |
-| 412 | `PreconditionFailedError` — `If-Match` did not match | `ValidationError` |
-| 428 | `PreconditionRequiredError` — `If-Match` is required | `ValidationError` |
-| 504 | `GatewayTimeoutError` — the handler ran out of time; carries `limit` and `timeoutSeconds` | `ServerError` |
+All of them descend from one base error, so you can catch broadly or narrowly. The timeout fields
+are `limit` and `timeout_seconds` in Python, `limit` and `timeoutSeconds` in TypeScript, and `Limit`
+and `TimeoutSeconds` in Go. `GatewayTimeoutError` is a server error in every client, so an existing
+server-error check still matches a 504. In TypeScript the 408, 410, 412 and 428 classes extend
+`ValidationError`, the class those statuses mapped to before, so `instanceof ValidationError` still
+matches them; in Python and Go they derive from the base error.
 
 ## What gets retried
 
@@ -73,15 +69,21 @@ Python and TypeScript let you replace the status set with `retry_on` and `retryO
 Go uses the fixed status set. A server-provided `Retry-After` can override the delay;
 Go reads it for 429 responses and caps the delay at 30 seconds.
 
-Python and TypeScript filter status retries by HTTP method. A 502, 503 or 504 can arrive after the
+All three clients filter status retries by HTTP method. A 502, 503 or 504 can arrive after the
 server has already accepted the work — a 504 from the handler timeout races a job that was
-enqueued — so replaying a `POST` or `PATCH` can submit it twice. Both clients therefore retry those
+enqueued — so replaying a `POST` or `PATCH` can submit it twice. The clients therefore retry those
 statuses only for `GET`, `HEAD`, `OPTIONS`, `PUT` and `DELETE`, and retry 429 for every method,
-because a rate-limited request did no work. Opt in to retrying `POST` and `PATCH` on the other
-statuses with `retry_non_idempotent=True` (Python) or `retryNonIdempotent: true` (TypeScript); the
-status set still decides which statuses are considered at all. 408 is not in the default set: a
-stalled upload body is not fixed by sending it again unchanged. Go still retries every status in its
-set for every method, so keep Go retries disabled for writes unless repeating them is acceptable.
+because a rate-limited request did no work. To retry `POST` and `PATCH` on the other statuses as
+well, opt in:
+
+| Client | Option |
+| --- | --- |
+| Python | `retry_non_idempotent=True` |
+| TypeScript | `retryNonIdempotent: true` |
+| Go | `WithRetryNonIdempotent(true)` |
+
+The status set still decides which statuses are considered at all. 408 is not retried by default:
+a stalled upload body is not fixed by sending it again unchanged.
 
 Transport failures are still retried for every method, and after one the server may already have
 accepted a submission. Keep retries disabled for writes unless repeating the operation is acceptable.

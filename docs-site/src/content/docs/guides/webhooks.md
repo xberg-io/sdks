@@ -82,32 +82,17 @@ wrong secret. It compares in constant time, accepts any matching `v1` during a s
 and uses WebCrypto, so it runs on Node and on edge runtimes.
 
 ```go title="Go"
-func verifyWebhook(body []byte, header, secret string) bool {
-    parts := map[string]string{}
-    for _, part := range strings.Split(header, ",") {
-        kv := strings.SplitN(part, "=", 2)
-        parts[kv[0]] = kv[1]
-    }
-    ts, err := strconv.ParseInt(parts["t"], 10, 64)
-    if err != nil {
-        return false
-    }
-    delta := time.Now().Unix() - ts
-    if delta < 0 {
-        delta = -delta
-    }
-    if delta > 300 {
-        return false
-    }
-    mac := hmac.New(sha256.New, []byte(secret))
-    mac.Write([]byte(parts["t"] + "." + string(body)))
-    expected := hex.EncodeToString(mac.Sum(nil))
-    return hmac.Equal([]byte(expected), []byte(parts["v1"]))
+// The Go SDK ships the check: constant-time compare, 300-second window, key rotation.
+func verifyWebhook(body []byte, header string, secret []byte) bool {
+    return xberg.VerifyWebhookSignature(secret, header, body) == nil
 }
 ```
 
-The Python and TypeScript clients ship the helpers above. The Go recipe uses only the standard
-library.
+`xberg.VerifyWebhookSignature` returns nil for a valid delivery and otherwise an error that says why
+(`errors.Is(err, xberg.ErrWebhookStale)` and the other `ErrWebhook*` sentinels).
+
+All three clients ship the check: each compares in constant time, rejects timestamps outside the
+300-second window, and accepts any matching `v1` element while a secret rotates.
 
 ## Webhooks versus polling
 

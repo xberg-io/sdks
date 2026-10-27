@@ -32,6 +32,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `EnterpriseHealthResponse` (`tier`, `rag`, `auto_tune`, `data_rooms`); a missing feature reads as
   disabled.
 - TypeScript: `retryNonIdempotent` client option to retry POST and PATCH on 502/503/504.
+- Go: parse the nested error envelope `{"error":{"code","message","details"}}` as well as the older flat
+  `{"error":"..."}` and `{"message":"..."}` bodies. `XbergError` gains `Code` and `Details`
+  (`json.RawMessage`); before this, a nested body left the raw JSON as the message.
+- Go: typed errors `RequestTimeoutError` (408) and `GatewayTimeoutError` (504), both with `Limit` and
+  `TimeoutSeconds` from the envelope details, plus `ResultExpiredError` (410),
+  `PreconditionFailedError` (412) and `PreconditionRequiredError` (428). `GatewayTimeoutError` embeds
+  `ServerError`, so existing `errors.As(err, &serverErr)` and `IsRetryable` checks still match a 504.
+- Go: `VerifyWebhookSignature` checks an `X-Webhook-Signature` header (`t=<unix>,v1=<hex>`,
+  HMAC-SHA256 over `"<t>.<body>"`) in constant time, rejects timestamps outside a 300-second window,
+  and accepts any matching `v1` during secret rotation. `WithWebhookTolerance` and `WithWebhookClock`
+  configure it; failures are `*WebhookSignatureError` matching an `ErrWebhook*` sentinel.
+- Go: `EnterpriseHealthz` returns the Enterprise data plane's `/healthz` as `EnterpriseHealth`
+  (tier, status, and `Rag`, `AutoTune`, `DataRooms` decoded leniently: a feature the server omits is nil).
+- Go: `PresignUploadTyped` and `ConfirmUploadTyped` decode into the generated `PresignUploadResponse`
+  and `ConfirmUploadResponse`. `PresignUpload` and `ConfirmUpload` keep returning `json.RawMessage`.
 
 ### Changed
 
@@ -47,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript: 502, 503 and 504 are no longer retried for POST or PATCH by default, because the
   server may already have accepted the request; 429 is still retried for every method. Set
   `retryNonIdempotent: true` to restore the previous behaviour.
+- **Behavior, Go retries.** With `WithRetries`, a 502, 503 or 504 is now retried only for GET, HEAD,
+  OPTIONS, PUT and DELETE. POST and PATCH are retried on those statuses only with the new
+  `WithRetryNonIdempotent(true)`, because a gateway timeout on a submission can leave the job running
+  and a resend creates a duplicate. 429 (honoring `Retry-After`) and transport failures are still
+  retried for every method; 408 is not retried.
 
 ### Fixed
 

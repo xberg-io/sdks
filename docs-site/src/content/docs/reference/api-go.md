@@ -135,6 +135,8 @@ Enterprise-only upload staging and metering.
 | --- | --- |
 | `PresignUpload` | PresignUpload requests presigned upload URLs (POST /v1/uploads/presign) and returns the decoded body, which carries a batch ID and one entry per object |
 | `ConfirmUpload` | ConfirmUpload confirms a presigned upload batch and enqueues extraction (POST /v1/uploads/confirm, 202) |
+| `PresignUploadTyped` | PresignUploadTyped is [Client.PresignUpload] decoded into the generated [PresignUploadResponse] (batch ID plus one [PresignedUploadInfo] per object) |
+| `ConfirmUploadTyped` | ConfirmUploadTyped is [Client.ConfirmUpload] decoded into the generated [ConfirmUploadResponse] (the queued job IDs and their status) |
 | `Usage` | Usage fetches aggregate extraction usage for a date range (GET /v1/usage) |
 | `ListExtractionEvents` | ListExtractionEvents lists the project's extraction events (GET /v1/extractions) |
 
@@ -242,6 +244,14 @@ Pro liveness and coarse license/capability state.
 | Method | Description |
 | --- | --- |
 | `ProHealthz` | ProHealthz returns Pro liveness and coarse license/capability state, not dependency readiness |
+
+## Enterprise health
+
+Enterprise data-plane liveness and feature availability.
+
+| Method | Description |
+| --- | --- |
+| `EnterpriseHealthz` | EnterpriseHealthz returns Enterprise data-plane liveness and feature availability (GET /healthz) |
 
 ## Auth
 
