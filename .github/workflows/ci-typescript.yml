@@ -38,16 +38,20 @@ permissions:
 
 jobs:
   test:
-    name: test (node 24)
+    name: test (node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["24.22.1", "26.12.1"]
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6.1.0
         with:
-          version: "12.11.2"
+          version: "12.15.0"
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
       - name: Install task
         uses: arduino/setup-task@v3.0.0
