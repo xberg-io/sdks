@@ -1,0 +1,64 @@
+
+version = "5.0"
+name = 'sdks'
+description = 'Xberg API clients for Go, Python and TypeScript'
+gitignore = true
+# ~keep The manifest is committed so CI can detect stale generated files.
+gitignore_exclude = [".ai-rulez/.generated-manifest.json"]
+presets = ["claude", "codex", "opencode"]
+builtins = [
+  "!agent-delegation",
+  "!ai-governance/agent-workflow",
+  "!git-workflow",
+  "!testing/test-alongside-code",
+  "default-commands",
+]
+
+compact = true
+default_layers = ["plugins"]
+
+[header]
+style = 'minimal'
+
+[[includes]]
+name = 'xberg-core'
+source = 'https://github.com/xberg-io/agent-conventions.git'
+version = "^1"
+path = 'modules/core'
+merge_strategy = 'local-override'
+
+[[includes]]
+name = 'xberg-languages'
+source = 'https://github.com/xberg-io/agent-conventions.git'
+version = "^1"
+path = 'modules/languages'
+merge_strategy = 'local-override'
+
+[[includes]]
+name = 'xberg-cicd'
+source = 'https://github.com/xberg-io/agent-conventions.git'
+version = "^1"
+path = 'modules/cicd'
+merge_strategy = 'local-override'
+
+[[includes]]
+name = 'xberg-docs-sites'
+source = 'https://github.com/xberg-io/agent-conventions.git'
+version = "^1"
+path = 'modules/docs-sites'
+merge_strategy = 'local-override'
+
+[mcp]
+self_server_command = ["ai-rulez", "mcp"]
+# ~keep Skill discovery only: the full server lists 67 tools (~38k tokens of schema) at every session start.
+serve_skills = true
+read_only = true
+discover_skills = "repo"
+tools = ["find_skill", "load_skill"]
+
+[lock]
+include_outputs = false
+
+[rules]
+# ~keep Glob-scoped rules stay out of AGENTS.md: rule files for Claude, path-gated skills for Codex.
+scoped_fallback = "skill"

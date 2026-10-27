@@ -71,3 +71,20 @@ Thumbs.db
 docs-site/dist/
 docs-site/.astro/
 docs-site/node_modules/
+
+# Machine-local poly hook preferences (task governance:hooks:install writes them).
+poly.local.toml
+
+# Agent harness output outside the ai-rulez managed block: the machine-local overlay,
+# plugin-root manifests, and presets this repository does not enable.
+**/.ai-rulez/.generated-manifest.local.json
+.ai-rulez/config.local.*
+.ai-rulez/local/
+plugin/.ai-rulez/.generated-manifest.json
+.agents/settings.json
+.claude/settings.json
+.claude/plugins.json
+.codex/commands/
+.codex/plugins.json
+.cursor/
+.github/commands/
