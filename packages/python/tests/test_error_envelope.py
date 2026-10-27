@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import httpx
 import pytest
 import respx
@@ -19,6 +21,13 @@ from xberg_io_sdk import (
     XbergClient,
     XbergError,
 )
+from xberg_io_sdk._generated_api.models.timeout_error_body import TimeoutErrorBody
+from xberg_io_sdk._generated_api.models.timeout_error_details import TimeoutErrorDetails
+from xberg_io_sdk._generated_api.models.timeout_error_response import TimeoutErrorResponse
+
+if TYPE_CHECKING:
+    from xberg_io_sdk._generated_api.models.timeout_error_code import TimeoutErrorCode
+    from xberg_io_sdk._generated_api.models.timeout_limit import TimeoutLimit
 
 JOB_ID = "33333333-3333-3333-3333-333333333333"
 
@@ -122,6 +131,36 @@ def test_body_without_a_message_falls_back_to_the_status_line(base_url: str, api
     assert error.code is None
     assert error.limit is None
     assert error.timeout_seconds is None
+
+
+_TimeoutCase = tuple[int, type[XbergError], "TimeoutErrorCode", "TimeoutLimit", int]
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        (504, GatewayTimeoutError, "gateway_timeout", "handler", 30),
+        (408, RequestTimeoutError, "request_timeout", "body_idle", 60),
+    ],
+)
+@respx.mock
+def test_generated_timeout_schema_decodes_onto_the_timeout_errors(
+    base_url: str, api_key: str, case: _TimeoutCase
+) -> None:
+    status, error_type, code, limit, seconds = case
+    body = TimeoutErrorResponse(
+        error=TimeoutErrorBody(
+            code=code, details=TimeoutErrorDetails(limit=limit, timeout_seconds=seconds), message="timed out"
+        )
+    ).to_dict()
+
+    error = _get_job_error(base_url, api_key, httpx.Response(status, json=body))
+
+    assert type(error) is error_type
+    assert isinstance(error, (GatewayTimeoutError, RequestTimeoutError))
+    assert error.code == code
+    assert error.limit == limit
+    assert error.timeout_seconds == seconds
 
 
 @pytest.mark.parametrize(

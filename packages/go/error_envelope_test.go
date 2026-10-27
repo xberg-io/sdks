@@ -2,6 +2,7 @@ package xberg_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
@@ -18,6 +19,35 @@ const (
 		`"message":"The request body stopped arriving before the upload completed",` +
 		`"details":{"limit":"body_idle","timeout_seconds":60}}}`
 )
+
+// TestErrorEnvelope_DecodesTheGeneratedTimeoutSchema ties the hand-written timeout errors to the
+// spec's TimeoutErrorResponse: a body marshaled from the generated type must populate them.
+func TestErrorEnvelope_DecodesTheGeneratedTimeoutSchema(t *testing.T) {
+	t.Parallel()
+	body := func(code xberg.TimeoutErrorCode, limit xberg.TimeoutLimit, seconds int64) string {
+		raw, err := json.Marshal(xberg.TimeoutErrorResponse{Error: xberg.TimeoutErrorBody{
+			Code: code, Message: "m", Details: xberg.TimeoutErrorDetails{Limit: limit, TimeoutSeconds: seconds},
+		}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(raw)
+	}
+
+	var gateway *xberg.GatewayTimeoutError
+	err := getJobError(t, http.StatusGatewayTimeout, body(xberg.GatewayTimeout, xberg.Handler, 30))
+	if !errors.As(err, &gateway) || gateway.Code != string(xberg.GatewayTimeout) ||
+		gateway.Limit != xberg.Handler || gateway.TimeoutSeconds != 30 {
+		t.Fatalf("504 from TimeoutErrorResponse decoded as %T %+v", err, err)
+	}
+
+	var request *xberg.RequestTimeoutError
+	err = getJobError(t, http.StatusRequestTimeout, body(xberg.RequestTimeout, xberg.BodyIdle, 60))
+	if !errors.As(err, &request) || request.Code != string(xberg.RequestTimeout) ||
+		request.Limit != xberg.BodyIdle || request.TimeoutSeconds != 60 {
+		t.Fatalf("408 from TimeoutErrorResponse decoded as %T %+v", err, err)
+	}
+}
 
 func getJobError(t *testing.T, status int, body string) error {
 	t.Helper()

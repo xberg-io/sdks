@@ -1,9 +1,11 @@
 import type {
   components,
   proComponents,
+  GatewayTimeoutError,
   ListIntegrationsResponse,
   ProHealthResponse,
   ProIntegrationListResponse,
+  RequestTimeoutError,
   XbergClient,
 } from "../src/index.js";
 
@@ -63,4 +65,15 @@ export function readIntegrationOAuthCapability(
 
 export function preserveIntegrationResponseAlias(response: ListIntegrationsResponse): ProIntegrationListResponse {
   return response;
+}
+
+// ~keep The hand-written timeout errors read `limit` and `timeout_seconds` from the spec's
+// TimeoutErrorDetails; a rename of either field upstream must fail this compile.
+type TimeoutFields = Pick<GatewayTimeoutError, "limit" | "timeoutSeconds"> &
+  Pick<RequestTimeoutError, "limit" | "timeoutSeconds">;
+export function timeoutFieldsFromSchema(details: EnterpriseSchemas["TimeoutErrorDetails"]): TimeoutFields {
+  return { limit: details.limit, timeoutSeconds: details.timeout_seconds };
+}
+export function proTimeoutFieldsFromSchema(details: ProSchemas["TimeoutErrorDetails"]): TimeoutFields {
+  return { limit: details.limit, timeoutSeconds: details.timeout_seconds };
 }

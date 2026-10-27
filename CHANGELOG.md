@@ -35,8 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go: parse the nested error envelope `{"error":{"code","message","details"}}` as well as the older flat
   `{"error":"..."}` and `{"message":"..."}` bodies. `XbergError` gains `Code` and `Details`
   (`json.RawMessage`); before this, a nested body left the raw JSON as the message.
-- Go: typed errors `RequestTimeoutError` (408) and `GatewayTimeoutError` (504), both with `Limit` and
-  `TimeoutSeconds` from the envelope details, plus `ResultExpiredError` (410),
+- Go: typed errors `RequestTimeoutError` (408) and `GatewayTimeoutError` (504), both with `Limit`
+  (the generated `TimeoutLimit`: `BodyIdle` or `Handler`) and `TimeoutSeconds` (`int64`) decoded
+  from the spec's `TimeoutErrorDetails`, plus `ResultExpiredError` (410),
   `PreconditionFailedError` (412) and `PreconditionRequiredError` (428). `GatewayTimeoutError` embeds
   `ServerError`, so existing `errors.As(err, &serverErr)` and `IsRetryable` checks still match a 504.
 - Go: `VerifyWebhookSignature` checks an `X-Webhook-Signature` header (`t=<unix>,v1=<hex>`,

@@ -115,15 +115,16 @@ func (e *ServerError) Unwrap() error { return &e.XbergError }
 // GatewayTimeoutError wraps 504 Gateway Timeout responses. It embeds
 // [ServerError], so errors.As(err, &serverErr) and [IsRetryable] keep matching a
 // 504 exactly as before. Limit and TimeoutSeconds come from the envelope's
-// details when the server's own request timeout fired (code `gateway_timeout`,
-// limit `handler`); a 504 from a proxy in front of the service leaves them zero.
+// [TimeoutErrorDetails] when the server's own request timeout fired (code
+// [GatewayTimeout], limit [Handler]); a 504 from a proxy in front of the service
+// leaves them zero.
 //
 // The server may still finish the work it timed out waiting for, so a 504 on a
 // submission is not retried by default; see [WithRetryNonIdempotent].
 type GatewayTimeoutError struct {
 	ServerError
-	Limit          string
-	TimeoutSeconds int
+	Limit          TimeoutLimit
+	TimeoutSeconds int64
 }
 
 // Error overrides ServerError.Error.
@@ -135,13 +136,13 @@ func (e *GatewayTimeoutError) Error() string {
 func (e *GatewayTimeoutError) Unwrap() error { return &e.ServerError }
 
 // RequestTimeoutError wraps 408 Request Timeout responses: the server stopped
-// waiting for the request body (code `request_timeout`, limit `body_idle`).
-// Limit and TimeoutSeconds come from the envelope's details. It is not retried
+// waiting for the request body (code [RequestTimeout], limit [BodyIdle]).
+// Limit and TimeoutSeconds come from the envelope's [TimeoutErrorDetails]. It is not retried
 // by default, because a stalled upload usually stalls again.
 type RequestTimeoutError struct {
 	XbergError
-	Limit          string
-	TimeoutSeconds int
+	Limit          TimeoutLimit
+	TimeoutSeconds int64
 }
 
 // Error overrides XbergError.Error.
@@ -189,7 +190,7 @@ func (e *PreconditionRequiredError) Error() string {
 func (e *PreconditionRequiredError) Unwrap() error { return &e.XbergError }
 
 // timeoutSuffix renders the optional limit/timeout detail of a 408 or 504.
-func timeoutSuffix(limit string, seconds int) string {
+func timeoutSuffix(limit TimeoutLimit, seconds int64) string {
 	switch {
 	case limit != "" && seconds > 0:
 		return fmt.Sprintf(" (%s limit, %ds)", limit, seconds)
@@ -306,11 +307,6 @@ type nestedErrorBody struct {
 
 // timeoutDetails is the details object of a 408 or 504 the server's own
 // request-timeout layer produced.
-type timeoutDetails struct {
-	Limit          string `json:"limit"`
-	TimeoutSeconds int    `json:"timeout_seconds"`
-}
-
 // parsedError is what [parseErrorBody] recovers from a response body.
 type parsedError struct {
 	code    string
@@ -406,11 +402,11 @@ func nonNullDetails(raw json.RawMessage) json.RawMessage {
 
 // parseTimeoutDetails reads limit and timeout_seconds from a timeout error's
 // details, returning zero values when they are absent or malformed.
-func parseTimeoutDetails(details json.RawMessage) (limit string, seconds int) {
+func parseTimeoutDetails(details json.RawMessage) (limit TimeoutLimit, seconds int64) {
 	if len(details) == 0 {
 		return "", 0
 	}
-	var parsed timeoutDetails
+	var parsed TimeoutErrorDetails
 	if err := json.Unmarshal(details, &parsed); err != nil {
 		return "", 0
 	}

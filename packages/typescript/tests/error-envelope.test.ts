@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { components } from "../src/_generated/api.js";
 import { XbergClient } from "../src/client.js";
 import {
   GatewayTimeoutError,
@@ -38,6 +39,35 @@ async function caught(client: XbergClient): Promise<XbergError> {
   }
   throw new Error("expected getJob to throw");
 }
+
+describe("generated TimeoutErrorResponse", () => {
+  const bodyFor = (
+    code: components["schemas"]["TimeoutErrorCode"],
+    limit: components["schemas"]["TimeoutLimit"],
+    seconds: number,
+  ): string => {
+    const body: components["schemas"]["TimeoutErrorResponse"] = {
+      error: { code, message: "timed out", details: { limit, timeout_seconds: seconds } },
+    };
+    return JSON.stringify(body);
+  };
+
+  it("should_decode_a_504_built_from_the_generated_schema_onto_GatewayTimeoutError", async () => {
+    const error = await caught(respondingWith(504, bodyFor("gateway_timeout", "handler", 30)));
+    expect(error).toBeInstanceOf(GatewayTimeoutError);
+    expect(error.code).toBe("gateway_timeout");
+    expect((error as GatewayTimeoutError).limit).toBe("handler");
+    expect((error as GatewayTimeoutError).timeoutSeconds).toBe(30);
+  });
+
+  it("should_decode_a_408_built_from_the_generated_schema_onto_RequestTimeoutError", async () => {
+    const error = await caught(respondingWith(408, bodyFor("request_timeout", "body_idle", 60)));
+    expect(error).toBeInstanceOf(RequestTimeoutError);
+    expect(error.code).toBe("request_timeout");
+    expect((error as RequestTimeoutError).limit).toBe("body_idle");
+    expect((error as RequestTimeoutError).timeoutSeconds).toBe(60);
+  });
+});
 
 describe("error envelope parsing", () => {
   it("should_expose_code_message_and_details_when_the_body_is_the_nested_envelope", async () => {
