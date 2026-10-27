@@ -250,13 +250,13 @@ def verify_presigned_upload(client: XbergClient) -> None:
     """Exercise the SDK presign and confirm calls around an actual object upload."""
     marker = f"SDK presigned upload {uuid.uuid4().hex}"
     response = client.presign_upload({"documents": [{"filename": "presigned.txt", "mime_type": "text/plain"}]})
-    require(len(response["uploads"]) == 1, "presign must return one upload")
-    upload = response["uploads"][0]
-    require(upload["method"] == "PUT", "presigned upload method must be PUT")
-    upload_presigned(upload["upload_url"], marker.encode())
-    confirmed = client.confirm_upload({"batch_id": response["batch_id"]})
-    require(confirmed["job_ids"] == [upload["job_id"]], "confirm must retain the presigned job ID")
-    verify_result(client, upload["job_id"], marker)
+    require(len(response.uploads) == 1, "presign must return one upload")
+    upload = response.uploads[0]
+    require(upload.method == "PUT", "presigned upload method must be PUT")
+    upload_presigned(upload.upload_url, marker.encode())
+    confirmed = client.confirm_upload({"batch_id": str(response.batch_id)})
+    require(confirmed.job_ids == [str(upload.job_id)], "confirm must retain the presigned job ID")
+    verify_result(client, str(upload.job_id), marker)
 
 
 def verify_document_lineage(client: XbergClient, directory: Path) -> None:

@@ -32,6 +32,7 @@ import threading
 import time
 from collections.abc import Mapping
 from contextlib import asynccontextmanager, contextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Literal, Protocol, TypeAlias
 from urllib.parse import quote
@@ -42,6 +43,7 @@ import httpx
 from xberg_io_sdk._generated_api.models.auto_tune_capabilities_response import AutoTuneCapabilitiesResponse
 from xberg_io_sdk._generated_api.models.auto_tune_job_status import AutoTuneJobStatus
 from xberg_io_sdk._generated_api.models.auto_tune_result import AutoTuneResult
+from xberg_io_sdk._generated_api.models.confirm_upload_response import ConfirmUploadResponse
 from xberg_io_sdk._generated_api.models.crawl_event_v1_type_0 import CrawlEventV1Type0
 from xberg_io_sdk._generated_api.models.crawl_event_v1_type_1 import CrawlEventV1Type1
 from xberg_io_sdk._generated_api.models.crawl_event_v1_type_2 import CrawlEventV1Type2
@@ -68,6 +70,7 @@ from xberg_io_sdk._generated_api.models.list_tuning_profiles_response import Lis
 from xberg_io_sdk._generated_api.models.list_webhook_deliveries_response import ListWebhookDeliveriesResponse
 from xberg_io_sdk._generated_api.models.preset_detail import PresetDetail
 from xberg_io_sdk._generated_api.models.preset_summary import PresetSummary
+from xberg_io_sdk._generated_api.models.presign_upload_response import PresignUploadResponse
 from xberg_io_sdk._generated_api.models.saved_preset_detail import SavedPresetDetail
 from xberg_io_sdk._generated_api.models.tuning_profile_detail import TuningProfileDetail
 from xberg_io_sdk._generated_api.models.update_saved_preset_response import UpdateSavedPresetResponse
@@ -182,9 +185,11 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
     from types import TracebackType
 
+    from xberg_io_sdk._generated_api.models.confirm_upload_request import ConfirmUploadRequest
     from xberg_io_sdk._generated_api.models.create_auto_tune_job_request import CreateAutoTuneJobRequest
     from xberg_io_sdk._generated_api.models.create_saved_preset_request import CreateSavedPresetRequest
     from xberg_io_sdk._generated_api.models.enrich_text_request import EnrichTextRequest
+    from xberg_io_sdk._generated_api.models.presign_upload_request import PresignUploadRequest
     from xberg_io_sdk._generated_api.models.promote_profile_request import PromoteProfileRequest
     from xberg_io_sdk._generated_api.models.update_saved_preset_request import UpdateSavedPresetRequest
     from xberg_io_sdk._generated_backend.models.accept_invitation_request import (
@@ -801,6 +806,46 @@ def _parse_probed_tier(body: Any) -> str:
             payload=body if isinstance(body, Mapping) else None,
         )
     return tier
+
+
+@dataclass(frozen=True)
+class EnterpriseHealth:
+    """Decoded Enterprise ``GET /healthz`` body.
+
+    Decoded leniently so an older server still answers: a missing or malformed
+    field is ``None`` rather than an error. ``rag``, ``auto_tune`` and
+    ``data_rooms`` are each feature's ``enabled`` flag; ``raw`` keeps the full
+    body for fields this SDK version does not know yet.
+    """
+
+    status: str | None
+    tier: str | None
+    rag: bool | None
+    auto_tune: bool | None
+    data_rooms: bool | None
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+
+def _enabled_flag(body: Mapping[str, Any], key: str) -> bool | None:
+    """Read ``body[key]["enabled"]`` when it is a boolean, else ``None``."""
+    feature = body.get(key)
+    enabled = feature.get("enabled") if isinstance(feature, Mapping) else None
+    return enabled if isinstance(enabled, bool) else None
+
+
+def _parse_enterprise_health(payload: Any) -> EnterpriseHealth:
+    """Decode an Enterprise ``/healthz`` body without requiring any one field."""
+    body = _expect_object(payload, "Enterprise health")
+    status = body.get("status")
+    tier = body.get("tier")
+    return EnterpriseHealth(
+        status=status if isinstance(status, str) else None,
+        tier=tier if isinstance(tier, str) else None,
+        rag=_enabled_flag(body, "rag"),
+        auto_tune=_enabled_flag(body, "auto_tune"),
+        data_rooms=_enabled_flag(body, "data_rooms"),
+        raw=dict(body),
+    )
 
 
 class _BaseClient:
@@ -1425,13 +1470,15 @@ class XbergClient(_BaseClient):
         payload = self._request_json("GET", "/v1/rag/embedding-presets")
         return ListManagedEmbeddingPresetsResponse.from_dict(_expect_object(payload, "embedding preset list"))
 
-    def presign_upload(self, body: Mapping[str, Any]) -> Any:
-        """Request presigned upload URLs (``POST /v1/uploads/presign``). Returns the decoded body."""
-        return self._request_json("POST", "/v1/uploads/presign", json_body=body)
+    def presign_upload(self, body: PresignUploadRequest | Mapping[str, Any]) -> PresignUploadResponse:
+        """Request presigned upload URLs (``POST /v1/uploads/presign``)."""
+        payload = self._request_json("POST", "/v1/uploads/presign", json_body=_coerce_body(body))
+        return PresignUploadResponse.from_dict(_expect_object(payload, "presign upload"))
 
-    def confirm_upload(self, body: Mapping[str, Any]) -> Any:
+    def confirm_upload(self, body: ConfirmUploadRequest | Mapping[str, Any]) -> ConfirmUploadResponse:
         """Confirm a presigned upload batch and enqueue extraction (``POST /v1/uploads/confirm``, 202)."""
-        return self._request_json("POST", "/v1/uploads/confirm", json_body=body)
+        payload = self._request_json("POST", "/v1/uploads/confirm", json_body=_coerce_body(body))
+        return ConfirmUploadResponse.from_dict(_expect_object(payload, "confirm upload"))
 
     def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
         """Fetch aggregate extraction usage for a date range (``GET /v1/usage``).
@@ -1481,6 +1528,13 @@ class XbergClient(_BaseClient):
             for chunk in response.iter_bytes():
                 for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)
+
+    # -- Enterprise health -------------------------------------------------
+
+    def enterprise_healthz(self) -> EnterpriseHealth:
+        """Enterprise only: liveness and feature availability (``GET /healthz``), decoded leniently."""
+        self._require_tier("enterprise", "enterprise_healthz")
+        return _parse_enterprise_health(self._request_json("GET", "/healthz"))
 
     # -- Pro-only surface --------------------------------------------------
 
@@ -2809,13 +2863,15 @@ class AsyncXbergClient(_BaseClient):
         payload = await self._request_json("GET", "/v1/rag/embedding-presets")
         return ListManagedEmbeddingPresetsResponse.from_dict(_expect_object(payload, "embedding preset list"))
 
-    async def presign_upload(self, body: Mapping[str, Any]) -> Any:
+    async def presign_upload(self, body: PresignUploadRequest | Mapping[str, Any]) -> PresignUploadResponse:
         """Async equivalent of :meth:`XbergClient.presign_upload`."""
-        return await self._request_json("POST", "/v1/uploads/presign", json_body=body)
+        payload = await self._request_json("POST", "/v1/uploads/presign", json_body=_coerce_body(body))
+        return PresignUploadResponse.from_dict(_expect_object(payload, "presign upload"))
 
-    async def confirm_upload(self, body: Mapping[str, Any]) -> Any:
+    async def confirm_upload(self, body: ConfirmUploadRequest | Mapping[str, Any]) -> ConfirmUploadResponse:
         """Async equivalent of :meth:`XbergClient.confirm_upload`."""
-        return await self._request_json("POST", "/v1/uploads/confirm", json_body=body)
+        payload = await self._request_json("POST", "/v1/uploads/confirm", json_body=_coerce_body(body))
+        return ConfirmUploadResponse.from_dict(_expect_object(payload, "confirm upload"))
 
     async def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
         """Async equivalent of :meth:`XbergClient.usage`."""
@@ -2853,6 +2909,13 @@ class AsyncXbergClient(_BaseClient):
             async for chunk in response.aiter_bytes():
                 for payload in decoder.feed_bytes(chunk):
                     yield _parse_crawl_event(payload)
+
+    # -- Enterprise health -------------------------------------------------
+
+    async def enterprise_healthz(self) -> EnterpriseHealth:
+        """Enterprise only: async equivalent of :meth:`XbergClient.enterprise_healthz`."""
+        await self._require_tier("enterprise", "enterprise_healthz")
+        return _parse_enterprise_health(await self._request_json("GET", "/healthz"))
 
     # -- Pro-only surface --------------------------------------------------
 

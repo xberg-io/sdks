@@ -14,8 +14,22 @@ import pytest
 import respx
 
 from xberg_io_sdk import AsyncXbergClient, XbergClient
+from xberg_io_sdk._generated_api.models.confirm_upload_response import ConfirmUploadResponse
+from xberg_io_sdk._generated_api.models.presign_upload_response import PresignUploadResponse
 
 PRO_URL = "https://pro.example.test"
+PRESIGN_BODY = {
+    "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+    "uploads": [
+        {
+            "job_id": "550e8400-e29b-41d4-a716-446655440001",
+            "upload_url": "https://upload.example/put",
+            "object_key": "projects/p/uploads/j",
+            "method": "PUT",
+            "expires_in_secs": 3600,
+        }
+    ],
+}
 
 
 # -- RAG surface (shared, no tier requirement) — sync --------------------------
@@ -205,23 +219,28 @@ def test_get_diff_job_sync_on_enterprise(base_url: str, api_key: str) -> None:
 @respx.mock
 def test_presign_upload_sync_on_enterprise(base_url: str, api_key: str) -> None:
     route = respx.post(f"{base_url}/v1/uploads/presign").mock(
-        return_value=httpx.Response(200, json={"url": "https://upload.example/put"}),
+        return_value=httpx.Response(200, json=PRESIGN_BODY),
     )
     with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
-        result = client.presign_upload({"filename": "a.pdf"})
-    assert result == {"url": "https://upload.example/put"}
-    assert json.loads(route.calls.last.request.content) == {"filename": "a.pdf"}
+        result = client.presign_upload({"documents": [{"filename": "a.pdf"}]})
+    assert isinstance(result, PresignUploadResponse)
+    assert result.to_dict() == PRESIGN_BODY
+    assert str(result.batch_id) == "550e8400-e29b-41d4-a716-446655440000"
+    assert result.uploads[0].upload_url == "https://upload.example/put"
+    assert json.loads(route.calls.last.request.content) == {"documents": [{"filename": "a.pdf"}]}
 
 
 @respx.mock
 def test_confirm_upload_sync_on_enterprise(base_url: str, api_key: str) -> None:
     route = respx.post(f"{base_url}/v1/uploads/confirm").mock(
-        return_value=httpx.Response(200, json={"confirmed": True}),
+        return_value=httpx.Response(202, json={"job_ids": ["j1", "j2"], "status": "processing"}),
     )
     with XbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
-        result = client.confirm_upload({"upload_id": "upload-1"})
-    assert result == {"confirmed": True}
-    assert json.loads(route.calls.last.request.content) == {"upload_id": "upload-1"}
+        result = client.confirm_upload({"batch_id": "upload-1"})
+    assert isinstance(result, ConfirmUploadResponse)
+    assert result.job_ids == ["j1", "j2"]
+    assert result.status == "processing"
+    assert json.loads(route.calls.last.request.content) == {"batch_id": "upload-1"}
 
 
 # -- RAG surface — async --------------------------------------------------------
@@ -423,24 +442,29 @@ async def test_get_diff_job_async_on_enterprise(base_url: str, api_key: str) -> 
 @respx.mock
 async def test_presign_upload_async_on_enterprise(base_url: str, api_key: str) -> None:
     route = respx.post(f"{base_url}/v1/uploads/presign").mock(
-        return_value=httpx.Response(200, json={"url": "https://upload.example/async"}),
+        return_value=httpx.Response(200, json=PRESIGN_BODY),
     )
     async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
-        result = await client.presign_upload({"filename": "b.pdf"})
-    assert result == {"url": "https://upload.example/async"}
-    assert json.loads(route.calls.last.request.content) == {"filename": "b.pdf"}
+        result = await client.presign_upload({"documents": [{"filename": "b.pdf"}]})
+    assert isinstance(result, PresignUploadResponse)
+    assert result.to_dict() == PRESIGN_BODY
+    assert str(result.batch_id) == "550e8400-e29b-41d4-a716-446655440000"
+    assert result.uploads[0].upload_url == "https://upload.example/put"
+    assert json.loads(route.calls.last.request.content) == {"documents": [{"filename": "b.pdf"}]}
 
 
 @pytest.mark.asyncio
 @respx.mock
 async def test_confirm_upload_async_on_enterprise(base_url: str, api_key: str) -> None:
     route = respx.post(f"{base_url}/v1/uploads/confirm").mock(
-        return_value=httpx.Response(200, json={"confirmed": True}),
+        return_value=httpx.Response(202, json={"job_ids": ["j1", "j2"], "status": "processing"}),
     )
     async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise") as client:
-        result = await client.confirm_upload({"upload_id": "upload-async"})
-    assert result == {"confirmed": True}
-    assert json.loads(route.calls.last.request.content) == {"upload_id": "upload-async"}
+        result = await client.confirm_upload({"batch_id": "upload-async"})
+    assert isinstance(result, ConfirmUploadResponse)
+    assert result.job_ids == ["j1", "j2"]
+    assert result.status == "processing"
+    assert json.loads(route.calls.last.request.content) == {"batch_id": "upload-async"}
 
 
 @pytest.mark.asyncio
