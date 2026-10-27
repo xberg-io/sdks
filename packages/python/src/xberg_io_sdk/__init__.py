@@ -26,6 +26,13 @@ from xberg_io_sdk.errors import (
     ValidationError,
     XbergError,
 )
+from xberg_io_sdk.webhooks import (
+    DEFAULT_WEBHOOK_TOLERANCE_SECONDS,
+    WEBHOOK_SIGNATURE_HEADER,
+    WebhookSignatureError,
+    verify_webhook_signature,
+    verify_webhook_signature_or_raise,
+)
 
 ListIntegrationsResponse = ProIntegrationListResponse
 ExtractionResult = ExtractedDocument
@@ -35,6 +42,8 @@ JobResponse = ExtractionJobResponse
 Job = ExtractionJobResponse
 
 __all__ = [
+    "DEFAULT_WEBHOOK_TOLERANCE_SECONDS",
+    "WEBHOOK_SIGNATURE_HEADER",
     "AsyncXbergClient",
     "AuthError",
     "ExtractedDocument",
@@ -61,9 +70,12 @@ __all__ = [
     "ServerError",
     "TimeoutError",
     "ValidationError",
+    "WebhookSignatureError",
     "XbergClient",
     "XbergError",
     "__version__",
+    "verify_webhook_signature",
+    "verify_webhook_signature_or_raise",
 ]
 
 __version__ = "0.9.0"
