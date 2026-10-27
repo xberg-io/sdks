@@ -69,16 +69,17 @@ raises a `WebhookSignatureError` whose `reason` says which. Both accept every `v
 header, so a delivery signed with two secrets during a rotation still verifies.
 
 ```ts title="TypeScript"
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { verifyWebhookSignature } from "@xberg-io/sdk";
 
-function verifyWebhook(body: string, header: string, secret: string): boolean {
-  const parts = Object.fromEntries(header.split(",").map((part) => part.split("=")));
-  const timestamp = Number(parts.t);
-  if (Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
-  const expected = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
-  return timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));
-}
+// rawBody: the request body exactly as received, as a string or Uint8Array.
+const ok = await verifyWebhookSignature(secret, request.headers.get("X-Webhook-Signature") ?? "", rawBody, {
+  toleranceSeconds: 300,
+});
 ```
+
+`verifyWebhookSignature` resolves `false` for a stale or malformed header, a tampered body or a
+wrong secret. It compares in constant time, accepts any matching `v1` during a secret rotation,
+and uses WebCrypto, so it runs on Node and on edge runtimes.
 
 ```go title="Go"
 func verifyWebhook(body []byte, header, secret string) bool {
@@ -105,7 +106,7 @@ func verifyWebhook(body []byte, header, secret string) bool {
 }
 ```
 
-The Python client ships the helper above. The TypeScript and Go recipes use only the standard
+The Python and TypeScript clients ship the helpers above. The Go recipe uses only the standard
 library.
 
 ## Webhooks versus polling

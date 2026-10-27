@@ -42,6 +42,12 @@ export {
   type XbergErrorOptions,
 } from "./errors.js";
 export {
+  DEFAULT_WEBHOOK_TOLERANCE_SECONDS,
+  WEBHOOK_SIGNATURE_HEADER,
+  verifyWebhookSignature,
+  type VerifyWebhookSignatureOptions,
+} from "./webhooks.js";
+export {
   SUCCESS_JOB_STATUSES,
   TERMINAL_JOB_STATUSES,
   type ApiKeyResponse,
