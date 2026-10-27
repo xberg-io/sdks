@@ -93,7 +93,14 @@ GROUPS: list[tuple[str, str, list[str]]] = [
     (
         "Uploads and usage",
         "Enterprise-only upload staging and metering.",
-        ["presign_upload", "confirm_upload", "usage", "list_extraction_events"],
+        [
+            "presign_upload",
+            "confirm_upload",
+            "presign_upload_typed",
+            "confirm_upload_typed",
+            "usage",
+            "list_extraction_events",
+        ],
     ),
     (
         "Control plane",
@@ -192,7 +199,6 @@ GROUPS: list[tuple[str, str, list[str]]] = [
     ),
     ("Enterprise health", "Enterprise liveness and feature availability.", ["enterprise_healthz"]),
     ("Pro health", "Pro liveness and coarse license/capability state.", ["pro_healthz"]),
-    ("Enterprise health", "Enterprise liveness and feature availability on the data plane.", ["enterprise_healthz"]),
     ("Auth", "Pro-only session and configuration reads.", ["auth_config", "login"]),
     (
         "Client accessors",
@@ -294,12 +300,14 @@ LANGS = {
 
 # Python alone needs an explicit teardown: httpx holds a connection pool, while
 # `fetch` and `http.Client` need none. Go alone reads its configuration back
-# through methods, where Python and TypeScript expose plain attributes. Every
-# other name must exist in all three.
+# through methods, where Python and TypeScript expose plain attributes. Go also
+# keeps PresignUpload/ConfirmUpload returning json.RawMessage for existing
+# callers and adds typed twins, where the other two return decoded values from
+# the one method. Every other name must exist in all three.
 LANGUAGE_LOCAL = {
     "python": {"close", "aclose"},
     "typescript": set(),
-    "go": {"BaseURL", "ControlPlaneBaseURL", "HTTPClient", "Target"},
+    "go": {"BaseURL", "ControlPlaneBaseURL", "HTTPClient", "Target", "PresignUploadTyped", "ConfirmUploadTyped"},
 }
 
 

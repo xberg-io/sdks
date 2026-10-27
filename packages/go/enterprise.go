@@ -24,6 +24,75 @@ func documentPath(documentID, suffix string) string {
 	return documentsPath + "/" + escapePathSegment(documentID) + suffix
 }
 
+// EnterpriseFeature is one feature flag of [EnterpriseHealth].
+type EnterpriseFeature struct {
+	Enabled bool `json:"enabled"`
+}
+
+// EnterpriseHealth is the Enterprise data plane's GET /healthz body. Each
+// feature is decoded on its own: a feature the server does not report (a
+// server older than data rooms omits data_rooms) or reports in an unexpected
+// shape is left nil instead of failing the call, so an older or newer server
+// still answers. Raw keeps the whole body for fields this type does not name.
+type EnterpriseHealth struct {
+	Status    string
+	Tier      string
+	Rag       *EnterpriseFeature
+	AutoTune  *EnterpriseFeature
+	DataRooms *EnterpriseFeature
+	Raw       json.RawMessage
+}
+
+// UnmarshalJSON decodes the health body field by field; see [EnterpriseHealth].
+func (h *EnterpriseHealth) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	*h = EnterpriseHealth{Raw: append(json.RawMessage(nil), data...)}
+	h.Status = decodeHealthString(fields["status"])
+	h.Tier = decodeHealthString(fields["tier"])
+	h.Rag = decodeEnterpriseFeature(fields["rag"])
+	h.AutoTune = decodeEnterpriseFeature(fields["auto_tune"])
+	h.DataRooms = decodeEnterpriseFeature(fields["data_rooms"])
+	return nil
+}
+
+// decodeHealthString returns "" for an absent or non-string field.
+func decodeHealthString(raw json.RawMessage) string {
+	var value string
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return ""
+	}
+	return value
+}
+
+// decodeEnterpriseFeature returns nil for an absent, null or malformed feature.
+func decodeEnterpriseFeature(raw json.RawMessage) *EnterpriseFeature {
+	if len(raw) == 0 || string(raw) == jsonNull {
+		return nil
+	}
+	var feature EnterpriseFeature
+	if err := json.Unmarshal(raw, &feature); err != nil {
+		return nil
+	}
+	return &feature
+}
+
+// EnterpriseHealthz returns Enterprise data-plane liveness and feature availability (GET /healthz).
+// It reports the tier and whether RAG, auto-tune and data rooms are enabled, decoded leniently (see
+// [EnterpriseHealth]). Enterprise only; the control plane's own probe is [Client.Healthz].
+func (c *Client) EnterpriseHealthz(ctx context.Context) (*EnterpriseHealth, error) {
+	if err := c.requireTier(ctx, TargetEnterprise, "EnterpriseHealthz"); err != nil {
+		return nil, err
+	}
+	var out EnterpriseHealth
+	if err := c.getJSON(ctx, "/healthz", &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetDocument fetches a document's latest version together with its extraction
 // result (GET /v1/documents/{documentID}). The spec declares an inline,
 // unnamed response schema, so the body is returned undecoded. Enterprise only.

@@ -40,6 +40,34 @@ func (c *Client) ConfirmUpload(ctx context.Context, body any) (json.RawMessage, 
 	return c.rawSend(ctx, methodPost, confirmUploadPath, body)
 }
 
+// PresignUploadTyped is [Client.PresignUpload] decoded into the generated
+// [PresignUploadResponse] (batch ID plus one [PresignedUploadInfo] per object).
+// Both tiers return the same shape. PresignUpload keeps its json.RawMessage
+// result for existing callers.
+//
+// Part of the shared surface (Enterprise + Pro).
+func (c *Client) PresignUploadTyped(ctx context.Context, body any) (*PresignUploadResponse, error) {
+	var out PresignUploadResponse
+	if err := c.callJSON(ctx, methodPost, presignUploadPath, body, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ConfirmUploadTyped is [Client.ConfirmUpload] decoded into the generated
+// [ConfirmUploadResponse] (the queued job IDs and their status). Both tiers
+// return the same shape. ConfirmUpload keeps its json.RawMessage result for
+// existing callers.
+//
+// Part of the shared surface (Enterprise + Pro).
+func (c *Client) ConfirmUploadTyped(ctx context.Context, body any) (*ConfirmUploadResponse, error) {
+	var out ConfirmUploadResponse
+	if err := c.callJSON(ctx, methodPost, confirmUploadPath, body, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutLocalUpload writes raw document bytes against a presigned capability
 // (PUT /v1/uploads/local/{projectID}/{token}, 204). token is the one-use,
 // expiring capability [Client.PresignUpload] issued for this object, and the
