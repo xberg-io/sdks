@@ -1,0 +1,164 @@
+package xberg_test
+
+import (
+	"encoding/json"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"go/types"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"testing"
+)
+
+// ~keep Field-level pin of every exported type the published v0.9.0 module declares. The
+// testdata/public-v0.9.0/contract.go check only proves a NAME still compiles; a spec sync that
+// makes two specs share a schema name silently changes what that name means (ListDocumentsResponse
+// became the data-room listing while keeping the identifier). Additive changes (new fields, new
+// types) stay legal; a removed type, a removed field, or a field whose type or json tag changed fails.
+const (
+	contractSnapshot = "testdata/public-v0.9.0/fields.json"
+	// Set to a directory holding the v0.9.0 package sources to rewrite the snapshot.
+	contractSourceEnv = "XBERG_CONTRACT_SOURCE_DIR"
+	// Type names whose meaning moves in this spec sync until upstream renames the colliding
+	// data-room schemas; delete the entries when the re-sync lands.
+	contractExemptEnv = "XBERG_CONTRACT_NO_EXEMPT"
+)
+
+// ~keep TODO(xberg-enterprise data-room schema rename): remove with the upstream Room* rename.
+var contractKnownCollisions = map[string]bool{
+	"ListDocumentsResponse":   true,
+	"DocumentListEntry":       true,
+	"InvitationResponse":      true,
+	"ListInvitationsResponse": true,
+	"ListMembersResponse":     true,
+	"MemberResponse":          true,
+	// Intended: upstream made ExtractedImage.data optional (inline bytes can be omitted).
+	"ExtractedImage":        true,
+	"BackendExtractedImage": true,
+}
+
+type contractType map[string]string
+
+func collectPublicTypes(t *testing.T, dir string) map[string]contractType {
+	t.Helper()
+	fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, dir, func(info os.FileInfo) bool {
+		return !strings.HasSuffix(info.Name(), "_test.go")
+	}, 0)
+	if err != nil {
+		t.Fatalf("parse %s: %v", dir, err)
+	}
+	pkg, ok := pkgs["xberg"]
+	if !ok {
+		t.Fatalf("package xberg not found in %s", dir)
+	}
+	out := map[string]contractType{}
+	for _, file := range pkg.Files {
+		for _, decl := range file.Decls {
+			gen, ok := decl.(*ast.GenDecl)
+			if !ok || gen.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range gen.Specs {
+				ts := spec.(*ast.TypeSpec)
+				if !ts.Name.IsExported() {
+					continue
+				}
+				out[ts.Name.Name] = describeType(ts)
+			}
+		}
+	}
+	return out
+}
+
+func describeType(ts *ast.TypeSpec) contractType {
+	desc := contractType{}
+	st, ok := ts.Type.(*ast.StructType)
+	if !ok {
+		desc["="] = types.ExprString(ts.Type)
+		return desc
+	}
+	for _, field := range st.Fields.List {
+		tag := ""
+		if field.Tag != nil {
+			tag = field.Tag.Value
+		}
+		typ := types.ExprString(field.Type)
+		if len(field.Names) == 0 {
+			desc["embed:"+typ] = typ + " " + tag
+			continue
+		}
+		for _, name := range field.Names {
+			desc[name.Name] = typ + " " + tag
+		}
+	}
+	return desc
+}
+
+func TestPublicContractV090WriteSnapshot(t *testing.T) {
+	source := os.Getenv(contractSourceEnv)
+	if source == "" {
+		t.Skipf("set %s to rewrite %s", contractSourceEnv, contractSnapshot)
+	}
+	snapshot := collectPublicTypes(t, source)
+	if len(snapshot) < 700 {
+		t.Fatalf("refusing to write a snapshot of only %d types", len(snapshot))
+	}
+	raw, err := json.MarshalIndent(snapshot, "", " ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.FromSlash(contractSnapshot), append(raw, '\n'), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPublicContractV090FieldsAreStable(t *testing.T) {
+	raw, err := os.ReadFile(filepath.FromSlash(contractSnapshot))
+	if err != nil {
+		t.Fatalf("read snapshot: %v", err)
+	}
+	var pinned map[string]contractType
+	if err := json.Unmarshal(raw, &pinned); err != nil {
+		t.Fatalf("decode snapshot: %v", err)
+	}
+	// A snapshot that decodes to nothing would pass every comparison below.
+	if len(pinned) < 700 {
+		t.Fatalf("snapshot pins only %d types, expected the 720 published in v0.9.0", len(pinned))
+	}
+	current := collectPublicTypes(t, ".")
+	exempt := os.Getenv(contractExemptEnv) == ""
+
+	names := make([]string, 0, len(pinned))
+	for name := range pinned {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var problems []string
+	for _, name := range names {
+		if exempt && contractKnownCollisions[name] {
+			continue
+		}
+		got, ok := current[name]
+		if !ok {
+			problems = append(problems, name+": type removed")
+			continue
+		}
+		for field, want := range pinned[name] {
+			have, ok := got[field]
+			switch {
+			case !ok:
+				problems = append(problems, name+"."+field+": removed")
+			case have != want:
+				problems = append(problems, name+"."+field+": was `"+want+"`, now `"+have+"`")
+			}
+		}
+	}
+	if len(problems) > 0 {
+		t.Fatalf("%d public v0.9.0 contract break(s):\n%s", len(problems), strings.Join(problems, "\n"))
+	}
+}

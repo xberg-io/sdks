@@ -1,0 +1,4235 @@
+{
+  "AcceptInvitationJSONRequestBody": {
+    "=": "AcceptInvitationRequest"
+  },
+  "AcceptInvitationRequest": {
+    "Token": "string `json:\"token\"`"
+  },
+  "AcsFormdataRequestBody": {
+    "=": "SamlAcsForm"
+  },
+  "AnalyticsQuery": {
+    "EndDate": "string `json:\"end_date\"`",
+    "StartDate": "string `json:\"start_date\"`"
+  },
+  "AnalyticsResponse": {
+    "Days": "[]DailyAnalyticsEntry `json:\"days\"`",
+    "EndDate": "string `json:\"end_date\"`",
+    "ProjectId": "string `json:\"project_id\"`",
+    "StartDate": "string `json:\"start_date\"`"
+  },
+  "AnnotationKind": {
+    "union": "json.RawMessage "
+  },
+  "AnnotationKind0": {
+    "AnnotationType": "AnnotationKind0AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind0AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind1": {
+    "AnnotationType": "AnnotationKind1AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind10": {
+    "AnnotationType": "AnnotationKind10AnnotationType `json:\"annotation_type\"`",
+    "Value": "string `json:\"value\"`"
+  },
+  "AnnotationKind10AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind11": {
+    "AnnotationType": "AnnotationKind11AnnotationType `json:\"annotation_type\"`",
+    "Name": "string `json:\"name\"`",
+    "Value": "*string `json:\"value,omitempty\"`"
+  },
+  "AnnotationKind11AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind1AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind2": {
+    "AnnotationType": "AnnotationKind2AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind2AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind3": {
+    "AnnotationType": "AnnotationKind3AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind3AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind4": {
+    "AnnotationType": "AnnotationKind4AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind4AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind5": {
+    "AnnotationType": "AnnotationKind5AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind5AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind6": {
+    "AnnotationType": "AnnotationKind6AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind6AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind7": {
+    "AnnotationType": "AnnotationKind7AnnotationType `json:\"annotation_type\"`",
+    "Title": "*string `json:\"title,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "AnnotationKind7AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind8": {
+    "AnnotationType": "AnnotationKind8AnnotationType `json:\"annotation_type\"`"
+  },
+  "AnnotationKind8AnnotationType": {
+    "=": "string"
+  },
+  "AnnotationKind9": {
+    "AnnotationType": "AnnotationKind9AnnotationType `json:\"annotation_type\"`",
+    "Value": "string `json:\"value\"`"
+  },
+  "AnnotationKind9AnnotationType": {
+    "=": "string"
+  },
+  "ApiKeyResponse": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "ExpiresAt": "*string `json:\"expires_at,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "KeyPrefix": "string `json:\"key_prefix\"`",
+    "LastUsedAt": "*string `json:\"last_used_at,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "RevokedAt": "*string `json:\"revoked_at,omitempty\"`",
+    "Scope": "ApiKeyScope `json:\"scope\"`"
+  },
+  "ApiKeyScope": {
+    "=": "string"
+  },
+  "ArchiveEntry": {
+    "MimeType": "string `json:\"mime_type\"`",
+    "Path": "string `json:\"path\"`",
+    "Result": "ExtractedDocument `json:\"result\"`"
+  },
+  "ArchiveMetadata": {
+    "CompressedSize": "*int64 `json:\"compressed_size,omitempty\"`",
+    "FileCount": "int32 `json:\"file_count\"`",
+    "FileList": "[]string `json:\"file_list\"`",
+    "Format": "string `json:\"format\"`",
+    "FormatType": "ArchiveMetadataFormatType `json:\"format_type\"`",
+    "TotalSize": "int64 `json:\"total_size\"`"
+  },
+  "ArchiveMetadataFormatType": {
+    "=": "string"
+  },
+  "AssignProjectRoleJSONRequestBody": {
+    "=": "AssignProjectRoleRequest"
+  },
+  "AssignProjectRoleRequest": {
+    "CustomRoleId": "*openapi_types.UUID `json:\"custom_role_id,omitempty\"`",
+    "CustomRoleIds": "*[]openapi_types.UUID `json:\"custom_role_ids,omitempty\"`"
+  },
+  "Attributes": {
+    "Classes": "*[]string `json:\"classes,omitempty\"`",
+    "Id": "*string `json:\"id,omitempty\"`",
+    "KeyValues": "*[]KeyValueAttribute `json:\"key_values,omitempty\"`"
+  },
+  "AudioMetadata": {
+    "Bitrate": "*int32 `json:\"bitrate,omitempty\"`",
+    "Channels": "*int32 `json:\"channels,omitempty\"`",
+    "Codec": "*string `json:\"codec,omitempty\"`",
+    "Container": "*string `json:\"container,omitempty\"`",
+    "DurationMs": "*int64 `json:\"duration_ms,omitempty\"`",
+    "FormatType": "AudioMetadataFormatType `json:\"format_type\"`",
+    "SampleRateHz": "*int32 `json:\"sample_rate_hz,omitempty\"`"
+  },
+  "AudioMetadataFormatType": {
+    "=": "string"
+  },
+  "AuditEntry": {
+    "Action": "string `json:\"action\"`",
+    "Actor": "string `json:\"actor\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Metadata": "map[string]interface{} `json:\"metadata\"`",
+    "ResourceId": "*string `json:\"resource_id,omitempty\"`",
+    "ResourceType": "string `json:\"resource_type\"`"
+  },
+  "AuthConfigResponse": {
+    "Identity": "*LocalIdentity `json:\"identity,omitempty\"`",
+    "Methods": "[]string `json:\"methods\"`",
+    "Mode": "*AuthMode `json:\"mode,omitempty\"`",
+    "Oidc": "OidcInfo `json:\"oidc\"`",
+    "Saml": "*SamlInfo `json:\"saml,omitempty\"`"
+  },
+  "AuthError": {
+    "embed:XbergError": "XbergError "
+  },
+  "AuthMode": {
+    "=": "string"
+  },
+  "AutoTuneBudget": {
+    "MaxBillablePages": "*int64 `json:\"max_billable_pages,omitempty\"`",
+    "MaxTrials": "*int32 `json:\"max_trials,omitempty\"`",
+    "MaxWallClockSecs": "*int64 `json:\"max_wall_clock_secs,omitempty\"`"
+  },
+  "AutoTuneCapabilitiesResponse": {
+    "DefaultOcrLadder": "[]string `json:\"default_ocr_ladder\"`",
+    "MaxTrials": "int32 `json:\"max_trials\"`",
+    "MaxWallClockSecs": "int64 `json:\"max_wall_clock_secs\"`",
+    "OcrBackends": "[]OcrBackendCapabilityInfo `json:\"ocr_backends\"`",
+    "StructuredGroundTruthAvailable": "*bool `json:\"structured_ground_truth_available,omitempty\"`",
+    "TunableKnobs": "[]TunableKnobInfo `json:\"tunable_knobs\"`"
+  },
+  "AutoTuneDocumentInput": {
+    "ContentRef": "*string `json:\"content_ref,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "GroundTruth": "string `json:\"ground_truth\"`",
+    "GroundTruthKind": "GroundTruthKind `json:\"ground_truth_kind\"`"
+  },
+  "AutoTuneHealth": {
+    "Enabled": "bool `json:\"enabled\"`"
+  },
+  "AutoTuneJobStatus": {
+    "AutoTuneJobId": "string `json:\"auto_tune_job_id\"`",
+    "BestScore": "*float64 `json:\"best_score,omitempty\"`",
+    "BudgetSpent": "*int64 `json:\"budget_spent,omitempty\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "Status": "string `json:\"status\"`",
+    "TrialsCompleted": "int32 `json:\"trials_completed\"`",
+    "TrialsTotal": "int32 `json:\"trials_total\"`"
+  },
+  "AutoTuneJobSummary": {
+    "AutoTuneJobId": "string `json:\"auto_tune_job_id\"`",
+    "BestScore": "*float64 `json:\"best_score,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Status": "string `json:\"status\"`",
+    "TrialsCompleted": "int32 `json:\"trials_completed\"`",
+    "TrialsTotal": "int32 `json:\"trials_total\"`"
+  },
+  "AutoTuneMultipartForm": {
+    "File": "[]int `json:\"file\"`",
+    "Request": "CreateAutoTuneJobRequest `json:\"request\"`"
+  },
+  "AutoTuneResult": {
+    "AutoTuneJobId": "string `json:\"auto_tune_job_id\"`",
+    "HeldOutConfidence": "*float64 `json:\"held_out_confidence,omitempty\"`",
+    "Leaderboard": "[]LeaderboardEntry `json:\"leaderboard\"`",
+    "Profile": "map[string]interface{} `json:\"profile\"`",
+    "RoutingOutcome": "*RoutingOutcome `json:\"routing_outcome,omitempty\"`",
+    "SearchSpaceTotal": "*int64 `json:\"search_space_total,omitempty\"`"
+  },
+  "AutoTuneSearchConfig": {
+    "MaxTrials": "*int32 `json:\"max_trials,omitempty\"`",
+    "SearchParams": "*AutoTuneSearchParams `json:\"search_params,omitempty\"`",
+    "SearchSpace": "map[string]interface{} `json:\"search_space\"`",
+    "Tolerance": "*float64 `json:\"tolerance,omitempty\"`"
+  },
+  "AutoTuneSearchParams": {
+    "Candidates": "map[string][]interface{} `json:\"candidates\"`",
+    "OcrBackends": "*[]string `json:\"ocr_backends,omitempty\"`"
+  },
+  "AutoTuneWebhookEvent": {
+    "AutoTuneJobId": "string `json:\"auto_tune_job_id\"`",
+    "BestScore": "*float64 `json:\"best_score,omitempty\"`",
+    "Error": "*WebhookEventError `json:\"error,omitempty\"`",
+    "Event": "AutoTuneWebhookEventType `json:\"event\"`",
+    "EventId": "openapi_types.UUID `json:\"event_id\"`",
+    "Metadata": "*map[string]string `json:\"metadata,omitempty\"`",
+    "ProjectId": "openapi_types.UUID `json:\"project_id\"`",
+    "Status": "AutoTuneWebhookStatus `json:\"status\"`",
+    "Timestamp": "time.Time `json:\"timestamp\"`",
+    "TrialsCompleted": "int32 `json:\"trials_completed\"`",
+    "TrialsTotal": "int32 `json:\"trials_total\"`"
+  },
+  "AutoTuneWebhookEventType": {
+    "=": "string"
+  },
+  "AutoTuneWebhookStatus": {
+    "=": "string"
+  },
+  "BackendArchiveEntry": {
+    "MimeType": "string `json:\"mime_type\"`",
+    "Path": "string `json:\"path\"`",
+    "Result": "BackendExtractedDocument `json:\"result\"`"
+  },
+  "BackendArchiveMetadata": {
+    "CompressedSize": "*int64 `json:\"compressed_size,omitempty\"`",
+    "FileCount": "int32 `json:\"file_count\"`",
+    "FileList": "[]string `json:\"file_list\"`",
+    "Format": "string `json:\"format\"`",
+    "TotalSize": "int64 `json:\"total_size\"`"
+  },
+  "BackendAudioMetadata": {
+    "Bitrate": "*int32 `json:\"bitrate,omitempty\"`",
+    "Channels": "*int32 `json:\"channels,omitempty\"`",
+    "Codec": "*string `json:\"codec,omitempty\"`",
+    "Container": "*string `json:\"container,omitempty\"`",
+    "DurationMs": "*int64 `json:\"duration_ms,omitempty\"`",
+    "SampleRateHz": "*int32 `json:\"sample_rate_hz,omitempty\"`"
+  },
+  "BackendBibtexMetadata": {
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "CitationKeys": "*[]string `json:\"citation_keys,omitempty\"`",
+    "EntryCount": "int `json:\"entry_count\"`",
+    "EntryTypes": "*map[string]int `json:\"entry_types,omitempty\"`",
+    "YearRange": "*YearRange `json:\"year_range,omitempty\"`"
+  },
+  "BackendCitationMetadata": {
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "CitationCount": "int `json:\"citation_count\"`",
+    "Dois": "*[]string `json:\"dois,omitempty\"`",
+    "Format": "*string `json:\"format,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "YearRange": "*YearRange `json:\"year_range,omitempty\"`"
+  },
+  "BackendCodeMetadata": {
+    "Chunks": "[]CodeChunkInfo `json:\"chunks\"`",
+    "Data": "*CodeDataNode `json:\"data,omitempty\"`"
+  },
+  "BackendCreateIntegrationRequest": {
+    "AuthType": "string `json:\"auth_type\"`",
+    "ClientId": "*string `json:\"client_id,omitempty\"`",
+    "ClientSecret": "*string `json:\"client_secret,omitempty\"`",
+    "Config": "*map[string]interface{} `json:\"config,omitempty\"`",
+    "Credentials": "*map[string]interface{} `json:\"credentials,omitempty\"`",
+    "Kind": "string `json:\"kind\"`",
+    "Name": "string `json:\"name\"`",
+    "Provider": "*string `json:\"provider,omitempty\"`"
+  },
+  "BackendCreateProjectRequest": {
+    "MaxFileSizeMb": "*int32 `json:\"max_file_size_mb,omitempty\"`",
+    "MaxMonthlyJobs": "*int32 `json:\"max_monthly_jobs,omitempty\"`",
+    "MaxMonthlyPages": "*int32 `json:\"max_monthly_pages,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Slug": "*string `json:\"slug,omitempty\"`"
+  },
+  "BackendCsvMetadata": {
+    "ColumnCount": "int32 `json:\"column_count\"`",
+    "ColumnTypes": "*[]string `json:\"column_types,omitempty\"`",
+    "Delimiter": "*string `json:\"delimiter,omitempty\"`",
+    "HasHeader": "bool `json:\"has_header\"`",
+    "RowCount": "int32 `json:\"row_count\"`"
+  },
+  "BackendDbfMetadata": {
+    "FieldCount": "int `json:\"field_count\"`",
+    "Fields": "*[]DbfFieldInfo `json:\"fields,omitempty\"`",
+    "RecordCount": "int `json:\"record_count\"`"
+  },
+  "BackendDjotContent": {
+    "Attributes": "*[]DjotAttributeGroup `json:\"attributes,omitempty\"`",
+    "Blocks": "[]FormattedBlock `json:\"blocks\"`",
+    "Footnotes": "[]Footnote `json:\"footnotes\"`",
+    "Images": "[]DjotImage `json:\"images\"`",
+    "Links": "[]DjotLink `json:\"links\"`",
+    "Metadata": "BackendMetadata `json:\"metadata\"`",
+    "PlainText": "string `json:\"plain_text\"`",
+    "Tables": "[]Table `json:\"tables\"`"
+  },
+  "BackendDocxMetadata": {
+    "AppProperties": "*map[string]interface{} `json:\"app_properties,omitempty\"`",
+    "CoreProperties": "*map[string]interface{} `json:\"core_properties,omitempty\"`",
+    "CustomProperties": "*map[string]interface{} `json:\"custom_properties,omitempty\"`"
+  },
+  "BackendEmailMetadata": {
+    "Attachments": "[]string `json:\"attachments\"`",
+    "BccEmails": "[]string `json:\"bcc_emails\"`",
+    "CcEmails": "[]string `json:\"cc_emails\"`",
+    "FromEmail": "*string `json:\"from_email,omitempty\"`",
+    "FromName": "*string `json:\"from_name,omitempty\"`",
+    "MessageId": "*string `json:\"message_id,omitempty\"`",
+    "ToEmails": "[]string `json:\"to_emails\"`"
+  },
+  "BackendEpubMetadata": {
+    "CoverImage": "*string `json:\"cover_image,omitempty\"`",
+    "Coverage": "*string `json:\"coverage,omitempty\"`",
+    "DcFormat": "*string `json:\"dc_format,omitempty\"`",
+    "DcType": "*string `json:\"dc_type,omitempty\"`",
+    "Relation": "*string `json:\"relation,omitempty\"`",
+    "Source": "*string `json:\"source,omitempty\"`"
+  },
+  "BackendExcelMetadata": {
+    "SheetCount": "*int32 `json:\"sheet_count,omitempty\"`",
+    "SheetNames": "*[]string `json:\"sheet_names,omitempty\"`"
+  },
+  "BackendExtractedDocument": {
+    "Annotations": "*[]PdfAnnotation `json:\"annotations,omitempty\"`",
+    "Children": "*[]BackendArchiveEntry `json:\"children,omitempty\"`",
+    "Chunks": "*[]Chunk `json:\"chunks,omitempty\"`",
+    "CodeIntelligence": "interface{} `json:\"code_intelligence,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "Counts": "*DocumentCounts `json:\"counts,omitempty\"`",
+    "DetectedLanguageConfidences": "*[]LanguageConfidence `json:\"detected_language_confidences,omitempty\"`",
+    "DetectedLanguages": "*[]string `json:\"detected_languages,omitempty\"`",
+    "DjotContent": "*BackendDjotContent `json:\"djot_content,omitempty\"`",
+    "Document": "*DocumentStructure `json:\"document,omitempty\"`",
+    "Elements": "*[]Element `json:\"elements,omitempty\"`",
+    "Entities": "*[]Entity `json:\"entities,omitempty\"`",
+    "ExtractedKeywords": "*[]Keyword `json:\"extracted_keywords,omitempty\"`",
+    "ExtractionConfidence": "*ExtractionConfidence `json:\"extraction_confidence,omitempty\"`",
+    "ExtractionMethod": "*ExtractionMethod `json:\"extraction_method,omitempty\"`",
+    "FormFields": "*[]PdfFormField `json:\"form_fields,omitempty\"`",
+    "Formulas": "*[]Formula `json:\"formulas,omitempty\"`",
+    "Images": "*[]BackendExtractedImage `json:\"images,omitempty\"`",
+    "LlmUsage": "*[]LlmUsage `json:\"llm_usage,omitempty\"`",
+    "Metadata": "BackendMetadata `json:\"metadata\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "OcrElements": "*[]OcrElement `json:\"ocr_elements,omitempty\"`",
+    "OcrPageFailures": "*[]OcrPageFailure `json:\"ocr_page_failures,omitempty\"`",
+    "PageClassifications": "*[]PageClassification `json:\"page_classifications,omitempty\"`",
+    "Pages": "*[]PageContent `json:\"pages,omitempty\"`",
+    "ProcessingWarnings": "*[]ProcessingWarning `json:\"processing_warnings,omitempty\"`",
+    "QualityScore": "*float64 `json:\"quality_score,omitempty\"`",
+    "RedactionReport": "*RedactionReport `json:\"redaction_report,omitempty\"`",
+    "Revisions": "*[]DocumentRevision `json:\"revisions,omitempty\"`",
+    "StructuredOutput": "interface{} `json:\"structured_output,omitempty\"`",
+    "Summary": "*DocumentSummary `json:\"summary,omitempty\"`",
+    "Tables": "[]Table `json:\"tables\"`",
+    "Translation": "*Translation `json:\"translation,omitempty\"`",
+    "Uris": "*[]ExtractedUri `json:\"uris,omitempty\"`"
+  },
+  "BackendExtractedImage": {
+    "BitsPerComponent": "*int32 `json:\"bits_per_component,omitempty\"`",
+    "BoundingBox": "*BoundingBox `json:\"bounding_box,omitempty\"`",
+    "Caption": "*string `json:\"caption,omitempty\"`",
+    "ClusterId": "*int32 `json:\"cluster_id,omitempty\"`",
+    "Colorspace": "*string `json:\"colorspace,omitempty\"`",
+    "Data": "[]int `json:\"data\"`",
+    "DataBase64": "*string `json:\"data_base64,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Format": "string `json:\"format\"`",
+    "Height": "*int32 `json:\"height,omitempty\"`",
+    "ImageIndex": "int32 `json:\"image_index\"`",
+    "ImageKind": "*ImageKind `json:\"image_kind,omitempty\"`",
+    "IsMask": "*bool `json:\"is_mask,omitempty\"`",
+    "KindConfidence": "*float32 `json:\"kind_confidence,omitempty\"`",
+    "OcrResult": "*BackendExtractedDocument `json:\"ocr_result,omitempty\"`",
+    "PageNumber": "*int32 `json:\"page_number,omitempty\"`",
+    "QrCodes": "*[]QrCode `json:\"qr_codes,omitempty\"`",
+    "SourcePath": "*string `json:\"source_path,omitempty\"`",
+    "Width": "*int32 `json:\"width,omitempty\"`"
+  },
+  "BackendFictionBookMetadata": {
+    "Annotation": "*string `json:\"annotation,omitempty\"`",
+    "Genres": "*[]string `json:\"genres,omitempty\"`",
+    "Sequences": "*[]string `json:\"sequences,omitempty\"`"
+  },
+  "BackendFormatMetadata": {
+    "union": "json.RawMessage "
+  },
+  "BackendHealthResponse": {
+    "AutoTune": "*struct{Enabled bool} `json:\"auto_tune,omitempty\"`",
+    "Rag": "*struct{Enabled bool} `json:\"rag,omitempty\"`",
+    "Status": "string `json:\"status\"`",
+    "Tier": "string `json:\"tier\"`"
+  },
+  "BackendHtmlMetadata": {
+    "Author": "*string `json:\"author,omitempty\"`",
+    "BaseHref": "*string `json:\"base_href,omitempty\"`",
+    "CanonicalUrl": "*string `json:\"canonical_url,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Headers": "*[]HeaderMetadata `json:\"headers,omitempty\"`",
+    "Images": "*[]ImageMetadataType `json:\"images,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "Links": "*[]LinkMetadata `json:\"links,omitempty\"`",
+    "MetaTags": "*map[string]string `json:\"meta_tags,omitempty\"`",
+    "OpenGraph": "*map[string]string `json:\"open_graph,omitempty\"`",
+    "StructuredData": "*[]StructuredData `json:\"structured_data,omitempty\"`",
+    "TextDirection": "*TextDirection `json:\"text_direction,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`",
+    "TwitterCard": "*map[string]string `json:\"twitter_card,omitempty\"`"
+  },
+  "BackendImageMetadata": {
+    "Exif": "map[string]string `json:\"exif\"`",
+    "Format": "string `json:\"format\"`",
+    "Height": "int32 `json:\"height\"`",
+    "Width": "int32 `json:\"width\"`"
+  },
+  "BackendJatsMetadata": {
+    "ContributorRoles": "*[]ContributorRole `json:\"contributor_roles,omitempty\"`",
+    "Copyright": "*string `json:\"copyright,omitempty\"`",
+    "HistoryDates": "*map[string]string `json:\"history_dates,omitempty\"`",
+    "License": "*string `json:\"license,omitempty\"`"
+  },
+  "BackendMetadata": {
+    "AbstractText": "*string `json:\"abstract_text,omitempty\"`",
+    "Additional": "*map[string]interface{} `json:\"additional,omitempty\"`",
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "Category": "*string `json:\"category,omitempty\"`",
+    "CreatedAt": "*string `json:\"created_at,omitempty\"`",
+    "CreatedBy": "*string `json:\"created_by,omitempty\"`",
+    "DocumentVersion": "*string `json:\"document_version,omitempty\"`",
+    "Error": "*ErrorMetadata `json:\"error,omitempty\"`",
+    "ExtractionDurationMs": "*int64 `json:\"extraction_duration_ms,omitempty\"`",
+    "Format": "*BackendFormatMetadata `json:\"format,omitempty\"`",
+    "ImagePreprocessing": "*ImagePreprocessingMetadata `json:\"image_preprocessing,omitempty\"`",
+    "JsonSchema": "interface{} `json:\"json_schema,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "ModifiedAt": "*string `json:\"modified_at,omitempty\"`",
+    "ModifiedBy": "*string `json:\"modified_by,omitempty\"`",
+    "OcrUsed": "*bool `json:\"ocr_used,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Pages": "*PageStructure `json:\"pages,omitempty\"`",
+    "Subject": "*string `json:\"subject,omitempty\"`",
+    "Tags": "*[]string `json:\"tags,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "BackendOcrMetadata": {
+    "Language": "string `json:\"language\"`",
+    "OutputFormat": "string `json:\"output_format\"`",
+    "Psm": "int32 `json:\"psm\"`",
+    "TableCols": "*int32 `json:\"table_cols,omitempty\"`",
+    "TableCount": "int32 `json:\"table_count\"`",
+    "TableRows": "*int32 `json:\"table_rows,omitempty\"`"
+  },
+  "BackendPdfMetadata": {
+    "FabricatedTextPages": "*[]int32 `json:\"fabricated_text_pages,omitempty\"`",
+    "Height": "*int64 `json:\"height,omitempty\"`",
+    "ImplausibleTextPages": "*[]int32 `json:\"implausible_text_pages,omitempty\"`",
+    "IsEncrypted": "*bool `json:\"is_encrypted,omitempty\"`",
+    "LayoutGateReasons": "*[]string `json:\"layout_gate_reasons,omitempty\"`",
+    "LayoutGatedPages": "*[]int32 `json:\"layout_gated_pages,omitempty\"`",
+    "PageCount": "*int32 `json:\"page_count,omitempty\"`",
+    "PdfVersion": "*string `json:\"pdf_version,omitempty\"`",
+    "Producer": "*string `json:\"producer,omitempty\"`",
+    "ScannedConfidence": "*float32 `json:\"scanned_confidence,omitempty\"`",
+    "ScannedPages": "*[]int32 `json:\"scanned_pages,omitempty\"`",
+    "Width": "*int64 `json:\"width,omitempty\"`"
+  },
+  "BackendPptxMetadata": {
+    "ImageCount": "*int32 `json:\"image_count,omitempty\"`",
+    "SlideCount": "int32 `json:\"slide_count\"`",
+    "SlideNames": "[]string `json:\"slide_names\"`",
+    "TableCount": "*int32 `json:\"table_count,omitempty\"`"
+  },
+  "BackendPstMetadata": {
+    "MessageCount": "int `json:\"message_count\"`"
+  },
+  "BackendReadinessChecks": {
+    "Database": "string `json:\"database\"`",
+    "MaintenanceDatabase": "string `json:\"maintenance_database\"`"
+  },
+  "BackendReadinessResponse": {
+    "Checks": "BackendReadinessChecks `json:\"checks\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "BackendTextMetadata": {
+    "CharacterCount": "int32 `json:\"character_count\"`",
+    "CodeBlocks": "*[]MarkdownCodeBlock `json:\"code_blocks,omitempty\"`",
+    "Headers": "*[]string `json:\"headers,omitempty\"`",
+    "LineCount": "int32 `json:\"line_count\"`",
+    "Links": "*[]MarkdownLink `json:\"links,omitempty\"`",
+    "WordCount": "int32 `json:\"word_count\"`"
+  },
+  "BackendUsageResponse": {
+    "ByMethod": "map[string]int64 `json:\"by_method\"`",
+    "ByPath": "map[string]int64 `json:\"by_path\"`",
+    "ByStatusCode": "map[string]int64 `json:\"by_status_code\"`",
+    "ErrorDetails": "[]ErrorDetail `json:\"error_details\"`",
+    "Period": "UsagePeriod `json:\"period\"`",
+    "ProjectId": "string `json:\"project_id\"`",
+    "Summary": "UsageSummary `json:\"summary\"`"
+  },
+  "BackendXmlMetadata": {
+    "ElementCount": "int32 `json:\"element_count\"`",
+    "UniqueElements": "[]string `json:\"unique_elements\"`"
+  },
+  "BackoffKind": {
+    "=": "int"
+  },
+  "BeginConnectResponse": {
+    "AuthorizeUrl": "string `json:\"authorize_url\"`"
+  },
+  "BeginOAuthResponse": {
+    "AuthorizeUrl": "string `json:\"authorize_url\"`"
+  },
+  "BibtexMetadata": {
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "CitationKeys": "*[]string `json:\"citation_keys,omitempty\"`",
+    "EntryCount": "int `json:\"entry_count\"`",
+    "EntryTypes": "*map[string]int `json:\"entry_types,omitempty\"`",
+    "FormatType": "BibtexMetadataFormatType `json:\"format_type\"`",
+    "YearRange": "*YearRange `json:\"year_range,omitempty\"`"
+  },
+  "BibtexMetadataFormatType": {
+    "=": "string"
+  },
+  "BillingAccountInfo": {
+    "CancelAt": "*string `json:\"cancel_at,omitempty\"`",
+    "CancelAtPeriodEnd": "bool `json:\"cancel_at_period_end\"`",
+    "DiscountExpiresAt": "*string `json:\"discount_expires_at,omitempty\"`",
+    "FreePagesRemaining": "int64 `json:\"free_pages_remaining\"`",
+    "FreePagesTotal": "int64 `json:\"free_pages_total\"`",
+    "HasPaymentMethod": "bool `json:\"has_payment_method\"`",
+    "PriceTier": "string `json:\"price_tier\"`",
+    "SubscriptionStatus": "*string `json:\"subscription_status,omitempty\"`"
+  },
+  "BillingResponse": {
+    "BillingAccount": "*BillingAccountInfo `json:\"billing_account,omitempty\"`",
+    "PeriodEnd": "string `json:\"period_end\"`",
+    "PeriodStart": "string `json:\"period_start\"`",
+    "Plan": "PlanInfo `json:\"plan\"`",
+    "ProjectId": "string `json:\"project_id\"`",
+    "Usage": "UsageInfo `json:\"usage\"`"
+  },
+  "BlockType": {
+    "=": "string"
+  },
+  "BoundingBox": {
+    "X0": "float64 `json:\"x0\"`",
+    "X1": "float64 `json:\"x1\"`",
+    "Y0": "float64 `json:\"y0\"`",
+    "Y1": "float64 `json:\"y1\"`"
+  },
+  "BrowserOverrides": {
+    "Backend": "*string `json:\"backend,omitempty\"`",
+    "Mode": "*string `json:\"mode,omitempty\"`",
+    "Stealth": "*bool `json:\"stealth,omitempty\"`"
+  },
+  "BypassMode": {
+    "=": "string"
+  },
+  "BypassRequestOverride": {
+    "Credentials": "*map[string]interface{} `json:\"credentials,omitempty\"`",
+    "Mode": "BypassMode `json:\"mode\"`",
+    "Vendor": "string `json:\"vendor\"`"
+  },
+  "CellChange": {
+    "Col": "int `json:\"col\"`",
+    "From": "string `json:\"from\"`",
+    "Row": "int `json:\"row\"`",
+    "To": "string `json:\"to\"`"
+  },
+  "CheckoutResponse": {
+    "Url": "string `json:\"url\"`"
+  },
+  "Chunk": {
+    "ChunkType": "*ChunkType `json:\"chunk_type,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "Embedding": "*[]float32 `json:\"embedding,omitempty\"`",
+    "LateInteraction": "*MultiVectorEmbedding `json:\"late_interaction,omitempty\"`",
+    "Metadata": "ChunkMetadata `json:\"metadata\"`",
+    "SparseEmbedding": "*SparseEmbedding `json:\"sparse_embedding,omitempty\"`"
+  },
+  "ChunkMetadata": {
+    "ByteEnd": "int `json:\"byte_end\"`",
+    "ByteStart": "int `json:\"byte_start\"`",
+    "ChunkIndex": "int `json:\"chunk_index\"`",
+    "Classifications": "*[]ClassificationLabel `json:\"classifications,omitempty\"`",
+    "FirstPage": "*int32 `json:\"first_page,omitempty\"`",
+    "HeadingContext": "*HeadingContext `json:\"heading_context,omitempty\"`",
+    "HeadingPath": "*[]string `json:\"heading_path,omitempty\"`",
+    "ImageIndices": "*[]int32 `json:\"image_indices,omitempty\"`",
+    "LastPage": "*int32 `json:\"last_page,omitempty\"`",
+    "NodeIds": "*[]string `json:\"node_ids,omitempty\"`",
+    "PageSpans": "*[]PageSpan `json:\"page_spans,omitempty\"`",
+    "TokenCount": "*int `json:\"token_count,omitempty\"`",
+    "TotalChunks": "int `json:\"total_chunks\"`"
+  },
+  "ChunkType": {
+    "=": "string"
+  },
+  "ChunkingConfig": {
+    "ChunkerType": "*string `json:\"chunker_type,omitempty\"`",
+    "Embedding": "*EmbeddingConfig `json:\"embedding,omitempty\"`",
+    "MaxCharacters": "*int32 `json:\"max_characters,omitempty\"`",
+    "Overlap": "*int32 `json:\"overlap,omitempty\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "Trim": "*bool `json:\"trim,omitempty\"`"
+  },
+  "CitationMetadata": {
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "CitationCount": "int `json:\"citation_count\"`",
+    "Dois": "*[]string `json:\"dois,omitempty\"`",
+    "Format": "*string `json:\"format,omitempty\"`",
+    "FormatType": "CitationMetadataFormatType `json:\"format_type\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "YearRange": "*YearRange `json:\"year_range,omitempty\"`"
+  },
+  "CitationMetadataFormatType": {
+    "=": "string"
+  },
+  "ClassificationLabel": {
+    "Confidence": "*float32 `json:\"confidence,omitempty\"`",
+    "Label": "string `json:\"label\"`"
+  },
+  "Client": {
+    "cfg": "clientConfig ",
+    "probedTier": "string ",
+    "tierGroup": "singleflight.Group ",
+    "tierMu": "sync.Mutex ",
+    "tierProbed": "bool "
+  },
+  "CodeChunkInfo": {
+    "ByteEnd": "int `json:\"byte_end\"`",
+    "ByteStart": "int `json:\"byte_start\"`",
+    "ContextPath": "[]string `json:\"context_path\"`",
+    "NodeTypes": "[]string `json:\"node_types\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "CodeDataAttribute": {
+    "ByteEnd": "int `json:\"byte_end\"`",
+    "ByteStart": "int `json:\"byte_start\"`",
+    "Name": "string `json:\"name\"`",
+    "Value": "string `json:\"value\"`"
+  },
+  "CodeDataNode": {
+    "Attributes": "*[]CodeDataAttribute `json:\"attributes,omitempty\"`",
+    "ByteEnd": "int `json:\"byte_end\"`",
+    "ByteStart": "int `json:\"byte_start\"`",
+    "Children": "*[]CodeDataNode `json:\"children,omitempty\"`",
+    "Key": "*string `json:\"key,omitempty\"`",
+    "Kind": "CodeDataNodeKind `json:\"kind\"`",
+    "Value": "*string `json:\"value,omitempty\"`"
+  },
+  "CodeDataNodeKind": {
+    "=": "string"
+  },
+  "CodeMetadata": {
+    "Chunks": "[]CodeChunkInfo `json:\"chunks\"`",
+    "Data": "*CodeDataNode `json:\"data,omitempty\"`",
+    "FormatType": "CodeMetadataFormatType `json:\"format_type\"`"
+  },
+  "CodeMetadataFormatType": {
+    "=": "string"
+  },
+  "CollectionChunkingConfig": {
+    "ChunkerType": "*string `json:\"chunker_type,omitempty\"`",
+    "MaxCharacters": "*int32 `json:\"max_characters,omitempty\"`",
+    "Overlap": "*int32 `json:\"overlap,omitempty\"`",
+    "TopicThreshold": "*float32 `json:\"topic_threshold,omitempty\"`",
+    "Trim": "*bool `json:\"trim,omitempty\"`"
+  },
+  "CollectionResponse": {
+    "ChunkingConfig": "*CollectionChunkingConfig `json:\"chunking_config,omitempty\"`",
+    "DistanceMetric": "string `json:\"distance_metric\"`",
+    "EmbeddingDim": "int32 `json:\"embedding_dim\"`",
+    "EmbeddingSource": "*string `json:\"embedding_source,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IndexError": "*string `json:\"index_error,omitempty\"`",
+    "IndexMethod": "string `json:\"index_method\"`",
+    "IndexStatus": "CollectionResponseIndexStatus `json:\"index_status\"`",
+    "Name": "string `json:\"name\"`",
+    "QuotaMaxDocuments": "*int64 `json:\"quota_max_documents,omitempty\"`",
+    "RerankDefault": "*RerankerSpec `json:\"rerank_default,omitempty\"`",
+    "Stats": "*CollectionStatsResponse `json:\"stats,omitempty\"`"
+  },
+  "CollectionResponseIndexStatus": {
+    "=": "string"
+  },
+  "CollectionStatsResponse": {
+    "ChunkCount": "int64 `json:\"chunk_count\"`",
+    "DocumentCount": "int64 `json:\"document_count\"`",
+    "LastIngestedAt": "*string `json:\"last_ingested_at,omitempty\"`"
+  },
+  "ConfirmUploadJSONRequestBody": {
+    "=": "ConfirmUploadRequest"
+  },
+  "ConfirmUploadParams": {
+    "XProjectID": "*openapi_types.UUID `json:\"X-Project-ID,omitempty\"`"
+  },
+  "ConfirmUploadRequest": {
+    "BatchId": "openapi_types.UUID `json:\"batch_id\"`"
+  },
+  "ConfirmUploadResponse": {
+    "JobIds": "[]string `json:\"job_ids\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "ConnectionError": {
+    "Cause": "error ",
+    "Method": "string ",
+    "URL": "string ",
+    "embed:XbergError": "XbergError "
+  },
+  "ContentFilterConfig": {
+    "IncludeFooters": "*bool `json:\"include_footers,omitempty\"`",
+    "IncludeHeaders": "*bool `json:\"include_headers,omitempty\"`",
+    "IncludeWatermarks": "*bool `json:\"include_watermarks,omitempty\"`",
+    "StripRepeatingText": "*bool `json:\"strip_repeating_text,omitempty\"`"
+  },
+  "ContentLayer": {
+    "=": "string"
+  },
+  "ContributorRole": {
+    "Name": "string `json:\"name\"`",
+    "Role": "*string `json:\"role,omitempty\"`"
+  },
+  "CrawlChildJob": {
+    "BodyBytes": "*int64 `json:\"body_bytes,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "CrawlConfig": {
+    "AllowSubdomains": "*bool `json:\"allow_subdomains,omitempty\"`",
+    "AllowedFileTypes": "*[]string `json:\"allowed_file_types,omitempty\"`",
+    "Browser": "*BrowserOverrides `json:\"browser,omitempty\"`",
+    "Bypass": "*BypassRequestOverride `json:\"bypass,omitempty\"`",
+    "DocumentUrlDepth": "*int32 `json:\"document_url_depth,omitempty\"`",
+    "DownloadDocuments": "*bool `json:\"download_documents,omitempty\"`",
+    "ExcludePaths": "*[]string `json:\"exclude_paths,omitempty\"`",
+    "ExtractPageContent": "*bool `json:\"extract_page_content,omitempty\"`",
+    "FollowDocumentUrls": "*bool `json:\"follow_document_urls,omitempty\"`",
+    "IncludePaths": "*[]string `json:\"include_paths,omitempty\"`",
+    "MaxConcurrent": "*int32 `json:\"max_concurrent,omitempty\"`",
+    "MaxDepth": "*int32 `json:\"max_depth,omitempty\"`",
+    "MaxPages": "*int32 `json:\"max_pages,omitempty\"`",
+    "OutputMode": "*string `json:\"output_mode,omitempty\"`",
+    "Proxy": "*ProxyOverride `json:\"proxy,omitempty\"`",
+    "RequestTimeoutSecs": "*int64 `json:\"request_timeout_secs,omitempty\"`",
+    "RespectRobotsTxt": "*bool `json:\"respect_robots_txt,omitempty\"`",
+    "StayOnDomain": "*bool `json:\"stay_on_domain,omitempty\"`",
+    "Strategy": "*string `json:\"strategy,omitempty\"`",
+    "UserAgent": "*string `json:\"user_agent,omitempty\"`"
+  },
+  "CrawlEvent": {
+    "Kind": "CrawlEventKind ",
+    "embed:CrawlEventV1": "CrawlEventV1 "
+  },
+  "CrawlEventKind": {
+    "=": "string"
+  },
+  "CrawlEventV1": {
+    "union": "json.RawMessage "
+  },
+  "CrawlEventV10": {
+    "CrawlJobId": "openapi_types.UUID `json:\"crawl_job_id\"`",
+    "Depth": "int `json:\"depth\"`",
+    "Kind": "CrawlEventV10Kind `json:\"kind\"`",
+    "StatusCode": "int32 `json:\"status_code\"`",
+    "Ts": "time.Time `json:\"ts\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CrawlEventV10Kind": {
+    "=": "string"
+  },
+  "CrawlEventV11": {
+    "CrawlJobId": "openapi_types.UUID `json:\"crawl_job_id\"`",
+    "Error": "string `json:\"error\"`",
+    "Kind": "CrawlEventV11Kind `json:\"kind\"`",
+    "Terminal": "*bool `json:\"terminal,omitempty\"`",
+    "Ts": "time.Time `json:\"ts\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CrawlEventV11Kind": {
+    "=": "string"
+  },
+  "CrawlEventV12": {
+    "CrawlJobId": "openapi_types.UUID `json:\"crawl_job_id\"`",
+    "Depth": "int `json:\"depth\"`",
+    "Kind": "CrawlEventV12Kind `json:\"kind\"`",
+    "Ts": "time.Time `json:\"ts\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CrawlEventV12Kind": {
+    "=": "string"
+  },
+  "CrawlEventV13": {
+    "CrawlJobId": "openapi_types.UUID `json:\"crawl_job_id\"`",
+    "Kind": "CrawlEventV13Kind `json:\"kind\"`",
+    "PagesCrawled": "int `json:\"pages_crawled\"`",
+    "Ts": "time.Time `json:\"ts\"`"
+  },
+  "CrawlEventV13Kind": {
+    "=": "string"
+  },
+  "CrawlJobResponse": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Jobs": "*[]CrawlChildJob `json:\"jobs,omitempty\"`",
+    "OutputMode": "string `json:\"output_mode\"`",
+    "Pages": "*[]CrawledPage `json:\"pages,omitempty\"`",
+    "Progress": "CrawlProgress `json:\"progress\"`",
+    "SeedUrls": "[]string `json:\"seed_urls\"`",
+    "Status": "CrawlJobStatus `json:\"status\"`"
+  },
+  "CrawlJobStatus": {
+    "=": "string"
+  },
+  "CrawlProgress": {
+    "DocumentsDiscovered": "int32 `json:\"documents_discovered\"`",
+    "DocumentsExtracted": "int32 `json:\"documents_extracted\"`",
+    "DocumentsFailed": "int32 `json:\"documents_failed\"`",
+    "PagesCrawled": "int32 `json:\"pages_crawled\"`"
+  },
+  "CrawlWebhookEvent": {
+    "CrawlJobId": "openapi_types.UUID `json:\"crawl_job_id\"`",
+    "Error": "*WebhookEventError `json:\"error,omitempty\"`",
+    "Event": "CrawlWebhookEventType `json:\"event\"`",
+    "EventId": "openapi_types.UUID `json:\"event_id\"`",
+    "Metadata": "*map[string]string `json:\"metadata,omitempty\"`",
+    "Progress": "CrawlProgress `json:\"progress\"`",
+    "Status": "CrawlWebhookStatus `json:\"status\"`",
+    "Timestamp": "time.Time `json:\"timestamp\"`"
+  },
+  "CrawlWebhookEventType": {
+    "=": "string"
+  },
+  "CrawlWebhookStatus": {
+    "=": "string"
+  },
+  "CrawledPage": {
+    "ContentUrl": "*string `json:\"content_url,omitempty\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "FetchedAt": "time.Time `json:\"fetched_at\"`",
+    "MimeType": "*string `json:\"mime_type,omitempty\"`",
+    "SizeBytes": "*int64 `json:\"size_bytes,omitempty\"`",
+    "Status": "string `json:\"status\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CreateApiKeyJSONRequestBody": {
+    "=": "CreateApiKeyRequest"
+  },
+  "CreateApiKeyRequest": {
+    "ExpiresAt": "*string `json:\"expires_at,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "Scope": "*ApiKeyScope `json:\"scope,omitempty\"`"
+  },
+  "CreateApiKeyResponse": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "ExpiresAt": "*string `json:\"expires_at,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Key": "string `json:\"key\"`",
+    "KeyPrefix": "string `json:\"key_prefix\"`",
+    "Kind": "*string `json:\"kind,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "Scope": "ApiKeyScope `json:\"scope\"`"
+  },
+  "CreateAutoTuneJobRequest": {
+    "Budget": "*AutoTuneBudget `json:\"budget,omitempty\"`",
+    "Documents": "[]AutoTuneDocumentInput `json:\"documents\"`",
+    "Routing": "*bool `json:\"routing,omitempty\"`",
+    "Search": "*AutoTuneSearchConfig `json:\"search,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "CreateAutoTuneJobResponse": {
+    "AutoTuneJobId": "string `json:\"auto_tune_job_id\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "CreateCollectionJSONRequestBody": {
+    "=": "CreateCollectionRequest"
+  },
+  "CreateCollectionRequest": {
+    "ChunkingConfig": "*CollectionChunkingConfig `json:\"chunking_config,omitempty\"`",
+    "DistanceMetric": "*string `json:\"distance_metric,omitempty\"`",
+    "EmbeddingDim": "int32 `json:\"embedding_dim\"`",
+    "EmbeddingSource": "*string `json:\"embedding_source,omitempty\"`",
+    "IndexMethod": "*string `json:\"index_method,omitempty\"`",
+    "LabelClassifierThreshold": "*float32 `json:\"label_classifier_threshold,omitempty\"`",
+    "LabelVocabulary": "*[]string `json:\"label_vocabulary,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "QuotaMaxDocuments": "*int64 `json:\"quota_max_documents,omitempty\"`",
+    "RerankDefault": "*RerankerSpec `json:\"rerank_default,omitempty\"`",
+    "RerankTimeoutMs": "*int32 `json:\"rerank_timeout_ms,omitempty\"`"
+  },
+  "CreateCollectionResponse": {
+    "ChunkingConfig": "*CollectionChunkingConfig `json:\"chunking_config,omitempty\"`",
+    "DistanceMetric": "string `json:\"distance_metric\"`",
+    "EmbeddingDim": "int32 `json:\"embedding_dim\"`",
+    "EmbeddingSource": "*string `json:\"embedding_source,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IndexMethod": "string `json:\"index_method\"`",
+    "Name": "string `json:\"name\"`",
+    "QuotaMaxDocuments": "*int64 `json:\"quota_max_documents,omitempty\"`",
+    "RerankDefault": "*RerankerSpec `json:\"rerank_default,omitempty\"`"
+  },
+  "CreateDocumentAsyncResponse": {
+    "DocumentId": "openapi_types.UUID `json:\"document_id\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "Poll": "string `json:\"poll\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "CreateDocumentChunkInput": {
+    "Content": "string `json:\"content\"`",
+    "Embedding": "*[]float32 `json:\"embedding,omitempty\"`",
+    "ExternalId": "*string `json:\"external_id,omitempty\"`",
+    "Metadata": "*map[string]interface{} `json:\"metadata,omitempty\"`",
+    "Ordinal": "*int32 `json:\"ordinal,omitempty\"`"
+  },
+  "CreateDocumentJSONRequestBody": {
+    "=": "CreateDocumentRequest"
+  },
+  "CreateDocumentRequest": {
+    "Chunks": "*[]CreateDocumentChunkInput `json:\"chunks,omitempty\"`",
+    "EnrichmentOverrides": "*EnrichmentOverridesRequest `json:\"enrichment_overrides,omitempty\"`",
+    "ExternalId": "*string `json:\"external_id,omitempty\"`",
+    "Kind": "string `json:\"kind\"`",
+    "Metadata": "*map[string]interface{} `json:\"metadata,omitempty\"`",
+    "Mime": "*string `json:\"mime,omitempty\"`",
+    "SourceObjectKey": "*string `json:\"source_object_key,omitempty\"`",
+    "Text": "*string `json:\"text,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "CreateDocumentResponse": {
+    "ChunkCount": "int32 `json:\"chunk_count\"`",
+    "Collection": "string `json:\"collection\"`",
+    "DocumentId": "openapi_types.UUID `json:\"document_id\"`",
+    "EmbeddingDim": "int32 `json:\"embedding_dim\"`",
+    "ExternalId": "*string `json:\"external_id,omitempty\"`",
+    "IngestedAt": "time.Time `json:\"ingested_at\"`"
+  },
+  "CreateDocumentSource": {
+    "union": "json.RawMessage "
+  },
+  "CreateDocumentSourceChunks": {
+    "Chunks": "[]CreateDocumentChunkInput `json:\"chunks\"`",
+    "EnrichmentOverrides": "*EnrichmentOverridesRequest `json:\"enrichment_overrides,omitempty\"`",
+    "Kind": "CreateDocumentSourceChunksKind `json:\"kind\"`"
+  },
+  "CreateDocumentSourceChunksKind": {
+    "=": "string"
+  },
+  "CreateDocumentSourceText": {
+    "EnrichmentOverrides": "*EnrichmentOverridesRequest `json:\"enrichment_overrides,omitempty\"`",
+    "Kind": "CreateDocumentSourceTextKind `json:\"kind\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "CreateDocumentSourceTextKind": {
+    "=": "string"
+  },
+  "CreateDomainJSONRequestBody": {
+    "=": "SamlDomainRequest"
+  },
+  "CreateIntegrationJSONRequestBody": {
+    "=": "CreateIntegrationRequest"
+  },
+  "CreateIntegrationRequest": {
+    "AuthType": "string `json:\"auth_type\"`",
+    "Config": "*map[string]interface{} `json:\"config,omitempty\"`",
+    "Credentials": "map[string]interface{} `json:\"credentials\"`",
+    "Kind": "string `json:\"kind\"`",
+    "Name": "string `json:\"name\"`"
+  },
+  "CreateInvitationRequest": {
+    "CustomRoleId": "*openapi_types.UUID `json:\"custom_role_id,omitempty\"`",
+    "CustomRoleIds": "*[]openapi_types.UUID `json:\"custom_role_ids,omitempty\"`",
+    "Email": "string `json:\"email\"`",
+    "Role": "string `json:\"role\"`"
+  },
+  "CreateInvitationResponse": {
+    "CustomRoleId": "*openapi_types.UUID `json:\"custom_role_id,omitempty\"`",
+    "CustomRoleIds": "*[]openapi_types.UUID `json:\"custom_role_ids,omitempty\"`",
+    "Email": "string `json:\"email\"`",
+    "ExpiresAt": "string `json:\"expires_at\"`",
+    "Id": "string `json:\"id\"`",
+    "Role": "string `json:\"role\"`",
+    "Token": "string `json:\"token\"`"
+  },
+  "CreateProjectJSONRequestBody": {
+    "=": "CreateProjectRequest"
+  },
+  "CreateProjectRequest": {
+    "MaxFileSizeMb": "*int32 `json:\"max_file_size_mb,omitempty\"`",
+    "MaxMonthlyJobs": "*int32 `json:\"max_monthly_jobs,omitempty\"`",
+    "MaxMonthlyPages": "*int32 `json:\"max_monthly_pages,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Slug": "string `json:\"slug\"`"
+  },
+  "CreateProjectRoleJSONRequestBody": {
+    "=": "CreateProjectRoleRequest"
+  },
+  "CreateProjectRoleRequest": {
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Permissions": "[]ProjectPermission `json:\"permissions\"`"
+  },
+  "CreateProviderJSONRequestBody": {
+    "=": "SamlProviderRequest"
+  },
+  "CreateSavedPresetJSONRequestBody": {
+    "=": "CreateSavedPresetRequest"
+  },
+  "CreateSavedPresetRequest": {
+    "ContextTemplate": "*string `json:\"context_template,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "EmitCitations": "*bool `json:\"emit_citations,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "PreferredCallMode": "string `json:\"preferred_call_mode\"`",
+    "Schema": "map[string]interface{} `json:\"schema\"`",
+    "SystemPrompt": "*string `json:\"system_prompt,omitempty\"`"
+  },
+  "CreateSavedPresetResponse": {
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Message": "string `json:\"message\"`",
+    "Name": "string `json:\"name\"`",
+    "Success": "bool `json:\"success\"`"
+  },
+  "CreateScimConnectionJSONRequestBody": {
+    "=": "CreateScimConnectionRequest"
+  },
+  "CreateScimConnectionRequest": {
+    "DisplayName": "string `json:\"display_name\"`"
+  },
+  "CreateScimConnectionResponse": {
+    "BaseUrl": "string `json:\"base_url\"`",
+    "ClientSecret": "string `json:\"client_secret\"`",
+    "Connection": "ScimConnectionResponse `json:\"connection\"`",
+    "TokenEndpoint": "string `json:\"token_endpoint\"`"
+  },
+  "CreateScimGroupApplicationScimPlusJSONRequestBody": {
+    "=": "ScimGroupInput"
+  },
+  "CreateScimUserApplicationScimPlusJSONRequestBody": {
+    "=": "ScimUserInput"
+  },
+  "CreateWebhookJSONRequestBody": {
+    "=": "CreateWebhookRequest"
+  },
+  "CreateWebhookRequest": {
+    "Events": "[]string `json:\"events\"`",
+    "Name": "string `json:\"name\"`",
+    "Secret": "*string `json:\"secret,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CreateWebhookResponse": {
+    "CreatedAt": "string `json:\"created_at\"`",
+    "Events": "[]string `json:\"events\"`",
+    "FailedDeliveries": "int32 `json:\"failed_deliveries\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IsActive": "bool `json:\"is_active\"`",
+    "LastDeliveryAt": "*string `json:\"last_delivery_at,omitempty\"`",
+    "LastDeliveryStatus": "*string `json:\"last_delivery_status,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Secret": "string `json:\"secret\"`",
+    "TotalDeliveries": "int32 `json:\"total_deliveries\"`",
+    "UpdatedAt": "string `json:\"updated_at\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "CsvMetadata": {
+    "ColumnCount": "int32 `json:\"column_count\"`",
+    "ColumnTypes": "*[]string `json:\"column_types,omitempty\"`",
+    "Delimiter": "*string `json:\"delimiter,omitempty\"`",
+    "FormatType": "CsvMetadataFormatType `json:\"format_type\"`",
+    "HasHeader": "bool `json:\"has_header\"`",
+    "RowCount": "int32 `json:\"row_count\"`"
+  },
+  "CsvMetadataFormatType": {
+    "=": "string"
+  },
+  "DailyAnalyticsEntry": {
+    "Date": "string `json:\"date\"`",
+    "FileTypes": "interface{} `json:\"file_types\"`",
+    "JobsCancelled": "int32 `json:\"jobs_cancelled\"`",
+    "JobsCompleted": "int32 `json:\"jobs_completed\"`",
+    "JobsFailed": "int32 `json:\"jobs_failed\"`",
+    "JobsTotal": "int32 `json:\"jobs_total\"`",
+    "ProcessingStats": "*ProcessingStatsEntry `json:\"processing_stats,omitempty\"`",
+    "TotalFileSizeBytes": "int64 `json:\"total_file_size_bytes\"`",
+    "TotalImagesExtracted": "int32 `json:\"total_images_extracted\"`",
+    "TotalPagesExtracted": "int32 `json:\"total_pages_extracted\"`",
+    "TotalProcessingTimeMs": "int64 `json:\"total_processing_time_ms\"`",
+    "TotalTablesExtracted": "int32 `json:\"total_tables_extracted\"`"
+  },
+  "DbfFieldInfo": {
+    "FieldType": "string `json:\"field_type\"`",
+    "Name": "string `json:\"name\"`"
+  },
+  "DbfMetadata": {
+    "FieldCount": "int `json:\"field_count\"`",
+    "Fields": "*[]DbfFieldInfo `json:\"fields,omitempty\"`",
+    "FormatType": "DbfMetadataFormatType `json:\"format_type\"`",
+    "RecordCount": "int `json:\"record_count\"`"
+  },
+  "DbfMetadataFormatType": {
+    "=": "string"
+  },
+  "DeleteDocumentsJSONRequestBody": {
+    "=": "DeleteDocumentsRequest"
+  },
+  "DeleteDocumentsRequest": {
+    "Filter": "*map[string]interface{} `json:\"filter,omitempty\"`",
+    "Ids": "*[]openapi_types.UUID `json:\"ids,omitempty\"`"
+  },
+  "DeleteDocumentsResponse": {
+    "DeletedCount": "int64 `json:\"deleted_count\"`"
+  },
+  "DeleteProjectParams": {
+    "Erase": "*bool `form:\"erase,omitempty\" json:\"erase,omitempty\"`"
+  },
+  "DiffAsyncAccepted": {
+    "DiffJobId": "openapi_types.UUID `json:\"diff_job_id\"`",
+    "Status": "DiffJobStatus `json:\"status\"`"
+  },
+  "DiffJobStatus": {
+    "=": "string"
+  },
+  "DiffLine": {
+    "union": "json.RawMessage "
+  },
+  "DiffLine0": {
+    "Kind": "DiffLine0Kind `json:\"kind\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "DiffLine0Kind": {
+    "=": "string"
+  },
+  "DiffLine1": {
+    "Kind": "DiffLine1Kind `json:\"kind\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "DiffLine1Kind": {
+    "=": "string"
+  },
+  "DiffLine2": {
+    "Kind": "DiffLine2Kind `json:\"kind\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "DiffLine2Kind": {
+    "=": "string"
+  },
+  "DiffQuery": {
+    "From": "DiffQuery_From `json:\"from\"`",
+    "To": "DiffQuery_To `json:\"to\"`"
+  },
+  "DiffQueryFrom0": {
+    "=": "int32"
+  },
+  "DiffQueryFrom1": {
+    "=": "openapi_types.UUID"
+  },
+  "DiffQueryTo0": {
+    "=": "int32"
+  },
+  "DiffQueryTo1": {
+    "=": "openapi_types.UUID"
+  },
+  "DiffQuery_From": {
+    "union": "json.RawMessage "
+  },
+  "DiffQuery_To": {
+    "union": "json.RawMessage "
+  },
+  "DiffResponse": {
+    "ComputedAt": "time.Time `json:\"computed_at\"`",
+    "Diff": "map[string]interface{} `json:\"diff\"`",
+    "DocumentId": "openapi_types.UUID `json:\"document_id\"`",
+    "FromJobId": "openapi_types.UUID `json:\"from_job_id\"`",
+    "FromVersion": "int32 `json:\"from_version\"`",
+    "ToJobId": "openapi_types.UUID `json:\"to_job_id\"`",
+    "ToVersion": "int32 `json:\"to_version\"`"
+  },
+  "DjotAttributeGroup": {
+    "Attributes": "struct{Classes *[]string; Id *string; KeyValues *[]KeyValueAttribute} `json:\"attributes\"`",
+    "Identifier": "string `json:\"identifier\"`"
+  },
+  "DjotContent": {
+    "Attributes": "*[]DjotAttributeGroup `json:\"attributes,omitempty\"`",
+    "Blocks": "[]FormattedBlock `json:\"blocks\"`",
+    "Footnotes": "[]Footnote `json:\"footnotes\"`",
+    "Images": "[]DjotImage `json:\"images\"`",
+    "Links": "[]DjotLink `json:\"links\"`",
+    "Metadata": "Metadata `json:\"metadata\"`",
+    "PlainText": "string `json:\"plain_text\"`",
+    "Tables": "[]Table `json:\"tables\"`"
+  },
+  "DjotImage": {
+    "Alt": "string `json:\"alt\"`",
+    "Attributes": "*Attributes `json:\"attributes,omitempty\"`",
+    "Src": "string `json:\"src\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "DjotLink": {
+    "Attributes": "*Attributes `json:\"attributes,omitempty\"`",
+    "Text": "string `json:\"text\"`",
+    "Title": "*string `json:\"title,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "DocumentCounts": {
+    "Images": "int `json:\"images\"`",
+    "Pages": "int `json:\"pages\"`",
+    "Tables": "int `json:\"tables\"`"
+  },
+  "DocumentInput": {
+    "Config": "*FileExtractionConfig `json:\"config,omitempty\"`",
+    "Data": "*string `json:\"data,omitempty\"`",
+    "DocumentId": "*string `json:\"document_id,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Integration": "*IntegrationInput `json:\"integration,omitempty\"`",
+    "MimeType": "string `json:\"mime_type\"`"
+  },
+  "DocumentNode": {
+    "Annotations": "*[]TextAnnotation `json:\"annotations,omitempty\"`",
+    "Attributes": "*map[string]string `json:\"attributes,omitempty\"`",
+    "Bbox": "*BoundingBox `json:\"bbox,omitempty\"`",
+    "Children": "*[]NodeIndex `json:\"children,omitempty\"`",
+    "Content": "NodeContent `json:\"content\"`",
+    "ContentLayer": "*ContentLayer `json:\"content_layer,omitempty\"`",
+    "Id": "*string `json:\"id,omitempty\"`",
+    "Page": "*int32 `json:\"page,omitempty\"`",
+    "PageEnd": "*int32 `json:\"page_end,omitempty\"`",
+    "Parent": "*NodeIndex `json:\"parent,omitempty\"`"
+  },
+  "DocumentRelationship": {
+    "Kind": "RelationshipKind `json:\"kind\"`",
+    "Source": "NodeIndex `json:\"source\"`",
+    "Target": "NodeIndex `json:\"target\"`"
+  },
+  "DocumentResponse": {
+    "Id": "string `json:\"id\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "ModifiedAt": "*string `json:\"modified_at,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "SizeBytes": "*int64 `json:\"size_bytes,omitempty\"`"
+  },
+  "DocumentRevision": {
+    "Anchor": "*RevisionAnchor `json:\"anchor,omitempty\"`",
+    "Author": "*string `json:\"author,omitempty\"`",
+    "Delta": "RevisionDelta `json:\"delta\"`",
+    "Kind": "RevisionKind `json:\"kind\"`",
+    "RevisionId": "string `json:\"revision_id\"`",
+    "Timestamp": "*string `json:\"timestamp,omitempty\"`"
+  },
+  "DocumentStructure": {
+    "NodeTypes": "*[]string `json:\"node_types,omitempty\"`",
+    "Nodes": "[]DocumentNode `json:\"nodes\"`",
+    "Relationships": "*[]DocumentRelationship `json:\"relationships,omitempty\"`",
+    "SourceFormat": "*string `json:\"source_format,omitempty\"`"
+  },
+  "DocumentSubmission": {
+    "DocumentId": "*string `json:\"document_id,omitempty\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "VersionSequence": "*int32 `json:\"version_sequence,omitempty\"`"
+  },
+  "DocumentSummary": {
+    "Strategy": "SummaryStrategy `json:\"strategy\"`",
+    "Text": "string `json:\"text\"`",
+    "TokenCount": "*int32 `json:\"token_count,omitempty\"`"
+  },
+  "DocumentVersionEntry": {
+    "BillablePages": "int32 `json:\"billable_pages\"`",
+    "ContentHash": "*string `json:\"content_hash\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "FileSizeBytes": "int64 `json:\"file_size_bytes\"`",
+    "Filename": "string `json:\"filename\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "PagesExtracted": "int32 `json:\"pages_extracted\"`",
+    "ProcessingCompletedAt": "*string `json:\"processing_completed_at,omitempty\"`",
+    "Status": "string `json:\"status\"`",
+    "VersionSequence": "int32 `json:\"version_sequence\"`"
+  },
+  "DocxMetadata": {
+    "AppProperties": "*map[string]interface{} `json:\"app_properties,omitempty\"`",
+    "CoreProperties": "*map[string]interface{} `json:\"core_properties,omitempty\"`",
+    "CustomProperties": "*map[string]interface{} `json:\"custom_properties,omitempty\"`",
+    "FormatType": "DocxMetadataFormatType `json:\"format_type\"`"
+  },
+  "DocxMetadataFormatType": {
+    "=": "string"
+  },
+  "Element": {
+    "ElementId": "*string `json:\"element_id,omitempty\"`",
+    "ElementType": "ElementType `json:\"element_type\"`",
+    "Metadata": "ElementMetadata `json:\"metadata\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "ElementMetadata": {
+    "Additional": "map[string]string `json:\"additional\"`",
+    "Coordinates": "*BoundingBox `json:\"coordinates,omitempty\"`",
+    "ElementIndex": "*int `json:\"element_index,omitempty\"`",
+    "Filename": "*string `json:\"filename,omitempty\"`",
+    "PageNumber": "*int32 `json:\"page_number,omitempty\"`"
+  },
+  "ElementType": {
+    "=": "string"
+  },
+  "EmailMetadata": {
+    "Attachments": "[]string `json:\"attachments\"`",
+    "BccEmails": "[]string `json:\"bcc_emails\"`",
+    "CcEmails": "[]string `json:\"cc_emails\"`",
+    "FormatType": "EmailMetadataFormatType `json:\"format_type\"`",
+    "FromEmail": "*string `json:\"from_email,omitempty\"`",
+    "FromName": "*string `json:\"from_name,omitempty\"`",
+    "MessageId": "*string `json:\"message_id,omitempty\"`",
+    "ToEmails": "[]string `json:\"to_emails\"`"
+  },
+  "EmailMetadataFormatType": {
+    "=": "string"
+  },
+  "EmbeddingConfig": {
+    "BatchSize": "*int32 `json:\"batch_size,omitempty\"`",
+    "Model": "*map[string]interface{} `json:\"model,omitempty\"`",
+    "Normalize": "*bool `json:\"normalize,omitempty\"`",
+    "ShowDownloadProgress": "*bool `json:\"show_download_progress,omitempty\"`"
+  },
+  "EnrichCaptioningOptions": {
+    "Images": "[]string `json:\"images\"`",
+    "Llm": "EnrichLlmConfig `json:\"llm\"`"
+  },
+  "EnrichChunkClassificationDefinition": {
+    "Description": "string `json:\"description\"`",
+    "Label": "string `json:\"label\"`"
+  },
+  "EnrichChunkClassificationOptions": {
+    "Chunks": "[]string `json:\"chunks\"`",
+    "Definitions": "[]EnrichChunkClassificationDefinition `json:\"definitions\"`",
+    "Llm": "EnrichLlmConfig `json:\"llm\"`"
+  },
+  "EnrichClassificationOptions": {
+    "Labels": "[]string `json:\"labels\"`",
+    "Llm": "EnrichLlmConfig `json:\"llm\"`",
+    "MultiLabel": "*bool `json:\"multi_label,omitempty\"`"
+  },
+  "EnrichJobStatus": {
+    "union": "json.RawMessage "
+  },
+  "EnrichJobStatus0": {
+    "Status": "EnrichJobStatus0Status `json:\"status\"`"
+  },
+  "EnrichJobStatus0Status": {
+    "=": "string"
+  },
+  "EnrichJobStatus1": {
+    "Result": "EnrichResult `json:\"result\"`",
+    "Status": "EnrichJobStatus1Status `json:\"status\"`"
+  },
+  "EnrichJobStatus1Status": {
+    "=": "string"
+  },
+  "EnrichJobStatus2": {
+    "Error": "string `json:\"error\"`",
+    "Status": "EnrichJobStatus2Status `json:\"status\"`"
+  },
+  "EnrichJobStatus2Status": {
+    "=": "string"
+  },
+  "EnrichJobSubmitted": {
+    "JobId": "string `json:\"job_id\"`"
+  },
+  "EnrichLlmConfig": {
+    "ApiKey": "*string `json:\"api_key,omitempty\"`",
+    "BaseUrl": "*string `json:\"base_url,omitempty\"`",
+    "MaxRetries": "*int32 `json:\"max_retries,omitempty\"`",
+    "MaxTokens": "*int64 `json:\"max_tokens,omitempty\"`",
+    "Model": "string `json:\"model\"`",
+    "Temperature": "*float64 `json:\"temperature,omitempty\"`",
+    "TimeoutSecs": "*int64 `json:\"timeout_secs,omitempty\"`"
+  },
+  "EnrichRequestOptions": {
+    "Captioning": "*EnrichCaptioningOptions `json:\"captioning,omitempty\"`",
+    "ChunkClassification": "*EnrichChunkClassificationOptions `json:\"chunk_classification,omitempty\"`",
+    "Classification": "*EnrichClassificationOptions `json:\"classification,omitempty\"`",
+    "Entities": "*bool `json:\"entities,omitempty\"`",
+    "Keywords": "*bool `json:\"keywords,omitempty\"`",
+    "Labels": "*[]string `json:\"labels,omitempty\"`"
+  },
+  "EnrichResult": {
+    "Captions": "*[]string `json:\"captions,omitempty\"`",
+    "ChunkClassifications": "*[][]ClassificationLabel `json:\"chunk_classifications,omitempty\"`",
+    "Classification": "*[]ClassificationLabel `json:\"classification,omitempty\"`",
+    "Entities": "*[]map[string]interface{} `json:\"entities,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Labels": "interface{} `json:\"labels,omitempty\"`"
+  },
+  "EnrichTextRequest": {
+    "Options": "*EnrichRequestOptions `json:\"options,omitempty\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "EnrichmentOverridesRequest": {
+    "Entities": "*[]map[string]interface{} `json:\"entities,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Labels": "*[]string `json:\"labels,omitempty\"`"
+  },
+  "Entity": {
+    "Category": "EntityCategory `json:\"category\"`",
+    "Confidence": "*float32 `json:\"confidence,omitempty\"`",
+    "End": "int32 `json:\"end\"`",
+    "Start": "int32 `json:\"start\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "EntityCategory": {
+    "union": "json.RawMessage "
+  },
+  "EntityCategory0": {
+    "=": "string"
+  },
+  "EntityCategory1": {
+    "=": "string"
+  },
+  "EntityCategory10": {
+    "Custom": "string `json:\"custom\"`"
+  },
+  "EntityCategory2": {
+    "=": "string"
+  },
+  "EntityCategory3": {
+    "=": "string"
+  },
+  "EntityCategory4": {
+    "=": "string"
+  },
+  "EntityCategory5": {
+    "=": "string"
+  },
+  "EntityCategory6": {
+    "=": "string"
+  },
+  "EntityCategory7": {
+    "=": "string"
+  },
+  "EntityCategory8": {
+    "=": "string"
+  },
+  "EntityCategory9": {
+    "=": "string"
+  },
+  "EpubMetadata": {
+    "CoverImage": "*string `json:\"cover_image,omitempty\"`",
+    "Coverage": "*string `json:\"coverage,omitempty\"`",
+    "DcFormat": "*string `json:\"dc_format,omitempty\"`",
+    "DcType": "*string `json:\"dc_type,omitempty\"`",
+    "FormatType": "EpubMetadataFormatType `json:\"format_type\"`",
+    "Relation": "*string `json:\"relation,omitempty\"`",
+    "Source": "*string `json:\"source,omitempty\"`"
+  },
+  "EpubMetadataFormatType": {
+    "=": "string"
+  },
+  "ErrorBody": {
+    "Code": "string `json:\"code\"`",
+    "Details": "*map[string]interface{} `json:\"details,omitempty\"`",
+    "Message": "string `json:\"message\"`"
+  },
+  "ErrorDetail": {
+    "ErrorMessage": "*string `json:\"error_message,omitempty\"`",
+    "Method": "string `json:\"method\"`",
+    "Path": "string `json:\"path\"`",
+    "StatusCode": "int32 `json:\"status_code\"`",
+    "Timestamp": "string `json:\"timestamp\"`"
+  },
+  "ErrorMetadata": {
+    "ErrorType": "string `json:\"error_type\"`",
+    "Message": "string `json:\"message\"`"
+  },
+  "ErrorResponse": {
+    "Error": "ErrorBody `json:\"error\"`"
+  },
+  "ExcelMetadata": {
+    "FormatType": "ExcelMetadataFormatType `json:\"format_type\"`",
+    "SheetCount": "*int32 `json:\"sheet_count,omitempty\"`",
+    "SheetNames": "*[]string `json:\"sheet_names,omitempty\"`"
+  },
+  "ExcelMetadataFormatType": {
+    "=": "string"
+  },
+  "ExchangeJSONRequestBody": {
+    "=": "SamlExchangeRequest"
+  },
+  "ExtractAndWaitOptions": {
+    "Extract": "*ExtractOptions ",
+    "Wait": "*WaitOptions "
+  },
+  "ExtractJSONRequestBody": {
+    "=": "ExtractRequest"
+  },
+  "ExtractMultipartForm": {
+    "File": "[]int `json:\"file\"`",
+    "Options": "*ExtractionOptions `json:\"options,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "ExtractMultipartRequestBody": {
+    "=": "ExtractMultipartForm"
+  },
+  "ExtractOptions": {
+    "Configs": "[]*FileExtractionConfig ",
+    "DocumentIDs": "[]*uuid.UUID ",
+    "Extraction": "*ExtractionOptions ",
+    "Webhook": "*WebhookConfig "
+  },
+  "ExtractParams": {
+    "XProjectID": "*openapi_types.UUID `json:\"X-Project-ID,omitempty\"`"
+  },
+  "ExtractRequest": {
+    "CrawlConfig": "*map[string]interface{} `json:\"crawl_config,omitempty\"`",
+    "Documents": "*[]DocumentInput `json:\"documents,omitempty\"`",
+    "Options": "*ExtractionOptions `json:\"options,omitempty\"`",
+    "ProjectId": "*openapi_types.UUID `json:\"project_id,omitempty\"`",
+    "Urls": "*[]UrlInput `json:\"urls,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "ExtractResponse": {
+    "CrawlJobIds": "*[]string `json:\"crawl_job_ids,omitempty\"`",
+    "Documents": "*[]DocumentSubmission `json:\"documents,omitempty\"`",
+    "JobIds": "*[]string `json:\"job_ids,omitempty\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "ExtractedDocument": {
+    "Annotations": "*[]PdfAnnotation `json:\"annotations,omitempty\"`",
+    "Children": "*[]ArchiveEntry `json:\"children,omitempty\"`",
+    "Chunks": "*[]Chunk `json:\"chunks,omitempty\"`",
+    "CodeIntelligence": "interface{} `json:\"code_intelligence,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "Counts": "*DocumentCounts `json:\"counts,omitempty\"`",
+    "DetectedLanguageConfidences": "*[]LanguageConfidence `json:\"detected_language_confidences,omitempty\"`",
+    "DetectedLanguages": "*[]string `json:\"detected_languages,omitempty\"`",
+    "DjotContent": "*DjotContent `json:\"djot_content,omitempty\"`",
+    "Document": "*DocumentStructure `json:\"document,omitempty\"`",
+    "Elements": "*[]Element `json:\"elements,omitempty\"`",
+    "Entities": "*[]Entity `json:\"entities,omitempty\"`",
+    "ExtractedKeywords": "*[]Keyword `json:\"extracted_keywords,omitempty\"`",
+    "ExtractionConfidence": "*ExtractionConfidence `json:\"extraction_confidence,omitempty\"`",
+    "ExtractionMethod": "*ExtractionMethod `json:\"extraction_method,omitempty\"`",
+    "FormFields": "*[]PdfFormField `json:\"form_fields,omitempty\"`",
+    "Formulas": "*[]Formula `json:\"formulas,omitempty\"`",
+    "Images": "*[]ExtractedImage `json:\"images,omitempty\"`",
+    "LlmUsage": "*[]LlmUsage `json:\"llm_usage,omitempty\"`",
+    "Metadata": "Metadata `json:\"metadata\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "OcrElements": "*[]OcrElement `json:\"ocr_elements,omitempty\"`",
+    "OcrPageFailures": "*[]OcrPageFailure `json:\"ocr_page_failures,omitempty\"`",
+    "PageClassifications": "*[]PageClassification `json:\"page_classifications,omitempty\"`",
+    "Pages": "*[]PageContent `json:\"pages,omitempty\"`",
+    "ProcessingWarnings": "*[]ProcessingWarning `json:\"processing_warnings,omitempty\"`",
+    "QualityScore": "*float64 `json:\"quality_score,omitempty\"`",
+    "RedactionReport": "*RedactionReport `json:\"redaction_report,omitempty\"`",
+    "Revisions": "*[]DocumentRevision `json:\"revisions,omitempty\"`",
+    "StructuredOutput": "interface{} `json:\"structured_output,omitempty\"`",
+    "Summary": "*DocumentSummary `json:\"summary,omitempty\"`",
+    "Tables": "[]Table `json:\"tables\"`",
+    "Translation": "*Translation `json:\"translation,omitempty\"`",
+    "Uris": "*[]ExtractedUri `json:\"uris,omitempty\"`"
+  },
+  "ExtractedImage": {
+    "BitsPerComponent": "*int32 `json:\"bits_per_component,omitempty\"`",
+    "BoundingBox": "*BoundingBox `json:\"bounding_box,omitempty\"`",
+    "Caption": "*string `json:\"caption,omitempty\"`",
+    "ClusterId": "*int32 `json:\"cluster_id,omitempty\"`",
+    "Colorspace": "*string `json:\"colorspace,omitempty\"`",
+    "Data": "[]int `json:\"data\"`",
+    "DataBase64": "*string `json:\"data_base64,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Format": "string `json:\"format\"`",
+    "Height": "*int32 `json:\"height,omitempty\"`",
+    "ImageIndex": "int32 `json:\"image_index\"`",
+    "ImageKind": "*ImageKind `json:\"image_kind,omitempty\"`",
+    "IsMask": "*bool `json:\"is_mask,omitempty\"`",
+    "KindConfidence": "*float32 `json:\"kind_confidence,omitempty\"`",
+    "OcrResult": "*ExtractedDocument `json:\"ocr_result,omitempty\"`",
+    "PageNumber": "*int32 `json:\"page_number,omitempty\"`",
+    "QrCodes": "*[]QrCode `json:\"qr_codes,omitempty\"`",
+    "SourcePath": "*string `json:\"source_path,omitempty\"`",
+    "Width": "*int32 `json:\"width,omitempty\"`"
+  },
+  "ExtractedUri": {
+    "Kind": "UriKind `json:\"kind\"`",
+    "Label": "*string `json:\"label,omitempty\"`",
+    "Page": "*int32 `json:\"page,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "ExtractionConfidence": {
+    "Combined": "float32 `json:\"combined\"`",
+    "OcrAggregate": "*float32 `json:\"ocr_aggregate,omitempty\"`",
+    "SchemaCompliance": "SchemaCompliance `json:\"schema_compliance\"`",
+    "TextCoverage": "float32 `json:\"text_coverage\"`"
+  },
+  "ExtractionConfig": {
+    "CacheNamespace": "*string `json:\"cache_namespace,omitempty\"`",
+    "CacheTtlSecs": "*int64 `json:\"cache_ttl_secs,omitempty\"`",
+    "Chunking": "*ChunkingConfig `json:\"chunking,omitempty\"`",
+    "ContentFilter": "*ContentFilterConfig `json:\"content_filter,omitempty\"`",
+    "DisableOcr": "*bool `json:\"disable_ocr,omitempty\"`",
+    "EnableQualityProcessing": "*bool `json:\"enable_quality_processing,omitempty\"`",
+    "ExtractionTimeoutSecs": "*int64 `json:\"extraction_timeout_secs,omitempty\"`",
+    "ForceOcr": "*bool `json:\"force_ocr,omitempty\"`",
+    "ForceOcrPages": "*[]int32 `json:\"force_ocr_pages,omitempty\"`",
+    "HtmlOptions": "*map[string]interface{} `json:\"html_options,omitempty\"`",
+    "Images": "*ImageExtractionConfig `json:\"images,omitempty\"`",
+    "IncludeDocumentStructure": "*bool `json:\"include_document_structure,omitempty\"`",
+    "Keywords": "*KeywordConfig `json:\"keywords,omitempty\"`",
+    "LanguageDetection": "*LanguageDetectionConfig `json:\"language_detection,omitempty\"`",
+    "Layout": "*LayoutDetectionConfig `json:\"layout,omitempty\"`",
+    "MaxArchiveDepth": "*int32 `json:\"max_archive_depth,omitempty\"`",
+    "MaxConcurrentExtractions": "*int32 `json:\"max_concurrent_extractions,omitempty\"`",
+    "MaxEmbeddedFileBytes": "*int64 `json:\"max_embedded_file_bytes,omitempty\"`",
+    "Ocr": "*OcrConfig `json:\"ocr,omitempty\"`",
+    "OcrStrategy": "*OcrStrategy `json:\"ocr_strategy,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Pages": "*PageConfig `json:\"pages,omitempty\"`",
+    "PdfOptions": "*PdfConfig `json:\"pdf_options,omitempty\"`",
+    "Postprocessor": "*PostProcessorConfig `json:\"postprocessor,omitempty\"`",
+    "ResultFormat": "*string `json:\"result_format,omitempty\"`",
+    "SecurityLimits": "*SecurityLimits `json:\"security_limits,omitempty\"`",
+    "StructuredExtraction": "*StructuredExtractionConfig `json:\"structured_extraction,omitempty\"`",
+    "TokenReduction": "*TokenReductionConfig `json:\"token_reduction,omitempty\"`",
+    "UseCache": "*bool `json:\"use_cache,omitempty\"`"
+  },
+  "ExtractionEventSummary": {
+    "CallMode": "string `json:\"call_mode\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "DominantModel": "*string `json:\"dominant_model,omitempty\"`",
+    "ErrorMessage": "*string `json:\"error_message,omitempty\"`",
+    "FallbackUsed": "*bool `json:\"fallback_used,omitempty\"`",
+    "FinalConfidence": "*float32 `json:\"final_confidence,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "Outcome": "string `json:\"outcome\"`",
+    "PageCount": "int32 `json:\"page_count\"`",
+    "PresetId": "string `json:\"preset_id\"`",
+    "PresetVersion": "string `json:\"preset_version\"`",
+    "TextConfidence": "*float32 `json:\"text_confidence,omitempty\"`",
+    "TotalCostUsdCents": "*int64 `json:\"total_cost_usd_cents,omitempty\"`",
+    "TotalInputTokens": "*int64 `json:\"total_input_tokens,omitempty\"`",
+    "TotalOutputTokens": "*int64 `json:\"total_output_tokens,omitempty\"`",
+    "VisionCallCount": "int32 `json:\"vision_call_count\"`"
+  },
+  "ExtractionJobResponse": {
+    "Cached": "*bool `json:\"cached,omitempty\"`",
+    "ChildJobIds": "*[]string `json:\"child_job_ids,omitempty\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "ImagesExtracted": "*int32 `json:\"images_extracted,omitempty\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "PagesExtracted": "*int32 `json:\"pages_extracted,omitempty\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "JobStatus `json:\"status\"`",
+    "TablesExtracted": "*int32 `json:\"tables_extracted,omitempty\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "ExtractionMethod": {
+    "=": "string"
+  },
+  "ExtractionOptions": {
+    "Context": "*map[string]string `json:\"context,omitempty\"`",
+    "ExtractionConfig": "*map[string]interface{} `json:\"extraction_config,omitempty\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "SavedPresetId": "*string `json:\"saved_preset_id,omitempty\"`",
+    "SplitDocuments": "*bool `json:\"split_documents,omitempty\"`",
+    "TuningProfileId": "*string `json:\"tuning_profile_id,omitempty\"`"
+  },
+  "FictionBookMetadata": {
+    "Annotation": "*string `json:\"annotation,omitempty\"`",
+    "FormatType": "FictionBookMetadataFormatType `json:\"format_type\"`",
+    "Genres": "*[]string `json:\"genres,omitempty\"`",
+    "Sequences": "*[]string `json:\"sequences,omitempty\"`"
+  },
+  "FictionBookMetadataFormatType": {
+    "=": "string"
+  },
+  "FileExtractionConfig": {
+    "Chunking": "*ChunkingConfig `json:\"chunking,omitempty\"`",
+    "ContentFilter": "*ContentFilterConfig `json:\"content_filter,omitempty\"`",
+    "DisableOcr": "*bool `json:\"disable_ocr,omitempty\"`",
+    "EnableQualityProcessing": "*bool `json:\"enable_quality_processing,omitempty\"`",
+    "ExtractionTimeoutSecs": "*int64 `json:\"extraction_timeout_secs,omitempty\"`",
+    "ForceOcr": "*bool `json:\"force_ocr,omitempty\"`",
+    "ForceOcrPages": "*[]int32 `json:\"force_ocr_pages,omitempty\"`",
+    "HtmlOptions": "*map[string]interface{} `json:\"html_options,omitempty\"`",
+    "Images": "*ImageExtractionConfig `json:\"images,omitempty\"`",
+    "IncludeDocumentStructure": "*bool `json:\"include_document_structure,omitempty\"`",
+    "Keywords": "*KeywordConfig `json:\"keywords,omitempty\"`",
+    "LanguageDetection": "*LanguageDetectionConfig `json:\"language_detection,omitempty\"`",
+    "Layout": "*LayoutDetectionConfig `json:\"layout,omitempty\"`",
+    "Ocr": "*OcrConfig `json:\"ocr,omitempty\"`",
+    "OcrStrategy": "*OcrStrategy `json:\"ocr_strategy,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Pages": "*PageConfig `json:\"pages,omitempty\"`",
+    "PdfOptions": "*PdfConfig `json:\"pdf_options,omitempty\"`",
+    "Postprocessor": "*PostProcessorConfig `json:\"postprocessor,omitempty\"`",
+    "ResultFormat": "*string `json:\"result_format,omitempty\"`",
+    "StructuredExtraction": "*StructuredExtractionConfig `json:\"structured_extraction,omitempty\"`",
+    "TokenReduction": "*TokenReductionConfig `json:\"token_reduction,omitempty\"`"
+  },
+  "FileSource": {
+    "Name": "string ",
+    "Reader": "io.Reader "
+  },
+  "Footnote": {
+    "Content": "[]FormattedBlock `json:\"content\"`",
+    "Label": "string `json:\"label\"`"
+  },
+  "FormFieldType": {
+    "=": "string"
+  },
+  "FormatMetadata": {
+    "union": "json.RawMessage "
+  },
+  "FormattedBlock": {
+    "Attributes": "*Attributes `json:\"attributes,omitempty\"`",
+    "BlockType": "BlockType `json:\"block_type\"`",
+    "Children": "*[]FormattedBlock `json:\"children,omitempty\"`",
+    "Code": "*string `json:\"code,omitempty\"`",
+    "InlineContent": "[]InlineElement `json:\"inline_content\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "Level": "*int `json:\"level,omitempty\"`"
+  },
+  "Formula": {
+    "Bbox": "*BoundingBox `json:\"bbox,omitempty\"`",
+    "Latex": "string `json:\"latex\"`",
+    "Page": "*int32 `json:\"page,omitempty\"`"
+  },
+  "GetAnalyticsParams": {
+    "EndDate": "string `form:\"end_date\" json:\"end_date\"`",
+    "StartDate": "string `form:\"start_date\" json:\"start_date\"`"
+  },
+  "GetDiffParams": {
+    "From": "struct{union json.RawMessage} `form:\"from\" json:\"from\"`",
+    "To": "struct{union json.RawMessage} `form:\"to\" json:\"to\"`"
+  },
+  "GetDiffParamsFrom0": {
+    "=": "int32"
+  },
+  "GetDiffParamsFrom1": {
+    "=": "openapi_types.UUID"
+  },
+  "GetDiffParamsTo0": {
+    "=": "int32"
+  },
+  "GetDiffParamsTo1": {
+    "=": "openapi_types.UUID"
+  },
+  "GetJobParams": {
+    "ProjectId": "*openapi_types.UUID `form:\"project_id,omitempty\" json:\"project_id,omitempty\"`"
+  },
+  "GetJobResponse": {
+    "union": "json.RawMessage "
+  },
+  "GetJobResponse0": {
+    "Cached": "*bool `json:\"cached,omitempty\"`",
+    "ChildJobIds": "*[]string `json:\"child_job_ids,omitempty\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "ImagesExtracted": "*int32 `json:\"images_extracted,omitempty\"`",
+    "JobType": "GetJobResponse0JobType `json:\"job_type\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "PagesExtracted": "*int32 `json:\"pages_extracted,omitempty\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "JobStatus `json:\"status\"`",
+    "TablesExtracted": "*int32 `json:\"tables_extracted,omitempty\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "GetJobResponse0JobType": {
+    "=": "string"
+  },
+  "GetJobResponse1": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobType": "GetJobResponse1JobType `json:\"job_type\"`",
+    "Jobs": "*[]CrawlChildJob `json:\"jobs,omitempty\"`",
+    "OutputMode": "string `json:\"output_mode\"`",
+    "Pages": "*[]CrawledPage `json:\"pages,omitempty\"`",
+    "Progress": "CrawlProgress `json:\"progress\"`",
+    "SeedUrls": "[]string `json:\"seed_urls\"`",
+    "Status": "CrawlJobStatus `json:\"status\"`"
+  },
+  "GetJobResponse1JobType": {
+    "=": "string"
+  },
+  "GetUsageParams": {
+    "End": "*openapi_types.Date `form:\"end,omitempty\" json:\"end,omitempty\"`",
+    "Start": "*openapi_types.Date `form:\"start,omitempty\" json:\"start,omitempty\"`"
+  },
+  "GridCell": {
+    "Bbox": "*BoundingBox `json:\"bbox,omitempty\"`",
+    "Col": "int32 `json:\"col\"`",
+    "ColSpan": "*int32 `json:\"col_span,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "HeadingLevel": "*int32 `json:\"heading_level,omitempty\"`",
+    "IsHeader": "*bool `json:\"is_header,omitempty\"`",
+    "Row": "int32 `json:\"row\"`",
+    "RowSpan": "*int32 `json:\"row_span,omitempty\"`",
+    "StyleName": "*string `json:\"style_name,omitempty\"`"
+  },
+  "GroundTruthKind": {
+    "=": "string"
+  },
+  "HeaderMetadata": {
+    "Depth": "int32 `json:\"depth\"`",
+    "HtmlOffset": "int32 `json:\"html_offset\"`",
+    "Id": "*string `json:\"id,omitempty\"`",
+    "Level": "int32 `json:\"level\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "HeadingContext": {
+    "Headings": "[]HeadingLevel `json:\"headings\"`"
+  },
+  "HeadingLevel": {
+    "Level": "int32 `json:\"level\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "HealthResponse": {
+    "AutoTune": "AutoTuneHealth `json:\"auto_tune\"`",
+    "Rag": "struct{Enabled bool} `json:\"rag\"`",
+    "Status": "string `json:\"status\"`",
+    "Tier": "string `json:\"tier\"`"
+  },
+  "HierarchicalBlock": {
+    "Bbox": "*HierarchicalBoundingBox `json:\"bbox,omitempty\"`",
+    "FontSize": "float32 `json:\"font_size\"`",
+    "Level": "string `json:\"level\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "HierarchicalBoundingBox": {
+    "Bottom": "float32 `json:\"bottom\"`",
+    "Left": "float32 `json:\"left\"`",
+    "Right": "float32 `json:\"right\"`",
+    "Top": "float32 `json:\"top\"`"
+  },
+  "HierarchyConfig": {
+    "Enabled": "*bool `json:\"enabled,omitempty\"`",
+    "IncludeBbox": "*bool `json:\"include_bbox,omitempty\"`",
+    "KClusters": "*int32 `json:\"k_clusters,omitempty\"`",
+    "OcrCoverageThreshold": "*float32 `json:\"ocr_coverage_threshold,omitempty\"`"
+  },
+  "HtmlMetadata": {
+    "Author": "*string `json:\"author,omitempty\"`",
+    "BaseHref": "*string `json:\"base_href,omitempty\"`",
+    "CanonicalUrl": "*string `json:\"canonical_url,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "FormatType": "HtmlMetadataFormatType `json:\"format_type\"`",
+    "Headers": "*[]HeaderMetadata `json:\"headers,omitempty\"`",
+    "Images": "*[]ImageMetadataType `json:\"images,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "Links": "*[]LinkMetadata `json:\"links,omitempty\"`",
+    "MetaTags": "*map[string]string `json:\"meta_tags,omitempty\"`",
+    "OpenGraph": "*map[string]string `json:\"open_graph,omitempty\"`",
+    "StructuredData": "*[]StructuredData `json:\"structured_data,omitempty\"`",
+    "TextDirection": "*TextDirection `json:\"text_direction,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`",
+    "TwitterCard": "*map[string]string `json:\"twitter_card,omitempty\"`"
+  },
+  "HtmlMetadataFormatType": {
+    "=": "string"
+  },
+  "ImageDimensions": {
+    "Height": "int `json:\"height\"`",
+    "Width": "int `json:\"width\"`"
+  },
+  "ImageDpi": {
+    "Horizontal": "float32 `json:\"horizontal\"`",
+    "Vertical": "float32 `json:\"vertical\"`"
+  },
+  "ImageExtractionConfig": {
+    "AutoAdjustDpi": "*bool `json:\"auto_adjust_dpi,omitempty\"`",
+    "ExtractImages": "*bool `json:\"extract_images,omitempty\"`",
+    "InjectPlaceholders": "*bool `json:\"inject_placeholders,omitempty\"`",
+    "MaxDpi": "*int32 `json:\"max_dpi,omitempty\"`",
+    "MaxImageDimension": "*int32 `json:\"max_image_dimension,omitempty\"`",
+    "MinDpi": "*int32 `json:\"min_dpi,omitempty\"`",
+    "TargetDpi": "*int32 `json:\"target_dpi,omitempty\"`"
+  },
+  "ImageKind": {
+    "=": "string"
+  },
+  "ImageMetadata": {
+    "Exif": "map[string]string `json:\"exif\"`",
+    "Format": "string `json:\"format\"`",
+    "FormatType": "ImageMetadataFormatType `json:\"format_type\"`",
+    "Height": "int32 `json:\"height\"`",
+    "Width": "int32 `json:\"width\"`"
+  },
+  "ImageMetadataFormatType": {
+    "=": "string"
+  },
+  "ImageMetadataType": {
+    "Alt": "*string `json:\"alt,omitempty\"`",
+    "Attributes": "[]KeyValueAttribute `json:\"attributes\"`",
+    "Dimensions": "*ImageDimensions `json:\"dimensions,omitempty\"`",
+    "ImageType": "ImageType `json:\"image_type\"`",
+    "Src": "string `json:\"src\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "ImagePreprocessingConfig": {
+    "AutoRotate": "*bool `json:\"auto_rotate,omitempty\"`",
+    "BinarizationMethod": "*string `json:\"binarization_method,omitempty\"`",
+    "ContrastEnhance": "*bool `json:\"contrast_enhance,omitempty\"`",
+    "Denoise": "*bool `json:\"denoise,omitempty\"`",
+    "Deskew": "*bool `json:\"deskew,omitempty\"`",
+    "InvertColors": "*bool `json:\"invert_colors,omitempty\"`",
+    "NormalizeShadedRows": "*bool `json:\"normalize_shaded_rows,omitempty\"`",
+    "TargetDpi": "*int32 `json:\"target_dpi,omitempty\"`"
+  },
+  "ImagePreprocessingMetadata": {
+    "AutoAdjusted": "bool `json:\"auto_adjusted\"`",
+    "CalculatedDpi": "*int32 `json:\"calculated_dpi,omitempty\"`",
+    "DimensionClamped": "bool `json:\"dimension_clamped\"`",
+    "FinalDpi": "int32 `json:\"final_dpi\"`",
+    "NewDimensions": "*PixelDimensions `json:\"new_dimensions,omitempty\"`",
+    "OriginalDimensions": "PixelDimensions `json:\"original_dimensions\"`",
+    "OriginalDpi": "ImageDpi `json:\"original_dpi\"`",
+    "ResampleMethod": "string `json:\"resample_method\"`",
+    "ResizeError": "*string `json:\"resize_error,omitempty\"`",
+    "ScaleFactor": "float64 `json:\"scale_factor\"`",
+    "SkippedResize": "bool `json:\"skipped_resize\"`",
+    "TargetDpi": "int32 `json:\"target_dpi\"`"
+  },
+  "ImageType": {
+    "=": "string"
+  },
+  "IncludeMask": {
+    "Content": "*bool `json:\"content,omitempty\"`",
+    "Document": "*bool `json:\"document,omitempty\"`",
+    "ScoreBreakdown": "*bool `json:\"score_breakdown,omitempty\"`"
+  },
+  "InlineElement": {
+    "Attributes": "*Attributes `json:\"attributes,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "ElementType": "InlineType `json:\"element_type\"`",
+    "Metadata": "*map[string]string `json:\"metadata,omitempty\"`"
+  },
+  "InlineType": {
+    "=": "string"
+  },
+  "IntegrationInput": {
+    "IntegrationId": "openapi_types.UUID `json:\"integration_id\"`",
+    "ResourceId": "openapi_types.UUID `json:\"resource_id\"`"
+  },
+  "IntegrationResponse": {
+    "AuthType": "string `json:\"auth_type\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Kind": "string `json:\"kind\"`",
+    "Name": "string `json:\"name\"`",
+    "ProjectId": "*string `json:\"project_id,omitempty\"`",
+    "Provider": "string `json:\"provider\"`"
+  },
+  "IntegrationSyncResponse": {
+    "Enabled": "bool `json:\"enabled\"`",
+    "IntervalSeconds": "int32 `json:\"interval_seconds\"`"
+  },
+  "InvitationResponse": {
+    "CreatedAt": "string `json:\"created_at\"`",
+    "CustomRoleId": "*openapi_types.UUID `json:\"custom_role_id,omitempty\"`",
+    "CustomRoleIds": "*[]openapi_types.UUID `json:\"custom_role_ids,omitempty\"`",
+    "Email": "string `json:\"email\"`",
+    "ExpiresAt": "string `json:\"expires_at\"`",
+    "Id": "string `json:\"id\"`",
+    "Role": "string `json:\"role\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "InviteUserJSONRequestBody": {
+    "=": "CreateInvitationRequest"
+  },
+  "IssueScimTokenFormdataRequestBody": {
+    "=": "ScimTokenRequest"
+  },
+  "JatsMetadata": {
+    "ContributorRoles": "*[]ContributorRole `json:\"contributor_roles,omitempty\"`",
+    "Copyright": "*string `json:\"copyright,omitempty\"`",
+    "FormatType": "JatsMetadataFormatType `json:\"format_type\"`",
+    "HistoryDates": "*map[string]string `json:\"history_dates,omitempty\"`",
+    "License": "*string `json:\"license,omitempty\"`"
+  },
+  "JatsMetadataFormatType": {
+    "=": "string"
+  },
+  "JobResponse": {
+    "=": "ExtractionJobResponse"
+  },
+  "JobResult": {
+    "Cached": "bool `json:\"cached\"`",
+    "ChildJobIds": "*[]string `json:\"child_job_ids,omitempty\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "Errors": "*[]JobResultError `json:\"errors,omitempty\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "Results": "*[]JobResultDocument `json:\"results,omitempty\"`",
+    "Status": "JobStatus `json:\"status\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "JobResultCounts": {
+    "Images": "int32 `json:\"images\"`",
+    "Pages": "int32 `json:\"pages\"`",
+    "Tables": "int32 `json:\"tables\"`"
+  },
+  "JobResultDocument": {
+    "AdditionalProperties": "map[string]interface{} `json:\"-\"`",
+    "Chunks": "*[]interface{} `json:\"chunks,omitempty\"`",
+    "Content": "string `json:\"content\"`",
+    "Counts": "JobResultCounts `json:\"counts\"`",
+    "DetectedLanguages": "*[]string `json:\"detected_languages,omitempty\"`",
+    "ExtractionMethod": "*string `json:\"extraction_method,omitempty\"`",
+    "Metadata": "map[string]interface{} `json:\"metadata\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "ProcessingWarnings": "*[]ProcessingWarning `json:\"processing_warnings,omitempty\"`",
+    "QualityScore": "*float64 `json:\"quality_score,omitempty\"`",
+    "StructuredOutput": "*map[string]interface{} `json:\"structured_output,omitempty\"`",
+    "Tables": "[]interface{} `json:\"tables\"`"
+  },
+  "JobResultError": {
+    "Code": "*int64 `json:\"code,omitempty\"`",
+    "ErrorType": "string `json:\"error_type\"`",
+    "Index": "*int64 `json:\"index,omitempty\"`",
+    "Message": "string `json:\"message\"`",
+    "Source": "*string `json:\"source,omitempty\"`"
+  },
+  "JobStatus": {
+    "=": "string"
+  },
+  "JobSummary": {
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobType": "JobSummaryType `json:\"job_type\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "JobStatus `json:\"status\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "JobSummaryType": {
+    "=": "string"
+  },
+  "KeyValueAttribute": {
+    "Key": "string `json:\"key\"`",
+    "Value": "string `json:\"value\"`"
+  },
+  "Keyword": {
+    "Algorithm": "KeywordAlgorithm `json:\"algorithm\"`",
+    "Positions": "*[]int `json:\"positions,omitempty\"`",
+    "Score": "float32 `json:\"score\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "KeywordAlgorithm": {
+    "=": "string"
+  },
+  "KeywordConfig": {
+    "Algorithm": "*KeywordAlgorithm `json:\"algorithm,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "MaxKeywords": "*int `json:\"max_keywords,omitempty\"`",
+    "MinScore": "*float32 `json:\"min_score,omitempty\"`",
+    "NgramRange": "*NgramRange `json:\"ngram_range,omitempty\"`",
+    "RakeParams": "*RakeParams `json:\"rake_params,omitempty\"`",
+    "YakeParams": "*YakeParams `json:\"yake_params,omitempty\"`"
+  },
+  "LanguageConfidence": {
+    "Confidence": "float64 `json:\"confidence\"`",
+    "Language": "string `json:\"language\"`",
+    "Proportion": "float64 `json:\"proportion\"`",
+    "Reliable": "bool `json:\"reliable\"`",
+    "Script": "string `json:\"script\"`"
+  },
+  "LanguageDetectionConfig": {
+    "DetectMultiple": "*bool `json:\"detect_multiple,omitempty\"`",
+    "Enabled": "*bool `json:\"enabled,omitempty\"`",
+    "MinConfidence": "*float64 `json:\"min_confidence,omitempty\"`"
+  },
+  "LatencyBreakdown": {
+    "RerankMs": "*int64 `json:\"rerank_ms,omitempty\"`",
+    "RetrieveMs": "int64 `json:\"retrieve_ms\"`",
+    "TotalMs": "int64 `json:\"total_ms\"`"
+  },
+  "LatestDocumentResponse": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "DocumentId": "openapi_types.UUID `json:\"document_id\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "Status": "string `json:\"status\"`",
+    "VersionSequence": "int32 `json:\"version_sequence\"`"
+  },
+  "LayoutDetectionConfig": {
+    "ApplyHeuristics": "*bool `json:\"apply_heuristics,omitempty\"`",
+    "ConfidenceThreshold": "*float32 `json:\"confidence_threshold,omitempty\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "TableModel": "*string `json:\"table_model,omitempty\"`",
+    "TableOverlapPreference": "*string `json:\"table_overlap_preference,omitempty\"`"
+  },
+  "LayoutRegion": {
+    "AreaFraction": "float64 `json:\"area_fraction\"`",
+    "BoundingBox": "BoundingBox `json:\"bounding_box\"`",
+    "ClassName": "string `json:\"class_name\"`",
+    "Confidence": "float64 `json:\"confidence\"`"
+  },
+  "LeaderboardEntry": {
+    "Breakdown": "map[string]interface{} `json:\"breakdown\"`",
+    "Config": "map[string]interface{} `json:\"config\"`",
+    "PrimaryScore": "float64 `json:\"primary_score\"`",
+    "TiedWithWinner": "bool `json:\"tied_with_winner\"`",
+    "Variance": "float64 `json:\"variance\"`"
+  },
+  "LicenseHealth": {
+    "State": "string `json:\"state\"`"
+  },
+  "LicenseInfoResponse": {
+    "DaysRemaining": "*int64 `json:\"days_remaining,omitempty\"`",
+    "ExpiresAt": "*string `json:\"expires_at,omitempty\"`",
+    "GraceDays": "*int32 `json:\"grace_days,omitempty\"`",
+    "LicenseId": "*string `json:\"license_id,omitempty\"`",
+    "Licensee": "*string `json:\"licensee,omitempty\"`",
+    "Plan": "*string `json:\"plan,omitempty\"`",
+    "State": "string `json:\"state\"`"
+  },
+  "LinkMetadata": {
+    "Attributes": "[]KeyValueAttribute `json:\"attributes\"`",
+    "Href": "string `json:\"href\"`",
+    "LinkType": "LinkType `json:\"link_type\"`",
+    "Rel": "[]string `json:\"rel\"`",
+    "Text": "string `json:\"text\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "LinkType": {
+    "=": "string"
+  },
+  "ListApiKeysParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListApiKeysResponse": {
+    "ApiKeys": "[]ApiKeyResponse `json:\"api_keys\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListAuditEntriesParams": {
+    "Action": "*ListAuditEntriesParamsAction `form:\"action,omitempty\" json:\"action,omitempty\"`",
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListAuditEntriesParamsAction": {
+    "=": "string"
+  },
+  "ListAuditEntriesResponse": {
+    "Entries": "[]AuditEntry `json:\"entries\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListAutoTuneJobsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListAutoTuneJobsResponse": {
+    "Jobs": "[]AutoTuneJobSummary `json:\"jobs\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListCollectionsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListCollectionsResponse": {
+    "Collections": "[]CollectionResponse `json:\"collections\"`",
+    "Limit": "int32 `json:\"limit\"`",
+    "Offset": "int32 `json:\"offset\"`",
+    "Total": "int32 `json:\"total\"`"
+  },
+  "ListDocumentsQuery": {
+    "FolderId": "*string `json:\"folder_id,omitempty\"`",
+    "Limit": "*int64 `json:\"limit,omitempty\"`",
+    "MimeTypes": "*string `json:\"mime_types,omitempty\"`",
+    "Offset": "*int64 `json:\"offset,omitempty\"`"
+  },
+  "ListDocumentsResponse": {
+    "Documents": "[]DocumentResponse `json:\"documents\"`"
+  },
+  "ListExtractionEventsParams": {
+    "Days": "*int64 `form:\"days,omitempty\" json:\"days,omitempty\"`",
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListExtractionEventsResponse": {
+    "Events": "[]ExtractionEventSummary `json:\"events\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Page": "int64 `json:\"page\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListIntegrationDocumentsParams": {
+    "FolderId": "*string `form:\"folder_id,omitempty\" json:\"folder_id,omitempty\"`",
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "MimeTypes": "*string `form:\"mime_types,omitempty\" json:\"mime_types,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListIntegrationsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListIntegrationsResponse": {
+    "Integrations": "[]IntegrationResponse `json:\"integrations\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListInvitationsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListInvitationsResponse": {
+    "Invitations": "[]InvitationResponse `json:\"invitations\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListJobsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`",
+    "ProjectId": "*openapi_types.UUID `form:\"project_id,omitempty\" json:\"project_id,omitempty\"`"
+  },
+  "ListJobsResponse": {
+    "Jobs": "[]JobSummary `json:\"jobs\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListManagedEmbeddingPresetsResponse": {
+    "Presets": "[]ManagedEmbeddingPreset `json:\"presets\"`"
+  },
+  "ListMembersParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListMembersResponse": {
+    "Limit": "int64 `json:\"limit\"`",
+    "Members": "[]MemberResponse `json:\"members\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListProjectAuditParams": {
+    "Action": "*string `form:\"action,omitempty\" json:\"action,omitempty\"`",
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListProjectRolesParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListProjectRolesResponse": {
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Roles": "[]ProjectRoleResponse `json:\"roles\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListProjectsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListProjectsResponse": {
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Projects": "[]ProjectResponse `json:\"projects\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListSavedPresetsParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListSavedPresetsResponse": {
+    "Limit": "int64 `json:\"limit\"`",
+    "Page": "int64 `json:\"page\"`",
+    "Presets": "[]SavedPresetSummary `json:\"presets\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListScimAdminGroupsResponse": {
+    "Groups": "[]ScimAdminGroupResponse `json:\"groups\"`"
+  },
+  "ListScimConnectionsResponse": {
+    "Connections": "[]ScimConnectionResponse `json:\"connections\"`"
+  },
+  "ListScimGroupsParams": {
+    "Count": "*int64 `form:\"count,omitempty\" json:\"count,omitempty\"`",
+    "Filter": "*string `form:\"filter,omitempty\" json:\"filter,omitempty\"`",
+    "StartIndex": "*int64 `form:\"startIndex,omitempty\" json:\"startIndex,omitempty\"`"
+  },
+  "ListScimUsersParams": {
+    "Count": "*int64 `form:\"count,omitempty\" json:\"count,omitempty\"`",
+    "Filter": "*string `form:\"filter,omitempty\" json:\"filter,omitempty\"`",
+    "StartIndex": "*int64 `form:\"startIndex,omitempty\" json:\"startIndex,omitempty\"`"
+  },
+  "ListTuningProfilesParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListTuningProfilesResponse": {
+    "Profiles": "[]TuningProfileSummary `json:\"profiles\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListVersionsParams": {
+    "Limit": "*int32 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int32 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListVersionsQuery": {
+    "Limit": "*int32 `json:\"limit,omitempty\"`",
+    "Offset": "*int32 `json:\"offset,omitempty\"`"
+  },
+  "ListWebhookDeliveriesParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListWebhookDeliveriesResponse": {
+    "Deliveries": "[]WebhookDeliveryResponse `json:\"deliveries\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ListWebhooksParams": {
+    "Limit": "*int64 `form:\"limit,omitempty\" json:\"limit,omitempty\"`",
+    "Offset": "*int64 `form:\"offset,omitempty\" json:\"offset,omitempty\"`"
+  },
+  "ListWebhooksResponse": {
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`",
+    "Webhooks": "[]WebhookResponse `json:\"webhooks\"`"
+  },
+  "LlmConfig": {
+    "ApiKey": "string `json:\"api_key\"`",
+    "BaseUrl": "*string `json:\"base_url,omitempty\"`",
+    "MaxRetries": "*int32 `json:\"max_retries,omitempty\"`",
+    "MaxTokens": "*int64 `json:\"max_tokens,omitempty\"`",
+    "Model": "string `json:\"model\"`",
+    "Temperature": "*float64 `json:\"temperature,omitempty\"`",
+    "TimeoutSecs": "*int64 `json:\"timeout_secs,omitempty\"`",
+    "UseManaged": "*bool `json:\"use_managed,omitempty\"`"
+  },
+  "LlmUsage": {
+    "EstimatedCost": "*float64 `json:\"estimated_cost,omitempty\"`",
+    "FinishReason": "*string `json:\"finish_reason,omitempty\"`",
+    "InputTokens": "*int64 `json:\"input_tokens,omitempty\"`",
+    "Model": "string `json:\"model\"`",
+    "OutputTokens": "*int64 `json:\"output_tokens,omitempty\"`",
+    "Source": "string `json:\"source\"`",
+    "TotalTokens": "*int64 `json:\"total_tokens,omitempty\"`"
+  },
+  "LocalIdentity": {
+    "DefaultProjectId": "openapi_types.UUID `json:\"default_project_id\"`",
+    "Email": "*string `json:\"email,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "ProjectName": "string `json:\"project_name\"`",
+    "Role": "string `json:\"role\"`",
+    "UserId": "string `json:\"user_id\"`"
+  },
+  "LoginJSONRequestBody": {
+    "=": "LoginRequest"
+  },
+  "LoginRequest": {
+    "IdToken": "string `json:\"id_token\"`"
+  },
+  "LoginResponse": {
+    "PendingInvitations": "int32 `json:\"pending_invitations\"`",
+    "Project": "*ProjectInfo `json:\"project,omitempty\"`",
+    "Token": "string `json:\"token\"`",
+    "User": "UserInfo `json:\"user\"`"
+  },
+  "ManagedEmbeddingPreset": {
+    "Description": "string `json:\"description\"`",
+    "EmbeddingDim": "int32 `json:\"embedding_dim\"`",
+    "EmbeddingSource": "string `json:\"embedding_source\"`",
+    "IsDefault": "bool `json:\"is_default\"`",
+    "Name": "string `json:\"name\"`"
+  },
+  "MarkdownCodeBlock": {
+    "Code": "string `json:\"code\"`",
+    "Language": "string `json:\"language\"`"
+  },
+  "MarkdownLink": {
+    "Text": "string `json:\"text\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "MemberResponse": {
+    "CreatedAt": "string `json:\"created_at\"`",
+    "CustomRoleId": "*openapi_types.UUID `json:\"custom_role_id,omitempty\"`",
+    "CustomRoleIds": "*[]openapi_types.UUID `json:\"custom_role_ids,omitempty\"`",
+    "DisplayName": "*string `json:\"display_name,omitempty\"`",
+    "Email": "*string `json:\"email,omitempty\"`",
+    "Id": "string `json:\"id\"`",
+    "ProvisioningSource": "string `json:\"provisioning_source\"`",
+    "Role": "string `json:\"role\"`",
+    "UserId": "string `json:\"user_id\"`"
+  },
+  "Metadata": {
+    "AbstractText": "*string `json:\"abstract_text,omitempty\"`",
+    "Additional": "*map[string]interface{} `json:\"additional,omitempty\"`",
+    "Authors": "*[]string `json:\"authors,omitempty\"`",
+    "Category": "*string `json:\"category,omitempty\"`",
+    "CreatedAt": "*string `json:\"created_at,omitempty\"`",
+    "CreatedBy": "*string `json:\"created_by,omitempty\"`",
+    "DocumentVersion": "*string `json:\"document_version,omitempty\"`",
+    "Error": "*ErrorMetadata `json:\"error,omitempty\"`",
+    "ExtractionDurationMs": "*int64 `json:\"extraction_duration_ms,omitempty\"`",
+    "Format": "*FormatMetadata `json:\"format,omitempty\"`",
+    "ImagePreprocessing": "*ImagePreprocessingMetadata `json:\"image_preprocessing,omitempty\"`",
+    "JsonSchema": "interface{} `json:\"json_schema,omitempty\"`",
+    "Keywords": "*[]string `json:\"keywords,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "ModifiedAt": "*string `json:\"modified_at,omitempty\"`",
+    "ModifiedBy": "*string `json:\"modified_by,omitempty\"`",
+    "OcrUsed": "*bool `json:\"ocr_used,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Pages": "*PageStructure `json:\"pages,omitempty\"`",
+    "Subject": "*string `json:\"subject,omitempty\"`",
+    "Tags": "*[]string `json:\"tags,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "MigrateEmbeddingsJSONRequestBody": {
+    "=": "MigrateEmbeddingsRequest"
+  },
+  "MigrateEmbeddingsRequest": {
+    "TargetEmbeddingSource": "string `json:\"target_embedding_source\"`",
+    "TargetEmbeddingVersion": "int32 `json:\"target_embedding_version\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "MigrateEmbeddingsResponse": {
+    "CollectionId": "openapi_types.UUID `json:\"collection_id\"`",
+    "FromSource": "string `json:\"from_source\"`",
+    "FromVersion": "int32 `json:\"from_version\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "Poll": "string `json:\"poll\"`",
+    "Status": "MigrateStatus `json:\"status\"`",
+    "ToSource": "string `json:\"to_source\"`",
+    "ToVersion": "int32 `json:\"to_version\"`"
+  },
+  "MigrateProgress": {
+    "CurrentPhase": "string `json:\"current_phase\"`",
+    "DocumentsDualWritten": "int64 `json:\"documents_dual_written\"`",
+    "DocumentsTotal": "int64 `json:\"documents_total\"`"
+  },
+  "MigrateStatus": {
+    "=": "string"
+  },
+  "MigrateStatusResponse": {
+    "Error": "*string `json:\"error,omitempty\"`",
+    "ErrorCode": "*string `json:\"error_code,omitempty\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "Progress": "*MigrateProgress `json:\"progress,omitempty\"`",
+    "Status": "MigrateStatus `json:\"status\"`"
+  },
+  "MimeTypeUsage": {
+    "Documents": "int32 `json:\"documents\"`",
+    "Failed": "int32 `json:\"failed\"`",
+    "Pages": "int64 `json:\"pages\"`"
+  },
+  "MultiVectorEmbedding": {
+    "Data": "[]float32 `json:\"data\"`",
+    "Dim": "int32 `json:\"dim\"`",
+    "NumTokens": "int32 `json:\"num_tokens\"`"
+  },
+  "NgramRange": {
+    "Max": "int `json:\"max\"`",
+    "Min": "int `json:\"min\"`"
+  },
+  "NodeContent": {
+    "union": "json.RawMessage "
+  },
+  "NodeContent0": {
+    "NodeType": "NodeContent0NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent0NodeType": {
+    "=": "string"
+  },
+  "NodeContent1": {
+    "Level": "int32 `json:\"level\"`",
+    "NodeType": "NodeContent1NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent10": {
+    "NodeType": "NodeContent10NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent10NodeType": {
+    "=": "string"
+  },
+  "NodeContent11": {
+    "NodeType": "NodeContent11NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent11NodeType": {
+    "=": "string"
+  },
+  "NodeContent12": {
+    "HeadingLevel": "*int32 `json:\"heading_level,omitempty\"`",
+    "HeadingText": "*string `json:\"heading_text,omitempty\"`",
+    "Label": "*string `json:\"label,omitempty\"`",
+    "NodeType": "NodeContent12NodeType `json:\"node_type\"`"
+  },
+  "NodeContent12NodeType": {
+    "=": "string"
+  },
+  "NodeContent13": {
+    "NodeType": "NodeContent13NodeType `json:\"node_type\"`"
+  },
+  "NodeContent13NodeType": {
+    "=": "string"
+  },
+  "NodeContent14": {
+    "NodeType": "NodeContent14NodeType `json:\"node_type\"`",
+    "Number": "int32 `json:\"number\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "NodeContent14NodeType": {
+    "=": "string"
+  },
+  "NodeContent15": {
+    "NodeType": "NodeContent15NodeType `json:\"node_type\"`"
+  },
+  "NodeContent15NodeType": {
+    "=": "string"
+  },
+  "NodeContent16": {
+    "Definition": "string `json:\"definition\"`",
+    "NodeType": "NodeContent16NodeType `json:\"node_type\"`",
+    "Term": "string `json:\"term\"`"
+  },
+  "NodeContent16NodeType": {
+    "=": "string"
+  },
+  "NodeContent17": {
+    "Key": "string `json:\"key\"`",
+    "NodeType": "NodeContent17NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent17NodeType": {
+    "=": "string"
+  },
+  "NodeContent18": {
+    "Kind": "string `json:\"kind\"`",
+    "NodeType": "NodeContent18NodeType `json:\"node_type\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "NodeContent18NodeType": {
+    "=": "string"
+  },
+  "NodeContent19": {
+    "Content": "string `json:\"content\"`",
+    "Format": "string `json:\"format\"`",
+    "NodeType": "NodeContent19NodeType `json:\"node_type\"`"
+  },
+  "NodeContent19NodeType": {
+    "=": "string"
+  },
+  "NodeContent1NodeType": {
+    "=": "string"
+  },
+  "NodeContent2": {
+    "NodeType": "NodeContent2NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent20": {
+    "Entries": "[]KeyValueAttribute `json:\"entries\"`",
+    "NodeType": "NodeContent20NodeType `json:\"node_type\"`"
+  },
+  "NodeContent20NodeType": {
+    "=": "string"
+  },
+  "NodeContent2NodeType": {
+    "=": "string"
+  },
+  "NodeContent3": {
+    "NodeType": "NodeContent3NodeType `json:\"node_type\"`",
+    "Ordered": "bool `json:\"ordered\"`"
+  },
+  "NodeContent3NodeType": {
+    "=": "string"
+  },
+  "NodeContent4": {
+    "NodeType": "NodeContent4NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent4NodeType": {
+    "=": "string"
+  },
+  "NodeContent5": {
+    "Grid": "TableGrid `json:\"grid\"`",
+    "NodeType": "NodeContent5NodeType `json:\"node_type\"`"
+  },
+  "NodeContent5NodeType": {
+    "=": "string"
+  },
+  "NodeContent6": {
+    "Description": "*string `json:\"description,omitempty\"`",
+    "ImageIndex": "*int32 `json:\"image_index,omitempty\"`",
+    "NodeType": "NodeContent6NodeType `json:\"node_type\"`",
+    "Src": "*string `json:\"src,omitempty\"`"
+  },
+  "NodeContent6NodeType": {
+    "=": "string"
+  },
+  "NodeContent7": {
+    "Language": "*string `json:\"language,omitempty\"`",
+    "NodeType": "NodeContent7NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent7NodeType": {
+    "=": "string"
+  },
+  "NodeContent8": {
+    "NodeType": "NodeContent8NodeType `json:\"node_type\"`"
+  },
+  "NodeContent8NodeType": {
+    "=": "string"
+  },
+  "NodeContent9": {
+    "NodeType": "NodeContent9NodeType `json:\"node_type\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "NodeContent9NodeType": {
+    "=": "string"
+  },
+  "NodeIndex": {
+    "=": "int32"
+  },
+  "NotFoundError": {
+    "embed:XbergError": "XbergError "
+  },
+  "OAuthErrorBody": {
+    "Error": "string `json:\"error\"`",
+    "ErrorDescription": "string `json:\"error_description\"`"
+  },
+  "OauthCallbackParams": {
+    "Code": "*string `form:\"code,omitempty\" json:\"code,omitempty\"`",
+    "Error": "*string `form:\"error,omitempty\" json:\"error,omitempty\"`",
+    "State": "*string `form:\"state,omitempty\" json:\"state,omitempty\"`"
+  },
+  "OcrBackendCapabilityInfo": {
+    "Cost": "OcrBackendCostKind `json:\"cost\"`",
+    "InDefaultLadder": "bool `json:\"in_default_ladder\"`",
+    "Name": "string `json:\"name\"`",
+    "SupportedLanguages": "*[]string `json:\"supported_languages,omitempty\"`",
+    "SupportedLanguagesExhaustive": "*bool `json:\"supported_languages_exhaustive,omitempty\"`"
+  },
+  "OcrBackendCostKind": {
+    "=": "string"
+  },
+  "OcrBoundingGeometry": {
+    "union": "json.RawMessage "
+  },
+  "OcrBoundingGeometry0": {
+    "Height": "int32 `json:\"height\"`",
+    "Left": "int32 `json:\"left\"`",
+    "Top": "int32 `json:\"top\"`",
+    "Type": "OcrBoundingGeometry0Type `json:\"type\"`",
+    "Width": "int32 `json:\"width\"`"
+  },
+  "OcrBoundingGeometry0Type": {
+    "=": "string"
+  },
+  "OcrBoundingGeometry1": {
+    "Points": "[]OcrPoint `json:\"points\"`",
+    "Type": "OcrBoundingGeometry1Type `json:\"type\"`"
+  },
+  "OcrBoundingGeometry1Type": {
+    "=": "string"
+  },
+  "OcrConfidence": {
+    "Detection": "*float64 `json:\"detection,omitempty\"`",
+    "Recognition": "float64 `json:\"recognition\"`"
+  },
+  "OcrConfig": {
+    "AutoRotate": "*bool `json:\"auto_rotate,omitempty\"`",
+    "Backend": "*string `json:\"backend,omitempty\"`",
+    "BackendOptions": "*map[string]interface{} `json:\"backend_options,omitempty\"`",
+    "ElementConfig": "*OcrElementConfig `json:\"element_config,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "PaddleOcrSettings": "*map[string]interface{} `json:\"paddle_ocr_settings,omitempty\"`",
+    "Pipeline": "*OcrPipelineConfig `json:\"pipeline,omitempty\"`",
+    "Psm": "*int32 `json:\"psm,omitempty\"`",
+    "QualityThresholds": "*OcrQualityThresholds `json:\"quality_thresholds,omitempty\"`",
+    "TesseractConfig": "*TesseractConfig `json:\"tesseract_config,omitempty\"`",
+    "VlmConfig": "*map[string]interface{} `json:\"vlm_config,omitempty\"`",
+    "VlmFallback": "*VlmFallbackPolicy `json:\"vlm_fallback,omitempty\"`",
+    "VlmPrompt": "*string `json:\"vlm_prompt,omitempty\"`"
+  },
+  "OcrElement": {
+    "BackendMetadata": "*map[string]interface{} `json:\"backend_metadata,omitempty\"`",
+    "Confidence": "OcrConfidence `json:\"confidence\"`",
+    "Geometry": "OcrBoundingGeometry `json:\"geometry\"`",
+    "Level": "*OcrElementLevel `json:\"level,omitempty\"`",
+    "PageNumber": "*int32 `json:\"page_number,omitempty\"`",
+    "ParentId": "*string `json:\"parent_id,omitempty\"`",
+    "Rotation": "*OcrRotation `json:\"rotation,omitempty\"`",
+    "Text": "string `json:\"text\"`"
+  },
+  "OcrElementConfig": {
+    "BuildHierarchy": "*bool `json:\"build_hierarchy,omitempty\"`",
+    "IncludeElements": "*bool `json:\"include_elements,omitempty\"`",
+    "MinConfidence": "*float64 `json:\"min_confidence,omitempty\"`",
+    "MinLevel": "*string `json:\"min_level,omitempty\"`"
+  },
+  "OcrElementLevel": {
+    "=": "string"
+  },
+  "OcrMetadata": {
+    "FormatType": "OcrMetadataFormatType `json:\"format_type\"`",
+    "Language": "string `json:\"language\"`",
+    "OutputFormat": "string `json:\"output_format\"`",
+    "Psm": "int32 `json:\"psm\"`",
+    "TableCols": "*int32 `json:\"table_cols,omitempty\"`",
+    "TableCount": "int32 `json:\"table_count\"`",
+    "TableRows": "*int32 `json:\"table_rows,omitempty\"`"
+  },
+  "OcrMetadataFormatType": {
+    "=": "string"
+  },
+  "OcrPageFailure": {
+    "Error": "string `json:\"error\"`",
+    "Page": "int32 `json:\"page\"`",
+    "Recovered": "bool `json:\"recovered\"`"
+  },
+  "OcrPipelineConfig": {
+    "QualityThresholds": "*OcrQualityThresholds `json:\"quality_thresholds,omitempty\"`",
+    "Stages": "*[]OcrPipelineStage `json:\"stages,omitempty\"`"
+  },
+  "OcrPipelineStage": {
+    "Backend": "string `json:\"backend\"`",
+    "BackendOptions": "*map[string]interface{} `json:\"backend_options,omitempty\"`",
+    "Language": "*string `json:\"language,omitempty\"`",
+    "Priority": "*int32 `json:\"priority,omitempty\"`",
+    "TesseractConfig": "*TesseractConfig `json:\"tesseract_config,omitempty\"`",
+    "VlmConfig": "*map[string]interface{} `json:\"vlm_config,omitempty\"`"
+  },
+  "OcrPoint": {
+    "X": "int `json:\"x\"`",
+    "Y": "int `json:\"y\"`"
+  },
+  "OcrQualityThresholds": {
+    "AlnumWsRatioThreshold": "*float64 `json:\"alnum_ws_ratio_threshold,omitempty\"`",
+    "CriticalFragmentedWordRatio": "*float64 `json:\"critical_fragmented_word_ratio,omitempty\"`",
+    "MaxFragmentedWordRatio": "*float64 `json:\"max_fragmented_word_ratio,omitempty\"`",
+    "MinAlnumRatio": "*float64 `json:\"min_alnum_ratio,omitempty\"`",
+    "MinAvgWordLength": "*float64 `json:\"min_avg_word_length,omitempty\"`",
+    "MinConsecutiveRepeatRatio": "*float64 `json:\"min_consecutive_repeat_ratio,omitempty\"`",
+    "MinGarbageChars": "*int64 `json:\"min_garbage_chars,omitempty\"`",
+    "MinMeaningfulWordLen": "*int64 `json:\"min_meaningful_word_len,omitempty\"`",
+    "MinMeaningfulWords": "*int64 `json:\"min_meaningful_words,omitempty\"`",
+    "MinNonWhitespacePerPage": "*float64 `json:\"min_non_whitespace_per_page,omitempty\"`",
+    "MinTotalNonWhitespace": "*int64 `json:\"min_total_non_whitespace,omitempty\"`",
+    "MinWordsForAvgLengthCheck": "*int64 `json:\"min_words_for_avg_length_check,omitempty\"`",
+    "MinWordsForRepeatCheck": "*int64 `json:\"min_words_for_repeat_check,omitempty\"`",
+    "NonTextMinChars": "*int64 `json:\"non_text_min_chars,omitempty\"`",
+    "PipelineMinQuality": "*float64 `json:\"pipeline_min_quality,omitempty\"`",
+    "SubstantiveMinChars": "*int64 `json:\"substantive_min_chars,omitempty\"`"
+  },
+  "OcrRotation": {
+    "AngleDegrees": "float64 `json:\"angle_degrees\"`",
+    "Confidence": "*float64 `json:\"confidence,omitempty\"`"
+  },
+  "OcrStrategy": {
+    "union": "json.RawMessage "
+  },
+  "OcrStrategy0": {
+    "Mode": "OcrStrategy0Mode `json:\"mode\"`"
+  },
+  "OcrStrategy0Mode": {
+    "=": "string"
+  },
+  "OcrStrategy1": {
+    "MinConfidence": "float64 `json:\"min_confidence\"`",
+    "Mode": "OcrStrategy1Mode `json:\"mode\"`"
+  },
+  "OcrStrategy1Mode": {
+    "=": "string"
+  },
+  "OidcInfo": {
+    "Enabled": "bool `json:\"enabled\"`",
+    "Issuer": "*string `json:\"issuer,omitempty\"`",
+    "Provider": "*string `json:\"provider,omitempty\"`"
+  },
+  "Option": {
+    "=": "func(*clientConfig)"
+  },
+  "PageBoundary": {
+    "ByteEnd": "int `json:\"byte_end\"`",
+    "ByteStart": "int `json:\"byte_start\"`",
+    "PageNumber": "int32 `json:\"page_number\"`"
+  },
+  "PageClassification": {
+    "Labels": "[]ClassificationLabel `json:\"labels\"`",
+    "PageNumber": "int32 `json:\"page_number\"`"
+  },
+  "PageConfig": {
+    "ExtractPages": "*bool `json:\"extract_pages,omitempty\"`",
+    "InsertPageMarkers": "*bool `json:\"insert_page_markers,omitempty\"`",
+    "KeepNativeContent": "*bool `json:\"keep_native_content,omitempty\"`",
+    "MarkerFormat": "*string `json:\"marker_format,omitempty\"`"
+  },
+  "PageContent": {
+    "Content": "string `json:\"content\"`",
+    "Hierarchy": "*PageHierarchy `json:\"hierarchy,omitempty\"`",
+    "ImageIndices": "*[]int32 `json:\"image_indices,omitempty\"`",
+    "ImagePreprocessing": "*ImagePreprocessingMetadata `json:\"image_preprocessing,omitempty\"`",
+    "IsBlank": "*bool `json:\"is_blank,omitempty\"`",
+    "LayoutRegions": "*[]LayoutRegion `json:\"layout_regions,omitempty\"`",
+    "NativeContent": "*string `json:\"native_content,omitempty\"`",
+    "OcrConfidence": "*PageOcrConfidence `json:\"ocr_confidence,omitempty\"`",
+    "PageNumber": "int32 `json:\"page_number\"`",
+    "SectionName": "*string `json:\"section_name,omitempty\"`",
+    "SheetName": "*string `json:\"sheet_name,omitempty\"`",
+    "SpeakerNotes": "*string `json:\"speaker_notes,omitempty\"`",
+    "Tables": "*[]Table `json:\"tables,omitempty\"`"
+  },
+  "PageDimensions": {
+    "Height": "float32 `json:\"height\"`",
+    "Width": "float32 `json:\"width\"`"
+  },
+  "PageHierarchy": {
+    "BlockCount": "int32 `json:\"block_count\"`",
+    "Blocks": "*[]HierarchicalBlock `json:\"blocks,omitempty\"`"
+  },
+  "PageInfo": {
+    "Dimensions": "*PageDimensions `json:\"dimensions,omitempty\"`",
+    "HasVectorGraphics": "*bool `json:\"has_vector_graphics,omitempty\"`",
+    "Hidden": "*bool `json:\"hidden,omitempty\"`",
+    "ImageCount": "*int32 `json:\"image_count,omitempty\"`",
+    "IsBlank": "*bool `json:\"is_blank,omitempty\"`",
+    "Number": "int32 `json:\"number\"`",
+    "TableCount": "*int32 `json:\"table_count,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "PageOcrConfidence": {
+    "Backend": "string `json:\"backend\"`",
+    "Score": "*float64 `json:\"score,omitempty\"`",
+    "WordCount": "int32 `json:\"word_count\"`"
+  },
+  "PageSpan": {
+    "Bbox": "*BoundingBox `json:\"bbox,omitempty\"`",
+    "Page": "int32 `json:\"page\"`"
+  },
+  "PageStructure": {
+    "Boundaries": "*[]PageBoundary `json:\"boundaries,omitempty\"`",
+    "Pages": "*[]PageInfo `json:\"pages,omitempty\"`",
+    "TotalCount": "int32 `json:\"total_count\"`",
+    "UnitType": "PageUnitType `json:\"unit_type\"`"
+  },
+  "PageUnitType": {
+    "=": "string"
+  },
+  "PatchScimGroupApplicationScimPlusJSONRequestBody": {
+    "=": "ScimPatchRequest"
+  },
+  "PatchScimUserApplicationScimPlusJSONRequestBody": {
+    "=": "ScimPatchRequest"
+  },
+  "PdfAnnotation": {
+    "AnnotationType": "PdfAnnotationType `json:\"annotation_type\"`",
+    "Author": "*string `json:\"author,omitempty\"`",
+    "BoundingBox": "*BoundingBox `json:\"bounding_box,omitempty\"`",
+    "Color": "*string `json:\"color,omitempty\"`",
+    "Content": "*string `json:\"content,omitempty\"`",
+    "MarkedText": "*string `json:\"marked_text,omitempty\"`",
+    "Modified": "*string `json:\"modified,omitempty\"`",
+    "PageNumber": "int32 `json:\"page_number\"`",
+    "QuadPoints": "*[]BoundingBox `json:\"quad_points,omitempty\"`",
+    "Subject": "*string `json:\"subject,omitempty\"`"
+  },
+  "PdfAnnotationType": {
+    "=": "string"
+  },
+  "PdfConfig": {
+    "BottomMarginFraction": "*float32 `json:\"bottom_margin_fraction,omitempty\"`",
+    "ExtractAnnotations": "*bool `json:\"extract_annotations,omitempty\"`",
+    "ExtractImages": "*bool `json:\"extract_images,omitempty\"`",
+    "ExtractMetadata": "*bool `json:\"extract_metadata,omitempty\"`",
+    "ExtractTables": "*bool `json:\"extract_tables,omitempty\"`",
+    "Hierarchy": "*HierarchyConfig `json:\"hierarchy,omitempty\"`",
+    "Passwords": "*[]string `json:\"passwords,omitempty\"`",
+    "TopMarginFraction": "*float32 `json:\"top_margin_fraction,omitempty\"`"
+  },
+  "PdfFormField": {
+    "Bbox": "*BoundingBox `json:\"bbox,omitempty\"`",
+    "DefaultValue": "*string `json:\"default_value,omitempty\"`",
+    "FieldType": "FormFieldType `json:\"field_type\"`",
+    "Flags": "*int32 `json:\"flags,omitempty\"`",
+    "FullName": "string `json:\"full_name\"`",
+    "MaxLength": "*int32 `json:\"max_length,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Page": "*int32 `json:\"page,omitempty\"`",
+    "Tooltip": "*string `json:\"tooltip,omitempty\"`",
+    "Value": "*string `json:\"value,omitempty\"`"
+  },
+  "PdfMetadata": {
+    "FabricatedTextPages": "*[]int32 `json:\"fabricated_text_pages,omitempty\"`",
+    "FormatType": "PdfMetadataFormatType `json:\"format_type\"`",
+    "Height": "*int64 `json:\"height,omitempty\"`",
+    "ImplausibleTextPages": "*[]int32 `json:\"implausible_text_pages,omitempty\"`",
+    "IsEncrypted": "*bool `json:\"is_encrypted,omitempty\"`",
+    "LayoutGateReasons": "*[]string `json:\"layout_gate_reasons,omitempty\"`",
+    "LayoutGatedPages": "*[]int32 `json:\"layout_gated_pages,omitempty\"`",
+    "PageCount": "*int32 `json:\"page_count,omitempty\"`",
+    "PdfVersion": "*string `json:\"pdf_version,omitempty\"`",
+    "Producer": "*string `json:\"producer,omitempty\"`",
+    "ScannedConfidence": "*float32 `json:\"scanned_confidence,omitempty\"`",
+    "ScannedPages": "*[]int32 `json:\"scanned_pages,omitempty\"`",
+    "Width": "*int64 `json:\"width,omitempty\"`"
+  },
+  "PdfMetadataFormatType": {
+    "=": "string"
+  },
+  "PiiCategory": {
+    "union": "json.RawMessage "
+  },
+  "PiiCategory0": {
+    "=": "string"
+  },
+  "PiiCategory1": {
+    "=": "string"
+  },
+  "PiiCategory10": {
+    "=": "string"
+  },
+  "PiiCategory11": {
+    "=": "string"
+  },
+  "PiiCategory12": {
+    "Custom": "string `json:\"custom\"`"
+  },
+  "PiiCategory2": {
+    "=": "string"
+  },
+  "PiiCategory3": {
+    "=": "string"
+  },
+  "PiiCategory4": {
+    "=": "string"
+  },
+  "PiiCategory5": {
+    "=": "string"
+  },
+  "PiiCategory6": {
+    "=": "string"
+  },
+  "PiiCategory7": {
+    "=": "string"
+  },
+  "PiiCategory8": {
+    "=": "string"
+  },
+  "PiiCategory9": {
+    "=": "string"
+  },
+  "PixelDimensions": {
+    "Height": "int `json:\"height\"`",
+    "Width": "int `json:\"width\"`"
+  },
+  "PlanInfo": {
+    "MaxFileSizeMb": "*int32 `json:\"max_file_size_mb,omitempty\"`",
+    "MaxMonthlyJobs": "*int64 `json:\"max_monthly_jobs,omitempty\"`",
+    "MaxMonthlyPages": "*int64 `json:\"max_monthly_pages,omitempty\"`"
+  },
+  "PortalResponse": {
+    "Url": "string `json:\"url\"`"
+  },
+  "PostProcessorConfig": {
+    "DisabledProcessors": "*[]string `json:\"disabled_processors,omitempty\"`",
+    "Enabled": "*bool `json:\"enabled,omitempty\"`",
+    "EnabledProcessors": "*[]string `json:\"enabled_processors,omitempty\"`"
+  },
+  "PptxMetadata": {
+    "FormatType": "PptxMetadataFormatType `json:\"format_type\"`",
+    "ImageCount": "*int32 `json:\"image_count,omitempty\"`",
+    "SlideCount": "int32 `json:\"slide_count\"`",
+    "SlideNames": "[]string `json:\"slide_names\"`",
+    "TableCount": "*int32 `json:\"table_count,omitempty\"`"
+  },
+  "PptxMetadataFormatType": {
+    "=": "string"
+  },
+  "PresetCallMode": {
+    "=": "string"
+  },
+  "PresetCategory": {
+    "=": "string"
+  },
+  "PresetDetail": {
+    "Category": "PresetCategory `json:\"category\"`",
+    "ContextTemplate": "*string `json:\"context_template,omitempty\"`",
+    "Description": "string `json:\"description\"`",
+    "EmitCitations": "bool `json:\"emit_citations\"`",
+    "Fingerprint": "string `json:\"fingerprint\"`",
+    "Id": "string `json:\"id\"`",
+    "PreferredCallMode": "PresetCallMode `json:\"preferred_call_mode\"`",
+    "Sample": "*PresetSampleRef `json:\"sample,omitempty\"`",
+    "Schema": "map[string]interface{} `json:\"schema\"`",
+    "SchemaName": "string `json:\"schema_name\"`",
+    "SystemPrompt": "string `json:\"system_prompt\"`",
+    "Tags": "*[]string `json:\"tags,omitempty\"`",
+    "Version": "string `json:\"version\"`"
+  },
+  "PresetSampleRef": {
+    "InputUrl": "string `json:\"input_url\"`",
+    "OutputUrl": "string `json:\"output_url\"`"
+  },
+  "PresetSummary": {
+    "Category": "PresetCategory `json:\"category\"`",
+    "Description": "string `json:\"description\"`",
+    "EmitCitations": "bool `json:\"emit_citations\"`",
+    "Fingerprint": "string `json:\"fingerprint\"`",
+    "Id": "string `json:\"id\"`",
+    "PreferredCallMode": "PresetCallMode `json:\"preferred_call_mode\"`",
+    "SchemaName": "string `json:\"schema_name\"`",
+    "Tags": "*[]string `json:\"tags,omitempty\"`",
+    "Version": "string `json:\"version\"`"
+  },
+  "PresignDocumentInput": {
+    "Config": "*FileExtractionConfig `json:\"config,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "MimeType": "string `json:\"mime_type\"`"
+  },
+  "PresignUploadJSONRequestBody": {
+    "=": "PresignUploadRequest"
+  },
+  "PresignUploadParams": {
+    "XProjectID": "*openapi_types.UUID `json:\"X-Project-ID,omitempty\"`"
+  },
+  "PresignUploadRequest": {
+    "Config": "*ExtractionConfig `json:\"config,omitempty\"`",
+    "Context": "*map[string]string `json:\"context,omitempty\"`",
+    "Documents": "[]PresignDocumentInput `json:\"documents\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "SavedPresetId": "*string `json:\"saved_preset_id,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "PresignUploadResponse": {
+    "BatchId": "openapi_types.UUID `json:\"batch_id\"`",
+    "Uploads": "[]PresignedUploadInfo `json:\"uploads\"`"
+  },
+  "PresignedUploadInfo": {
+    "ExpiresInSecs": "int64 `json:\"expires_in_secs\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "Method": "string `json:\"method\"`",
+    "ObjectKey": "string `json:\"object_key\"`",
+    "UploadUrl": "string `json:\"upload_url\"`"
+  },
+  "PrimaryScore": {
+    "union": "json.RawMessage "
+  },
+  "PrimaryScore0": {
+    "Kind": "PrimaryScore0Kind `json:\"kind\"`",
+    "Score": "float32 `json:\"score\"`"
+  },
+  "PrimaryScore0Kind": {
+    "=": "string"
+  },
+  "PrimaryScore1": {
+    "Kind": "PrimaryScore1Kind `json:\"kind\"`",
+    "Score": "float32 `json:\"score\"`"
+  },
+  "PrimaryScore1Kind": {
+    "=": "string"
+  },
+  "PrimaryScore2": {
+    "FullText": "*float32 `json:\"full_text,omitempty\"`",
+    "Kind": "PrimaryScore2Kind `json:\"kind\"`",
+    "Rrf": "float32 `json:\"rrf\"`",
+    "Vector": "*float32 `json:\"vector,omitempty\"`"
+  },
+  "PrimaryScore2Kind": {
+    "=": "string"
+  },
+  "ProDocumentInput": {
+    "Config": "*ProFileExtractionConfig `json:\"config,omitempty\"`",
+    "Data": "*string `json:\"data,omitempty\"`",
+    "DocumentId": "*string `json:\"document_id,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Integration": "*IntegrationInput `json:\"integration,omitempty\"`",
+    "MimeType": "string `json:\"mime_type\"`"
+  },
+  "ProExtractRequest": {
+    "CrawlConfig": "*map[string]interface{} `json:\"crawl_config,omitempty\"`",
+    "Documents": "*[]ProDocumentInput `json:\"documents,omitempty\"`",
+    "Options": "*ExtractionOptions `json:\"options,omitempty\"`",
+    "ProjectId": "*openapi_types.UUID `json:\"project_id,omitempty\"`",
+    "Urls": "*[]UrlInput `json:\"urls,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`",
+    "union": "json.RawMessage "
+  },
+  "ProExtractRequest0": {
+    "CrawlConfig": "any `json:\"crawl_config,omitempty\"`"
+  },
+  "ProExtractRequest1": {
+    "Urls": "[]UrlInput `json:\"urls\"`"
+  },
+  "ProExtractionJobResponse": {
+    "Cached": "*bool `json:\"cached,omitempty\"`",
+    "ChildJobIds": "*[]string `json:\"child_job_ids,omitempty\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "ImagesExtracted": "*int32 `json:\"images_extracted,omitempty\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "PagesExtracted": "*int32 `json:\"pages_extracted,omitempty\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "ProJobStatus `json:\"status\"`",
+    "TablesExtracted": "*int32 `json:\"tables_extracted,omitempty\"`",
+    "TuningProfileId": "*string `json:\"tuning_profile_id,omitempty\"`",
+    "TuningProfileRoute": "*string `json:\"tuning_profile_route,omitempty\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "ProFileExtractionConfig": {
+    "Chunking": "*ChunkingConfig `json:\"chunking,omitempty\"`",
+    "ContentFilter": "*ContentFilterConfig `json:\"content_filter,omitempty\"`",
+    "DisableOcr": "*bool `json:\"disable_ocr,omitempty\"`",
+    "EnableQualityProcessing": "*bool `json:\"enable_quality_processing,omitempty\"`",
+    "ExtractionTimeoutSecs": "*int64 `json:\"extraction_timeout_secs,omitempty\"`",
+    "ForceOcr": "*bool `json:\"force_ocr,omitempty\"`",
+    "ForceOcrPages": "*[]int32 `json:\"force_ocr_pages,omitempty\"`",
+    "HtmlOptions": "*map[string]interface{} `json:\"html_options,omitempty\"`",
+    "Images": "*ImageExtractionConfig `json:\"images,omitempty\"`",
+    "IncludeDocumentStructure": "*bool `json:\"include_document_structure,omitempty\"`",
+    "Keywords": "*KeywordConfig `json:\"keywords,omitempty\"`",
+    "LanguageDetection": "*LanguageDetectionConfig `json:\"language_detection,omitempty\"`",
+    "Layout": "*LayoutDetectionConfig `json:\"layout,omitempty\"`",
+    "Ocr": "*OcrConfig `json:\"ocr,omitempty\"`",
+    "OcrStrategy": "*OcrStrategy `json:\"ocr_strategy,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Pages": "*PageConfig `json:\"pages,omitempty\"`",
+    "PdfOptions": "*PdfConfig `json:\"pdf_options,omitempty\"`",
+    "Postprocessor": "*PostProcessorConfig `json:\"postprocessor,omitempty\"`",
+    "ResultFormat": "*string `json:\"result_format,omitempty\"`",
+    "StructuredExtraction": "*ProStructuredExtractionConfig `json:\"structured_extraction,omitempty\"`",
+    "TokenReduction": "*TokenReductionConfig `json:\"token_reduction,omitempty\"`"
+  },
+  "ProGetJobResponse": {
+    "union": "json.RawMessage "
+  },
+  "ProGetJobResponse0": {
+    "Cached": "*bool `json:\"cached,omitempty\"`",
+    "ChildJobIds": "*[]string `json:\"child_job_ids,omitempty\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "ImagesExtracted": "*int32 `json:\"images_extracted,omitempty\"`",
+    "JobType": "ProGetJobResponse0JobType `json:\"job_type\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "PagesExtracted": "*int32 `json:\"pages_extracted,omitempty\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*ExtractedDocument `json:\"result,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "ProJobStatus `json:\"status\"`",
+    "TablesExtracted": "*int32 `json:\"tables_extracted,omitempty\"`",
+    "TuningProfileId": "*string `json:\"tuning_profile_id,omitempty\"`",
+    "TuningProfileRoute": "*string `json:\"tuning_profile_route,omitempty\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "ProGetJobResponse0JobType": {
+    "=": "string"
+  },
+  "ProGetJobResponse1": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobType": "ProGetJobResponse1JobType `json:\"job_type\"`",
+    "Jobs": "*[]CrawlChildJob `json:\"jobs,omitempty\"`",
+    "OutputMode": "string `json:\"output_mode\"`",
+    "Pages": "*[]CrawledPage `json:\"pages,omitempty\"`",
+    "Progress": "CrawlProgress `json:\"progress\"`",
+    "SeedUrls": "[]string `json:\"seed_urls\"`",
+    "Status": "CrawlJobStatus `json:\"status\"`"
+  },
+  "ProGetJobResponse1JobType": {
+    "=": "string"
+  },
+  "ProHealthResponse": {
+    "AutoTune": "AutoTuneHealth `json:\"auto_tune\"`",
+    "License": "LicenseHealth `json:\"license\"`",
+    "Rag": "RagHealth `json:\"rag\"`",
+    "Status": "string `json:\"status\"`",
+    "Tier": "string `json:\"tier\"`"
+  },
+  "ProIntegrationListResponse": {
+    "Integrations": "[]IntegrationResponse `json:\"integrations\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "OauthConfigured": "bool `json:\"oauth_configured\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ProJobResult": {
+    "Cached": "bool `json:\"cached\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "Errors": "*[]JobResultError `json:\"errors,omitempty\"`",
+    "JobId": "openapi_types.UUID `json:\"job_id\"`",
+    "Results": "*[]JobResultDocument `json:\"results,omitempty\"`",
+    "Status": "ProJobStatus `json:\"status\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "ProJobStatus": {
+    "=": "string"
+  },
+  "ProJobSummary": {
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobType": "JobSummaryType `json:\"job_type\"`",
+    "MimeType": "string `json:\"mime_type\"`",
+    "ParentCrawlJobId": "*openapi_types.UUID `json:\"parent_crawl_job_id,omitempty\"`",
+    "SourceUrl": "*string `json:\"source_url,omitempty\"`",
+    "Status": "ProJobStatus `json:\"status\"`",
+    "WebhookDelivery": "*WebhookDelivery `json:\"webhook_delivery,omitempty\"`"
+  },
+  "ProListJobsResponse": {
+    "Jobs": "[]ProJobSummary `json:\"jobs\"`",
+    "Limit": "int64 `json:\"limit\"`",
+    "Offset": "int64 `json:\"offset\"`",
+    "Total": "int64 `json:\"total\"`"
+  },
+  "ProLlmConfig": {
+    "ApiKey": "*string `json:\"api_key,omitempty\"`",
+    "BaseUrl": "*string `json:\"base_url,omitempty\"`",
+    "MaxRetries": "*int32 `json:\"max_retries,omitempty\"`",
+    "MaxTokens": "*int64 `json:\"max_tokens,omitempty\"`",
+    "Model": "string `json:\"model\"`",
+    "Temperature": "*float64 `json:\"temperature,omitempty\"`",
+    "TimeoutSecs": "*int64 `json:\"timeout_secs,omitempty\"`",
+    "UseManaged": "*bool `json:\"use_managed,omitempty\"`"
+  },
+  "ProPresignDocumentInput": {
+    "Config": "*ProFileExtractionConfig `json:\"config,omitempty\"`",
+    "Filename": "string `json:\"filename\"`",
+    "MimeType": "string `json:\"mime_type\"`"
+  },
+  "ProPresignUploadRequest": {
+    "Config": "*map[string]interface{} `json:\"config,omitempty\"`",
+    "Context": "*map[string]string `json:\"context,omitempty\"`",
+    "Documents": "[]ProPresignDocumentInput `json:\"documents\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "SavedPresetId": "*string `json:\"saved_preset_id,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "ProReadinessChecks": {
+    "Database": "string `json:\"database\"`",
+    "MaintenanceDatabase": "string `json:\"maintenance_database\"`",
+    "Storage": "string `json:\"storage\"`",
+    "Worker": "*string `json:\"worker,omitempty\"`"
+  },
+  "ProReadinessResponse": {
+    "Checks": "ProReadinessChecks `json:\"checks\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "ProStructuredExtractionConfig": {
+    "Llm": "ProLlmConfig `json:\"llm\"`",
+    "Prompt": "*string `json:\"prompt,omitempty\"`",
+    "Schema": "*map[string]interface{} `json:\"schema,omitempty\"`",
+    "SchemaDescription": "*string `json:\"schema_description,omitempty\"`",
+    "SchemaName": "*string `json:\"schema_name,omitempty\"`",
+    "Strict": "*bool `json:\"strict,omitempty\"`"
+  },
+  "ProUpdateSavedPresetRequest": {
+    "ContextTemplate": "*string `json:\"context_template,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "EmitCitations": "*bool `json:\"emit_citations,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "PreferredCallMode": "*string `json:\"preferred_call_mode,omitempty\"`",
+    "Schema": "*map[string]interface{} `json:\"schema,omitempty\"`",
+    "SystemPrompt": "*string `json:\"system_prompt,omitempty\"`"
+  },
+  "ProcessingStatsEntry": {
+    "P50Ms": "*int64 `json:\"p50_ms,omitempty\"`",
+    "P95Ms": "*int64 `json:\"p95_ms,omitempty\"`",
+    "P99Ms": "*int64 `json:\"p99_ms,omitempty\"`",
+    "SampleCount": "int32 `json:\"sample_count\"`"
+  },
+  "ProcessingWarning": {
+    "Message": "string `json:\"message\"`",
+    "Source": "string `json:\"source\"`"
+  },
+  "ProjectInfo": {
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "Role": "string `json:\"role\"`"
+  },
+  "ProjectPermission": {
+    "=": "string"
+  },
+  "ProjectResponse": {
+    "ApiKeyCount": "int32 `json:\"api_key_count\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "OwnerUserId": "string `json:\"owner_user_id\"`",
+    "Slug": "string `json:\"slug\"`",
+    "Status": "string `json:\"status\"`",
+    "TotalPagesExtracted": "int64 `json:\"total_pages_extracted\"`",
+    "UpdatedAt": "time.Time `json:\"updated_at\"`",
+    "WebhookCount": "int32 `json:\"webhook_count\"`"
+  },
+  "ProjectRoleResponse": {
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "Permissions": "[]ProjectPermission `json:\"permissions\"`"
+  },
+  "PromoteAutoTuneProfileJSONRequestBody": {
+    "=": "PromoteProfileRequest"
+  },
+  "PromoteProfileRequest": {
+    "AllowUnscored": "*bool `json:\"allow_unscored,omitempty\"`",
+    "Name": "string `json:\"name\"`"
+  },
+  "PropertyChange": {
+    "From": "*string `json:\"from,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "To": "*string `json:\"to,omitempty\"`"
+  },
+  "ProxyOverride": {
+    "Password": "*string `json:\"password,omitempty\"`",
+    "Url": "string `json:\"url\"`",
+    "Username": "*string `json:\"username,omitempty\"`"
+  },
+  "PstMetadata": {
+    "FormatType": "PstMetadataFormatType `json:\"format_type\"`",
+    "MessageCount": "int `json:\"message_count\"`"
+  },
+  "PstMetadataFormatType": {
+    "=": "string"
+  },
+  "PublicSandboxExtractForm": {
+    "File": "openapi_types.File `json:\"file\"`",
+    "Mode": "*string `json:\"mode,omitempty\"`",
+    "Preset": "*string `json:\"preset,omitempty\"`",
+    "Url": "*string `json:\"url,omitempty\"`"
+  },
+  "PublicSandboxExtractMultipartRequestBody": {
+    "=": "PublicSandboxExtractForm"
+  },
+  "PublicSandboxOptions": {
+    "Mode": "string ",
+    "Preset": "string ",
+    "Token": "string ",
+    "URL": "string "
+  },
+  "QrBoundingBox": {
+    "Height": "int32 `json:\"height\"`",
+    "Width": "int32 `json:\"width\"`",
+    "X": "int32 `json:\"x\"`",
+    "Y": "int32 `json:\"y\"`"
+  },
+  "QrCode": {
+    "Bbox": "*QrBoundingBox `json:\"bbox,omitempty\"`",
+    "Confidence": "*float32 `json:\"confidence,omitempty\"`",
+    "Payload": "string `json:\"payload\"`"
+  },
+  "RagConfigResponse": {
+    "DefaultCollection": "*string `json:\"default_collection,omitempty\"`",
+    "Enabled": "bool `json:\"enabled\"`"
+  },
+  "RagHealth": {
+    "Enabled": "bool `json:\"enabled\"`"
+  },
+  "RagJobKind": {
+    "=": "string"
+  },
+  "RagJobPendingReason": {
+    "=": "string"
+  },
+  "RagJobProgress": {
+    "CurrentPhase": "string `json:\"current_phase\"`",
+    "DocumentsProcessed": "int64 `json:\"documents_processed\"`",
+    "DocumentsTotal": "int64 `json:\"documents_total\"`"
+  },
+  "RagJobState": {
+    "=": "string"
+  },
+  "RagJobStatusResponse": {
+    "CollectionId": "*openapi_types.UUID `json:\"collection_id,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "DocumentId": "*openapi_types.UUID `json:\"document_id,omitempty\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "ErrorCode": "*string `json:\"error_code,omitempty\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "Kind": "RagJobKind `json:\"kind\"`",
+    "PendingReason": "*RagJobPendingReason `json:\"pending_reason,omitempty\"`",
+    "Progress": "*RagJobProgress `json:\"progress,omitempty\"`",
+    "State": "RagJobState `json:\"state\"`"
+  },
+  "RakeParams": {
+    "MaxWordsPerPhrase": "int `json:\"max_words_per_phrase\"`",
+    "MinWordLength": "int `json:\"min_word_length\"`"
+  },
+  "RateLimitError": {
+    "RetryAfter": "time.Duration ",
+    "embed:XbergError": "XbergError "
+  },
+  "ReadinessChecks": {
+    "Database": "string `json:\"database\"`",
+    "MaintenanceDatabase": "string `json:\"maintenance_database\"`",
+    "Nats": "string `json:\"nats\"`"
+  },
+  "ReadinessResponse": {
+    "Checks": "ReadinessChecks `json:\"checks\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "RedactionFinding": {
+    "Category": "PiiCategory `json:\"category\"`",
+    "End": "int32 `json:\"end\"`",
+    "ReplacementToken": "string `json:\"replacement_token\"`",
+    "Start": "int32 `json:\"start\"`",
+    "Strategy": "RedactionStrategy `json:\"strategy\"`"
+  },
+  "RedactionReport": {
+    "Findings": "[]RedactionFinding `json:\"findings\"`",
+    "TotalRedacted": "int32 `json:\"total_redacted\"`"
+  },
+  "RedactionStrategy": {
+    "=": "string"
+  },
+  "ReindexDocumentJSONRequestBody": {
+    "=": "ReindexRequest"
+  },
+  "ReindexRequest": {
+    "ReExtract": "*bool `json:\"re_extract,omitempty\"`",
+    "Webhook": "*WebhookConfig `json:\"webhook,omitempty\"`"
+  },
+  "RelationshipKind": {
+    "=": "string"
+  },
+  "ReplaceScimGroupApplicationScimPlusJSONRequestBody": {
+    "=": "ScimGroupInput"
+  },
+  "ReplaceScimGroupRolesJSONRequestBody": {
+    "=": "ReplaceScimGroupRolesRequest"
+  },
+  "ReplaceScimGroupRolesRequest": {
+    "RoleIds": "[]openapi_types.UUID `json:\"role_ids\"`"
+  },
+  "ReplaceScimUserApplicationScimPlusJSONRequestBody": {
+    "=": "ScimUserInput"
+  },
+  "RerankFallbackReason": {
+    "=": "string"
+  },
+  "RerankOutcomeReport": {
+    "union": "json.RawMessage "
+  },
+  "RerankOutcomeReport0": {
+    "Status": "RerankOutcomeReport0Status `json:\"status\"`"
+  },
+  "RerankOutcomeReport0Status": {
+    "=": "string"
+  },
+  "RerankOutcomeReport1": {
+    "Kind": "RerankerKind `json:\"kind\"`",
+    "Status": "RerankOutcomeReport1Status `json:\"status\"`"
+  },
+  "RerankOutcomeReport1Status": {
+    "=": "string"
+  },
+  "RerankOutcomeReport2": {
+    "Kind": "RerankerKind `json:\"kind\"`",
+    "Reason": "RerankFallbackReason `json:\"reason\"`",
+    "Status": "RerankOutcomeReport2Status `json:\"status\"`"
+  },
+  "RerankOutcomeReport2Status": {
+    "=": "string"
+  },
+  "RerankerKind": {
+    "=": "string"
+  },
+  "RerankerSpec": {
+    "union": "json.RawMessage "
+  },
+  "RerankerSpec0": {
+    "Name": "string `json:\"name\"`",
+    "Type": "RerankerSpec0Type `json:\"type\"`"
+  },
+  "RerankerSpec0Type": {
+    "=": "string"
+  },
+  "RerankerSpec1": {
+    "Model": "*string `json:\"model,omitempty\"`",
+    "Type": "RerankerSpec1Type `json:\"type\"`"
+  },
+  "RerankerSpec1Type": {
+    "=": "string"
+  },
+  "RetrieveJSONRequestBody": {
+    "=": "RetrieveRequest"
+  },
+  "RetrieveMode": {
+    "=": "string"
+  },
+  "RetrieveRequest": {
+    "CandidateMultiplier": "*int32 `json:\"candidate_multiplier,omitempty\"`",
+    "Filter": "*map[string]interface{} `json:\"filter,omitempty\"`",
+    "GroupByDocument": "*bool `json:\"group_by_document,omitempty\"`",
+    "Include": "*IncludeMask `json:\"include,omitempty\"`",
+    "Mode": "*RetrieveMode `json:\"mode,omitempty\"`",
+    "Query": "*string `json:\"query,omitempty\"`",
+    "QueryVector": "*[]float32 `json:\"query_vector,omitempty\"`",
+    "Rerank": "*RerankerSpec `json:\"rerank,omitempty\"`",
+    "TopK": "*int32 `json:\"top_k,omitempty\"`"
+  },
+  "RetrieveResponse": {
+    "Chunks": "[]RetrievedChunk `json:\"chunks\"`",
+    "LatencyBreakdown": "LatencyBreakdown `json:\"latency_breakdown\"`",
+    "Mode": "RetrieveMode `json:\"mode\"`",
+    "Rerank": "RerankOutcomeReport `json:\"rerank\"`",
+    "VectorCandidates": "*VectorCandidateReport `json:\"vector_candidates,omitempty\"`"
+  },
+  "RetrievedChunk": {
+    "ChunkMetadata": "map[string]interface{} `json:\"chunk_metadata\"`",
+    "Content": "*string `json:\"content,omitempty\"`",
+    "Document": "*RetrievedDocumentSummary `json:\"document,omitempty\"`",
+    "DocumentId": "openapi_types.UUID `json:\"document_id\"`",
+    "ExternalId": "*string `json:\"external_id,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Ordinal": "int32 `json:\"ordinal\"`",
+    "Score": "float32 `json:\"score\"`",
+    "ScoreBreakdown": "*ScoreBreakdown `json:\"score_breakdown,omitempty\"`"
+  },
+  "RetrievedDocumentSummary": {
+    "Entities": "[]interface{} `json:\"entities\"`",
+    "ExternalId": "*string `json:\"external_id,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IngestedAt": "time.Time `json:\"ingested_at\"`",
+    "Keywords": "[]string `json:\"keywords\"`",
+    "Labels": "[]interface{} `json:\"labels\"`",
+    "Metadata": "map[string]interface{} `json:\"metadata\"`",
+    "Mime": "*string `json:\"mime,omitempty\"`",
+    "Title": "*string `json:\"title,omitempty\"`"
+  },
+  "RetryWebhookDeliveryParams": {
+    "IdempotencyKey": "*string `json:\"Idempotency-Key,omitempty\"`"
+  },
+  "RetryWebhookDeliveryResponse": {
+    "DeliveryId": "openapi_types.UUID `json:\"delivery_id\"`",
+    "QueuedAt": "string `json:\"queued_at\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "RevisionAnchor": {
+    "union": "json.RawMessage "
+  },
+  "RevisionAnchor0": {
+    "Index": "int `json:\"index\"`",
+    "Type": "RevisionAnchor0Type `json:\"type\"`"
+  },
+  "RevisionAnchor0Type": {
+    "=": "string"
+  },
+  "RevisionAnchor1": {
+    "Col": "int `json:\"col\"`",
+    "Row": "int `json:\"row\"`",
+    "TableIndex": "int `json:\"table_index\"`",
+    "Type": "RevisionAnchor1Type `json:\"type\"`"
+  },
+  "RevisionAnchor1Type": {
+    "=": "string"
+  },
+  "RevisionAnchor2": {
+    "Index": "int `json:\"index\"`",
+    "Type": "RevisionAnchor2Type `json:\"type\"`"
+  },
+  "RevisionAnchor2Type": {
+    "=": "string"
+  },
+  "RevisionAnchor3": {
+    "Index": "int `json:\"index\"`",
+    "Type": "RevisionAnchor3Type `json:\"type\"`"
+  },
+  "RevisionAnchor3Type": {
+    "=": "string"
+  },
+  "RevisionAnchor4": {
+    "Index": "int `json:\"index\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "Type": "RevisionAnchor4Type `json:\"type\"`"
+  },
+  "RevisionAnchor4Type": {
+    "=": "string"
+  },
+  "RevisionDelta": {
+    "Content": "[]DiffLine `json:\"content\"`",
+    "PropertyChanges": "*[]PropertyChange `json:\"property_changes,omitempty\"`",
+    "TableChanges": "[]CellChange `json:\"table_changes\"`"
+  },
+  "RevisionKind": {
+    "=": "string"
+  },
+  "RoutingFallbackReason": {
+    "=": "string"
+  },
+  "RoutingOutcome": {
+    "union": "json.RawMessage "
+  },
+  "RoutingOutcome0": {
+    "Status": "RoutingOutcome0Status `json:\"status\"`"
+  },
+  "RoutingOutcome0Status": {
+    "=": "string"
+  },
+  "RoutingOutcome1": {
+    "Status": "RoutingOutcome1Status `json:\"status\"`"
+  },
+  "RoutingOutcome1Status": {
+    "=": "string"
+  },
+  "RoutingOutcome2": {
+    "Reason": "RoutingFallbackReason `json:\"reason\"`",
+    "Status": "RoutingOutcome2Status `json:\"status\"`"
+  },
+  "RoutingOutcome2Status": {
+    "=": "string"
+  },
+  "SamlAcsForm": {
+    "RelayState": "*string `json:\"RelayState,omitempty\"`",
+    "SAMLResponse": "string `json:\"SAMLResponse\"`"
+  },
+  "SamlDomainRequest": {
+    "Domain": "string `json:\"domain\"`",
+    "ProviderId": "openapi_types.UUID `json:\"provider_id\"`"
+  },
+  "SamlDomainResponse": {
+    "DnsTxtName": "*string `json:\"dns_txt_name,omitempty\"`",
+    "DnsTxtValue": "*string `json:\"dns_txt_value,omitempty\"`",
+    "Domain": "string `json:\"domain\"`",
+    "ProviderId": "openapi_types.UUID `json:\"provider_id\"`",
+    "VerifiedAt": "*time.Time `json:\"verified_at,omitempty\"`"
+  },
+  "SamlExchangeRequest": {
+    "Code": "string `json:\"code\"`"
+  },
+  "SamlExchangeResponse": {
+    "Email": "*string `json:\"email,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "ProjectId": "openapi_types.UUID `json:\"project_id\"`",
+    "RedirectPath": "*string `json:\"redirect_path,omitempty\"`",
+    "Role": "string `json:\"role\"`",
+    "Token": "string `json:\"token\"`",
+    "UserId": "string `json:\"user_id\"`"
+  },
+  "SamlInfo": {
+    "Enabled": "bool `json:\"enabled\"`",
+    "Label": "string `json:\"label\"`",
+    "LoginUrl": "string `json:\"login_url\"`"
+  },
+  "SamlProviderRequest": {
+    "Enabled": "*bool `json:\"enabled,omitempty\"`",
+    "EnforceSso": "*bool `json:\"enforce_sso,omitempty\"`",
+    "IdpInitiatedEnabled": "*bool `json:\"idp_initiated_enabled,omitempty\"`",
+    "JitEnabled": "*bool `json:\"jit_enabled,omitempty\"`",
+    "Label": "string `json:\"label\"`",
+    "MetadataXml": "string `json:\"metadata_xml\"`"
+  },
+  "SamlProviderResponse": {
+    "AcsUrl": "string `json:\"acs_url\"`",
+    "Enabled": "bool `json:\"enabled\"`",
+    "EnforceSso": "bool `json:\"enforce_sso\"`",
+    "EntityId": "string `json:\"entity_id\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IdpInitiatedEnabled": "bool `json:\"idp_initiated_enabled\"`",
+    "IdpInitiatedRelayState": "string `json:\"idp_initiated_relay_state\"`",
+    "JitEnabled": "bool `json:\"jit_enabled\"`",
+    "Label": "string `json:\"label\"`",
+    "ProjectId": "openapi_types.UUID `json:\"project_id\"`"
+  },
+  "SandboxExtractMultipartBody": {
+    "=": "interface{}"
+  },
+  "SandboxExtractMultipartRequestBody": {
+    "=": "SandboxExtractMultipartBody"
+  },
+  "SandboxExtractResponse": {
+    "CreatedAt": "string `json:\"created_at\"`",
+    "Filename": "string `json:\"filename\"`",
+    "Id": "string `json:\"id\"`",
+    "ProcessingTimeMs": "*int64 `json:\"processing_time_ms,omitempty\"`",
+    "Result": "*BackendExtractedDocument `json:\"result,omitempty\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "SavedPresetDetail": {
+    "ContextTemplate": "*string `json:\"context_template,omitempty\"`",
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "EmitCitations": "bool `json:\"emit_citations\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "PreferredCallMode": "string `json:\"preferred_call_mode\"`",
+    "Schema": "map[string]interface{} `json:\"schema\"`",
+    "SystemPrompt": "*string `json:\"system_prompt,omitempty\"`",
+    "UpdatedAt": "time.Time `json:\"updated_at\"`"
+  },
+  "SavedPresetSummary": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "PreferredCallMode": "string `json:\"preferred_call_mode\"`"
+  },
+  "SchemaCompliance": {
+    "=": "string"
+  },
+  "ScimAdminGroupResponse": {
+    "DisplayName": "string `json:\"display_name\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "RoleIds": "[]openapi_types.UUID `json:\"role_ids\"`"
+  },
+  "ScimConnectionResponse": {
+    "Active": "bool `json:\"active\"`",
+    "ClientId": "string `json:\"client_id\"`",
+    "ClientSecretExpiresAt": "string `json:\"client_secret_expires_at\"`",
+    "DisplayName": "string `json:\"display_name\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "Version": "int64 `json:\"version\"`"
+  },
+  "ScimErrorBody": {
+    "Detail": "string `json:\"detail\"`",
+    "Schemas": "[]string `json:\"schemas\"`",
+    "ScimType": "*string `json:\"scimType,omitempty\"`",
+    "Status": "string `json:\"status\"`"
+  },
+  "ScimGroupInput": {
+    "DisplayName": "string `json:\"displayName\"`",
+    "ExternalId": "*string `json:\"externalId,omitempty\"`",
+    "Members": "*[]ScimMemberInput `json:\"members,omitempty\"`",
+    "Schemas": "*[]string `json:\"schemas,omitempty\"`"
+  },
+  "ScimMemberInput": {
+    "Value": "openapi_types.UUID `json:\"value\"`"
+  },
+  "ScimPatchOperation": {
+    "Op": "string `json:\"op\"`",
+    "Path": "*string `json:\"path,omitempty\"`",
+    "Value": "interface{} `json:\"value,omitempty\"`"
+  },
+  "ScimPatchRequest": {
+    "Operations": "[]ScimPatchOperation `json:\"Operations\"`",
+    "Schemas": "[]string `json:\"schemas\"`"
+  },
+  "ScimTokenRequest": {
+    "ClientId": "*string `json:\"client_id,omitempty\"`",
+    "ClientSecret": "*string `json:\"client_secret,omitempty\"`",
+    "GrantType": "string `json:\"grant_type\"`"
+  },
+  "ScimTokenResponse": {
+    "AccessToken": "string `json:\"access_token\"`",
+    "ExpiresIn": "int64 `json:\"expires_in\"`",
+    "TokenType": "string `json:\"token_type\"`"
+  },
+  "ScimUserInput": {
+    "Active": "*bool `json:\"active,omitempty\"`",
+    "DisplayName": "*string `json:\"displayName,omitempty\"`",
+    "ExternalId": "*string `json:\"externalId,omitempty\"`",
+    "Schemas": "*[]string `json:\"schemas,omitempty\"`",
+    "UserName": "string `json:\"userName\"`"
+  },
+  "ScoreBreakdown": {
+    "Primary": "PrimaryScore `json:\"primary\"`",
+    "RankFinal": "int32 `json:\"rank_final\"`",
+    "RankPrimary": "int32 `json:\"rank_primary\"`",
+    "Rerank": "*float32 `json:\"rerank,omitempty\"`",
+    "RerankFallback": "*string `json:\"rerank_fallback,omitempty\"`"
+  },
+  "SecurityLimits": {
+    "MaxArchiveSize": "*int `json:\"max_archive_size,omitempty\"`",
+    "MaxCompressionRatio": "*int `json:\"max_compression_ratio,omitempty\"`",
+    "MaxContentSize": "*int `json:\"max_content_size,omitempty\"`",
+    "MaxEntityLength": "*int `json:\"max_entity_length,omitempty\"`",
+    "MaxFilesInArchive": "*int `json:\"max_files_in_archive,omitempty\"`",
+    "MaxIterations": "*int `json:\"max_iterations,omitempty\"`",
+    "MaxNestingDepth": "*int `json:\"max_nesting_depth,omitempty\"`",
+    "MaxPages": "*int `json:\"max_pages,omitempty\"`",
+    "MaxTableCells": "*int `json:\"max_table_cells,omitempty\"`",
+    "MaxXmlDepth": "*int `json:\"max_xml_depth,omitempty\"`"
+  },
+  "ServerError": {
+    "embed:XbergError": "XbergError "
+  },
+  "SetIntegrationSyncJSONRequestBody": {
+    "=": "SetIntegrationSyncRequest"
+  },
+  "SetIntegrationSyncRequest": {
+    "Enabled": "bool `json:\"enabled\"`"
+  },
+  "SetRagConfigJSONRequestBody": {
+    "=": "SetRagConfigRequest"
+  },
+  "SetRagConfigRequest": {
+    "DefaultCollection": "*string `json:\"default_collection,omitempty\"`",
+    "Enabled": "bool `json:\"enabled\"`"
+  },
+  "SparseEmbedding": {
+    "Indices": "[]int32 `json:\"indices\"`",
+    "Values": "[]float32 `json:\"values\"`"
+  },
+  "StructuredData": {
+    "DataType": "StructuredDataType `json:\"data_type\"`",
+    "RawJson": "string `json:\"raw_json\"`",
+    "SchemaType": "*string `json:\"schema_type,omitempty\"`"
+  },
+  "StructuredDataType": {
+    "=": "string"
+  },
+  "StructuredExtractionConfig": {
+    "Llm": "LlmConfig `json:\"llm\"`",
+    "Prompt": "*string `json:\"prompt,omitempty\"`",
+    "Schema": "*map[string]interface{} `json:\"schema,omitempty\"`",
+    "SchemaDescription": "*string `json:\"schema_description,omitempty\"`",
+    "SchemaName": "*string `json:\"schema_name,omitempty\"`",
+    "Strict": "*bool `json:\"strict,omitempty\"`"
+  },
+  "SubmitAutoTuneMultipartRequestBody": {
+    "=": "AutoTuneMultipartForm"
+  },
+  "SubmitEnrichJSONRequestBody": {
+    "=": "EnrichTextRequest"
+  },
+  "SummaryStrategy": {
+    "=": "string"
+  },
+  "Table": {
+    "BoundingBox": "*BoundingBox `json:\"bounding_box,omitempty\"`",
+    "CellStyles": "*[]TableCellStyle `json:\"cell_styles,omitempty\"`",
+    "Cells": "[][]string `json:\"cells\"`",
+    "Columns": "*[]string `json:\"columns,omitempty\"`",
+    "Markdown": "string `json:\"markdown\"`",
+    "PageNumber": "int32 `json:\"page_number\"`",
+    "TableId": "*string `json:\"table_id,omitempty\"`"
+  },
+  "TableCellStyle": {
+    "Col": "int32 `json:\"col\"`",
+    "HeadingLevel": "*int32 `json:\"heading_level,omitempty\"`",
+    "Row": "int32 `json:\"row\"`",
+    "StyleName": "*string `json:\"style_name,omitempty\"`"
+  },
+  "TableGrid": {
+    "Cells": "[]GridCell `json:\"cells\"`",
+    "Cols": "int32 `json:\"cols\"`",
+    "Rows": "int32 `json:\"rows\"`"
+  },
+  "Target": {
+    "=": "string"
+  },
+  "TesseractConfig": {
+    "ClassifyUsePreAdaptedTemplates": "*bool `json:\"classify_use_pre_adapted_templates,omitempty\"`",
+    "EnableTableDetection": "*bool `json:\"enable_table_detection,omitempty\"`",
+    "Language": "*[]string `json:\"language,omitempty\"`",
+    "LanguageModelNgramOn": "*bool `json:\"language_model_ngram_on,omitempty\"`",
+    "MinConfidence": "*float64 `json:\"min_confidence,omitempty\"`",
+    "Oem": "*int32 `json:\"oem,omitempty\"`",
+    "OutputFormat": "*string `json:\"output_format,omitempty\"`",
+    "Preprocessing": "*ImagePreprocessingConfig `json:\"preprocessing,omitempty\"`",
+    "Psm": "*int32 `json:\"psm,omitempty\"`",
+    "TableColumnThreshold": "*int32 `json:\"table_column_threshold,omitempty\"`",
+    "TableMinConfidence": "*float64 `json:\"table_min_confidence,omitempty\"`",
+    "TableRowThresholdRatio": "*float64 `json:\"table_row_threshold_ratio,omitempty\"`",
+    "TesseditCharBlacklist": "*string `json:\"tessedit_char_blacklist,omitempty\"`",
+    "TesseditCharWhitelist": "*string `json:\"tessedit_char_whitelist,omitempty\"`",
+    "TesseditDontBlkrejGoodWds": "*bool `json:\"tessedit_dont_blkrej_good_wds,omitempty\"`",
+    "TesseditDontRowrejGoodWds": "*bool `json:\"tessedit_dont_rowrej_good_wds,omitempty\"`",
+    "TesseditEnableDictCorrection": "*bool `json:\"tessedit_enable_dict_correction,omitempty\"`",
+    "TesseditUsePrimaryParamsModel": "*bool `json:\"tessedit_use_primary_params_model,omitempty\"`",
+    "TextordSpaceSizeIsVariable": "*bool `json:\"textord_space_size_is_variable,omitempty\"`",
+    "ThresholdingMethod": "*int32 `json:\"thresholding_method,omitempty\"`",
+    "UseCache": "*bool `json:\"use_cache,omitempty\"`"
+  },
+  "TextAnnotation": {
+    "End": "int32 `json:\"end\"`",
+    "Kind": "AnnotationKind `json:\"kind\"`",
+    "Start": "int32 `json:\"start\"`"
+  },
+  "TextDirection": {
+    "=": "string"
+  },
+  "TextMetadata": {
+    "CharacterCount": "int32 `json:\"character_count\"`",
+    "CodeBlocks": "*[]MarkdownCodeBlock `json:\"code_blocks,omitempty\"`",
+    "FormatType": "TextMetadataFormatType `json:\"format_type\"`",
+    "Headers": "*[]string `json:\"headers,omitempty\"`",
+    "LineCount": "int32 `json:\"line_count\"`",
+    "Links": "*[]MarkdownLink `json:\"links,omitempty\"`",
+    "WordCount": "int32 `json:\"word_count\"`"
+  },
+  "TextMetadataFormatType": {
+    "=": "string"
+  },
+  "TierError": {
+    "Actual": "string ",
+    "Method": "string ",
+    "Required": "string ",
+    "embed:XbergError": "XbergError "
+  },
+  "TimeoutError": {
+    "Elapsed": "time.Duration ",
+    "JobID": "string ",
+    "embed:XbergError": "XbergError "
+  },
+  "TokenReductionConfig": {
+    "Mode": "*string `json:\"mode,omitempty\"`",
+    "PreserveImportantWords": "*bool `json:\"preserve_important_words,omitempty\"`"
+  },
+  "Translation": {
+    "Content": "string `json:\"content\"`",
+    "FormattedContent": "*string `json:\"formatted_content,omitempty\"`",
+    "SourceLang": "*string `json:\"source_lang,omitempty\"`",
+    "TargetLang": "string `json:\"target_lang\"`"
+  },
+  "TunableKnobInfo": {
+    "Candidates": "*[]interface{} `json:\"candidates,omitempty\"`",
+    "Description": "string `json:\"description\"`",
+    "Knob": "string `json:\"knob\"`",
+    "UnavailableReason": "*string `json:\"unavailable_reason,omitempty\"`"
+  },
+  "TuningProfileDetail": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "string `json:\"id\"`",
+    "Name": "string `json:\"name\"`",
+    "Profile": "map[string]interface{} `json:\"profile\"`",
+    "Scores": "map[string]interface{} `json:\"scores\"`"
+  },
+  "TuningProfileSummary": {
+    "CreatedAt": "time.Time `json:\"created_at\"`",
+    "Id": "string `json:\"id\"`",
+    "Name": "string `json:\"name\"`"
+  },
+  "UpdateMemberRoleJSONRequestBody": {
+    "=": "UpdateMemberRoleRequest"
+  },
+  "UpdateMemberRoleRequest": {
+    "Role": "string `json:\"role\"`"
+  },
+  "UpdateProjectJSONRequestBody": {
+    "=": "UpdateProjectRequest"
+  },
+  "UpdateProjectRequest": {
+    "Name": "*string `json:\"name,omitempty\"`"
+  },
+  "UpdateProjectRoleJSONRequestBody": {
+    "=": "UpdateProjectRoleRequest"
+  },
+  "UpdateProjectRoleRequest": {
+    "Description": "*string `json:\"description,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "Permissions": "[]ProjectPermission `json:\"permissions\"`"
+  },
+  "UpdateProviderJSONRequestBody": {
+    "=": "SamlProviderRequest"
+  },
+  "UpdateSavedPresetJSONRequestBody": {
+    "=": "UpdateSavedPresetRequest"
+  },
+  "UpdateSavedPresetRequest": {
+    "ContextTemplate": "*string `json:\"context_template,omitempty\"`",
+    "Description": "*string `json:\"description,omitempty\"`",
+    "EmitCitations": "*bool `json:\"emit_citations,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "PreferredCallMode": "*string `json:\"preferred_call_mode,omitempty\"`",
+    "Schema": "*map[string]interface{} `json:\"schema,omitempty\"`",
+    "SystemPrompt": "*string `json:\"system_prompt,omitempty\"`"
+  },
+  "UpdateSavedPresetResponse": {
+    "Message": "string `json:\"message\"`",
+    "Success": "bool `json:\"success\"`"
+  },
+  "UpdateUserProfileJSONRequestBody": {
+    "=": "UpdateUserProfileRequest"
+  },
+  "UpdateUserProfileRequest": {
+    "DisplayName": "string `json:\"display_name\"`"
+  },
+  "UpdateWebhookJSONRequestBody": {
+    "=": "UpdateWebhookRequest"
+  },
+  "UpdateWebhookRequest": {
+    "Events": "*[]string `json:\"events,omitempty\"`",
+    "IsActive": "*bool `json:\"is_active,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "Url": "*string `json:\"url,omitempty\"`"
+  },
+  "UriKind": {
+    "=": "string"
+  },
+  "UrlInput": {
+    "CrawlConfig": "*map[string]interface{} `json:\"crawl_config,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "UsageByMimeType": {
+    "Documents": "int32 `json:\"documents\"`",
+    "Failed": "int32 `json:\"failed\"`",
+    "Pages": "int64 `json:\"pages\"`"
+  },
+  "UsageInfo": {
+    "ByMimeType": "map[string]MimeTypeUsage `json:\"by_mime_type\"`",
+    "PagesRemaining": "*int64 `json:\"pages_remaining,omitempty\"`",
+    "PagesUsed": "int64 `json:\"pages_used\"`",
+    "TotalDocuments": "int32 `json:\"total_documents\"`",
+    "TotalFailed": "int32 `json:\"total_failed\"`"
+  },
+  "UsagePeriod": {
+    "EndDate": "string `json:\"end_date\"`",
+    "StartDate": "string `json:\"start_date\"`"
+  },
+  "UsageQuery": {
+    "EndDate": "string `json:\"end_date\"`",
+    "StartDate": "string `json:\"start_date\"`"
+  },
+  "UsageResponse": {
+    "ByMimeType": "map[string]UsageByMimeType `json:\"by_mime_type\"`",
+    "PeriodEnd": "string `json:\"period_end\"`",
+    "PeriodStart": "string `json:\"period_start\"`",
+    "QuotaLimit": "*int64 `json:\"quota_limit,omitempty\"`",
+    "QuotaRemaining": "*int64 `json:\"quota_remaining,omitempty\"`",
+    "TotalDocuments": "int32 `json:\"total_documents\"`",
+    "TotalFailed": "int32 `json:\"total_failed\"`",
+    "TotalPages": "int64 `json:\"total_pages\"`"
+  },
+  "UsageSummary": {
+    "AverageResponseTimeMs": "int32 `json:\"average_response_time_ms\"`",
+    "FailedRequests": "int64 `json:\"failed_requests\"`",
+    "SuccessfulRequests": "int64 `json:\"successful_requests\"`",
+    "TotalRequestBytes": "int64 `json:\"total_request_bytes\"`",
+    "TotalRequests": "int64 `json:\"total_requests\"`",
+    "TotalResponseBytes": "int64 `json:\"total_response_bytes\"`"
+  },
+  "UserInfo": {
+    "DefaultProjectId": "*openapi_types.UUID `json:\"default_project_id,omitempty\"`",
+    "Email": "*string `json:\"email,omitempty\"`",
+    "Name": "*string `json:\"name,omitempty\"`",
+    "UserId": "string `json:\"user_id\"`"
+  },
+  "UserProfileResponse": {
+    "DisplayName": "*string `json:\"display_name,omitempty\"`",
+    "Email": "*string `json:\"email,omitempty\"`",
+    "UserId": "string `json:\"user_id\"`"
+  },
+  "ValidationError": {
+    "embed:XbergError": "XbergError "
+  },
+  "VectorCandidateReport": {
+    "Budget": "int32 `json:\"budget\"`",
+    "Returned": "int32 `json:\"returned\"`",
+    "Status": "VectorCandidateStatus `json:\"status\"`",
+    "Unit": "VectorCandidateUnit `json:\"unit\"`"
+  },
+  "VectorCandidateStatus": {
+    "=": "string"
+  },
+  "VectorCandidateUnit": {
+    "=": "string"
+  },
+  "VlmFallbackPolicy": {
+    "union": "json.RawMessage "
+  },
+  "VlmFallbackPolicy0": {
+    "Mode": "VlmFallbackPolicy0Mode `json:\"mode\"`"
+  },
+  "VlmFallbackPolicy0Mode": {
+    "=": "string"
+  },
+  "VlmFallbackPolicy1": {
+    "Mode": "VlmFallbackPolicy1Mode `json:\"mode\"`",
+    "QualityThreshold": "float64 `json:\"quality_threshold\"`"
+  },
+  "VlmFallbackPolicy1Mode": {
+    "=": "string"
+  },
+  "VlmFallbackPolicy2": {
+    "Mode": "VlmFallbackPolicy2Mode `json:\"mode\"`"
+  },
+  "VlmFallbackPolicy2Mode": {
+    "=": "string"
+  },
+  "WaitOptions": {
+    "Backoff": "BackoffKind ",
+    "PollInterval": "time.Duration ",
+    "Timeout": "time.Duration "
+  },
+  "WebhookConfig": {
+    "Metadata": "*map[string]string `json:\"metadata,omitempty\"`",
+    "Secret": "*string `json:\"secret,omitempty\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "WebhookDelivery": {
+    "AttemptCount": "int32 `json:\"attempt_count\"`",
+    "LastError": "*string `json:\"last_error,omitempty\"`",
+    "Status": "WebhookDeliveryStatus `json:\"status\"`"
+  },
+  "WebhookDeliveryDetailResponse": {
+    "Delivery": "WebhookDeliveryResponse `json:\"delivery\"`",
+    "RequestPreview": "string `json:\"request_preview\"`",
+    "RequestTruncated": "bool `json:\"request_truncated\"`",
+    "ResponseError": "*string `json:\"response_error,omitempty\"`",
+    "ResponsePreview": "*string `json:\"response_preview,omitempty\"`",
+    "ResponseTruncated": "bool `json:\"response_truncated\"`"
+  },
+  "WebhookDeliveryResponse": {
+    "AttemptNumber": "int64 `json:\"attempt_number\"`",
+    "CompletedAt": "*string `json:\"completed_at,omitempty\"`",
+    "DurationMs": "int64 `json:\"duration_ms\"`",
+    "Error": "*string `json:\"error,omitempty\"`",
+    "EventId": "openapi_types.UUID `json:\"event_id\"`",
+    "EventType": "string `json:\"event_type\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "OccurredAt": "string `json:\"occurred_at\"`",
+    "StatusCode": "*int32 `json:\"status_code,omitempty\"`",
+    "Success": "bool `json:\"success\"`"
+  },
+  "WebhookDeliveryStatus": {
+    "=": "string"
+  },
+  "WebhookEvent": {
+    "Error": "*WebhookEventError `json:\"error,omitempty\"`",
+    "Event": "WebhookEventType `json:\"event\"`",
+    "EventId": "openapi_types.UUID `json:\"event_id\"`",
+    "JobId": "string `json:\"job_id\"`",
+    "Metadata": "*map[string]string `json:\"metadata,omitempty\"`",
+    "Results": "*map[string]interface{} `json:\"results,omitempty\"`",
+    "Timestamp": "time.Time `json:\"timestamp\"`"
+  },
+  "WebhookEventError": {
+    "Code": "string `json:\"code\"`",
+    "Message": "string `json:\"message\"`"
+  },
+  "WebhookEventType": {
+    "=": "string"
+  },
+  "WebhookResponse": {
+    "CreatedAt": "string `json:\"created_at\"`",
+    "Events": "[]string `json:\"events\"`",
+    "FailedDeliveries": "int32 `json:\"failed_deliveries\"`",
+    "Id": "openapi_types.UUID `json:\"id\"`",
+    "IsActive": "bool `json:\"is_active\"`",
+    "LastDeliveryAt": "*string `json:\"last_delivery_at,omitempty\"`",
+    "LastDeliveryStatus": "*string `json:\"last_delivery_status,omitempty\"`",
+    "Name": "string `json:\"name\"`",
+    "TotalDeliveries": "int32 `json:\"total_deliveries\"`",
+    "UpdatedAt": "string `json:\"updated_at\"`",
+    "Url": "string `json:\"url\"`"
+  },
+  "WebhookTestResponse": {
+    "Error": "*string `json:\"error,omitempty\"`",
+    "StatusCode": "*int32 `json:\"status_code,omitempty\"`",
+    "Success": "bool `json:\"success\"`"
+  },
+  "XbergError": {
+    "Body": "json.RawMessage ",
+    "Message": "string ",
+    "Status": "int "
+  },
+  "XmlMetadata": {
+    "ElementCount": "int32 `json:\"element_count\"`",
+    "FormatType": "XmlMetadataFormatType `json:\"format_type\"`",
+    "UniqueElements": "[]string `json:\"unique_elements\"`"
+  },
+  "XmlMetadataFormatType": {
+    "=": "string"
+  },
+  "YakeParams": {
+    "WindowSize": "int `json:\"window_size\"`"
+  },
+  "YearRange": {
+    "Max": "*int32 `json:\"max,omitempty\"`",
+    "Min": "*int32 `json:\"min,omitempty\"`",
+    "Years": "*[]int32 `json:\"years,omitempty\"`"
+  }
+}
