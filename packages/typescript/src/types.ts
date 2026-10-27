@@ -147,6 +147,26 @@ export type RagConfigResponse = proComponents["schemas"]["RagConfigResponse"];
 export type ProHealthResponse = proComponents["schemas"]["HealthResponse"];
 export type LicenseInfoResponse = proComponents["schemas"]["LicenseInfoResponse"];
 
+/** One feature flag reported by Enterprise `GET /healthz`. */
+export interface EnterpriseHealthFeature {
+  enabled: boolean;
+}
+
+/**
+ * Enterprise `GET /healthz`, as `enterpriseHealthz` decodes it. Written by hand
+ * rather than aliased from the spec because the decode is lenient: a feature
+ * object an older server omits, such as `data_rooms` before data rooms shipped,
+ * reads as `{ enabled: false }`, and fields the server adds later are kept.
+ */
+export interface EnterpriseHealthResponse {
+  status: string;
+  tier: string;
+  rag: EnterpriseHealthFeature;
+  auto_tune: EnterpriseHealthFeature;
+  data_rooms: EnterpriseHealthFeature;
+  [key: string]: unknown;
+}
+
 // -- Pro-only control plane (projects, API keys, integrations) --
 export type ListProjectsResponse = proComponents["schemas"]["ListProjectsResponse"];
 export type CreateProjectRequest = proComponents["schemas"]["CreateProjectRequest"];

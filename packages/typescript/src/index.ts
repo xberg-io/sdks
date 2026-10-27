@@ -99,6 +99,8 @@ export {
   type JobStatus,
   type LicenseInfoResponse,
   type ProHealthResponse,
+  type EnterpriseHealthFeature,
+  type EnterpriseHealthResponse,
   type ProIntegrationListResponse,
   type ListApiKeysResponse,
   type ListAuditEntriesResponse,

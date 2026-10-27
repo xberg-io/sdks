@@ -192,6 +192,7 @@ GROUPS: list[tuple[str, str, list[str]]] = [
     ),
     ("Enterprise health", "Enterprise liveness and feature availability.", ["enterprise_healthz"]),
     ("Pro health", "Pro liveness and coarse license/capability state.", ["pro_healthz"]),
+    ("Enterprise health", "Enterprise liveness and feature availability on the data plane.", ["enterprise_healthz"]),
     ("Auth", "Pro-only session and configuration reads.", ["auth_config", "login"]),
     (
         "Client accessors",

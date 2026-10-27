@@ -243,6 +243,14 @@ Pro liveness and coarse license/capability state.
 | --- | --- |
 | `proHealthz` | Pro liveness and coarse license/capability state (`GET /healthz`). |
 
+## Enterprise health
+
+Enterprise liveness and feature availability on the data plane.
+
+| Method | Description |
+| --- | --- |
+| `enterpriseHealthz` | Enterprise liveness and feature availability (`GET /healthz` on the data plane). |
+
 ## Auth
 
 Pro-only session and configuration reads.

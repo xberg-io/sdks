@@ -118,6 +118,8 @@ import type {
   DocumentVersionEntry,
   EnrichJobStatus,
   EnrichJobSubmitted,
+  EnterpriseHealthFeature,
+  EnterpriseHealthResponse,
   EnrichTextRequest,
   ExtractResponse,
   ExtractionOptions,
@@ -1524,6 +1526,17 @@ export class XbergClient {
     return { [Symbol.asyncIterator]: (): AsyncIterator<CrawlEvent> => iterateCrawlEvents(open) };
   }
 
+  /**
+   * Enterprise liveness and feature availability (`GET /healthz` on the data plane).
+   * Decoded leniently: a missing feature object reads as `{ enabled: false }` and
+   * unknown fields are kept, so an older or newer server does not break the call. ~keep
+   */
+  public async enterpriseHealthz(): Promise<EnterpriseHealthResponse> {
+    await this.requireTier("enterprise", "enterpriseHealthz");
+    const body = await this.requestJson<unknown>("GET", "/healthz");
+    return decodeEnterpriseHealth(body);
+  }
+
   // -- Pro-only surface --------------------------------------------------
 
   /**
@@ -2087,6 +2100,28 @@ interface RequestParts {
   json?: unknown;
   headers?: Record<string, string>;
   params?: QueryParams;
+}
+
+function decodeEnterpriseHealth(payload: unknown): EnterpriseHealthResponse {
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    throw new ValidationError("unexpected /healthz response shape", { status: 200, body: payload });
+  }
+  const record = payload as Record<string, unknown>;
+  return {
+    ...record,
+    status: typeof record["status"] === "string" ? record["status"] : "",
+    tier: typeof record["tier"] === "string" ? record["tier"] : "",
+    rag: decodeHealthFeature(record["rag"]),
+    auto_tune: decodeHealthFeature(record["auto_tune"]),
+    data_rooms: decodeHealthFeature(record["data_rooms"]),
+  };
+}
+
+function decodeHealthFeature(value: unknown): EnterpriseHealthFeature {
+  if (typeof value !== "object" || value === null) {
+    return { enabled: false };
+  }
+  return { ...value, enabled: (value as Record<string, unknown>)["enabled"] === true };
 }
 
 function parseJobResponse(payload: unknown): GetJobResponse {
