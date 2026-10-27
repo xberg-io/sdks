@@ -174,6 +174,12 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_POLL_INTERVAL_MS = 1_000;
 const DEFAULT_WAIT_TIMEOUT_MS = 5 * 60_000;
 const DEFAULT_RETRY_STATUSES: readonly number[] = [429, 502, 503, 504];
+/**
+ * ~keep Methods a retry cannot duplicate work through. A 502/503/504 on a POST may
+ * arrive after the server accepted the submission, so retrying it can create a
+ * second job; 429 is safe for every method because the request was refused.
+ */
+const IDEMPOTENT_METHODS: ReadonlySet<string> = new Set(["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]);
 const DEFAULT_RETRY_BACKOFF_BASE_MS = 200;
 
 /**
@@ -216,8 +222,20 @@ export interface XbergClientOptions {
   fetch?: typeof fetch;
   headers?: Record<string, string>;
   timeoutMs?: number;
+  /** Retry attempts after the first request. Default 0 (retries off). */
   retries?: number;
+  /**
+   * Statuses to retry. Default `[429, 502, 503, 504]`. A 429 is retried for
+   * every method, honouring `Retry-After`; any other listed status is retried
+   * only for GET, HEAD, OPTIONS, PUT and DELETE unless `retryNonIdempotent` is set.
+   */
   retryOn?: readonly number[];
+  /**
+   * Also retry POST and PATCH on the non-429 `retryOn` statuses. Default `false`:
+   * a 502/503/504 can arrive after the server accepted the request, so a retry
+   * may submit the same document twice. Enable only when repeating is acceptable.
+   */
+  retryNonIdempotent?: boolean;
   retryBackoff?: BackoffStrategy;
   /** Sleep helper, swappable in tests. Defaults to `setTimeout`. */
   sleep?: (ms: number) => Promise<void>;
@@ -365,6 +383,7 @@ export class XbergClient {
   private readonly timeoutMs: number;
   private readonly retries: number;
   private readonly retryOn: readonly number[];
+  private readonly retryNonIdempotent: boolean;
   private readonly retryBackoff: BackoffStrategy;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly target?: Target;
@@ -385,6 +404,7 @@ export class XbergClient {
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.retries = options.retries ?? 0;
     this.retryOn = options.retryOn ?? DEFAULT_RETRY_STATUSES;
+    this.retryNonIdempotent = options.retryNonIdempotent ?? false;
     this.retryBackoff = options.retryBackoff ?? "exponential";
     this.sleep = options.sleep ?? defaultSleep;
 
@@ -2001,6 +2021,14 @@ export class XbergClient {
     return requestInit;
   }
 
+  /** Whether a response status is retryable for this method under the configured policy. */
+  private shouldRetryStatus(method: string, status: number): boolean {
+    if (!this.retryOn.includes(status)) {
+      return false;
+    }
+    return status === 429 || this.retryNonIdempotent || IDEMPOTENT_METHODS.has(method.toUpperCase());
+  }
+
   private async requestWithRetry(method: string, path: string, init: RequestParts = {}): Promise<Response> {
     if (init.controlPlane && (this.target ?? this.probedTier) === "pro") {
       throw new XbergError("Enterprise backend methods are not available on the 'pro' tier", { status: 0, body: null });
@@ -2035,7 +2063,7 @@ export class XbergClient {
         return response;
       }
 
-      if (this.retryOn.includes(response.status) && attempt < this.retries) {
+      if (this.shouldRetryStatus(method, response.status) && attempt < this.retries) {
         attempt += 1;
         const retryAfter = parseRetryAfterHeader(response.headers.get("retry-after"));
         const wait = retryAfter !== undefined ? retryAfter * 1000 : interval;

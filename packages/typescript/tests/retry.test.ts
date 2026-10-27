@@ -1,7 +1,8 @@
 import { HttpResponse, http } from "msw";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { XbergClient } from "../src/client.js";
-import { RateLimitError, ServerError, XbergError } from "../src/errors.js";
+import { GatewayTimeoutError, RateLimitError, RequestTimeoutError, ServerError, XbergError } from "../src/errors.js";
+import type { PresignUploadRequest, PresignUploadResponse } from "../src/types.js";
 import { TEST_BASE_URL, createTestServer, url } from "./_helpers.js";
 
 const server = createTestServer();
@@ -349,5 +350,163 @@ describe("retry/backoff", () => {
     });
     await expect(client.getJob("x")).rejects.toBeInstanceOf(RateLimitError);
     expect(attempts).toBe(2);
+  });
+});
+
+describe("method-aware retry policy", () => {
+  const PRESIGN: PresignUploadRequest = {
+    documents: [{ filename: "a.pdf", mime_type: "application/pdf" }],
+  };
+  const PRESIGNED: PresignUploadResponse = {
+    batch_id: "00000000-0000-0000-0000-000000000001",
+    uploads: [],
+  };
+  const JOB = {
+    id: "x",
+    filename: "x.pdf",
+    status: "completed",
+    created_at: "2026-05-09T10:00:00Z",
+  };
+
+  function client(sleeps: number[], extra: { retryNonIdempotent?: boolean } = {}): XbergClient {
+    return new XbergClient({
+      apiKey: "k",
+      baseUrl: TEST_BASE_URL,
+      retries: 3,
+      sleep: async (ms) => {
+        sleeps.push(ms);
+      },
+      ...extra,
+    });
+  }
+
+  it.each([502, 503, 504])("should_not_retry_a_POST_on_%i_by_default", async (status) => {
+    let attempts = 0;
+    const sleeps: number[] = [];
+    server.use(
+      http.post(url("/v1/uploads/presign"), () => {
+        attempts += 1;
+        return HttpResponse.json({ error: { code: "gateway_timeout", message: "late" } }, { status });
+      }),
+    );
+    await expect(client(sleeps).presignUpload(PRESIGN)).rejects.toBeInstanceOf(ServerError);
+    expect(attempts).toBe(1);
+    expect(sleeps).toEqual([]);
+  });
+
+  it("should_surface_a_GatewayTimeoutError_for_an_unretried_POST_504", async () => {
+    server.use(
+      http.post(url("/v1/uploads/presign"), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: "gateway_timeout",
+              message: "late",
+              details: { limit: "handler", timeout_seconds: 30 },
+            },
+          },
+          { status: 504 },
+        ),
+      ),
+    );
+    await expect(client([]).presignUpload(PRESIGN)).rejects.toMatchObject({
+      name: "GatewayTimeoutError",
+      status: 504,
+      limit: "handler",
+      timeoutSeconds: 30,
+    });
+  });
+
+  it("should_retry_a_GET_on_504", async () => {
+    let attempts = 0;
+    const sleeps: number[] = [];
+    server.use(
+      http.get(url("/v1/jobs/x"), () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({ error: { code: "gateway_timeout", message: "late" } }, { status: 504 })
+          : HttpResponse.json(JOB, { status: 200 });
+      }),
+    );
+    expect((await client(sleeps).getJob("x")).id).toBe("x");
+    expect(attempts).toBe(2);
+    expect(sleeps).toEqual([200]);
+  });
+
+  it("should_retry_a_DELETE_on_503", async () => {
+    let attempts = 0;
+    server.use(
+      http.delete(url("/v1/jobs/x"), () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({ error: "down" }, { status: 503 })
+          : new HttpResponse(null, { status: 204 });
+      }),
+    );
+    await client([]).cancelJob("x");
+    expect(attempts).toBe(2);
+  });
+
+  it("should_retry_a_POST_on_429_honouring_Retry_After", async () => {
+    let attempts = 0;
+    const sleeps: number[] = [];
+    server.use(
+      http.post(url("/v1/uploads/presign"), () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({ error: "slow down" }, { status: 429, headers: { "retry-after": "7" } })
+          : HttpResponse.json(PRESIGNED, { status: 200 });
+      }),
+    );
+    expect(await client(sleeps).presignUpload(PRESIGN)).toEqual(PRESIGNED);
+    expect(attempts).toBe(2);
+    expect(sleeps).toEqual([7000]);
+  });
+
+  it("should_retry_a_POST_on_504_when_retryNonIdempotent_is_set", async () => {
+    let attempts = 0;
+    server.use(
+      http.post(url("/v1/uploads/presign"), () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({ error: "late" }, { status: 504 })
+          : HttpResponse.json(PRESIGNED, { status: 200 });
+      }),
+    );
+    expect(await client([], { retryNonIdempotent: true }).presignUpload(PRESIGN)).toEqual(PRESIGNED);
+    expect(attempts).toBe(2);
+  });
+
+  it("should_not_retry_a_GET_on_408_by_default", async () => {
+    let attempts = 0;
+    server.use(
+      http.get(url("/v1/jobs/x"), () => {
+        attempts += 1;
+        return HttpResponse.json(
+          {
+            error: {
+              code: "request_timeout",
+              message: "stalled",
+              details: { limit: "body_idle", timeout_seconds: 60 },
+            },
+          },
+          { status: 408 },
+        );
+      }),
+    );
+    await expect(client([]).getJob("x")).rejects.toBeInstanceOf(RequestTimeoutError);
+    expect(attempts).toBe(1);
+  });
+
+  it("should_exhaust_GET_retries_on_504_then_throw_GatewayTimeoutError", async () => {
+    let attempts = 0;
+    server.use(
+      http.get(url("/v1/jobs/x"), () => {
+        attempts += 1;
+        return HttpResponse.json({ error: "late" }, { status: 504 });
+      }),
+    );
+    await expect(client([]).getJob("x")).rejects.toBeInstanceOf(GatewayTimeoutError);
+    expect(attempts).toBe(4);
   });
 });
