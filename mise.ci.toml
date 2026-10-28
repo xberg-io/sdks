@@ -1,0 +1,6 @@
+# Loaded only with MISE_ENV=ci. Adds the supported-range test legs so they are locked too: the Python floor
+# (requires-python >=3.10) and newest line, and the Node floor (engines >=24). A job selects one with
+# MISE_PYTHON_VERSION or MISE_NODE_VERSION. ~keep
+[tools]
+python = ["3.13.18", "3.10.22", "3.14.10"]
+node = ["26.12.1", "24.22.1"]

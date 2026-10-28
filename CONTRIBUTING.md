@@ -8,16 +8,16 @@ Please begin by reading our AI section below, followed by the getting started gu
 
 ## Getting Started
 
-Make sure to have [Git](https://git-scm.com/), [Python](https://www.python.org/) 3.10+ with [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) 22+ with [pnpm](https://pnpm.io/) installed on your machine.
-
-1. Install [Task](https://taskfile.dev/installation/) on your machine.
-2. run:
+Make sure to have [Git](https://git-scm.com/) and [mise](https://mise.jdx.dev/getting-started.html) installed, with
+mise [activated](https://mise.jdx.dev/getting-started.html#activate-mise) in your shell. mise installs every tool at
+the version pinned in `mise.toml` (Task, Python, uv, Node.js, pnpm, Go, poly, ai-rulez and the rest).
 
 ```bash
+mise install
 task setup
 ```
 
-This will setup the dependencies, and pre-commit hooks via `poly`.
+This installs the toolchain, the dependencies, and the pre-commit hooks via `poly`.
 
 ## Quick reference
 

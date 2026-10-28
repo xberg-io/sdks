@@ -9,9 +9,6 @@ env:
   # loads the vendored xberg-io/actions xberg-bats library from here.
   BATS_LIB_PATH: "{{.ROOT_DIR}}/scripts/tests/lib"
 
-vars:
-  BATS_CORE_VERSION: 1.13.0
-
 includes:
   python:
     taskfile: ./tasks/python.yml
@@ -38,13 +35,13 @@ tasks:
       - task --list
 
   setup:
-    desc: "Install all language toolchains"
+    desc: "Install the mise toolchain and all language dependencies"
     cmds:
+      - mise install
       - uv sync
       - pnpm install
       - cd packages/go && go mod download
       - cd tools/oapi-schemaset-config && go mod download
-      - command -v poly >/dev/null 2>&1 || brew install goldziher/tap/poly
       - task: governance:hooks:install
 
   governance:hooks:install:
@@ -58,7 +55,7 @@ tasks:
         import tomllib
 
         if shutil.which("ai-rulez") is None:
-            raise SystemExit("Install the latest ai-rulez release (minimum 5.7.0) before installing hooks")
+            raise SystemExit("Run `mise install` to install the pinned ai-rulez before installing hooks")
         preferences = pathlib.Path("poly.local.toml")
         text = preferences.read_text() if preferences.exists() else ""
         data = tomllib.loads(text)
@@ -105,7 +102,7 @@ tasks:
   scripts:test:shell:
     desc: "Run the bats suites for the shell tooling under scripts/"
     cmds:
-      - npx --yes bats@{{.BATS_CORE_VERSION}} scripts/tests
+      - bats scripts/tests
 
   lint:
     desc: "Lint all code via poly"
