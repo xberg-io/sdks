@@ -416,9 +416,9 @@ func derivedSpecPathFor(outputPath, prefix string) string {
 // writeDerivedSpec copies the spec, renaming each divergent schema and every
 // reference to it.
 //
-// It is written unconditionally, even when nothing is renamed, so `task
-// go:generate` can always hand oapi-codegen the same path instead of branching
-// on whether a rename happened.
+// It is written unconditionally, even when nothing is renamed, so the
+// `task go:generate` step can always hand oapi-codegen the same path instead
+// of branching on whether a rename happened.
 func writeDerivedSpec(path, specPath, prefix string, renames map[string]string) error {
 	raw, err := os.ReadFile(specPath) //nolint:gosec // path comes from the Taskfile, not user input
 	if err != nil {
