@@ -165,6 +165,20 @@ func (e *ResultExpiredError) Error() string {
 // Unwrap exposes the embedded XbergError.
 func (e *ResultExpiredError) Unwrap() error { return &e.XbergError }
 
+// DataRoomsDisabledError wraps the 404 a deployment whose plan does not offer
+// data rooms gives on every room route (code [ErrCodeDataRoomDisabled]). It
+// embeds [NotFoundError], so errors.As(err, &notFound) keeps matching it.
+// [EnterpriseHealth.DataRooms] reports the same state before any room call.
+type DataRoomsDisabledError struct{ NotFoundError }
+
+// Error overrides NotFoundError.Error.
+func (e *DataRoomsDisabledError) Error() string {
+	return "xberg: data rooms are disabled on this deployment: " + e.XbergError.Error()
+}
+
+// Unwrap exposes the embedded [NotFoundError], which in turn unwraps to [XbergError].
+func (e *DataRoomsDisabledError) Unwrap() error { return &e.NotFoundError }
+
 // PreconditionFailedError wraps 412 Precondition Failed responses: the
 // resource changed since the ETag sent in If-Match was read.
 type PreconditionFailedError struct{ XbergError }
@@ -333,6 +347,8 @@ func classifyHTTPError(status int, body []byte, header http.Header) error {
 		return &AuthError{XbergError: base}
 	case status == http.StatusBadRequest || status == http.StatusUnprocessableEntity:
 		return &ValidationError{XbergError: base}
+	case status == http.StatusNotFound && parsed.code == ErrCodeDataRoomDisabled:
+		return &DataRoomsDisabledError{NotFoundError: NotFoundError{XbergError: base}}
 	case status == http.StatusNotFound:
 		return &NotFoundError{XbergError: base}
 	case status == http.StatusRequestTimeout:

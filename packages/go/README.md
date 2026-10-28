@@ -73,8 +73,10 @@ control plane — projects
 `GetIntegration`, `DeleteIntegration`, `ConnectIntegration`,
 `DisconnectIntegration`, `ListIntegrationDocuments`, `FetchIntegrationDocument`).
 Enterprise-only: `EnterpriseHealthz`, `GetDocument`, `Versions`, `Diff`, `GetDiffJob`,
-`ListExtractionEvents`, and the webhook-subscription delivery history
-(`ListSubscriptionDeliveries`, `GetSubscriptionDelivery`). Available on both
+`ListDocuments`, `ListExtractionEvents`, the webhook-subscription delivery history
+(`ListSubscriptionDeliveries`, `GetSubscriptionDelivery`), and data rooms (`ListRooms`,
+`CreateRoom`, `UpdateRoom`, `ListRoomItems`, `ReorderRoomItems`, `SetRoomPublication`,
+`GetPublicRoom`, …; see the data-rooms guide). Available on both
 tiers, though earlier releases wrongly gated them to Enterprise: `GetJobPage`,
 enrichment (`SubmitEnrich`, `GetEnrichStatus`), uploads
 (`PresignUpload`/`ConfirmUpload`), `Usage`, and `StreamCrawlEvents`.
@@ -210,7 +212,7 @@ if errors.As(err, &rateLimited) {
 ```
 
 The full hierarchy is `XbergError` (base) plus `AuthError`, `ValidationError`,
-`NotFoundError`, `RateLimitError`, `ServerError`, `GatewayTimeoutError` (504, a
+`NotFoundError` (with `DataRoomsDisabledError` for 404 `data_room.disabled`), `RateLimitError`, `ServerError`, `GatewayTimeoutError` (504, a
 `ServerError`), `RequestTimeoutError` (408), `ResultExpiredError` (410),
 `PreconditionFailedError` (412), `PreconditionRequiredError` (428),
 `ConnectionError` (no response), `TimeoutError` (for `WaitForJob` deadline

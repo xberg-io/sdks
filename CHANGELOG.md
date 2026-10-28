@@ -59,6 +59,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (tier, status, and `Rag`, `AutoTune`, `DataRooms` decoded leniently: a feature the server omits is nil).
 - Go: `PresignUploadTyped` and `ConfirmUploadTyped` decode into the generated `PresignUploadResponse`
   and `ConfirmUploadResponse`. `PresignUpload` and `ConfirmUpload` keep returning `json.RawMessage`.
+- Go: Enterprise data rooms, one method per operation: rooms (`ListRooms`, `CreateRoom`, `GetRoom`,
+  `UpdateRoom`, `DeleteRoom`, `RestoreRoom`), items (`ListRoomItems`, `AddRoomItem`, `ReorderRoomItems`,
+  `RemoveRoomItem`, `GetRoomItemContent`, `DownloadRoomItem`, `GetRoomItemPage`), members
+  (`ListRoomMembers`, `AddRoomMember`, `ChangeRoomMemberRole`, `RemoveRoomMember`, `LeaveRoom`,
+  `TransferRoomOwnership`), invitations (`ListRoomInvitations`, `CreateRoomInvitation`,
+  `RevokeRoomInvitation`, `PreviewRoomInvitation`, `AcceptRoomInvitation`), publication
+  (`GetRoomPublication`, `SetRoomPublication`), the anonymous published-room routes (`GetPublicRoom`,
+  `ListPublicRoomItems`, `GetPublicRoomItemContent`, `DownloadPublicRoomItem`), and `ListDocuments`.
+  The versioned writes take the room version and send it as `If-Match`; the public routes send no
+  credential.
+- Go: `DataRoomsDisabledError`, a `NotFoundError` returned for a 404 with code `data_room.disabled`
+  (`ErrCodeDataRoomDisabled`).
 
 ### Changed
 
