@@ -2587,8 +2587,8 @@ function sessionBearer(options: RoomInvitationOptions): Pick<RequestParts, "bear
   if (options.sessionToken === undefined) {
     return {};
   }
-  if (options.sessionToken.length === 0) {
-    throw new ValidationError("sessionToken must not be empty", { status: 0, body: null });
+  if (options.sessionToken.trim().length === 0) {
+    throw new ValidationError("sessionToken must not be blank", { status: 0, body: null });
   }
   return { bearerToken: options.sessionToken };
 }

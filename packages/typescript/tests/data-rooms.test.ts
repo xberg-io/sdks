@@ -461,6 +461,27 @@ describe("room members and invitations", () => {
       ValidationError,
     );
   });
+
+  it.each(["", "  \t"])(
+    "both invitation methods refuse the blank session token %j without a request",
+    async (blank) => {
+      let requests = 0;
+      server.use(
+        http.post(url("/v1/room-invitations/:action"), () => {
+          requests += 1;
+          return HttpResponse.json({});
+        }),
+      );
+      const client = makeClient();
+      await expect(client.previewRoomInvitation({ token: "tok" }, { sessionToken: blank })).rejects.toBeInstanceOf(
+        ValidationError,
+      );
+      await expect(client.acceptRoomInvitation({ token: "tok" }, { sessionToken: blank })).rejects.toBeInstanceOf(
+        ValidationError,
+      );
+      expect(requests).toBe(0);
+    },
+  );
 });
 
 describe("room publication", () => {

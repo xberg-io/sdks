@@ -760,6 +760,12 @@ def _query_params(**candidates: Any) -> dict[str, Any] | None:
     return params or None
 
 
+def _check_session_token(session_token: str | None) -> None:
+    """Refuse an empty or whitespace ``session_token`` before any request is sent."""
+    if session_token is not None and not session_token.strip():
+        raise ValueError("session_token must not be blank")
+
+
 def _if_match(version: RoomVersion) -> dict[str, str]:
     """Build the ``If-Match`` header for a data-room write from the version the caller read.
 
@@ -2596,7 +2602,9 @@ class XbergClient(_BaseClient):
         The route needs a user session, not a project API key (a key answers 403).
         ``session_token`` sends that session JWT for this call instead of the
         client's ``api_key``; omit it when the client was built with the session token.
+        A blank ``session_token`` raises :class:`ValueError` before any request.
         """
+        _check_session_token(session_token)
         self._require_tier("enterprise", "preview_room_invitation")
         payload = self._request_json(
             "POST", "/v1/room-invitations/preview", json_body=_coerce_body(body), token=session_token
@@ -2611,6 +2619,7 @@ class XbergClient(_BaseClient):
         Like :meth:`preview_room_invitation`, it needs a user session, sent as
         ``session_token`` or as the client's credential.
         """
+        _check_session_token(session_token)
         self._require_tier("enterprise", "accept_room_invitation")
         payload = self._request_json(
             "POST", "/v1/room-invitations/accept", json_body=_coerce_body(body), token=session_token
@@ -4276,7 +4285,9 @@ class AsyncXbergClient(_BaseClient):
         The route needs a user session, not a project API key (a key answers 403).
         ``session_token`` sends that session JWT for this call instead of the
         client's ``api_key``; omit it when the client was built with the session token.
+        A blank ``session_token`` raises :class:`ValueError` before any request.
         """
+        _check_session_token(session_token)
         await self._require_tier("enterprise", "preview_room_invitation")
         payload = await self._request_json(
             "POST", "/v1/room-invitations/preview", json_body=_coerce_body(body), token=session_token
@@ -4291,6 +4302,7 @@ class AsyncXbergClient(_BaseClient):
         Like :meth:`preview_room_invitation`, it needs a user session, sent as
         ``session_token`` or as the client's credential.
         """
+        _check_session_token(session_token)
         await self._require_tier("enterprise", "accept_room_invitation")
         payload = await self._request_json(
             "POST", "/v1/room-invitations/accept", json_body=_coerce_body(body), token=session_token

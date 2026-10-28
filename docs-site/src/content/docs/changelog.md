@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   publication and public-room operation, plus `list_documents` (`GET /v1/documents`). `update_room`,
   `reorder_room_items` and `set_room_publication` take the room version as `if_match`; the
   `/public/rooms` methods send no credential; `preview_room_invitation` and `accept_room_invitation`
-  take an optional `session_token`. A plan without data rooms raises `DataRoomsDisabledError`, a
+  take an optional `session_token` and raise `ValueError` for a blank one before any request. A plan without data rooms raises `DataRoomsDisabledError`, a
   `NotFoundError` subclass.
 - TypeScript: `RequestTimeoutError` (408), `GatewayTimeoutError` (504), `ResultExpiredError` (410),
   `PreconditionFailedError` (412) and `PreconditionRequiredError` (428). The timeout classes carry
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   members, invitations, publication and the anonymous `/public/rooms` reads. Versioned writes take the
   room version and send it as `If-Match`. A 404 `data_room.disabled` throws the new
   `DataRoomsDisabledError`, a `NotFoundError` subclass. Invitation preview and accept take an optional
-  per-call `sessionToken`.
+  per-call `sessionToken` and throw `ValidationError` for an empty or whitespace one.
 - TypeScript: `retryNonIdempotent` client option to retry POST and PATCH on 502/503/504.
 - Go: parse the nested error envelope `{"error":{"code","message","details"}}` as well as the older flat
   `{"error":"..."}` and `{"message":"..."}` bodies. `XbergError` gains `Code` and `Details`

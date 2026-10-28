@@ -636,6 +636,32 @@ def test_room_reads_are_replayed_on_503(base_url: str, api_key: str, monkeypatch
     assert all("authorization" not in call.request.headers for call in route.calls)
 
 
+@pytest.mark.parametrize("name", ["preview_room_invitation", "accept_room_invitation"])
+@pytest.mark.parametrize("blank", ["", "   "])
+@respx.mock
+def test_invitation_routes_refuse_a_blank_session_token_before_the_wire(
+    base_url: str, api_key: str, name: str, blank: str
+) -> None:
+    with XbergClient(api_key=api_key, base_url=base_url) as client:
+        with pytest.raises(ValueError, match="session_token must not be blank"):
+            getattr(client, name)({"token": "inv-token"}, session_token=blank)
+
+    assert respx.calls.call_count == 0
+
+
+@pytest.mark.parametrize("name", ["preview_room_invitation", "accept_room_invitation"])
+@pytest.mark.parametrize("blank", ["", "\t "])
+@respx.mock
+async def test_async_invitation_routes_refuse_a_blank_session_token_before_the_wire(
+    base_url: str, api_key: str, name: str, blank: str
+) -> None:
+    async with AsyncXbergClient(api_key=api_key, base_url=base_url) as client:
+        with pytest.raises(ValueError, match="session_token must not be blank"):
+            await getattr(client, name)({"token": "inv-token"}, session_token=blank)
+
+    assert respx.calls.call_count == 0
+
+
 @respx.mock
 def test_path_parameters_are_percent_encoded(base_url: str, api_key: str) -> None:
     route = respx.get(f"{base_url}/public/rooms/a%2Fb/items/c%3Fd/content").mock(
