@@ -1,0 +1,131 @@
+---
+title: Data rooms
+description: Share a curated set of project documents with members, guests, or the public on Enterprise.
+---
+
+A data room is an ordered set of a project's documents that you share with project members,
+invited guests, or, once published, anyone holding its public link. Data rooms are Enterprise-only
+and depend on the deployment's plan.
+
+## Check availability
+
+`enterprise_healthz()` reports whether the plan offers data rooms. On a plan without them, every
+room route, the public ones included, answers 404 with code `data_room.disabled`. The Python client
+raises that as `DataRoomsDisabledError`, a subclass of `NotFoundError`. A room method called against
+Pro raises before sending a request, like every other Enterprise-only method.
+
+## Concurrency: room versions and `If-Match`
+
+Every room carries an integer version. Three writes send the version you read in `If-Match`, and
+the server refuses a stale one with 412 and a missing one with 428:
+
+| Write | Read the version from |
+| --- | --- |
+| Rename or describe a room | `version` on the room |
+| Reorder room items | `version` on the item list |
+| Publish or unpublish | `room_version` on the publication settings |
+
+The server returns the version in the response body, not an `ETag` header. Each write's answer carries
+the new version, so chained writes need no extra read.
+
+## Credentials
+
+Room management uses the client's credential: a project API key or a user session token.
+Accepting or previewing an invitation needs a signed-in user, so a project key gets a 403 there.
+The public routes under `/public/rooms` take no credential: the client sends none, even when it
+holds an API key.
+
+## Python
+
+All methods are on `XbergClient`; `AsyncXbergClient` mirrors them. Request bodies accept the
+generated request models or plain mappings, and lists take `limit` and `offset`.
+
+### Rooms and items
+
+```python title="Python"
+from xberg_io_sdk import PreconditionFailedError, XbergClient
+
+with XbergClient(api_key="kz_...", base_url="https://xberg.example.com", target="enterprise") as client:
+    if not client.enterprise_healthz().data_rooms:
+        raise SystemExit("data rooms are not part of this plan")
+
+    room = client.create_room({"name": "Board pack", "description": "Q3 materials"})
+
+    documents = client.list_documents(limit=100)
+    for entry in documents.documents:
+        client.add_room_item(str(room.id), {"document_id": str(entry.document_id)})
+
+    try:
+        room = client.update_room(str(room.id), {"name": "Board pack Q3"}, if_match=room.version)
+    except PreconditionFailedError:
+        room = client.get_room(str(room.id))  # someone else changed it: re-read and decide
+
+    items = client.list_room_items(str(room.id))
+    order = [str(item.document_id) for item in reversed(items.items)]
+    client.reorder_room_items(str(room.id), {"document_ids": order}, if_match=items.version)
+
+    original = client.download_room_item(str(room.id), order[0])  # raw bytes
+    page_png = client.get_room_item_page(str(room.id), order[0], 1)
+    content = client.get_room_item_content(str(room.id), order[0])  # result is None until extracted
+```
+
+`if_match` takes the integer version, sent quoted as an entity tag, or a string sent as given.
+`delete_room` keeps the room restorable until its `restorable_until`; `list_rooms(state="deleted")`
+lists those rooms and `restore_room` brings one back.
+
+### Members and invitations
+
+```python title="Python"
+client.add_room_member(room_id, {"user_id": "project-member-sub", "role": "VIEWER"})
+client.change_room_member_role(room_id, "project-member-sub", {"role": "EDITOR"})
+client.transfer_room_ownership(room_id, {"user_id": "project-member-sub"})
+
+invitation = client.create_room_invitation(room_id, {"email": "guest@example.com", "role": "VIEWER"})
+client.list_room_invitations(room_id)
+client.revoke_room_invitation(room_id, str(invitation.id))
+```
+
+The invitee previews and accepts with their own session, which you pass as `session_token`. It
+replaces the client's credential for that one call:
+
+```python title="Python"
+preview = client.preview_room_invitation({"token": invitation_token}, session_token=user_session_jwt)
+accepted = client.accept_room_invitation({"token": invitation_token}, session_token=user_session_jwt)
+```
+
+A token that cannot be accepted answers 404 whatever the reason, and a caller who is already in the
+room gets 409.
+
+### Publication and the public view
+
+```python title="Python"
+settings = client.get_room_publication(room_id)
+settings = client.set_room_publication(
+    room_id, {"state": "published", "mode": "live", "download_allowed": True}, if_match=settings.room_version
+)
+
+anonymous = XbergClient(base_url="https://xberg.example.com", target="enterprise")
+public_room = anonymous.get_public_room(settings.slug)
+public_items = anonymous.list_public_room_items(settings.slug, limit=20)
+first = public_items.items[0].item_ref
+anonymous.get_public_room_item_content(settings.slug, first)
+anonymous.download_public_room_item(settings.slug, first)  # 404 when downloads are off
+```
+
+### Retries
+
+With `retries` set, room reads, `PUT` and `DELETE` writes are retried on 502, 503 and 504. The `POST`
+and `PATCH` writes (create, restore, add, invite, accept, transfer, leave, rename, role change) are
+not, unless the client was built with `retry_non_idempotent=True`. 429 is retried for every method.
+
+## TypeScript
+
+<!-- TypeScript data-room section: to be added with the TypeScript client methods. -->
+
+The TypeScript methods are documented in the [TypeScript reference](/reference/api-typescript/).
+
+## Go
+
+<!-- Go data-room section: to be added with the Go client methods. -->
+
+The Go methods are documented in the [Go reference](/reference/api-go/).
