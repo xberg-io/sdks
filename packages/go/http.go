@@ -43,6 +43,10 @@ type requestSpec struct {
 	accept          string
 	projectID       string
 	rewindBody      func() (io.Reader, error)
+	// ifMatch, when set, is sent verbatim as the If-Match header.
+	ifMatch string
+	// anonymous drops the Authorization header for routes that take no credential.
+	anonymous bool
 }
 
 // doJSON executes spec, decodes a 2xx JSON response into out, and maps
@@ -119,17 +123,27 @@ func (c *Client) rawSend(ctx context.Context, method, path string, body any) (js
 // the 2xx JSON response into out. A nil body sends no request payload; a nil out
 // discards the response body. Bodies are buffered so retries can rewind them.
 func (c *Client) callJSON(ctx context.Context, method, path string, body, out any) error {
-	spec := requestSpec{method: method, path: path}
-	if body != nil {
-		encoded, err := json.Marshal(body)
-		if err != nil {
-			return fmt.Errorf("xberg: encoding request body: %w", err)
-		}
-		spec.body = bytes.NewReader(encoded)
-		spec.bodyContentType = contentTypeJSON
-		spec.rewindBody = func() (io.Reader, error) { return bytes.NewReader(encoded), nil }
+	spec, err := withJSONBody(requestSpec{method: method, path: path}, body)
+	if err != nil {
+		return err
 	}
 	return c.doJSON(ctx, spec, out)
+}
+
+// withJSONBody attaches body to spec as a buffered, rewindable JSON payload. A
+// nil body leaves spec unchanged.
+func withJSONBody(spec requestSpec, body any) (requestSpec, error) {
+	if body == nil {
+		return spec, nil
+	}
+	encoded, err := json.Marshal(body)
+	if err != nil {
+		return spec, fmt.Errorf("xberg: encoding request body: %w", err)
+	}
+	spec.body = bytes.NewReader(encoded)
+	spec.bodyContentType = contentTypeJSON
+	spec.rewindBody = func() (io.Reader, error) { return bytes.NewReader(encoded), nil }
+	return spec, nil
 }
 
 // do executes spec and returns the response body for 2xx responses. The
@@ -205,9 +219,15 @@ func (c *Client) doOnceWithCancel(
 	if spec.projectID != "" {
 		req.Header.Set("X-Project-ID", spec.projectID)
 	}
+	if spec.ifMatch != "" {
+		req.Header.Set("If-Match", spec.ifMatch)
+	}
 	if err := c.authorize(ctx, req); err != nil {
 		cancel()
 		return nil, err
+	}
+	if spec.anonymous {
+		req.Header.Del("Authorization")
 	}
 	resp, err := c.cfg.httpClient.Do(req)
 	if err != nil {
