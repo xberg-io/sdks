@@ -28,6 +28,9 @@ jobs:
   sync:
     name: refresh vendored OpenAPI specs
     runs-on: ubuntu-latest
+    env:
+      # uv must use the interpreter mise installed, not download its own. ~keep
+      UV_PYTHON_PREFERENCE: only-system
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
@@ -44,11 +47,22 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
 
-      - name: Install task
-        uses: arduino/setup-task@v3.0.0
+      # yq drives the spec conversion, so its pin in mise.toml keeps a formatting change upstream from
+      # showing up as spurious spec drift. ~keep
+      - uses: xberg-io/actions/setup-mise@v1
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          install-args: task yq go python uv node pnpm
+
+      - name: Resolve the mise Python version
+        id: python
+        run: echo "version=$(python3 -c 'import platform; print(platform.python_version())')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache uv downloads
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ steps.python.outputs.version }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-${{ steps.python.outputs.version }}-
 
       - name: Resolve upstream ref
         # ~keep The fallback is `development`, NOT `main`. `development` is xberg-enterprise's
@@ -77,38 +91,10 @@ jobs:
         id: upstream
         run: task spec:sync:sha
 
-      - name: Install yq
-        run: |
-          # ~keep Pinned: releases/latest resolves at run time, so an upstream release
-          # lands here unreviewed. That is how scythe v0.14.0 broke xberg-enterprise CI.
-          # yq drives the spec conversion below, so a formatting change upstream would
-          # show up as spurious spec drift. Bump deliberately.
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
       - name: Normalise all three upstream specs into the vendored copies
         run: task spec:fetch
         env:
           XBERG_ENTERPRISE_DIR: _xberg-enterprise
-
-      - uses: actions/setup-go@v7
-        with:
-          go-version: "1.27.3"
-          cache: true
-
-      - uses: astral-sh/setup-uv@v10.3.2
-        with:
-          enable-cache: true
-
-      - uses: pnpm/action-setup@v6.1.0
-        with:
-          version: "12.15.0"
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24.22.1"
-          cache: pnpm
 
       - name: Install dependencies
         run: |

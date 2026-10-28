@@ -14,6 +14,11 @@ on:
       - "Taskfile.yml"
       - "pyproject.toml"
       - "uv.lock"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-python.yml"
   push:
     branches: [main]
@@ -27,6 +32,11 @@ on:
       - "Taskfile.yml"
       - "pyproject.toml"
       - "uv.lock"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-python.yml"
 
 concurrency:
@@ -43,21 +53,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.14"]
+        # The requires-python floor and the newest line, both locked in mise.ci.lock. ~keep
+        python: ["3.10.22", "3.14.10"]
     env:
+      MISE_ENV: ci
+      MISE_PYTHON_VERSION: ${{ matrix.python }}
       UV_PYTHON: ${{ matrix.python }}
+      # uv must use the interpreter mise installed, not download its own. ~keep
+      UV_PYTHON_PREFERENCE: only-system
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: xberg-io/actions/setup-mise@v1
         with:
-          enable-cache: true
-      - name: Pin Python
-        run: uv python install ${{ matrix.python }}
-      - name: Install task
-        uses: arduino/setup-task@v3.0.0
+          install-args: python uv task
+      - name: Cache uv downloads
+        uses: actions/cache@v6
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ matrix.python }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-${{ matrix.python }}-
       - name: Install deps
         run: uv sync
       - name: Generate client

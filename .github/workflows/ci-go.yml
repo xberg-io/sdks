@@ -13,6 +13,11 @@ on:
       - "scripts/**"
       - "tools/oapi-schemaset-config/**"
       - "go.work"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-go.yml"
   push:
     branches: [main]
@@ -25,6 +30,11 @@ on:
       - "scripts/**"
       - "tools/oapi-schemaset-config/**"
       - "go.work"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-go.yml"
 
 concurrency:
@@ -40,15 +50,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: xberg-io/actions/setup-mise@v1
         with:
-          go-version: "1.27.3"
-          cache: true
-      - name: Install task
-        uses: arduino/setup-task@v3.0.0
+          install-args: go task
+      # setup-go put the go install target on PATH and cached the module and build caches. ~keep
+      - name: Resolve Go paths
+        id: go-env
+        run: |
+          gobin=$(go env GOBIN)
+          echo "${gobin:-$(go env GOPATH)/bin}" >> "$GITHUB_PATH"
+          {
+            echo "version=$(go env GOVERSION)"
+            echo "modcache=$(go env GOMODCACHE)"
+            echo "cache=$(go env GOCACHE)"
+          } >> "$GITHUB_OUTPUT"
+      - name: Cache Go modules and builds
+        uses: actions/cache@v6
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          path: |
+            ${{ steps.go-env.outputs.modcache }}
+            ${{ steps.go-env.outputs.cache }}
+          key: go-${{ runner.os }}-${{ steps.go-env.outputs.version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-${{ runner.os }}-${{ steps.go-env.outputs.version }}-
       # Pinned, not @latest: a floating install means an upstream release can turn an
       # unrelated pull request red, and a scanner change alters the gate with no commit
       # to point at. The advisory database is still fetched fresh on every run.

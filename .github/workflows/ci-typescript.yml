@@ -14,6 +14,11 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig.base.json"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-typescript.yml"
   push:
     branches: [main]
@@ -27,6 +32,11 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig.base.json"
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.ci.toml"
+      - "mise.ci.lock"
+      - "toolchains.toml"
       - ".github/workflows/ci-typescript.yml"
 
 concurrency:
@@ -43,21 +53,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The engines floor and the baseline, both locked in mise.ci.lock. ~keep
         node-version: ["24.22.1", "26.12.1"]
+    env:
+      MISE_ENV: ci
+      MISE_NODE_VERSION: ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6.1.0
+      - uses: xberg-io/actions/setup-mise@v1
         with:
-          version: "12.15.0"
-      - uses: actions/setup-node@v7
+          install-args: node pnpm task
+      # setup-node cached the pnpm store. ~keep
+      - name: Resolve the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - name: Cache the pnpm store
+        uses: actions/cache@v6
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-      - name: Install task
-        uses: arduino/setup-task@v3.0.0
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
       - name: Install deps
         run: pnpm install
       - name: Generate client
