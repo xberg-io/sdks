@@ -76,6 +76,23 @@ export class NotFoundError extends XbergError {
   }
 }
 
+/**
+ * HTTP 404 with code `data_room.disabled`: the deployment's plan does not offer
+ * data rooms, so every room route answers this before any other check.
+ * `enterpriseHealthz()` reports the same state ahead of time as
+ * `data_rooms.enabled === false`. Extends {@link NotFoundError}, which this
+ * response mapped to before.
+ */
+export class DataRoomsDisabledError extends NotFoundError {
+  public constructor(message: string, options: XbergErrorOptions) {
+    super(message, options);
+    this.name = "DataRoomsDisabledError";
+  }
+}
+
+/** Envelope code of the 404 every data-room route answers on a plan without data rooms. */
+const DATA_ROOM_DISABLED_CODE = "data_room.disabled";
+
 export class ServerError extends XbergError {
   public constructor(message: string, options: XbergErrorOptions) {
     super(message, options);
@@ -187,6 +204,9 @@ export async function raiseForStatus(response: Response): Promise<never> {
     throw new AuthError(message, options);
   }
   if (response.status === 404) {
+    if (options.code === DATA_ROOM_DISABLED_CODE) {
+      throw new DataRoomsDisabledError(message, options);
+    }
     throw new NotFoundError(message, options);
   }
   if (response.status === 429) {

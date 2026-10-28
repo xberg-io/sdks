@@ -7,7 +7,7 @@
  * Schema sets are generated separately and never merged — mirrors ADR-0072.
  */
 
-import type { components } from "./_generated/api.js";
+import type { components, operations } from "./_generated/api.js";
 import type { components as proComponents } from "./_generated/pro.js";
 import type { components as backendComponents } from "./_generated/backend.js";
 
@@ -103,6 +103,49 @@ export type ExtractionEventSummary = components["schemas"]["ExtractionEventSumma
 export type ListWebhookDeliveriesResponse = components["schemas"]["ListWebhookDeliveriesResponse"];
 /** One delivery attempt with its bounded request and response previews. */
 export type WebhookDeliveryDetailResponse = components["schemas"]["WebhookDeliveryDetailResponse"];
+
+// -- Enterprise-only documents and data rooms (api schema) --
+// ~keep Spec names too generic to stand alone in the package namespace (`ListItemsResponse`,
+// `AddMemberRequest`, `PublicationResponse`, ...) carry a `Room` prefix here; the right-hand
+// side names the schema each one aliases.
+/** One page of the project's logical documents, from `GET /v1/documents`. */
+export type ListProjectDocumentsResponse = components["schemas"]["ListProjectDocumentsResponse"];
+/** One logical document shown by its newest finished version; its `document_id` adds it to a room. */
+export type ProjectDocumentEntry = components["schemas"]["ProjectDocumentEntry"];
+export type RoomResponse = components["schemas"]["RoomResponse"];
+export type RoomRightsResponse = components["schemas"]["RoomRightsResponse"];
+export type ListRoomsResponse = components["schemas"]["ListRoomsResponse"];
+export type CreateRoomRequest = components["schemas"]["CreateRoomRequest"];
+export type UpdateRoomRequest = components["schemas"]["UpdateRoomRequest"];
+/** Which rooms `listRooms` asks for: the live ones, or the deleted ones that can still be restored. */
+export type RoomListState = NonNullable<NonNullable<operations["list_rooms"]["parameters"]["query"]>["state"]>;
+export type ListRoomItemsResponse = components["schemas"]["ListItemsResponse"];
+export type RoomItemResponse = components["schemas"]["RoomItemResponse"];
+export type AddRoomItemRequest = components["schemas"]["AddItemRequest"];
+export type ReorderRoomItemsRequest = components["schemas"]["ReorderItemsRequest"];
+export type ReorderRoomItemsResponse = components["schemas"]["ReorderItemsResponse"];
+export type RoomItemContentResponse = components["schemas"]["ItemContentResponse"];
+export type ListRoomMembersResponse = components["schemas"]["ListRoomMembersResponse"];
+export type RoomMemberResponse = components["schemas"]["RoomMemberResponse"];
+export type AddRoomMemberRequest = components["schemas"]["AddMemberRequest"];
+export type RoomChangeRoleRequest = components["schemas"]["RoomChangeRoleRequest"];
+export type RoomTransferOwnershipRequest = components["schemas"]["RoomTransferOwnershipRequest"];
+/** The roles a room grant, invitation or role change can name. */
+export type GrantableRole = components["schemas"]["GrantableRole"];
+export type ListRoomInvitationsResponse = components["schemas"]["ListRoomInvitationsResponse"];
+export type RoomInvitationResponse = components["schemas"]["RoomInvitationResponse"];
+export type RoomInviteRequest = components["schemas"]["RoomInviteRequest"];
+export type RoomAcceptInvitationRequest = components["schemas"]["RoomAcceptInvitationRequest"];
+export type AcceptedRoomInvitationResponse = components["schemas"]["AcceptedInvitationResponse"];
+export type RoomInvitationPreviewResponse = components["schemas"]["InvitationPreviewResponse"];
+export type RoomPublicationResponse = components["schemas"]["PublicationResponse"];
+export type SetRoomPublicationRequest = components["schemas"]["SetPublicationRequest"];
+export type PublicationStateName = components["schemas"]["PublicationStateName"];
+export type PublicationModeName = components["schemas"]["PublicationModeName"];
+export type PublicRoomResponse = components["schemas"]["PublicRoomResponse"];
+export type PublicRoomItemsResponse = components["schemas"]["PublicItemsResponse"];
+export type PublicRoomItemResponse = components["schemas"]["PublicItemResponse"];
+export type PublicRoomItemContentResponse = components["schemas"]["PublicItemContentResponse"];
 
 /**
  * One event from {@link XbergClient.streamCrawlEvents}.

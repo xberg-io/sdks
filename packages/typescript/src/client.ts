@@ -161,6 +161,34 @@ import type {
   UsageResponse,
   WebhookConfig,
   WebhookDeliveryDetailResponse,
+  AcceptedRoomInvitationResponse,
+  AddRoomItemRequest,
+  AddRoomMemberRequest,
+  CreateRoomRequest,
+  ListProjectDocumentsResponse,
+  ListRoomInvitationsResponse,
+  ListRoomItemsResponse,
+  ListRoomMembersResponse,
+  ListRoomsResponse,
+  PublicRoomItemContentResponse,
+  PublicRoomItemsResponse,
+  PublicRoomResponse,
+  ReorderRoomItemsRequest,
+  ReorderRoomItemsResponse,
+  RoomAcceptInvitationRequest,
+  RoomChangeRoleRequest,
+  RoomInvitationPreviewResponse,
+  RoomInvitationResponse,
+  RoomInviteRequest,
+  RoomItemContentResponse,
+  RoomItemResponse,
+  RoomListState,
+  RoomMemberResponse,
+  RoomPublicationResponse,
+  RoomResponse,
+  RoomTransferOwnershipRequest,
+  SetRoomPublicationRequest,
+  UpdateRoomRequest,
 } from "./types.js";
 import { SUCCESS_JOB_STATUSES, TERMINAL_JOB_STATUSES } from "./types.js";
 import { VERSION } from "./version.js";
@@ -197,6 +225,12 @@ const DOCUMENTS_PATH = "/v1/documents";
 const JOBS_PATH = "/v1/jobs";
 const CRAWL_JOBS_PATH = "/v1/crawl-jobs";
 const WEBHOOKS_PATH = "/v1/webhooks";
+const ROOMS_PATH = "/v1/rooms";
+const ROOM_INVITATIONS_PATH = "/v1/room-invitations";
+const PUBLIC_ROOMS_PATH = "/public/rooms";
+
+/** Headers that carry a credential, stripped from every request to an unauthenticated public route. */
+const CREDENTIAL_HEADERS: readonly string[] = ["authorization", "proxy-authorization", "cookie", "x-api-key"];
 
 /** Media type of a raw upload body, and the fallback when a submitted file declares none. */
 const OCTET_STREAM_MEDIA_TYPE = "application/octet-stream";
@@ -329,6 +363,23 @@ export interface StreamCrawlEventsOptions extends JobScopeParams {
    * somewhere else — a React effect teardown, a shutdown handler.
    */
   signal?: AbortSignal;
+}
+
+/** Filters accepted by `listRooms`. */
+export interface ListRoomsParams extends PaginationParams {
+  /** `deleted` lists the deleted rooms that can still be restored; the server default is `live`. */
+  state?: RoomListState;
+}
+
+/** Options accepted by `previewRoomInvitation` and `acceptRoomInvitation`. */
+export interface RoomInvitationOptions {
+  /**
+   * Dashboard session token of the signed-in invitee, sent as the bearer for
+   * this call only. The invitation routes admit a signed-in user, never an API
+   * key (which answers 403), so pass it unless the client itself was built
+   * with that user's session token as `apiKey`.
+   */
+  sessionToken?: string;
 }
 
 /** Filters accepted by `listIntegrationDocuments`. */
@@ -1834,6 +1885,376 @@ export class XbergClient {
     return this.requestJson<WebhookDeliveryDetailResponse>("GET", path);
   }
 
+  // -- Enterprise-only documents and data rooms --------------------------
+  //
+  // ~keep Every room route answers 404 `data_room.disabled` on a plan without data
+  // rooms; that surfaces as DataRoomsDisabledError, and `enterpriseHealthz()`
+  // reports it ahead of time as `data_rooms.enabled === false`.
+
+  /**
+   * Enterprise only: list the project's logical documents (`GET /v1/documents`),
+   * each shown by its newest finished version, most recently updated first. An
+   * entry's `document_id` is the id {@link addRoomItem} takes.
+   */
+  public async listDocuments(params: PaginationParams = {}): Promise<ListProjectDocumentsResponse> {
+    await this.requireTier("enterprise", "listDocuments");
+    return this.requestJson<ListProjectDocumentsResponse>("GET", DOCUMENTS_PATH, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /**
+   * Enterprise only: list the data rooms the caller can see (`GET /v1/rooms`),
+   * with the rights it holds on each. `state: "deleted"` lists the deleted rooms
+   * that can still be restored.
+   */
+  public async listRooms(params: ListRoomsParams = {}): Promise<ListRoomsResponse> {
+    await this.requireTier("enterprise", "listRooms");
+    return this.requestJson<ListRoomsResponse>("GET", ROOMS_PATH, {
+      params: { limit: params.limit, offset: params.offset, state: params.state },
+    });
+  }
+
+  /**
+   * Enterprise only: create a data room owned by the caller (`POST /v1/rooms`).
+   * A project at its room limit answers 409 `quota_exceeded`.
+   */
+  public async createRoom(body: CreateRoomRequest): Promise<RoomResponse> {
+    await this.requireTier("enterprise", "createRoom");
+    return this.requestJson<RoomResponse>("POST", ROOMS_PATH, { json: body });
+  }
+
+  /** Enterprise only: fetch one live data room with the caller's rights on it (`GET /v1/rooms/{id}`). */
+  public async getRoom(roomId: string): Promise<RoomResponse> {
+    await this.requireTier("enterprise", "getRoom");
+    return this.requestJson<RoomResponse>("GET", this.roomPath(roomId));
+  }
+
+  /**
+   * Enterprise only: rename a data room or change its description
+   * (`PATCH /v1/rooms/{id}`).
+   *
+   * `version` is the room's `version` as last read, sent as `If-Match`. A stale
+   * one throws {@link PreconditionFailedError}; read the room again and retry.
+   * The returned room carries the new `version`. A `null` description clears it.
+   */
+  public async updateRoom(roomId: string, body: UpdateRoomRequest, version: number): Promise<RoomResponse> {
+    await this.requireTier("enterprise", "updateRoom");
+    return this.requestJson<RoomResponse>("PATCH", this.roomPath(roomId), {
+      json: body,
+      headers: ifMatch(version),
+    });
+  }
+
+  /**
+   * Enterprise only: delete a live data room (`DELETE /v1/rooms/{id}`). It stays
+   * restorable until its `restorable_until`; see {@link restoreRoom}.
+   */
+  public async deleteRoom(roomId: string): Promise<void> {
+    await this.requireTier("enterprise", "deleteRoom");
+    await this.requestJson("DELETE", this.roomPath(roomId));
+  }
+
+  /**
+   * Enterprise only: restore a deleted data room inside its restore window
+   * (`POST /v1/rooms/{id}/restore`). A project at its room limit answers 409.
+   */
+  public async restoreRoom(roomId: string): Promise<RoomResponse> {
+    await this.requireTier("enterprise", "restoreRoom");
+    return this.requestJson<RoomResponse>("POST", `${this.roomPath(roomId)}/restore`);
+  }
+
+  /**
+   * Enterprise only: list a room's documents in room order
+   * (`GET /v1/rooms/{id}/items`). The answer's `version` is the one
+   * {@link reorderRoomItems} sends.
+   */
+  public async listRoomItems(roomId: string, params: PaginationParams = {}): Promise<ListRoomItemsResponse> {
+    await this.requireTier("enterprise", "listRoomItems");
+    return this.requestJson<ListRoomItemsResponse>("GET", `${this.roomPath(roomId)}/items`, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /**
+   * Enterprise only: add a project document to the end of a room
+   * (`POST /v1/rooms/{id}/items`). The document needs a finished version; take
+   * its id from {@link listDocuments}.
+   */
+  public async addRoomItem(roomId: string, body: AddRoomItemRequest): Promise<RoomItemResponse> {
+    await this.requireTier("enterprise", "addRoomItem");
+    return this.requestJson<RoomItemResponse>("POST", `${this.roomPath(roomId)}/items`, { json: body });
+  }
+
+  /**
+   * Enterprise only: set the order of every item in a room
+   * (`PUT /v1/rooms/{id}/items/order`). `body.document_ids` names each item once.
+   *
+   * `version` is the room version from {@link listRoomItems} or
+   * {@link getRoom}, sent as `If-Match`; a stale one throws
+   * {@link PreconditionFailedError}. The answer carries the new `version`.
+   */
+  public async reorderRoomItems(
+    roomId: string,
+    body: ReorderRoomItemsRequest,
+    version: number,
+  ): Promise<ReorderRoomItemsResponse> {
+    await this.requireTier("enterprise", "reorderRoomItems");
+    return this.requestJson<ReorderRoomItemsResponse>("PUT", `${this.roomPath(roomId)}/items/order`, {
+      json: body,
+      headers: ifMatch(version),
+    });
+  }
+
+  /**
+   * Enterprise only: remove a document from a room
+   * (`DELETE /v1/rooms/{id}/items/{document_id}`). The document stays in the project.
+   */
+  public async removeRoomItem(roomId: string, documentId: string): Promise<void> {
+    await this.requireTier("enterprise", "removeRoomItem");
+    await this.requestJson("DELETE", this.roomItemPath(roomId, documentId));
+  }
+
+  /**
+   * Enterprise only: fetch the extraction result of a room item's newest
+   * finished version (`GET /v1/rooms/{id}/items/{document_id}/content`).
+   * `result` is `null` while extraction has not finished.
+   */
+  public async getRoomItemContent(roomId: string, documentId: string): Promise<RoomItemContentResponse> {
+    await this.requireTier("enterprise", "getRoomItemContent");
+    return this.requestJson<RoomItemContentResponse>("GET", `${this.roomItemPath(roomId, documentId)}/content`);
+  }
+
+  /**
+   * Enterprise only: download a room item's original file
+   * (`GET /v1/rooms/{id}/items/{document_id}/download`). The response is raw
+   * bytes, not JSON. A room that does not allow downloads answers 403.
+   */
+  public async downloadRoomItem(roomId: string, documentId: string): Promise<Uint8Array> {
+    await this.requireTier("enterprise", "downloadRoomItem");
+    return this.requestBytes("GET", `${this.roomItemPath(roomId, documentId)}/download`);
+  }
+
+  /**
+   * Enterprise only: download one rendered page of a room item as a PNG
+   * (`GET /v1/rooms/{id}/items/{document_id}/pages/{page_number}`). Raw bytes,
+   * not JSON. `pageNumber` is 1-indexed. Every reader of the room can open it,
+   * whatever its download setting.
+   */
+  public async getRoomItemPage(roomId: string, documentId: string, pageNumber: number): Promise<Uint8Array> {
+    await this.requireTier("enterprise", "getRoomItemPage");
+    const path = `${this.roomItemPath(roomId, documentId)}/pages/${encodePathSegment(String(pageNumber))}`;
+    return this.requestBytes("GET", path);
+  }
+
+  /** Enterprise only: list the users holding a grant on a room (`GET /v1/rooms/{id}/members`). */
+  public async listRoomMembers(roomId: string, params: PaginationParams = {}): Promise<ListRoomMembersResponse> {
+    await this.requireTier("enterprise", "listRoomMembers");
+    return this.requestJson<ListRoomMembersResponse>("GET", `${this.roomPath(roomId)}/members`, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /**
+   * Enterprise only: give a project member a grant on a room
+   * (`POST /v1/rooms/{id}/members`). Anyone outside the project joins by
+   * {@link createRoomInvitation} instead.
+   */
+  public async addRoomMember(roomId: string, body: AddRoomMemberRequest): Promise<RoomMemberResponse> {
+    await this.requireTier("enterprise", "addRoomMember");
+    return this.requestJson<RoomMemberResponse>("POST", `${this.roomPath(roomId)}/members`, { json: body });
+  }
+
+  /**
+   * Enterprise only: remove a member's grant on a room
+   * (`DELETE /v1/rooms/{id}/members/{user_id}`). The owner answers 409; transfer
+   * ownership first.
+   */
+  public async removeRoomMember(roomId: string, userId: string): Promise<void> {
+    await this.requireTier("enterprise", "removeRoomMember");
+    await this.requestJson("DELETE", this.roomMemberPath(roomId, userId));
+  }
+
+  /**
+   * Enterprise only: change a room member's role to an editor or a viewer
+   * (`PATCH /v1/rooms/{id}/members/{user_id}`).
+   */
+  public async changeRoomMemberRole(
+    roomId: string,
+    userId: string,
+    body: RoomChangeRoleRequest,
+  ): Promise<RoomMemberResponse> {
+    await this.requireTier("enterprise", "changeRoomMemberRole");
+    return this.requestJson<RoomMemberResponse>("PATCH", this.roomMemberPath(roomId, userId), { json: body });
+  }
+
+  /**
+   * Enterprise only: remove the caller's own grant on a room
+   * (`POST /v1/rooms/{id}/leave`). The owner answers 409.
+   */
+  public async leaveRoom(roomId: string): Promise<void> {
+    await this.requireTier("enterprise", "leaveRoom");
+    await this.requestJson("POST", `${this.roomPath(roomId)}/leave`);
+  }
+
+  /**
+   * Enterprise only: make another room member the owner
+   * (`POST /v1/rooms/{id}/ownership`). The new owner must be a project member
+   * who already holds a grant on the room.
+   */
+  public async transferRoomOwnership(roomId: string, body: RoomTransferOwnershipRequest): Promise<void> {
+    await this.requireTier("enterprise", "transferRoomOwnership");
+    await this.requestJson("POST", `${this.roomPath(roomId)}/ownership`, { json: body });
+  }
+
+  /**
+   * Enterprise only: list a room's invitations (`GET /v1/rooms/{id}/invitations`).
+   * The answer never carries an invitation token.
+   */
+  public async listRoomInvitations(
+    roomId: string,
+    params: PaginationParams = {},
+  ): Promise<ListRoomInvitationsResponse> {
+    await this.requireTier("enterprise", "listRoomInvitations");
+    return this.requestJson<ListRoomInvitationsResponse>("GET", `${this.roomPath(roomId)}/invitations`, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /**
+   * Enterprise only: invite an email address to a room
+   * (`POST /v1/rooms/{id}/invitations`). `token` is in the answer only when the
+   * configured delivery channel returns it.
+   */
+  public async createRoomInvitation(roomId: string, body: RoomInviteRequest): Promise<RoomInvitationResponse> {
+    await this.requireTier("enterprise", "createRoomInvitation");
+    return this.requestJson<RoomInvitationResponse>("POST", `${this.roomPath(roomId)}/invitations`, { json: body });
+  }
+
+  /**
+   * Enterprise only: revoke a pending room invitation
+   * (`DELETE /v1/rooms/{id}/invitations/{invitation_id}`).
+   */
+  public async revokeRoomInvitation(roomId: string, invitationId: string): Promise<void> {
+    await this.requireTier("enterprise", "revokeRoomInvitation");
+    await this.requestJson("DELETE", `${this.roomPath(roomId)}/invitations/${encodePathSegment(invitationId)}`);
+  }
+
+  /**
+   * Enterprise only: show a signed-in invitee the room an invitation token opens
+   * (`POST /v1/room-invitations/preview`).
+   *
+   * Requires a dashboard user session, not an API key: pass
+   * `options.sessionToken` or build the client with the session token as
+   * `apiKey`. A token that cannot be accepted answers 404, whatever the reason.
+   */
+  public async previewRoomInvitation(
+    body: RoomAcceptInvitationRequest,
+    options: RoomInvitationOptions = {},
+  ): Promise<RoomInvitationPreviewResponse> {
+    await this.requireTier("enterprise", "previewRoomInvitation");
+    return this.requestJson<RoomInvitationPreviewResponse>("POST", `${ROOM_INVITATIONS_PATH}/preview`, {
+      json: body,
+      ...sessionBearer(options),
+    });
+  }
+
+  /**
+   * Enterprise only: accept an invitation token for the signed-in user
+   * (`POST /v1/room-invitations/accept`), granting them the room.
+   *
+   * Requires a dashboard user session, not an API key: pass
+   * `options.sessionToken` or build the client with the session token as
+   * `apiKey`. A token that cannot be accepted answers 404, whatever the reason.
+   */
+  public async acceptRoomInvitation(
+    body: RoomAcceptInvitationRequest,
+    options: RoomInvitationOptions = {},
+  ): Promise<AcceptedRoomInvitationResponse> {
+    await this.requireTier("enterprise", "acceptRoomInvitation");
+    return this.requestJson<AcceptedRoomInvitationResponse>("POST", `${ROOM_INVITATIONS_PATH}/accept`, {
+      json: body,
+      ...sessionBearer(options),
+    });
+  }
+
+  /**
+   * Enterprise only: read a room's publication settings
+   * (`GET /v1/rooms/{id}/publication`). `room_version` is the value
+   * {@link setRoomPublication} sends.
+   */
+  public async getRoomPublication(roomId: string): Promise<RoomPublicationResponse> {
+    await this.requireTier("enterprise", "getRoomPublication");
+    return this.requestJson<RoomPublicationResponse>("GET", `${this.roomPath(roomId)}/publication`);
+  }
+
+  /**
+   * Enterprise only: publish or unpublish a room, optionally changing its mode
+   * and download setting (`PUT /v1/rooms/{id}/publication`).
+   *
+   * `version` is the room version (`room_version` from
+   * {@link getRoomPublication}, or the room's `version`), sent as `If-Match`; a
+   * stale one throws {@link PreconditionFailedError}. The answer carries the
+   * new `room_version` and, once published, the public `slug`.
+   */
+  public async setRoomPublication(
+    roomId: string,
+    body: SetRoomPublicationRequest,
+    version: number,
+  ): Promise<RoomPublicationResponse> {
+    await this.requireTier("enterprise", "setRoomPublication");
+    return this.requestJson<RoomPublicationResponse>("PUT", `${this.roomPath(roomId)}/publication`, {
+      json: body,
+      headers: ifMatch(version),
+    });
+  }
+
+  /**
+   * Enterprise only: read a published room by its slug (`GET /public/rooms/{slug}`).
+   *
+   * Unauthenticated: sends no credential and no cookie, even when the client
+   * has an API key. A room that is not published answers 404.
+   */
+  public async getPublicRoom(slug: string): Promise<PublicRoomResponse> {
+    await this.requireTier("enterprise", "getPublicRoom");
+    return this.requestJson<PublicRoomResponse>("GET", this.publicRoomPath(slug), { anonymous: true });
+  }
+
+  /**
+   * Enterprise only: list a published room's items in room order
+   * (`GET /public/rooms/{slug}/items`). Unauthenticated; each item's `item_ref`
+   * is what the public content and download methods take.
+   */
+  public async listPublicRoomItems(slug: string, params: PaginationParams = {}): Promise<PublicRoomItemsResponse> {
+    await this.requireTier("enterprise", "listPublicRoomItems");
+    return this.requestJson<PublicRoomItemsResponse>("GET", `${this.publicRoomPath(slug)}/items`, {
+      anonymous: true,
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /**
+   * Enterprise only: fetch the extraction result of a published room's item
+   * (`GET /public/rooms/{slug}/items/{item_ref}/content`). Unauthenticated;
+   * `result` is `null` until extraction finishes.
+   */
+  public async getPublicRoomItemContent(slug: string, itemRef: string): Promise<PublicRoomItemContentResponse> {
+    await this.requireTier("enterprise", "getPublicRoomItemContent");
+    return this.requestJson<PublicRoomItemContentResponse>("GET", `${this.publicRoomItemPath(slug, itemRef)}/content`, {
+      anonymous: true,
+    });
+  }
+
+  /**
+   * Enterprise only: download a published room item's original file
+   * (`GET /public/rooms/{slug}/items/{item_ref}/download`). Unauthenticated; raw
+   * bytes, not JSON. A room that does not allow downloads answers 404.
+   */
+  public async downloadPublicRoomItem(slug: string, itemRef: string): Promise<Uint8Array> {
+    await this.requireTier("enterprise", "downloadPublicRoomItem");
+    return this.requestBytes("GET", `${this.publicRoomItemPath(slug, itemRef)}/download`, { anonymous: true });
+  }
+
   // -- Internals ---------------------------------------------------------
 
   private async jobScope(scope: JobScopeParams): Promise<QueryParams> {
@@ -1854,6 +2275,31 @@ export class XbergClient {
   /** Build `/v1/documents/{documentId}` with the id percent-encoded. */
   private documentPath(documentId: string): string {
     return `${DOCUMENTS_PATH}/${encodePathSegment(documentId)}`;
+  }
+
+  /** Build `/v1/rooms/{id}` with the id percent-encoded. */
+  private roomPath(roomId: string): string {
+    return `${ROOMS_PATH}/${encodePathSegment(roomId)}`;
+  }
+
+  /** Build `/v1/rooms/{id}/items/{document_id}`. */
+  private roomItemPath(roomId: string, documentId: string): string {
+    return `${this.roomPath(roomId)}/items/${encodePathSegment(documentId)}`;
+  }
+
+  /** Build `/v1/rooms/{id}/members/{user_id}`. */
+  private roomMemberPath(roomId: string, userId: string): string {
+    return `${this.roomPath(roomId)}/members/${encodePathSegment(userId)}`;
+  }
+
+  /** Build `/public/rooms/{slug}` with the slug percent-encoded. */
+  private publicRoomPath(slug: string): string {
+    return `${PUBLIC_ROOMS_PATH}/${encodePathSegment(slug)}`;
+  }
+
+  /** Build `/public/rooms/{slug}/items/{item_ref}`. */
+  private publicRoomItemPath(slug: string, itemRef: string): string {
+    return `${this.publicRoomPath(slug)}/items/${encodePathSegment(itemRef)}`;
   }
 
   /** Build `/v1/saved_presets/{preset_id}` with the id percent-encoded. */
@@ -1944,6 +2390,24 @@ export class XbergClient {
     return Object.fromEntries(headers);
   }
 
+  /**
+   * Data-plane headers: the client's own merged with the call's, then stripped
+   * of every credential for an anonymous call, or given a per-call bearer.
+   */
+  private dataPlaneHeaders(init: RequestParts): Record<string, string> {
+    const merged = { ...this.headers, ...init.headers };
+    if (!init.anonymous && init.bearerToken === undefined) {
+      return merged;
+    }
+    const headers = new Headers(merged);
+    if (init.anonymous) {
+      for (const name of CREDENTIAL_HEADERS) headers.delete(name);
+    } else if (init.bearerToken !== undefined) {
+      headers.set("Authorization", `Bearer ${init.bearerToken}`);
+    }
+    return Object.fromEntries(headers);
+  }
+
   /** Issue a request, raise on non-2xx, and decode the JSON body (undefined for empty bodies). */
   private async requestJson<T = unknown>(method: string, path: string, init: RequestParts = {}): Promise<T> {
     const { body } = await this.requestJsonWithStatus<T>(method, path, init);
@@ -2016,7 +2480,7 @@ export class XbergClient {
    * mapped to a thrown {@link XbergError} subclass.
    */
   private prepareRequest(method: string, init: RequestParts): RequestInit {
-    const headers = init.controlPlane ? this.backendHeaders(init) : { ...this.headers, ...init.headers };
+    const headers = init.controlPlane ? this.backendHeaders(init) : this.dataPlaneHeaders(init);
     let body: FormData | string | Uint8Array | undefined = init.body;
     if (init.json !== undefined) {
       headers["Content-Type"] = "application/json";
@@ -2027,6 +2491,7 @@ export class XbergClient {
       headers,
       signal: AbortSignal.timeout(this.timeoutMs),
       ...(init.controlPlane ? ({ credentials: "omit", redirect: "manual" } as const) : {}),
+      ...(init.anonymous ? ({ credentials: "omit" } as const) : {}),
     };
     if (body !== undefined) {
       requestInit.body = body;
@@ -2093,6 +2558,10 @@ export class XbergClient {
 /** Parts accepted by the internal request engine. */
 interface RequestParts {
   controlPlane?: boolean;
+  /** Send no credential header and no cookie: the unauthenticated `/public/...` routes. */
+  anonymous?: boolean;
+  /** Replace the client's data-plane bearer for this one call. */
+  bearerToken?: string;
   backendPublic?: boolean;
   sandboxToken?: string;
   acceptRedirect?: boolean;
@@ -2100,6 +2569,28 @@ interface RequestParts {
   json?: unknown;
   headers?: Record<string, string>;
   params?: QueryParams;
+}
+
+/** The `If-Match` header a room write sends: the room version, quoted as an entity tag. */
+function ifMatch(version: number): Record<string, string> {
+  if (!Number.isSafeInteger(version) || version < 0) {
+    throw new ValidationError(`Room version must be a non-negative integer, got ${String(version)}`, {
+      status: 0,
+      body: null,
+    });
+  }
+  return { "If-Match": `"${version}"` };
+}
+
+/** The per-call bearer an invitation route sends, when the caller supplied a session token. */
+function sessionBearer(options: RoomInvitationOptions): Pick<RequestParts, "bearerToken"> {
+  if (options.sessionToken === undefined) {
+    return {};
+  }
+  if (options.sessionToken.length === 0) {
+    throw new ValidationError("sessionToken must not be empty", { status: 0, body: null });
+  }
+  return { bearerToken: options.sessionToken };
 }
 
 function decodeEnterpriseHealth(payload: unknown): EnterpriseHealthResponse {
