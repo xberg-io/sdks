@@ -19,9 +19,10 @@ The control-plane origin defaults to the data-plane origin.
 | Members, invitations, managed webhook subscriptions, billing, analytics | No | Yes | Dedicated Enterprise backend methods use `control_plane_base_url`. |
 | Enrichment, upload staging, page images | Yes | Yes | Data-plane methods use `base_url`. |
 | Document lineage and versions, extraction telemetry | No | Yes | Enterprise data-plane methods use `base_url`. |
+| Data rooms: rooms, items, members, invitations, publication, public room view; project document list | No | Yes | Enterprise data-plane methods use `base_url`. A plan without rooms answers 404 `data_room.disabled` (`DataRoomsDisabledError`). See [Data rooms](/guides/data-rooms/). |
 | Crawl event stream | Yes | Yes | Data-plane stream; supply caller cancellation. |
 
-The vendored specifications carry **53** Enterprise data-plane, **67** Pro, and **49**
+The vendored specifications carry **84** Enterprise data-plane, **69** Pro, and **91**
 Enterprise control-plane operations. The clients reach every one of them except the handful
 listed as deliberate exclusions in each package README — infrastructure probes and browser
 redirect legs that are not API-client surface.
