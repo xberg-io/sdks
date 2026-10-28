@@ -40,6 +40,7 @@ from uuid import UUID
 
 import httpx
 
+from xberg_io_sdk._generated_api.models.accepted_invitation_response import AcceptedInvitationResponse
 from xberg_io_sdk._generated_api.models.auto_tune_capabilities_response import AutoTuneCapabilitiesResponse
 from xberg_io_sdk._generated_api.models.auto_tune_job_status import AutoTuneJobStatus
 from xberg_io_sdk._generated_api.models.auto_tune_result import AutoTuneResult
@@ -59,18 +60,34 @@ from xberg_io_sdk._generated_api.models.extraction_options import ExtractionOpti
 from xberg_io_sdk._generated_api.models.file_extraction_config import FileExtractionConfig
 from xberg_io_sdk._generated_api.models.get_job_response_variant_0 import GetJobResponseVariant0
 from xberg_io_sdk._generated_api.models.get_job_response_variant_1 import GetJobResponseVariant1
+from xberg_io_sdk._generated_api.models.invitation_preview_response import InvitationPreviewResponse
+from xberg_io_sdk._generated_api.models.item_content_response import ItemContentResponse
 from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.list_auto_tune_jobs_response import ListAutoTuneJobsResponse
 from xberg_io_sdk._generated_api.models.list_extraction_events_response import ListExtractionEventsResponse
+from xberg_io_sdk._generated_api.models.list_items_response import ListItemsResponse
 from xberg_io_sdk._generated_api.models.list_managed_embedding_presets_response import (
     ListManagedEmbeddingPresetsResponse,
 )
+from xberg_io_sdk._generated_api.models.list_project_documents_response import ListProjectDocumentsResponse
+from xberg_io_sdk._generated_api.models.list_room_invitations_response import ListRoomInvitationsResponse
+from xberg_io_sdk._generated_api.models.list_room_members_response import ListRoomMembersResponse
+from xberg_io_sdk._generated_api.models.list_rooms_response import ListRoomsResponse
 from xberg_io_sdk._generated_api.models.list_saved_presets_response import ListSavedPresetsResponse
 from xberg_io_sdk._generated_api.models.list_tuning_profiles_response import ListTuningProfilesResponse
 from xberg_io_sdk._generated_api.models.list_webhook_deliveries_response import ListWebhookDeliveriesResponse
 from xberg_io_sdk._generated_api.models.preset_detail import PresetDetail
 from xberg_io_sdk._generated_api.models.preset_summary import PresetSummary
 from xberg_io_sdk._generated_api.models.presign_upload_response import PresignUploadResponse
+from xberg_io_sdk._generated_api.models.public_item_content_response import PublicItemContentResponse
+from xberg_io_sdk._generated_api.models.public_items_response import PublicItemsResponse
+from xberg_io_sdk._generated_api.models.public_room_response import PublicRoomResponse
+from xberg_io_sdk._generated_api.models.publication_response import PublicationResponse
+from xberg_io_sdk._generated_api.models.reorder_items_response import ReorderItemsResponse
+from xberg_io_sdk._generated_api.models.room_invitation_response import RoomInvitationResponse
+from xberg_io_sdk._generated_api.models.room_item_response import RoomItemResponse
+from xberg_io_sdk._generated_api.models.room_member_response import RoomMemberResponse
+from xberg_io_sdk._generated_api.models.room_response import RoomResponse
 from xberg_io_sdk._generated_api.models.saved_preset_detail import SavedPresetDetail
 from xberg_io_sdk._generated_api.models.tuning_profile_detail import TuningProfileDetail
 from xberg_io_sdk._generated_api.models.update_saved_preset_response import UpdateSavedPresetResponse
@@ -185,12 +202,22 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
     from types import TracebackType
 
+    from xberg_io_sdk._generated_api.models.add_item_request import AddItemRequest
+    from xberg_io_sdk._generated_api.models.add_member_request import AddMemberRequest
     from xberg_io_sdk._generated_api.models.confirm_upload_request import ConfirmUploadRequest
     from xberg_io_sdk._generated_api.models.create_auto_tune_job_request import CreateAutoTuneJobRequest
+    from xberg_io_sdk._generated_api.models.create_room_request import CreateRoomRequest
     from xberg_io_sdk._generated_api.models.create_saved_preset_request import CreateSavedPresetRequest
     from xberg_io_sdk._generated_api.models.enrich_text_request import EnrichTextRequest
     from xberg_io_sdk._generated_api.models.presign_upload_request import PresignUploadRequest
     from xberg_io_sdk._generated_api.models.promote_profile_request import PromoteProfileRequest
+    from xberg_io_sdk._generated_api.models.reorder_items_request import ReorderItemsRequest
+    from xberg_io_sdk._generated_api.models.room_accept_invitation_request import RoomAcceptInvitationRequest
+    from xberg_io_sdk._generated_api.models.room_change_role_request import RoomChangeRoleRequest
+    from xberg_io_sdk._generated_api.models.room_invite_request import RoomInviteRequest
+    from xberg_io_sdk._generated_api.models.room_transfer_ownership_request import RoomTransferOwnershipRequest
+    from xberg_io_sdk._generated_api.models.set_publication_request import SetPublicationRequest
+    from xberg_io_sdk._generated_api.models.update_room_request import UpdateRoomRequest
     from xberg_io_sdk._generated_api.models.update_saved_preset_request import UpdateSavedPresetRequest
     from xberg_io_sdk._generated_backend.models.accept_invitation_request import (
         AcceptInvitationRequest as BackendAcceptInvitationRequest,
@@ -281,6 +308,8 @@ _AUTO_TUNE_PATH = "/v1/auto-tune"
 _TUNING_PROFILES_PATH = "/v1/tuning-profiles"
 _ENRICH_PATH = "/v1/enrich"
 _EXTRACTIONS_PATH = "/v1/extractions"
+_ROOMS_PATH = "/v1/rooms"
+_PUBLIC_ROOMS_PATH = "/public/rooms"
 
 _TERMINAL_STATUSES: frozenset[str] = frozenset({"completed", "failed", "cancelled", "partial_success"})
 _FAILED_STATUSES: frozenset[str] = frozenset({"failed", "cancelled"})
@@ -313,6 +342,12 @@ FileConfigInput: TypeAlias = FileExtractionConfig | dict[str, Any] | None
 
 BackoffStrategy = Literal["constant", "exponential"]
 Target = Literal["enterprise", "pro"]
+
+RoomListState = Literal["live", "deleted"]
+"""Which data rooms :meth:`XbergClient.list_rooms` asks for: the live ones, or the deleted ones still restorable."""
+
+RoomVersion: TypeAlias = int | str
+"""A data room version for ``If-Match``: the integer ``version`` / ``room_version`` read from the room, or an ETag string."""
 
 
 class _SupportsToDict(Protocol):
@@ -725,6 +760,21 @@ def _query_params(**candidates: Any) -> dict[str, Any] | None:
     return params or None
 
 
+def _if_match(version: RoomVersion) -> dict[str, str]:
+    """Build the ``If-Match`` header for a data-room write from the version the caller read.
+
+    The server reads the room version quoted or bare; an integer is sent quoted,
+    as an entity tag. ``bool`` is refused because it is an ``int`` that no room
+    version could be.
+    """
+    if isinstance(version, bool) or not isinstance(version, (int, str)):
+        raise TypeError(f"if_match must be the room version (int or str), got {type(version).__name__}")
+    value = f'"{version}"' if isinstance(version, int) else version.strip()
+    if not value:
+        raise ValueError("if_match must not be blank")
+    return {"If-Match": value}
+
+
 def _pagination(limit: int | None, offset: int | None) -> dict[str, Any] | None:
     """Build the shared ``limit``/``offset`` query parameters for the paginated list endpoints."""
     return _query_params(limit=limit, offset=offset)
@@ -910,6 +960,21 @@ class _BaseClient:
                 status_code=None,
             )
 
+    def _replace_credential(
+        self, request: httpx.Request, *, control_plane: bool, public: bool, token: str | None
+    ) -> None:
+        """Strip every stored credential from ``request``, then attach the one this call uses.
+
+        A public call sends ``token`` or nothing. A data-plane call with ``token``
+        sends it in place of the API key. A control-plane call sends the
+        control-plane token.
+        """
+        for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
+            request.headers.pop(name, None)
+        credential = token if public or not control_plane else self._control_plane_token
+        if credential:
+            request.headers["Authorization"] = f"Bearer {credential}"
+
     @property
     def control_plane_base_url(self) -> str:
         """Origin the control-plane surface will be addressed at.
@@ -992,6 +1057,7 @@ class XbergClient(_BaseClient):
         public: bool = False,
         token: str | None = None,
         project_id: str | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -1008,38 +1074,25 @@ class XbergClient(_BaseClient):
                 headers = {**(headers or {}), "X-Project-ID": project_id}
             else:
                 params = {**(params or {}), "project_id": project_id}
+        if extra_headers:
+            headers = {**(headers or {}), **extra_headers}
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
             try:
-                if control_plane:
-                    request = self._http.build_request(
-                        method,
-                        self._control_plane_base_url + path,
-                        files=files,
-                        data=data,
-                        json=json_body,
-                        content=content,
-                        headers=headers,
-                        params=params,
-                    )
-                    for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
-                        request.headers.pop(name, None)
-                    credential = token if public else self._control_plane_token
-                    if credential:
-                        request.headers["Authorization"] = f"Bearer {credential}"
-                    response = self._http.send(request, follow_redirects=False)
-                else:
-                    response = self._http.request(
-                        method,
-                        path,
-                        files=files,
-                        data=data,
-                        json=json_body,
-                        content=content,
-                        headers=headers,
-                        params=params,
-                    )
+                request = self._http.build_request(
+                    method,
+                    self._control_plane_base_url + path if control_plane else path,
+                    files=files,
+                    data=data,
+                    json=json_body,
+                    content=content,
+                    headers=headers,
+                    params=params,
+                )
+                if control_plane or public or token is not None:
+                    self._replace_credential(request, control_plane=control_plane, public=public, token=token)
+                response = self._http.send(request, follow_redirects=False)
             except httpx.TransportError as exc:
                 if attempt < self._retries:
                     attempt += 1
@@ -1057,7 +1110,7 @@ class XbergClient(_BaseClient):
                 continue
             return response
 
-    def _request_json(
+    def _request_json(  # noqa: PLR0913 ~keep Mirrors the transport flags `_request` takes.
         self,
         method: str,
         path: str,
@@ -1068,6 +1121,9 @@ class XbergClient(_BaseClient):
         content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
         project_id: str | None = None,
+        public: bool = False,
+        token: str | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
         response = self._request(
@@ -1079,6 +1135,9 @@ class XbergClient(_BaseClient):
             content=content,
             params=params,
             project_id=project_id,
+            public=public,
+            token=token,
+            extra_headers=extra_headers,
         )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
@@ -1086,10 +1145,16 @@ class XbergClient(_BaseClient):
         return response.json()
 
     def _request_bytes(
-        self, method: str, path: str, *, params: Mapping[str, Any] | None = None, project_id: str | None = None
+        self,
+        method: str,
+        path: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        project_id: str | None = None,
+        public: bool = False,
     ) -> bytes:
         """Issue a request, raise on non-2xx, and return the raw (non-JSON) response body."""
-        response = self._request(method, path, params=params, project_id=project_id)
+        response = self._request(method, path, params=params, project_id=project_id, public=public)
         raise_for_status(response)
         return response.content
 
@@ -2326,6 +2391,290 @@ class XbergClient(_BaseClient):
         payload = self._request_json("GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}")
         return WebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "webhook delivery"))
 
+    # -- Enterprise data rooms ---------------------------------------------
+
+    def list_documents(self, *, limit: int | None = None, offset: int | None = None) -> ListProjectDocumentsResponse:
+        """Enterprise only: list the project's documents (``GET /v1/documents``, paginated).
+
+        Each logical document appears once, by its newest finished version, most
+        recently updated first. Its ``document_id`` is what :meth:`add_room_item` takes.
+        """
+        self._require_tier("enterprise", "list_documents")
+        payload = self._request_json("GET", "/v1/documents", params=_pagination(limit, offset))
+        return ListProjectDocumentsResponse.from_dict(_expect_object(payload, "document list"))
+
+    def list_rooms(
+        self, *, state: RoomListState | None = None, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomsResponse:
+        """Enterprise only: list the data rooms the caller can see (``GET /v1/rooms``, paginated).
+
+        ``state="deleted"`` lists the deleted rooms that :meth:`restore_room` can still bring back.
+        """
+        self._require_tier("enterprise", "list_rooms")
+        params = _query_params(state=state, limit=limit, offset=offset)
+        payload = self._request_json("GET", _ROOMS_PATH, params=params)
+        return ListRoomsResponse.from_dict(_expect_object(payload, "room list"))
+
+    def create_room(self, body: CreateRoomRequest | Mapping[str, Any]) -> RoomResponse:
+        """Enterprise only: create a data room owned by the caller (``POST /v1/rooms``, 201)."""
+        self._require_tier("enterprise", "create_room")
+        payload = self._request_json("POST", _ROOMS_PATH, json_body=_coerce_body(body))
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    def get_room(self, room_id: str) -> RoomResponse:
+        """Enterprise only: read one live data room (``GET /v1/rooms/{id}``).
+
+        ``version`` on the answer is what :meth:`update_room` sends as ``if_match``.
+        """
+        self._require_tier("enterprise", "get_room")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}")
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    def update_room(
+        self, room_id: str, body: UpdateRoomRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> RoomResponse:
+        """Enterprise only: rename a data room or change its description (``PATCH /v1/rooms/{id}``).
+
+        ``if_match`` is the room ``version`` you read and is sent as ``If-Match``; a
+        stale one raises :class:`PreconditionFailedError` (412). The answer carries
+        the new ``version``. A ``None`` description clears it; an absent field keeps its value.
+        """
+        self._require_tier("enterprise", "update_room")
+        payload = self._request_json(
+            "PATCH",
+            f"{_ROOMS_PATH}/{_q(room_id)}",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    def delete_room(self, room_id: str) -> None:
+        """Enterprise only: delete a data room, restorable until its ``restorable_until`` (``DELETE /v1/rooms/{id}``)."""
+        self._require_tier("enterprise", "delete_room")
+        self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}")
+
+    def restore_room(self, room_id: str) -> RoomResponse:
+        """Enterprise only: restore a deleted data room inside its restore window (``POST /v1/rooms/{id}/restore``)."""
+        self._require_tier("enterprise", "restore_room")
+        payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/restore")
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    def list_room_items(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListItemsResponse:
+        """Enterprise only: list a data room's documents in room order (``GET /v1/rooms/{id}/items``, paginated).
+
+        ``version`` on the answer is what :meth:`reorder_room_items` sends as ``if_match``.
+        """
+        self._require_tier("enterprise", "list_room_items")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/items", params=_pagination(limit, offset))
+        return ListItemsResponse.from_dict(_expect_object(payload, "room item list"))
+
+    def add_room_item(self, room_id: str, body: AddItemRequest | Mapping[str, Any]) -> RoomItemResponse:
+        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201)."""
+        self._require_tier("enterprise", "add_room_item")
+        payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/items", json_body=_coerce_body(body))
+        return RoomItemResponse.from_dict(_expect_object(payload, "room item"))
+
+    def reorder_room_items(
+        self, room_id: str, body: ReorderItemsRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> ReorderItemsResponse:
+        """Enterprise only: set the order of every item in a data room (``PUT /v1/rooms/{id}/items/order``).
+
+        ``document_ids`` must name each item exactly once. ``if_match`` is the room
+        ``version`` from :meth:`list_room_items`; a stale one raises
+        :class:`PreconditionFailedError` (412). The answer carries the new ``version``.
+        """
+        self._require_tier("enterprise", "reorder_room_items")
+        payload = self._request_json(
+            "PUT",
+            f"{_ROOMS_PATH}/{_q(room_id)}/items/order",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return ReorderItemsResponse.from_dict(_expect_object(payload, "room item order"))
+
+    def remove_room_item(self, room_id: str, document_id: str) -> None:
+        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``)."""
+        self._require_tier("enterprise", "remove_room_item")
+        self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}")
+
+    def get_room_item_content(self, room_id: str, document_id: str) -> ItemContentResponse:
+        """Enterprise only: read a room item's extraction result (``GET /v1/rooms/{id}/items/{document_id}/content``).
+
+        ``result`` is ``None`` until the extraction finishes.
+        """
+        self._require_tier("enterprise", "get_room_item_content")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/content")
+        return ItemContentResponse.from_dict(_expect_object(payload, "room item content"))
+
+    def download_room_item(self, room_id: str, document_id: str) -> bytes:
+        """Enterprise only: download a room item's original file (``GET /v1/rooms/{id}/items/{document_id}/download``, bytes).
+
+        A room that does not allow downloads raises :class:`AuthError` (403).
+        """
+        self._require_tier("enterprise", "download_room_item")
+        return self._request_bytes("GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/download")
+
+    def get_room_item_page(self, room_id: str, document_id: str, page_number: int) -> bytes:
+        """Enterprise only: fetch one page of a room item as PNG (``GET /v1/rooms/{id}/items/{document_id}/pages/{n}``, bytes)."""
+        self._require_tier("enterprise", "get_room_item_page")
+        return self._request_bytes(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/pages/{_q(page_number)}"
+        )
+
+    def list_room_members(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomMembersResponse:
+        """Enterprise only: list the users holding a grant on a data room (``GET /v1/rooms/{id}/members``, paginated)."""
+        self._require_tier("enterprise", "list_room_members")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/members", params=_pagination(limit, offset))
+        return ListRoomMembersResponse.from_dict(_expect_object(payload, "room member list"))
+
+    def add_room_member(self, room_id: str, body: AddMemberRequest | Mapping[str, Any]) -> RoomMemberResponse:
+        """Enterprise only: grant a project member a role on a data room (``POST /v1/rooms/{id}/members``, 201)."""
+        self._require_tier("enterprise", "add_room_member")
+        payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/members", json_body=_coerce_body(body))
+        return RoomMemberResponse.from_dict(_expect_object(payload, "room member"))
+
+    def change_room_member_role(
+        self, room_id: str, user_id: str, body: RoomChangeRoleRequest | Mapping[str, Any]
+    ) -> RoomMemberResponse:
+        """Enterprise only: change a room member's role (``PATCH /v1/rooms/{id}/members/{user_id}``)."""
+        self._require_tier("enterprise", "change_room_member_role")
+        payload = self._request_json(
+            "PATCH", f"{_ROOMS_PATH}/{_q(room_id)}/members/{_q(user_id)}", json_body=_coerce_body(body)
+        )
+        return RoomMemberResponse.from_dict(_expect_object(payload, "room member"))
+
+    def remove_room_member(self, room_id: str, user_id: str) -> None:
+        """Enterprise only: remove a member's grant on a data room (``DELETE /v1/rooms/{id}/members/{user_id}``)."""
+        self._require_tier("enterprise", "remove_room_member")
+        self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/members/{_q(user_id)}")
+
+    def transfer_room_ownership(self, room_id: str, body: RoomTransferOwnershipRequest | Mapping[str, Any]) -> None:
+        """Enterprise only: make another room member the owner (``POST /v1/rooms/{id}/ownership``, 204)."""
+        self._require_tier("enterprise", "transfer_room_ownership")
+        self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/ownership", json_body=_coerce_body(body))
+
+    def leave_room(self, room_id: str) -> None:
+        """Enterprise only: drop the caller's own grant on a data room (``POST /v1/rooms/{id}/leave``, 204)."""
+        self._require_tier("enterprise", "leave_room")
+        self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/leave")
+
+    def list_room_invitations(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomInvitationsResponse:
+        """Enterprise only: list a data room's invitations (``GET /v1/rooms/{id}/invitations``, paginated)."""
+        self._require_tier("enterprise", "list_room_invitations")
+        payload = self._request_json(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/invitations", params=_pagination(limit, offset)
+        )
+        return ListRoomInvitationsResponse.from_dict(_expect_object(payload, "room invitation list"))
+
+    def create_room_invitation(
+        self, room_id: str, body: RoomInviteRequest | Mapping[str, Any]
+    ) -> RoomInvitationResponse:
+        """Enterprise only: invite an email address to a data room (``POST /v1/rooms/{id}/invitations``, 201).
+
+        ``token`` is on the answer only when the delivery channel returns it.
+        """
+        self._require_tier("enterprise", "create_room_invitation")
+        payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/invitations", json_body=_coerce_body(body))
+        return RoomInvitationResponse.from_dict(_expect_object(payload, "room invitation"))
+
+    def revoke_room_invitation(self, room_id: str, invitation_id: str) -> None:
+        """Enterprise only: revoke a pending room invitation (``DELETE /v1/rooms/{id}/invitations/{invitation_id}``)."""
+        self._require_tier("enterprise", "revoke_room_invitation")
+        self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/invitations/{_q(invitation_id)}")
+
+    def preview_room_invitation(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> InvitationPreviewResponse:
+        """Enterprise only: show a signed-in invitee the room a token opens (``POST /v1/room-invitations/preview``).
+
+        The route needs a user session, not a project API key (a key answers 403).
+        ``session_token`` sends that session JWT for this call instead of the
+        client's ``api_key``; omit it when the client was built with the session token.
+        """
+        self._require_tier("enterprise", "preview_room_invitation")
+        payload = self._request_json(
+            "POST", "/v1/room-invitations/preview", json_body=_coerce_body(body), token=session_token
+        )
+        return InvitationPreviewResponse.from_dict(_expect_object(payload, "room invitation preview"))
+
+    def accept_room_invitation(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> AcceptedInvitationResponse:
+        """Enterprise only: accept a room invitation for the signed-in user (``POST /v1/room-invitations/accept``).
+
+        Like :meth:`preview_room_invitation`, it needs a user session, sent as
+        ``session_token`` or as the client's credential.
+        """
+        self._require_tier("enterprise", "accept_room_invitation")
+        payload = self._request_json(
+            "POST", "/v1/room-invitations/accept", json_body=_coerce_body(body), token=session_token
+        )
+        return AcceptedInvitationResponse.from_dict(_expect_object(payload, "accepted room invitation"))
+
+    def get_room_publication(self, room_id: str) -> PublicationResponse:
+        """Enterprise only: read a data room's publication settings (``GET /v1/rooms/{id}/publication``).
+
+        ``room_version`` on the answer is what :meth:`set_room_publication` sends as ``if_match``.
+        """
+        self._require_tier("enterprise", "get_room_publication")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/publication")
+        return PublicationResponse.from_dict(_expect_object(payload, "room publication"))
+
+    def set_room_publication(
+        self, room_id: str, body: SetPublicationRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> PublicationResponse:
+        """Enterprise only: publish or unpublish a data room (``PUT /v1/rooms/{id}/publication``).
+
+        ``if_match`` is the ``room_version`` you read; a stale one raises
+        :class:`PreconditionFailedError` (412). The answer carries the new ``room_version``.
+        """
+        self._require_tier("enterprise", "set_room_publication")
+        payload = self._request_json(
+            "PUT",
+            f"{_ROOMS_PATH}/{_q(room_id)}/publication",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return PublicationResponse.from_dict(_expect_object(payload, "room publication"))
+
+    def get_public_room(self, slug: str) -> PublicRoomResponse:
+        """Enterprise only: read a published data room by slug, sending no credential (``GET /public/rooms/{slug}``)."""
+        self._require_tier("enterprise", "get_public_room")
+        payload = self._request_json("GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}", public=True)
+        return PublicRoomResponse.from_dict(_expect_object(payload, "public room"))
+
+    def list_public_room_items(
+        self, slug: str, *, limit: int | None = None, offset: int | None = None
+    ) -> PublicItemsResponse:
+        """Enterprise only: list a published room's items, sending no credential (``GET /public/rooms/{slug}/items``)."""
+        self._require_tier("enterprise", "list_public_room_items")
+        payload = self._request_json(
+            "GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items", params=_pagination(limit, offset), public=True
+        )
+        return PublicItemsResponse.from_dict(_expect_object(payload, "public room item list"))
+
+    def get_public_room_item_content(self, slug: str, item_ref: str) -> PublicItemContentResponse:
+        """Enterprise only: read a published room item's extraction result, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/content``)."""
+        self._require_tier("enterprise", "get_public_room_item_content")
+        payload = self._request_json(
+            "GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items/{_q(item_ref)}/content", public=True
+        )
+        return PublicItemContentResponse.from_dict(_expect_object(payload, "public room item content"))
+
+    def download_public_room_item(self, slug: str, item_ref: str) -> bytes:
+        """Enterprise only: download a published room item's original file, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/download``, bytes).
+
+        A room that does not allow downloads answers 404 (:class:`NotFoundError`).
+        """
+        self._require_tier("enterprise", "download_public_room_item")
+        return self._request_bytes("GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items/{_q(item_ref)}/download", public=True)
+
 
 class AsyncXbergClient(_BaseClient):
     """Asynchronous client for Xberg Enterprise and Xberg Pro.
@@ -2398,6 +2747,7 @@ class AsyncXbergClient(_BaseClient):
         public: bool = False,
         token: str | None = None,
         project_id: str | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> httpx.Response:
         """Issue one HTTP request with the configured retry engine, returning the raw response."""
         attempt = 0
@@ -2414,38 +2764,25 @@ class AsyncXbergClient(_BaseClient):
                 headers = {**(headers or {}), "X-Project-ID": project_id}
             else:
                 params = {**(params or {}), "project_id": project_id}
+        if extra_headers:
+            headers = {**(headers or {}), **extra_headers}
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
             try:
-                if control_plane:
-                    request = self._http.build_request(
-                        method,
-                        self._control_plane_base_url + path,
-                        files=files,
-                        data=data,
-                        json=json_body,
-                        content=content,
-                        headers=headers,
-                        params=params,
-                    )
-                    for name in ("Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"):
-                        request.headers.pop(name, None)
-                    credential = token if public else self._control_plane_token
-                    if credential:
-                        request.headers["Authorization"] = f"Bearer {credential}"
-                    response = await self._http.send(request, follow_redirects=False)
-                else:
-                    response = await self._http.request(
-                        method,
-                        path,
-                        files=files,
-                        data=data,
-                        json=json_body,
-                        content=content,
-                        headers=headers,
-                        params=params,
-                    )
+                request = self._http.build_request(
+                    method,
+                    self._control_plane_base_url + path if control_plane else path,
+                    files=files,
+                    data=data,
+                    json=json_body,
+                    content=content,
+                    headers=headers,
+                    params=params,
+                )
+                if control_plane or public or token is not None:
+                    self._replace_credential(request, control_plane=control_plane, public=public, token=token)
+                response = await self._http.send(request, follow_redirects=False)
             except httpx.TransportError as exc:
                 if attempt < self._retries:
                     attempt += 1
@@ -2463,7 +2800,7 @@ class AsyncXbergClient(_BaseClient):
                 continue
             return response
 
-    async def _request_json(
+    async def _request_json(  # noqa: PLR0913 ~keep Mirrors the transport flags `_request` takes.
         self,
         method: str,
         path: str,
@@ -2474,6 +2811,9 @@ class AsyncXbergClient(_BaseClient):
         content: bytes | None = None,
         params: Mapping[str, Any] | None = None,
         project_id: str | None = None,
+        public: bool = False,
+        token: str | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> Any:
         """Issue a request, raise on non-2xx, and decode the JSON body (``None`` for empty bodies)."""
         response = await self._request(
@@ -2485,6 +2825,9 @@ class AsyncXbergClient(_BaseClient):
             content=content,
             params=params,
             project_id=project_id,
+            public=public,
+            token=token,
+            extra_headers=extra_headers,
         )
         raise_for_status(response)
         if response.status_code == 204 or not response.content:
@@ -2492,10 +2835,16 @@ class AsyncXbergClient(_BaseClient):
         return response.json()
 
     async def _request_bytes(
-        self, method: str, path: str, *, params: Mapping[str, Any] | None = None, project_id: str | None = None
+        self,
+        method: str,
+        path: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        project_id: str | None = None,
+        public: bool = False,
     ) -> bytes:
         """Issue a request, raise on non-2xx, and return the raw (non-JSON) response body."""
-        response = await self._request(method, path, params=params, project_id=project_id)
+        response = await self._request(method, path, params=params, project_id=project_id, public=public)
         raise_for_status(response)
         return response.content
 
@@ -3712,6 +4061,302 @@ class AsyncXbergClient(_BaseClient):
         payload = await self._request_json("GET", f"/v1/webhooks/{_q(webhook_id)}/deliveries/{_q(delivery_id)}")
         return WebhookDeliveryDetailResponse.from_dict(_expect_object(payload, "webhook delivery"))
 
+    # -- Enterprise data rooms ---------------------------------------------
+
+    async def list_documents(
+        self, *, limit: int | None = None, offset: int | None = None
+    ) -> ListProjectDocumentsResponse:
+        """Enterprise only: list the project's documents (``GET /v1/documents``, paginated).
+
+        Each logical document appears once, by its newest finished version, most
+        recently updated first. Its ``document_id`` is what :meth:`add_room_item` takes.
+        """
+        await self._require_tier("enterprise", "list_documents")
+        payload = await self._request_json("GET", "/v1/documents", params=_pagination(limit, offset))
+        return ListProjectDocumentsResponse.from_dict(_expect_object(payload, "document list"))
+
+    async def list_rooms(
+        self, *, state: RoomListState | None = None, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomsResponse:
+        """Enterprise only: list the data rooms the caller can see (``GET /v1/rooms``, paginated).
+
+        ``state="deleted"`` lists the deleted rooms that :meth:`restore_room` can still bring back.
+        """
+        await self._require_tier("enterprise", "list_rooms")
+        params = _query_params(state=state, limit=limit, offset=offset)
+        payload = await self._request_json("GET", _ROOMS_PATH, params=params)
+        return ListRoomsResponse.from_dict(_expect_object(payload, "room list"))
+
+    async def create_room(self, body: CreateRoomRequest | Mapping[str, Any]) -> RoomResponse:
+        """Enterprise only: create a data room owned by the caller (``POST /v1/rooms``, 201)."""
+        await self._require_tier("enterprise", "create_room")
+        payload = await self._request_json("POST", _ROOMS_PATH, json_body=_coerce_body(body))
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    async def get_room(self, room_id: str) -> RoomResponse:
+        """Enterprise only: read one live data room (``GET /v1/rooms/{id}``).
+
+        ``version`` on the answer is what :meth:`update_room` sends as ``if_match``.
+        """
+        await self._require_tier("enterprise", "get_room")
+        payload = await self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}")
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    async def update_room(
+        self, room_id: str, body: UpdateRoomRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> RoomResponse:
+        """Enterprise only: rename a data room or change its description (``PATCH /v1/rooms/{id}``).
+
+        ``if_match`` is the room ``version`` you read and is sent as ``If-Match``; a
+        stale one raises :class:`PreconditionFailedError` (412). The answer carries
+        the new ``version``. A ``None`` description clears it; an absent field keeps its value.
+        """
+        await self._require_tier("enterprise", "update_room")
+        payload = await self._request_json(
+            "PATCH",
+            f"{_ROOMS_PATH}/{_q(room_id)}",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    async def delete_room(self, room_id: str) -> None:
+        """Enterprise only: delete a data room, restorable until its ``restorable_until`` (``DELETE /v1/rooms/{id}``)."""
+        await self._require_tier("enterprise", "delete_room")
+        await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}")
+
+    async def restore_room(self, room_id: str) -> RoomResponse:
+        """Enterprise only: restore a deleted data room inside its restore window (``POST /v1/rooms/{id}/restore``)."""
+        await self._require_tier("enterprise", "restore_room")
+        payload = await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/restore")
+        return RoomResponse.from_dict(_expect_object(payload, "room"))
+
+    async def list_room_items(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListItemsResponse:
+        """Enterprise only: list a data room's documents in room order (``GET /v1/rooms/{id}/items``, paginated).
+
+        ``version`` on the answer is what :meth:`reorder_room_items` sends as ``if_match``.
+        """
+        await self._require_tier("enterprise", "list_room_items")
+        payload = await self._request_json(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/items", params=_pagination(limit, offset)
+        )
+        return ListItemsResponse.from_dict(_expect_object(payload, "room item list"))
+
+    async def add_room_item(self, room_id: str, body: AddItemRequest | Mapping[str, Any]) -> RoomItemResponse:
+        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201)."""
+        await self._require_tier("enterprise", "add_room_item")
+        payload = await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/items", json_body=_coerce_body(body))
+        return RoomItemResponse.from_dict(_expect_object(payload, "room item"))
+
+    async def reorder_room_items(
+        self, room_id: str, body: ReorderItemsRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> ReorderItemsResponse:
+        """Enterprise only: set the order of every item in a data room (``PUT /v1/rooms/{id}/items/order``).
+
+        ``document_ids`` must name each item exactly once. ``if_match`` is the room
+        ``version`` from :meth:`list_room_items`; a stale one raises
+        :class:`PreconditionFailedError` (412). The answer carries the new ``version``.
+        """
+        await self._require_tier("enterprise", "reorder_room_items")
+        payload = await self._request_json(
+            "PUT",
+            f"{_ROOMS_PATH}/{_q(room_id)}/items/order",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return ReorderItemsResponse.from_dict(_expect_object(payload, "room item order"))
+
+    async def remove_room_item(self, room_id: str, document_id: str) -> None:
+        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``)."""
+        await self._require_tier("enterprise", "remove_room_item")
+        await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}")
+
+    async def get_room_item_content(self, room_id: str, document_id: str) -> ItemContentResponse:
+        """Enterprise only: read a room item's extraction result (``GET /v1/rooms/{id}/items/{document_id}/content``).
+
+        ``result`` is ``None`` until the extraction finishes.
+        """
+        await self._require_tier("enterprise", "get_room_item_content")
+        payload = await self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/content")
+        return ItemContentResponse.from_dict(_expect_object(payload, "room item content"))
+
+    async def download_room_item(self, room_id: str, document_id: str) -> bytes:
+        """Enterprise only: download a room item's original file (``GET /v1/rooms/{id}/items/{document_id}/download``, bytes).
+
+        A room that does not allow downloads raises :class:`AuthError` (403).
+        """
+        await self._require_tier("enterprise", "download_room_item")
+        return await self._request_bytes("GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/download")
+
+    async def get_room_item_page(self, room_id: str, document_id: str, page_number: int) -> bytes:
+        """Enterprise only: fetch one page of a room item as PNG (``GET /v1/rooms/{id}/items/{document_id}/pages/{n}``, bytes)."""
+        await self._require_tier("enterprise", "get_room_item_page")
+        return await self._request_bytes(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}/pages/{_q(page_number)}"
+        )
+
+    async def list_room_members(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomMembersResponse:
+        """Enterprise only: list the users holding a grant on a data room (``GET /v1/rooms/{id}/members``, paginated)."""
+        await self._require_tier("enterprise", "list_room_members")
+        payload = await self._request_json(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/members", params=_pagination(limit, offset)
+        )
+        return ListRoomMembersResponse.from_dict(_expect_object(payload, "room member list"))
+
+    async def add_room_member(self, room_id: str, body: AddMemberRequest | Mapping[str, Any]) -> RoomMemberResponse:
+        """Enterprise only: grant a project member a role on a data room (``POST /v1/rooms/{id}/members``, 201)."""
+        await self._require_tier("enterprise", "add_room_member")
+        payload = await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/members", json_body=_coerce_body(body))
+        return RoomMemberResponse.from_dict(_expect_object(payload, "room member"))
+
+    async def change_room_member_role(
+        self, room_id: str, user_id: str, body: RoomChangeRoleRequest | Mapping[str, Any]
+    ) -> RoomMemberResponse:
+        """Enterprise only: change a room member's role (``PATCH /v1/rooms/{id}/members/{user_id}``)."""
+        await self._require_tier("enterprise", "change_room_member_role")
+        payload = await self._request_json(
+            "PATCH", f"{_ROOMS_PATH}/{_q(room_id)}/members/{_q(user_id)}", json_body=_coerce_body(body)
+        )
+        return RoomMemberResponse.from_dict(_expect_object(payload, "room member"))
+
+    async def remove_room_member(self, room_id: str, user_id: str) -> None:
+        """Enterprise only: remove a member's grant on a data room (``DELETE /v1/rooms/{id}/members/{user_id}``)."""
+        await self._require_tier("enterprise", "remove_room_member")
+        await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/members/{_q(user_id)}")
+
+    async def transfer_room_ownership(
+        self, room_id: str, body: RoomTransferOwnershipRequest | Mapping[str, Any]
+    ) -> None:
+        """Enterprise only: make another room member the owner (``POST /v1/rooms/{id}/ownership``, 204)."""
+        await self._require_tier("enterprise", "transfer_room_ownership")
+        await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/ownership", json_body=_coerce_body(body))
+
+    async def leave_room(self, room_id: str) -> None:
+        """Enterprise only: drop the caller's own grant on a data room (``POST /v1/rooms/{id}/leave``, 204)."""
+        await self._require_tier("enterprise", "leave_room")
+        await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/leave")
+
+    async def list_room_invitations(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomInvitationsResponse:
+        """Enterprise only: list a data room's invitations (``GET /v1/rooms/{id}/invitations``, paginated)."""
+        await self._require_tier("enterprise", "list_room_invitations")
+        payload = await self._request_json(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/invitations", params=_pagination(limit, offset)
+        )
+        return ListRoomInvitationsResponse.from_dict(_expect_object(payload, "room invitation list"))
+
+    async def create_room_invitation(
+        self, room_id: str, body: RoomInviteRequest | Mapping[str, Any]
+    ) -> RoomInvitationResponse:
+        """Enterprise only: invite an email address to a data room (``POST /v1/rooms/{id}/invitations``, 201).
+
+        ``token`` is on the answer only when the delivery channel returns it.
+        """
+        await self._require_tier("enterprise", "create_room_invitation")
+        payload = await self._request_json(
+            "POST", f"{_ROOMS_PATH}/{_q(room_id)}/invitations", json_body=_coerce_body(body)
+        )
+        return RoomInvitationResponse.from_dict(_expect_object(payload, "room invitation"))
+
+    async def revoke_room_invitation(self, room_id: str, invitation_id: str) -> None:
+        """Enterprise only: revoke a pending room invitation (``DELETE /v1/rooms/{id}/invitations/{invitation_id}``)."""
+        await self._require_tier("enterprise", "revoke_room_invitation")
+        await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/invitations/{_q(invitation_id)}")
+
+    async def preview_room_invitation(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> InvitationPreviewResponse:
+        """Enterprise only: show a signed-in invitee the room a token opens (``POST /v1/room-invitations/preview``).
+
+        The route needs a user session, not a project API key (a key answers 403).
+        ``session_token`` sends that session JWT for this call instead of the
+        client's ``api_key``; omit it when the client was built with the session token.
+        """
+        await self._require_tier("enterprise", "preview_room_invitation")
+        payload = await self._request_json(
+            "POST", "/v1/room-invitations/preview", json_body=_coerce_body(body), token=session_token
+        )
+        return InvitationPreviewResponse.from_dict(_expect_object(payload, "room invitation preview"))
+
+    async def accept_room_invitation(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> AcceptedInvitationResponse:
+        """Enterprise only: accept a room invitation for the signed-in user (``POST /v1/room-invitations/accept``).
+
+        Like :meth:`preview_room_invitation`, it needs a user session, sent as
+        ``session_token`` or as the client's credential.
+        """
+        await self._require_tier("enterprise", "accept_room_invitation")
+        payload = await self._request_json(
+            "POST", "/v1/room-invitations/accept", json_body=_coerce_body(body), token=session_token
+        )
+        return AcceptedInvitationResponse.from_dict(_expect_object(payload, "accepted room invitation"))
+
+    async def get_room_publication(self, room_id: str) -> PublicationResponse:
+        """Enterprise only: read a data room's publication settings (``GET /v1/rooms/{id}/publication``).
+
+        ``room_version`` on the answer is what :meth:`set_room_publication` sends as ``if_match``.
+        """
+        await self._require_tier("enterprise", "get_room_publication")
+        payload = await self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/publication")
+        return PublicationResponse.from_dict(_expect_object(payload, "room publication"))
+
+    async def set_room_publication(
+        self, room_id: str, body: SetPublicationRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> PublicationResponse:
+        """Enterprise only: publish or unpublish a data room (``PUT /v1/rooms/{id}/publication``).
+
+        ``if_match`` is the ``room_version`` you read; a stale one raises
+        :class:`PreconditionFailedError` (412). The answer carries the new ``room_version``.
+        """
+        await self._require_tier("enterprise", "set_room_publication")
+        payload = await self._request_json(
+            "PUT",
+            f"{_ROOMS_PATH}/{_q(room_id)}/publication",
+            json_body=_coerce_body(body),
+            extra_headers=_if_match(if_match),
+        )
+        return PublicationResponse.from_dict(_expect_object(payload, "room publication"))
+
+    async def get_public_room(self, slug: str) -> PublicRoomResponse:
+        """Enterprise only: read a published data room by slug, sending no credential (``GET /public/rooms/{slug}``)."""
+        await self._require_tier("enterprise", "get_public_room")
+        payload = await self._request_json("GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}", public=True)
+        return PublicRoomResponse.from_dict(_expect_object(payload, "public room"))
+
+    async def list_public_room_items(
+        self, slug: str, *, limit: int | None = None, offset: int | None = None
+    ) -> PublicItemsResponse:
+        """Enterprise only: list a published room's items, sending no credential (``GET /public/rooms/{slug}/items``)."""
+        await self._require_tier("enterprise", "list_public_room_items")
+        payload = await self._request_json(
+            "GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items", params=_pagination(limit, offset), public=True
+        )
+        return PublicItemsResponse.from_dict(_expect_object(payload, "public room item list"))
+
+    async def get_public_room_item_content(self, slug: str, item_ref: str) -> PublicItemContentResponse:
+        """Enterprise only: read a published room item's extraction result, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/content``)."""
+        await self._require_tier("enterprise", "get_public_room_item_content")
+        payload = await self._request_json(
+            "GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items/{_q(item_ref)}/content", public=True
+        )
+        return PublicItemContentResponse.from_dict(_expect_object(payload, "public room item content"))
+
+    async def download_public_room_item(self, slug: str, item_ref: str) -> bytes:
+        """Enterprise only: download a published room item's original file, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/download``, bytes).
+
+        A room that does not allow downloads answers 404 (:class:`NotFoundError`).
+        """
+        await self._require_tier("enterprise", "download_public_room_item")
+        return await self._request_bytes(
+            "GET", f"{_PUBLIC_ROOMS_PATH}/{_q(slug)}/items/{_q(item_ref)}/download", public=True
+        )
+
 
 __all__ = [
     "AsyncXbergClient",
@@ -3721,6 +4366,8 @@ __all__ = [
     "EnrichJobStatus",
     "FileInput",
     "OptionsInput",
+    "RoomListState",
+    "RoomVersion",
     "Target",
     "XbergClient",
 ]

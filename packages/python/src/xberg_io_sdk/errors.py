@@ -56,6 +56,19 @@ class NotFoundError(XbergError):
     """Raised when the API returns HTTP 404 (resource does not exist)."""
 
 
+class DataRoomsDisabledError(NotFoundError):
+    """Raised on HTTP 404 with code ``data_room.disabled``: this deployment's plan does not offer data rooms.
+
+    Every data-room route, the public ones included, answers this before checking
+    the credential. A subclass of :class:`NotFoundError`, so an existing
+    ``except NotFoundError`` still catches it. ``enterprise_healthz().data_rooms``
+    reports the same flag ahead of time.
+    """
+
+
+_DATA_ROOM_DISABLED_CODE = "data_room.disabled"
+
+
 class RateLimitError(XbergError):
     """Raised when the API returns HTTP 429 (rate limit exceeded).
 
@@ -247,6 +260,8 @@ def raise_for_status(response: httpx.Response) -> None:
     if status == 429:
         retry_after = parse_retry_after(response.headers.get("Retry-After"))
         raise RateLimitError(message, retry_after=retry_after, **fields)
+    if status == 404 and code == _DATA_ROOM_DISABLED_CODE:
+        raise DataRoomsDisabledError(message, **fields)
     error_type = _STATUS_ERRORS.get(status)
     if error_type is None:
         error_type = ServerError if 500 <= status < 600 else XbergError

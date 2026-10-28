@@ -14,6 +14,7 @@ from xberg_io_sdk._generated_pro.models.pro_integration_list_response import Pro
 from xberg_io_sdk.client import AsyncXbergClient, EnterpriseHealth, GetJobResponse, XbergClient
 from xberg_io_sdk.errors import (
     AuthError,
+    DataRoomsDisabledError,
     GatewayTimeoutError,
     NotFoundError,
     PreconditionFailedError,
@@ -46,6 +47,7 @@ __all__ = [
     "WEBHOOK_SIGNATURE_HEADER",
     "AsyncXbergClient",
     "AuthError",
+    "DataRoomsDisabledError",
     "EnterpriseHealth",
     "ExtractedDocument",
     "ExtractionJobResponse",
