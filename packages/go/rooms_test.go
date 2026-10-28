@@ -6,7 +6,9 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -725,4 +727,56 @@ func TestRooms_NonIdempotentWritesAreNotRetried(t *testing.T) {
 			t.Errorf("attempts = %d, want 2", got)
 		}
 	})
+}
+
+// TestRooms_PublicRoutesIgnoreTheCookieJar proves an anonymous route sends
+// none of the caller's cookies even when the supplied http.Client carries a
+// jar, while an authenticated route on the same client still does.
+func TestRooms_PublicRoutesIgnoreTheCookieJar(t *testing.T) {
+	t.Parallel()
+	var mu sync.Mutex
+	cookies := map[string]string{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		cookies[r.URL.Path] = r.Header.Get("Cookie")
+		mu.Unlock()
+		if r.URL.Path == "/v1/rooms/"+testRoomID {
+			_, _ = w.Write([]byte(roomBody))
+			return
+		}
+		_, _ = w.Write([]byte(`{"name":"Board"}`))
+	}))
+	t.Cleanup(server.Close)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatalf("cookiejar.New: %v", err)
+	}
+	serverURL, err := url.Parse(server.URL)
+	if err != nil {
+		t.Fatalf("url.Parse: %v", err)
+	}
+	jar.SetCookies(serverURL, []*http.Cookie{{Name: "session", Value: "dashboard-session"}})
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	t.Cleanup(transport.CloseIdleConnections)
+	client := mustClient(t,
+		xberg.WithBaseURL(server.URL),
+		xberg.WithTarget(xberg.TargetEnterprise),
+		xberg.WithAPIKey(testRoomKey),
+		xberg.WithHTTPClient(&http.Client{Transport: transport, Jar: jar}),
+	)
+	ctx := context.Background()
+	if _, err := client.GetPublicRoom(ctx, testRoomSlug); err != nil {
+		t.Fatalf("GetPublicRoom: %v", err)
+	}
+	if _, err := client.GetRoom(ctx, testRoomID); err != nil {
+		t.Fatalf("GetRoom: %v", err)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if got := cookies["/public/rooms/"+testRoomSlug]; got != "" {
+		t.Errorf("public route Cookie = %q, want none", got)
+	}
+	if got := cookies["/v1/rooms/"+testRoomID]; got != "session=dashboard-session" {
+		t.Errorf("authenticated route Cookie = %q, want the jar's cookie", got)
+	}
 }

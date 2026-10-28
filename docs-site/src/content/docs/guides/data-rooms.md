@@ -243,8 +243,9 @@ three are the same room version. `UpdateRoom` sends `nil` fields as absent, so i
 does not allow downloads answers 403 (`*AuthError`) on the authenticated route and 404 on the public one.
 
 The `/public/rooms/{slug}` methods (`GetPublicRoom`, `ListPublicRoomItems`, `GetPublicRoomItemContent`,
-`DownloadPublicRoomItem`) never send the client's credential, so a client built without `WithAPIKey` can read a
-published room.
+`DownloadPublicRoomItem`) send no `Authorization`, `Proxy-Authorization`, `Cookie` or `X-Api-Key` header and
+bypass the `http.Client`'s cookie jar, even on a client built with `WithAPIKey` or `WithHTTPClient`. A client built
+without `WithAPIKey` can read a published room.
 
 `PreviewRoomInvitation` and `AcceptRoomInvitation` admit only a signed-in user. Build the client with the invitee's
 session token as its bearer; an API key is refused with 403:

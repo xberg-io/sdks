@@ -45,7 +45,7 @@ type requestSpec struct {
 	rewindBody      func() (io.Reader, error)
 	// ifMatch, when set, is sent verbatim as the If-Match header.
 	ifMatch string
-	// anonymous drops the Authorization header for routes that take no credential.
+	// anonymous sends no credential header and no cookie for routes that take no credential.
 	anonymous bool
 }
 
@@ -226,10 +226,11 @@ func (c *Client) doOnceWithCancel(
 		cancel()
 		return nil, err
 	}
+	httpClient := c.cfg.httpClient
 	if spec.anonymous {
-		req.Header.Del("Authorization")
+		httpClient = anonymousHTTPClient(httpClient, req)
 	}
-	resp, err := c.cfg.httpClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		cancel()
 		return nil, &ConnectionError{Method: spec.method, URL: url, Cause: err}
@@ -244,6 +245,18 @@ func (c *Client) doOnceWithCancel(
 		return nil, fmt.Errorf("xberg: reading error response body: %w", readErr)
 	}
 	return nil, classifyHTTPError(resp.StatusCode, body, resp.Header)
+}
+
+// anonymousHTTPClient strips every credential header from req and returns a
+// copy of httpClient without its cookie jar, so a route that takes no
+// credential receives none of the caller's session cookies either.
+func anonymousHTTPClient(httpClient *http.Client, req *http.Request) *http.Client {
+	for _, name := range []string{"Authorization", "Cookie", "Proxy-Authorization", "X-Api-Key"} {
+		req.Header.Del(name)
+	}
+	anonymous := *httpClient
+	anonymous.Jar = nil
+	return &anonymous
 }
 
 // urlFor concatenates baseURL and path, normalising a single slash boundary.
