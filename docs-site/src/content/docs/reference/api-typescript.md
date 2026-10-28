@@ -109,14 +109,52 @@ Profiles promoted from auto-tune runs.
 
 ## Documents and lineage
 
-Enterprise-only document history.
+Enterprise-only project documents and their history.
 
 | Method | Description |
 | --- | --- |
+| `listDocuments` | Enterprise only: list the project's logical documents (`GET /v1/documents`), |
 | `getDocument` | Enterprise only: fetch a document's latest version with its extraction |
 | `versions` |  |
 | `diff` | Enterprise only: diff document versions (`GET /v1/documents/{id}/diff`). |
 | `getDiffJob` | Enterprise only: poll a diff job (`GET /v1/documents/{id}/diff/{diffJobId}`). |
+
+## Data rooms
+
+Enterprise-only rooms, their items, members, invitations and publication, and the anonymous public view.
+
+| Method | Description |
+| --- | --- |
+| `listRooms` | Enterprise only: list the data rooms the caller can see (`GET /v1/rooms`), |
+| `createRoom` | Enterprise only: create a data room owned by the caller (`POST /v1/rooms`). |
+| `getRoom` |  |
+| `updateRoom` | Enterprise only: rename a data room or change its description |
+| `deleteRoom` | Enterprise only: delete a live data room (`DELETE /v1/rooms/{id}`). It stays |
+| `restoreRoom` | Enterprise only: restore a deleted data room inside its restore window |
+| `listRoomItems` | Enterprise only: list a room's documents in room order |
+| `addRoomItem` | Enterprise only: add a project document to the end of a room |
+| `reorderRoomItems` | Enterprise only: set the order of every item in a room |
+| `removeRoomItem` | Enterprise only: remove a document from a room |
+| `getRoomItemContent` | Enterprise only: fetch the extraction result of a room item's newest |
+| `downloadRoomItem` | Enterprise only: download a room item's original file |
+| `getRoomItemPage` | Enterprise only: download one rendered page of a room item as a PNG |
+| `listRoomMembers` |  |
+| `addRoomMember` | Enterprise only: give a project member a grant on a room |
+| `changeRoomMemberRole` | Enterprise only: change a room member's role to an editor or a viewer |
+| `removeRoomMember` | Enterprise only: remove a member's grant on a room |
+| `transferRoomOwnership` | Enterprise only: make another room member the owner |
+| `leaveRoom` | Enterprise only: remove the caller's own grant on a room |
+| `listRoomInvitations` | Enterprise only: list a room's invitations (`GET /v1/rooms/{id}/invitations`). |
+| `createRoomInvitation` | Enterprise only: invite an email address to a room |
+| `revokeRoomInvitation` | Enterprise only: revoke a pending room invitation |
+| `previewRoomInvitation` | Enterprise only: show a signed-in invitee the room an invitation token opens |
+| `acceptRoomInvitation` | Enterprise only: accept an invitation token for the signed-in user |
+| `getRoomPublication` | Enterprise only: read a room's publication settings |
+| `setRoomPublication` | Enterprise only: publish or unpublish a room, optionally changing its mode |
+| `getPublicRoom` | Enterprise only: read a published room by its slug (`GET /public/rooms/{slug}`). |
+| `listPublicRoomItems` | Enterprise only: list a published room's items in room order |
+| `getPublicRoomItemContent` | Enterprise only: fetch the extraction result of a published room's item |
+| `downloadPublicRoomItem` | Enterprise only: download a published room item's original file |
 
 ## Enrich
 

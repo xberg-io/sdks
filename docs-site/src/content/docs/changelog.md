@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python `enterprise_healthz()` (sync and async), returning `EnterpriseHealth` with `tier`, `rag`,
   `auto_tune` and `data_rooms`; a field an older server omits decodes as `None`.
 - Python client option `retry_non_idempotent` to retry `POST`/`PATCH` on 502, 503 and 504.
+- Python Enterprise data rooms (sync and async): one method per room, item, member, invitation,
+  publication and public-room operation, plus `list_documents` (`GET /v1/documents`). `update_room`,
+  `reorder_room_items` and `set_room_publication` take the room version as `if_match`; the
+  `/public/rooms` methods send no credential; `preview_room_invitation` and `accept_room_invitation`
+  take an optional `session_token`. A plan without data rooms raises `DataRoomsDisabledError`, a
+  `NotFoundError` subclass.
 - TypeScript: `RequestTimeoutError` (408), `GatewayTimeoutError` (504), `ResultExpiredError` (410),
   `PreconditionFailedError` (412) and `PreconditionRequiredError` (428). The timeout classes carry
   `limit` and `timeoutSeconds` from the error `details`. Each extends the class its status mapped to
@@ -34,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript: `enterpriseHealthz()` returns the Enterprise data-plane `/healthz` as
   `EnterpriseHealthResponse` (`tier`, `rag`, `auto_tune`, `data_rooms`); a missing feature reads as
   disabled.
+- TypeScript: Enterprise data rooms and `listDocuments()`, one method per operation: rooms, items,
+  members, invitations, publication and the anonymous `/public/rooms` reads. Versioned writes take the
+  room version and send it as `If-Match`. A 404 `data_room.disabled` throws the new
+  `DataRoomsDisabledError`, a `NotFoundError` subclass. Invitation preview and accept take an optional
+  per-call `sessionToken`.
 - TypeScript: `retryNonIdempotent` client option to retry POST and PATCH on 502/503/504.
 - Go: parse the nested error envelope `{"error":{"code","message","details"}}` as well as the older flat
   `{"error":"..."}` and `{"message":"..."}` bodies. `XbergError` gains `Code` and `Details`
@@ -51,6 +62,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (tier, status, and `Rag`, `AutoTune`, `DataRooms` decoded leniently: a feature the server omits is nil).
 - Go: `PresignUploadTyped` and `ConfirmUploadTyped` decode into the generated `PresignUploadResponse`
   and `ConfirmUploadResponse`. `PresignUpload` and `ConfirmUpload` keep returning `json.RawMessage`.
+- Go: Enterprise data rooms, one method per operation: rooms (`ListRooms`, `CreateRoom`, `GetRoom`,
+  `UpdateRoom`, `DeleteRoom`, `RestoreRoom`), items (`ListRoomItems`, `AddRoomItem`, `ReorderRoomItems`,
+  `RemoveRoomItem`, `GetRoomItemContent`, `DownloadRoomItem`, `GetRoomItemPage`), members
+  (`ListRoomMembers`, `AddRoomMember`, `ChangeRoomMemberRole`, `RemoveRoomMember`, `LeaveRoom`,
+  `TransferRoomOwnership`), invitations (`ListRoomInvitations`, `CreateRoomInvitation`,
+  `RevokeRoomInvitation`, `PreviewRoomInvitation`, `AcceptRoomInvitation`), publication
+  (`GetRoomPublication`, `SetRoomPublication`), the anonymous published-room routes (`GetPublicRoom`,
+  `ListPublicRoomItems`, `GetPublicRoomItemContent`, `DownloadPublicRoomItem`), and `ListDocuments`.
+  The versioned writes take the room version and send it as `If-Match`; the public routes send no
+  credential.
+- Go: `DataRoomsDisabledError`, a `NotFoundError` returned for a 404 with code `data_room.disabled`
+  (`ErrCodeDataRoomDisabled`).
 
 ### Changed
 

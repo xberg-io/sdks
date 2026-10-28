@@ -109,14 +109,52 @@ Profiles promoted from auto-tune runs.
 
 ## Documents and lineage
 
-Enterprise-only document history.
+Enterprise-only project documents and their history.
 
 | Method | Description |
 | --- | --- |
+| `ListDocuments` | ListDocuments lists the documents of the caller's project (GET /v1/documents, paginated): the IDs [Client.AddRoomItem] takes |
 | `GetDocument` | GetDocument fetches a document's latest version together with its extraction result (GET /v1/documents/{documentID}) |
 | `Versions` | Versions lists a document's versions (GET /v1/documents/{id}/versions) |
 | `Diff` | Diff diffs document versions (GET /v1/documents/{id}/diff) |
 | `GetDiffJob` | GetDiffJob polls a diff job (GET /v1/documents/{id}/diff/{diffJobID}) |
+
+## Data rooms
+
+Enterprise-only rooms, their items, members, invitations and publication, and the anonymous public view.
+
+| Method | Description |
+| --- | --- |
+| `ListRooms` | ListRooms lists the project's rooms (GET /v1/rooms, paginated) |
+| `CreateRoom` | CreateRoom creates a room in the project (POST /v1/rooms) |
+| `GetRoom` | GetRoom fetches one live room with the caller's rights on it (GET /v1/rooms/{roomID}) |
+| `UpdateRoom` | UpdateRoom renames a room or changes its description (PATCH /v1/rooms/{roomID}), sending version as If-Match |
+| `DeleteRoom` | DeleteRoom deletes a live room (DELETE /v1/rooms/{roomID}) |
+| `RestoreRoom` | RestoreRoom restores a deleted room inside its restore window (POST /v1/rooms/{roomID}/restore) |
+| `ListRoomItems` | ListRoomItems lists a room's documents in room order (GET /v1/rooms/{roomID}/items, paginated) |
+| `AddRoomItem` | AddRoomItem adds a project document to the end of a room (POST /v1/rooms/{roomID}/items) |
+| `ReorderRoomItems` | ReorderRoomItems sets the order of every item in a room (PUT /v1/rooms/{roomID}/items/order), sending version as If-Match |
+| `RemoveRoomItem` | RemoveRoomItem removes a document from a room (DELETE /v1/rooms/{roomID}/items/{documentID}); the document stays in the project |
+| `GetRoomItemContent` | GetRoomItemContent fetches the extraction result of a room item's newest finished version (GET /v1/rooms/{roomID}/items/{documentID}/content) |
+| `DownloadRoomItem` | DownloadRoomItem returns the original bytes of a room item (GET /v1/rooms/{roomID}/items/{documentID}/download) |
+| `GetRoomItemPage` | GetRoomItemPage returns one 1-indexed page of a room item as PNG bytes (GET /v1/rooms/{roomID}/items/{documentID}/pages/{pageNumber}), whatever the room's download setting |
+| `ListRoomMembers` | ListRoomMembers lists the users holding a grant on a room (GET /v1/rooms/{roomID}/members, paginated) |
+| `AddRoomMember` | AddRoomMember gives a project member a grant on a room (POST /v1/rooms/{roomID}/members) |
+| `ChangeRoomMemberRole` | ChangeRoomMemberRole changes a member's role to an editor or a viewer (PATCH /v1/rooms/{roomID}/members/{userID}) |
+| `RemoveRoomMember` | RemoveRoomMember removes a member's grant on a room (DELETE /v1/rooms/{roomID}/members/{userID}) |
+| `TransferRoomOwnership` | TransferRoomOwnership makes another member the room's owner (POST /v1/rooms/{roomID}/ownership) |
+| `LeaveRoom` | LeaveRoom removes the caller's own grant on a room (POST /v1/rooms/{roomID}/leave) |
+| `ListRoomInvitations` | ListRoomInvitations lists a room's invitations with status, role and expiry (GET /v1/rooms/{roomID}/invitations, paginated); never their tokens |
+| `CreateRoomInvitation` | CreateRoomInvitation invites an email address to a room with a role (POST /v1/rooms/{roomID}/invitations) |
+| `RevokeRoomInvitation` | RevokeRoomInvitation revokes a pending invitation (DELETE /v1/rooms/{roomID}/invitations/{invitationID}) |
+| `PreviewRoomInvitation` | PreviewRoomInvitation shows the room an invitation token opens before it is accepted (POST /v1/room-invitations/preview) |
+| `AcceptRoomInvitation` | AcceptRoomInvitation accepts an invitation token for the signed-in user and grants them the room (POST /v1/room-invitations/accept) |
+| `GetRoomPublication` | GetRoomPublication reads a room's public-view settings (GET /v1/rooms/{roomID}/publication) |
+| `SetRoomPublication` | SetRoomPublication publishes or unpublishes a room and optionally sets its mode and download setting (PUT /v1/rooms/{roomID}/publication), sending version as If-Match; a nil field keeps its stored value |
+| `GetPublicRoom` | GetPublicRoom reads a published room by its slug (GET /public/rooms/{slug}) |
+| `ListPublicRoomItems` | ListPublicRoomItems lists a published room's items in room order (GET /public/rooms/{slug}/items, paginated) without sending a credential |
+| `GetPublicRoomItemContent` | GetPublicRoomItemContent fetches the extraction result of a published room's item (GET /public/rooms/{slug}/items/{itemRef}/content) without sending a credential |
+| `DownloadPublicRoomItem` | DownloadPublicRoomItem returns the original bytes of a published room's item (GET /public/rooms/{slug}/items/{itemRef}/download) without sending a credential |
 
 ## Enrich
 

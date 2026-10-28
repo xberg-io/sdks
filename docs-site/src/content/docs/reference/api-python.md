@@ -109,14 +109,52 @@ Profiles promoted from auto-tune runs.
 
 ## Documents and lineage
 
-Enterprise-only document history.
+Enterprise-only project documents and their history.
 
 | Method | Description |
 | --- | --- |
+| `list_documents` | Enterprise only: list the project's documents (``GET /v1/documents``, paginated). |
 | `get_document` | Enterprise only: fetch a document's latest version (``GET /v1/documents/{document_id}``). |
 | `versions` | Enterprise only: list a document's versions (``GET /v1/documents/{id}/versions``). |
 | `diff` | Enterprise only: diff document versions (``GET /v1/documents/{id}/diff``). |
 | `get_diff_job` | Enterprise only: poll a diff job (``GET /v1/documents/{id}/diff/{diff_job_id}``). |
+
+## Data rooms
+
+Enterprise-only rooms, their items, members, invitations and publication, and the anonymous public view.
+
+| Method | Description |
+| --- | --- |
+| `list_rooms` | Enterprise only: list the data rooms the caller can see (``GET /v1/rooms``, paginated). |
+| `create_room` | Enterprise only: create a data room owned by the caller (``POST /v1/rooms``, 201). |
+| `get_room` | Enterprise only: read one live data room (``GET /v1/rooms/{id}``). |
+| `update_room` | Enterprise only: rename a data room or change its description (``PATCH /v1/rooms/{id}``). |
+| `delete_room` | Enterprise only: delete a data room, restorable until its ``restorable_until`` (``DELETE /v1/rooms/{id}``). |
+| `restore_room` | Enterprise only: restore a deleted data room inside its restore window (``POST /v1/rooms/{id}/restore``). |
+| `list_room_items` | Enterprise only: list a data room's documents in room order (``GET /v1/rooms/{id}/items``, paginated). |
+| `add_room_item` | Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201). |
+| `reorder_room_items` | Enterprise only: set the order of every item in a data room (``PUT /v1/rooms/{id}/items/order``). |
+| `remove_room_item` | Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``). |
+| `get_room_item_content` | Enterprise only: read a room item's extraction result (``GET /v1/rooms/{id}/items/{document_id}/content``). |
+| `download_room_item` | Enterprise only: download a room item's original file (``GET /v1/rooms/{id}/items/{document_id}/download``, bytes). |
+| `get_room_item_page` | Enterprise only: fetch one page of a room item as PNG (``GET /v1/rooms/{id}/items/{document_id}/pages/{n}``, bytes). |
+| `list_room_members` | Enterprise only: list the users holding a grant on a data room (``GET /v1/rooms/{id}/members``, paginated). |
+| `add_room_member` | Enterprise only: grant a project member a role on a data room (``POST /v1/rooms/{id}/members``, 201). |
+| `change_room_member_role` | Enterprise only: change a room member's role (``PATCH /v1/rooms/{id}/members/{user_id}``). |
+| `remove_room_member` | Enterprise only: remove a member's grant on a data room (``DELETE /v1/rooms/{id}/members/{user_id}``). |
+| `transfer_room_ownership` | Enterprise only: make another room member the owner (``POST /v1/rooms/{id}/ownership``, 204). |
+| `leave_room` | Enterprise only: drop the caller's own grant on a data room (``POST /v1/rooms/{id}/leave``, 204). |
+| `list_room_invitations` | Enterprise only: list a data room's invitations (``GET /v1/rooms/{id}/invitations``, paginated). |
+| `create_room_invitation` | Enterprise only: invite an email address to a data room (``POST /v1/rooms/{id}/invitations``, 201). |
+| `revoke_room_invitation` | Enterprise only: revoke a pending room invitation (``DELETE /v1/rooms/{id}/invitations/{invitation_id}``). |
+| `preview_room_invitation` | Enterprise only: show a signed-in invitee the room a token opens (``POST /v1/room-invitations/preview``). |
+| `accept_room_invitation` | Enterprise only: accept a room invitation for the signed-in user (``POST /v1/room-invitations/accept``). |
+| `get_room_publication` | Enterprise only: read a data room's publication settings (``GET /v1/rooms/{id}/publication``). |
+| `set_room_publication` | Enterprise only: publish or unpublish a data room (``PUT /v1/rooms/{id}/publication``). |
+| `get_public_room` | Enterprise only: read a published data room by slug, sending no credential (``GET /public/rooms/{slug}``). |
+| `list_public_room_items` | Enterprise only: list a published room's items, sending no credential (``GET /public/rooms/{slug}/items``). |
+| `get_public_room_item_content` | Enterprise only: read a published room item's extraction result, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/content``). |
+| `download_public_room_item` | Enterprise only: download a published room item's original file, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/download``, bytes). |
 
 ## Enrich
 
