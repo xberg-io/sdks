@@ -145,6 +145,7 @@ raises a clear error instead of a raw 404:
 - **Pro only:** `login`, `auth_config`, `get_rag_config`/`set_rag_config`, `get_license_info`, `put_local_upload`
 - **Pro only (control plane):** `list_projects`/`create_project`, `list_api_keys`/`create_api_key`/`revoke_api_key`, `list_integrations`/`create_integration`/`get_integration`/`delete_integration`, `connect_integration`/`disconnect_integration`, `list_integration_documents`/`fetch_integration_document`
 - **Enterprise only:** `enterprise_healthz` (returns `EnterpriseHealth`: `tier`, `rag`, `auto_tune`, `data_rooms`, decoded leniently), `versions`, `get_document`, `diff`/`get_diff_job`, `list_extraction_events`, `list_subscription_deliveries`/`get_subscription_delivery`
+- **Enterprise only (data rooms):** `list_documents`; `list_rooms`/`create_room`/`get_room`/`update_room`/`delete_room`/`restore_room`; `list_room_items`/`add_room_item`/`reorder_room_items`/`remove_room_item`/`get_room_item_content`/`download_room_item`/`get_room_item_page`; `list_room_members`/`add_room_member`/`change_room_member_role`/`remove_room_member`/`transfer_room_ownership`/`leave_room`; `list_room_invitations`/`create_room_invitation`/`revoke_room_invitation`/`preview_room_invitation`/`accept_room_invitation`; `get_room_publication`/`set_room_publication`; and the credential-free `get_public_room`/`list_public_room_items`/`get_public_room_item_content`/`download_public_room_item`. See the data rooms guide.
 
 ### Deliberately not exposed
 
@@ -161,7 +162,8 @@ Three documented routes have no client method, on purpose:
 
 Errors are raised as one of:
 `XbergError` (base), `AuthError` (401 **and** 403), `ValidationError`,
-`NotFoundError`, `RequestTimeoutError` (408), `ResultExpiredError` (410),
+`NotFoundError`, `DataRoomsDisabledError` (404 `data_room.disabled`, a `NotFoundError`),
+`RequestTimeoutError` (408), `ResultExpiredError` (410),
 `PreconditionFailedError` (412), `PreconditionRequiredError` (428),
 `RateLimitError` (carries `retry_after`), `ServerError`, `GatewayTimeoutError`
 (504, a `ServerError`), `TimeoutError`. Every HTTP error carries the server's
