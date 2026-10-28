@@ -117,7 +117,7 @@ def test_should_keep_backend_gaps_pending_when_only_pro_implements_the_route(tmp
     assert result.returncode == 0, result.stdout + result.stderr
     total, excluded = backend_operation_count(), backend_exclusion_count()
     assert result.stdout.splitlines() == [
-        "enterprise  52/53 reached, 1 excluded, 0 tracked as pending",
+        "enterprise  83/84 reached, 1 excluded, 0 tracked as pending",
         "pro         66/69 reached, 3 excluded, 0 tracked as pending",
         f"backend     {total - excluded - 2}/{total} reached, {excluded} excluded, 2 tracked as pending",
     ]
