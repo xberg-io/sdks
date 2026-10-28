@@ -93,6 +93,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `WithRetryNonIdempotent(true)`, because a gateway timeout on a submission can leave the job running
   and a resend creates a duplicate. 429 (honoring `Retry-After`) and transport failures are still
   retried for every method; 408 is not retried.
+- **Behaviour, all three clients.** A request carrying `If-Match` (`update_room`,
+  `reorder_room_items`, `set_room_publication` and their TypeScript and Go counterparts) is not
+  retried on 502, 503 or 504 unless the non-idempotent opt-in (`retry_non_idempotent`,
+  `retryNonIdempotent`, `WithRetryNonIdempotent`) is set: an attempt that applied moved the room
+  version, so its replay could only fail with 412. `DELETE` stays retryable; a replay whose first
+  attempt applied answers 404.
 - Specifications re-synced with xberg-enterprise `a55e7ffd1`. The Enterprise data plane gains the
   data-room and project-document operations, whose schemas carry their own names
   (`ListProjectDocumentsResponse`, `ProjectDocumentEntry`, `Room*`), so `ListDocumentsResponse`,

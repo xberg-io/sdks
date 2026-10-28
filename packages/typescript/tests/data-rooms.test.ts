@@ -688,6 +688,70 @@ describe("retry policy on room writes", () => {
     expect(attempts).toBe(2);
   });
 
+  it.each([
+    ["reorderRoomItems", `/v1/rooms/${ROOM_ID}/items/order`],
+    ["setRoomPublication", `/v1/rooms/${ROOM_ID}/publication`],
+  ] as const)("does not retry the If-Match PUT %s on 503 by default", async (name, path) => {
+    let attempts = 0;
+    server.use(
+      http.put(url(path), () => {
+        attempts += 1;
+        return HttpResponse.json({ error: "unavailable" }, { status: 503 });
+      }),
+    );
+    const client = makeClient({ retries: 3 });
+    const call =
+      name === "reorderRoomItems"
+        ? client.reorderRoomItems(ROOM_ID, { document_ids: [] }, 7)
+        : client.setRoomPublication(ROOM_ID, { state: "published" }, 7);
+    await expect(call).rejects.toBeInstanceOf(ServerError);
+    expect(attempts).toBe(1);
+  });
+
+  it("retries an If-Match PUT on 503 when retryNonIdempotent is set", async () => {
+    let attempts = 0;
+    server.use(
+      http.put(url(`/v1/rooms/${ROOM_ID}/items/order`), ({ request }) => {
+        attempts += 1;
+        expect(request.headers.get("if-match")).toBe('"7"');
+        return attempts < 2
+          ? HttpResponse.json({ error: "unavailable" }, { status: 503 })
+          : HttpResponse.json({ document_ids: [], version: 8 });
+      }),
+    );
+    const client = makeClient({ retries: 3, retryNonIdempotent: true });
+    expect(await client.reorderRoomItems(ROOM_ID, { document_ids: [] }, 7)).toEqual({ document_ids: [], version: 8 });
+    expect(attempts).toBe(2);
+  });
+
+  it("retries an If-Match PUT on 429", async () => {
+    let attempts = 0;
+    server.use(
+      http.put(url(`/v1/rooms/${ROOM_ID}/items/order`), () => {
+        attempts += 1;
+        return attempts < 2
+          ? HttpResponse.json({ error: "slow down" }, { status: 429 })
+          : HttpResponse.json({ document_ids: [], version: 8 });
+      }),
+    );
+    await makeClient({ retries: 3 }).reorderRoomItems(ROOM_ID, { document_ids: [] }, 7);
+    expect(attempts).toBe(2);
+  });
+
+  it("retries a room item DELETE on 503", async () => {
+    let attempts = 0;
+    server.use(
+      http.delete(url(`/v1/rooms/${ROOM_ID}/items/${DOC_ID}`), () => {
+        attempts += 1;
+        return attempts < 2
+          ? HttpResponse.json({ error: "unavailable" }, { status: 503 })
+          : new HttpResponse(null, { status: 204 });
+      }),
+    );
+    await makeClient({ retries: 3 }).removeRoomItem(ROOM_ID, DOC_ID);
+    expect(attempts).toBe(2);
+  });
+
   it("retries an idempotent GET on 503", async () => {
     let attempts = 0;
     server.use(

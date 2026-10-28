@@ -228,9 +228,11 @@ originate from an HTTP response — embeds `XbergError`, so a single
 
 `WithRetries(n)` enables retries (off by default). Transport failures and 429
 (honoring `Retry-After`) are retried for every method; 502, 503 and 504 only for
-GET, HEAD, OPTIONS, PUT and DELETE. A POST or PATCH the gateway timed out on may
-still have run, so it is retried only with `WithRetryNonIdempotent(true)`. A 408
-is never retried.
+GET, HEAD, OPTIONS, PUT and DELETE without `If-Match`. A POST, PATCH or `If-Match`
+write the gateway timed out on may still have run, so it is retried only with
+`WithRetryNonIdempotent(true)`; a replayed `If-Match` write that already applied
+fails with 412. A replayed DELETE whose first attempt applied returns
+`*NotFoundError`. A 408 is never retried.
 
 ## Webhook signatures
 

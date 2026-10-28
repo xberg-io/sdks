@@ -160,7 +160,7 @@ func (c *Client) do(ctx context.Context, spec requestSpec) (io.ReadCloser, error
 		if err == nil {
 			return body, nil
 		}
-		if attempt >= c.cfg.retries || !c.shouldRetry(spec.method, err) || ctx.Err() != nil {
+		if attempt >= c.cfg.retries || !c.shouldRetry(spec, err) || ctx.Err() != nil {
 			return nil, err
 		}
 		delay := nextBackoff(attempt, retryAfter(err))
@@ -271,10 +271,12 @@ func (c *Client) urlFor(path string) string {
 // shouldRetry applies the method-aware retry policy on top of [IsRetryable].
 // A 429 means the request was rejected before any work started, and a
 // [ConnectionError] produced no response, so both retry for every method.
-// A 502/503/504 retries only an idempotent method unless the caller opted in
-// with [WithRetryNonIdempotent]: the server may already have acted on a
-// POST or PATCH it then failed to answer, and a resend can duplicate a job.
-func (c *Client) shouldRetry(method string, err error) bool {
+// A 502/503/504 retries only an idempotent method without If-Match unless the
+// caller opted in with [WithRetryNonIdempotent]: the server may already have
+// acted on a POST or PATCH it then failed to answer, and a resend can
+// duplicate a job. A write carrying If-Match that did apply moved the version,
+// so its replay can only fail with 412.
+func (c *Client) shouldRetry(spec requestSpec, err error) bool {
 	if !IsRetryable(err) {
 		return false
 	}
@@ -286,7 +288,7 @@ func (c *Client) shouldRetry(method string, err error) bool {
 	if errors.As(err, &conn) {
 		return true
 	}
-	return c.cfg.retryNonIdempotent || isIdempotentMethod(method)
+	return c.cfg.retryNonIdempotent || (spec.ifMatch == "" && isIdempotentMethod(spec.method))
 }
 
 // isIdempotentMethod reports whether repeating method is safe by HTTP

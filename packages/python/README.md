@@ -107,8 +107,10 @@ One `XbergClient` (sync) / `AsyncXbergClient` (async) serves both products.
 Constructor: `(api_key=None, base_url=None, target=None, timeout=30,
 headers=None, retries=0, retry_on=..., retry_backoff="exponential",
 retry_non_idempotent=False)`. With `retries` set, 429 is retried for every
-method and 502/503/504 only for `GET`/`HEAD`/`OPTIONS`/`PUT`/`DELETE`;
-`retry_non_idempotent=True` extends those statuses to `POST`/`PATCH`.
+method and 502/503/504 only for `GET`/`HEAD`/`OPTIONS`/`PUT`/`DELETE` without
+`If-Match`; `retry_non_idempotent=True` extends those statuses to `POST`/`PATCH`
+and to `If-Match` writes, whose replay fails with 412 once the first attempt
+applied. A replayed `DELETE` whose first attempt applied raises `NotFoundError`.
 `base_url` must name the deployment; omitting it raises `XbergError`.
 
 Shared methods (both tiers):

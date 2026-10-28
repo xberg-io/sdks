@@ -730,6 +730,48 @@ func TestRooms_NonIdempotentWritesAreNotRetried(t *testing.T) {
 	})
 }
 
+// TestRooms_VersionedWritesAreNotRetried proves a write carrying If-Match is
+// replayed on 503 only on opt-in: a replay of an attempt that applied fails
+// with 412 because the version moved.
+func TestRooms_VersionedWritesAreNotRetried(t *testing.T) {
+	t.Parallel()
+	for name, call := range versionedCalls() {
+		t.Run(name+" not retried", func(t *testing.T) {
+			t.Parallel()
+			var attempts atomic.Int32
+			client := retryCounting(t, http.StatusServiceUnavailable, &attempts)
+			if err := call(context.Background(), client, 7); err == nil {
+				t.Fatalf("%s: want an error from 503", name)
+			}
+			if got := attempts.Load(); got != 1 {
+				t.Errorf("attempts = %d, want 1", got)
+			}
+		})
+		t.Run(name+" retried on opt-in", func(t *testing.T) {
+			t.Parallel()
+			var attempts atomic.Int32
+			client := retryCounting(t, http.StatusServiceUnavailable, &attempts, xberg.WithRetryNonIdempotent(true))
+			if err := call(context.Background(), client, 7); err == nil {
+				t.Fatalf("%s: want an error from 503", name)
+			}
+			if got := attempts.Load(); got != 2 {
+				t.Errorf("attempts = %d, want 2", got)
+			}
+		})
+	}
+	t.Run("DELETE item retried", func(t *testing.T) {
+		t.Parallel()
+		var attempts atomic.Int32
+		client := retryCounting(t, http.StatusServiceUnavailable, &attempts)
+		if err := client.RemoveRoomItem(context.Background(), testRoomID, testRoomDocID); err == nil {
+			t.Fatal("RemoveRoomItem: want an error from 503")
+		}
+		if got := attempts.Load(); got != 2 {
+			t.Errorf("attempts = %d, want 2", got)
+		}
+	})
+}
+
 // TestRooms_PublicRoutesIgnoreTheCookieJar proves an anonymous route sends
 // none of the caller's cookies even when the supplied http.Client carries a
 // jar, while an authenticated route on the same client still does.

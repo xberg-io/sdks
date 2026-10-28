@@ -324,7 +324,9 @@ _DEFAULT_RETRY_STATUSES: frozenset[int] = frozenset({429, 502, 503, 504})
 # ~keep A 502/503/504 can arrive after the server already accepted the work (a
 # ~keep handler 504 races a job that was enqueued), so replaying a non-idempotent
 # ~keep method duplicates it. 429 is refused before any work starts, so it is safe
-# ~keep to replay for every method.
+# ~keep to replay for every method. A write carrying If-Match is treated like
+# ~keep POST: once the first attempt applied, the version has moved and a replay
+# ~keep can only answer 412.
 _IDEMPOTENT_METHODS: frozenset[str] = frozenset({"GET", "HEAD", "OPTIONS", "PUT", "DELETE"})
 _ALWAYS_RETRYABLE_STATUSES: frozenset[int] = frozenset({429})
 _RETRY_BACKOFF_BASE = 0.2
@@ -945,16 +947,19 @@ class _BaseClient:
         if api_key is not None:
             self._headers["Authorization"] = f"Bearer {api_key}"
 
-    def _should_retry_status(self, method: str, status: int) -> bool:
+    def _should_retry_status(self, method: str, status: int, *, conditional: bool = False) -> bool:
         """Whether a response with ``status`` to a ``method`` request is replayed.
 
         ``status`` must be in ``retry_on``. 429 is then replayed for every method;
-        any other status only for an idempotent method, or for ``POST``/``PATCH``
-        when the client was built with ``retry_non_idempotent=True``.
+        any other status only for an idempotent method that carries no
+        ``If-Match`` (``conditional``), or for every other request when the
+        client was built with ``retry_non_idempotent=True``.
         """
         if status not in self._retry_on:
             return False
-        if status in _ALWAYS_RETRYABLE_STATUSES or method.upper() in _IDEMPOTENT_METHODS:
+        if status in _ALWAYS_RETRYABLE_STATUSES:
+            return True
+        if method.upper() in _IDEMPOTENT_METHODS and not conditional:
             return True
         return self._retry_non_idempotent
 
@@ -1082,6 +1087,7 @@ class XbergClient(_BaseClient):
                 params = {**(params or {}), "project_id": project_id}
         if extra_headers:
             headers = {**(headers or {}), **extra_headers}
+        conditional = any(name.lower() == "if-match" for name in headers or {})
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -1108,7 +1114,9 @@ class XbergClient(_BaseClient):
                 raise XbergError(f"network error contacting {path}", status_code=None) from exc
             if response.is_success:
                 return response
-            if attempt < self._retries and self._should_retry_status(method, response.status_code):
+            if attempt < self._retries and self._should_retry_status(
+                method, response.status_code, conditional=conditional
+            ):
                 attempt += 1
                 retry_after = parse_retry_after(response.headers.get("Retry-After"))
                 time.sleep(retry_after if retry_after is not None else interval)
@@ -2775,6 +2783,7 @@ class AsyncXbergClient(_BaseClient):
                 params = {**(params or {}), "project_id": project_id}
         if extra_headers:
             headers = {**(headers or {}), **extra_headers}
+        conditional = any(name.lower() == "if-match" for name in headers or {})
         if files and self._retries > 0:
             _reject_unretryable_files(files)
         while True:
@@ -2801,7 +2810,9 @@ class AsyncXbergClient(_BaseClient):
                 raise XbergError(f"network error contacting {path}", status_code=None) from exc
             if response.is_success:
                 return response
-            if attempt < self._retries and self._should_retry_status(method, response.status_code):
+            if attempt < self._retries and self._should_retry_status(
+                method, response.status_code, conditional=conditional
+            ):
                 attempt += 1
                 retry_after = parse_retry_after(response.headers.get("Retry-After"))
                 await asyncio.sleep(retry_after if retry_after is not None else interval)

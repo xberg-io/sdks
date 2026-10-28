@@ -636,6 +636,78 @@ def test_room_reads_are_replayed_on_503(base_url: str, api_key: str, monkeypatch
     assert all("authorization" not in call.request.headers for call in route.calls)
 
 
+@pytest.mark.parametrize(("name", "call", "verb", "path", "body"), IF_MATCH_CALLS)
+@respx.mock
+def test_versioned_writes_are_not_replayed_on_503_by_default(
+    *, base_url: str, api_key: str, name: str, call: Callable, verb: str, path: str, body: Any
+) -> None:
+    route = respx.request(verb, f"{base_url}{path}").mock(return_value=httpx.Response(503, json={"message": "busy"}))
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise", retries=2) as client:
+        with pytest.raises(XbergError):
+            call(client, 7)
+
+    assert route.call_count == 1, name
+
+
+@pytest.mark.parametrize(("name", "call", "verb", "path", "body"), IF_MATCH_CALLS)
+@respx.mock
+def test_versioned_writes_are_replayed_on_503_when_the_client_opts_in(
+    *,
+    base_url: str,
+    api_key: str,
+    monkeypatch: pytest.MonkeyPatch,
+    name: str,
+    call: Callable,
+    verb: str,
+    path: str,
+    body: Any,
+) -> None:
+    monkeypatch.setattr("xberg_io_sdk.client.time.sleep", lambda _: None)
+    route = respx.request(verb, f"{base_url}{path}").mock(
+        side_effect=[httpx.Response(503, json={"message": "busy"}), httpx.Response(200, json=body)]
+    )
+    with XbergClient(
+        api_key=api_key, base_url=base_url, target="enterprise", retries=2, retry_non_idempotent=True
+    ) as client:
+        call(client, 7)
+
+    assert route.call_count == 2, name
+
+
+@respx.mock
+def test_versioned_write_is_still_replayed_on_429(base_url: str, api_key: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("xberg_io_sdk.client.time.sleep", lambda _: None)
+    route = respx.put(f"{base_url}{R}/publication").mock(
+        side_effect=[httpx.Response(429, json={"message": "slow down"}), httpx.Response(200, json=PUBLICATION)]
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise", retries=2) as client:
+        client.set_room_publication(ROOM_ID, {"state": "published"}, if_match=7)
+
+    assert route.call_count == 2
+
+
+@respx.mock
+def test_room_item_removal_is_replayed_on_503(base_url: str, api_key: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("xberg_io_sdk.client.time.sleep", lambda _: None)
+    route = respx.delete(f"{base_url}{R}/items/{DOCUMENT_ID}").mock(
+        side_effect=[httpx.Response(503, json={"message": "busy"}), httpx.Response(204)]
+    )
+    with XbergClient(api_key=api_key, base_url=base_url, target="enterprise", retries=2) as client:
+        client.remove_room_item(ROOM_ID, DOCUMENT_ID)
+
+    assert route.call_count == 2
+
+
+@respx.mock
+async def test_async_versioned_write_is_not_replayed_on_504(base_url: str, api_key: str) -> None:
+    route = respx.put(f"{base_url}{R}/items/order").mock(return_value=httpx.Response(504, json={"message": "late"}))
+    async with AsyncXbergClient(api_key=api_key, base_url=base_url, target="enterprise", retries=2) as client:
+        with pytest.raises(XbergError):
+            await client.reorder_room_items(ROOM_ID, {"document_ids": []}, if_match=7)
+
+    assert route.call_count == 1
+
+
 @pytest.mark.parametrize("name", ["preview_room_invitation", "accept_room_invitation"])
 @pytest.mark.parametrize("blank", ["", "   "])
 @respx.mock

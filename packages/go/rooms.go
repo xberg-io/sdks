@@ -235,9 +235,9 @@ func (c *Client) AddRoomItem(ctx context.Context, roomID string, body AddItemReq
 // ReorderRoomItems sets the order of every item in a room
 // (PUT /v1/rooms/{roomID}/items/order), sending version as If-Match.
 // DocumentIds must name each item exactly once. A stale version returns
-// [PreconditionFailedError]; the answer carries the next version. As a PUT it
-// is retried on 502/503/504 when [WithRetries] is set, and a retry of an
-// attempt that did apply then fails with 412. Enterprise only.
+// [PreconditionFailedError]; the answer carries the next version. Not retried
+// on 502/503/504 unless [WithRetryNonIdempotent] is set: a retry of an attempt
+// that did apply fails with 412. Enterprise only.
 func (c *Client) ReorderRoomItems(
 	ctx context.Context,
 	roomID string,
@@ -411,9 +411,9 @@ func (c *Client) GetRoomPublication(ctx context.Context, roomID string) (*Public
 // SetRoomPublication publishes or unpublishes a room and optionally sets its
 // mode and download setting (PUT /v1/rooms/{roomID}/publication), sending
 // version as If-Match; a nil field keeps its stored value. A stale version
-// returns [PreconditionFailedError]. As a PUT it is retried on 502/503/504
-// when [WithRetries] is set, and a retry of an attempt that did apply then
-// fails with 412. Enterprise only.
+// returns [PreconditionFailedError]. Not retried on 502/503/504 unless
+// [WithRetryNonIdempotent] is set: a retry of an attempt that did apply fails
+// with 412. Enterprise only.
 func (c *Client) SetRoomPublication(
 	ctx context.Context,
 	roomID string,

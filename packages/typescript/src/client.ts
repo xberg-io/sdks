@@ -263,13 +263,16 @@ export interface XbergClientOptions {
   /**
    * Statuses to retry. Default `[429, 502, 503, 504]`. A 429 is retried for
    * every method, honouring `Retry-After`; any other listed status is retried
-   * only for GET, HEAD, OPTIONS, PUT and DELETE unless `retryNonIdempotent` is set.
+   * only for GET, HEAD, OPTIONS, PUT and DELETE without `If-Match` unless
+   * `retryNonIdempotent` is set. A replayed DELETE whose first attempt applied
+   * answers 404.
    */
   retryOn?: readonly number[];
   /**
-   * Also retry POST and PATCH on the non-429 `retryOn` statuses. Default `false`:
-   * a 502/503/504 can arrive after the server accepted the request, so a retry
-   * may submit the same document twice. Enable only when repeating is acceptable.
+   * Also retry POST, PATCH and `If-Match` writes on the non-429 `retryOn` statuses.
+   * Default `false`: a 502/503/504 can arrive after the server accepted the request,
+   * so a retry may submit the same document twice, and a replayed `If-Match` write
+   * fails with 412 because the version moved. Enable only when repeating is acceptable.
    */
   retryNonIdempotent?: boolean;
   retryBackoff?: BackoffStrategy;
@@ -2499,12 +2502,19 @@ export class XbergClient {
     return requestInit;
   }
 
-  /** Whether a response status is retryable for this method under the configured policy. */
-  private shouldRetryStatus(method: string, status: number): boolean {
+  /**
+   * Whether a response status is retryable for this request under the configured policy. A request
+   * carrying `If-Match` (`conditional`) is treated like a POST: once an attempt applied, the room
+   * version moved, so a replay can only answer 412.
+   */
+  private shouldRetryStatus(method: string, status: number, conditional: boolean): boolean {
     if (!this.retryOn.includes(status)) {
       return false;
     }
-    return status === 429 || this.retryNonIdempotent || IDEMPOTENT_METHODS.has(method.toUpperCase());
+    if (status === 429 || this.retryNonIdempotent) {
+      return true;
+    }
+    return !conditional && IDEMPOTENT_METHODS.has(method.toUpperCase());
   }
 
   private async requestWithRetry(method: string, path: string, init: RequestParts = {}): Promise<Response> {
@@ -2513,6 +2523,7 @@ export class XbergClient {
     }
     const origin = init.controlPlane ? this.controlPlaneBaseUrl : this.baseUrl;
     const url = `${origin}${path}${buildQueryString(init.params)}`;
+    const conditional = Object.keys(init.headers ?? {}).some((name) => name.toLowerCase() === "if-match");
     let attempt = 0;
     let interval = DEFAULT_RETRY_BACKOFF_BASE_MS;
     for (;;) {
@@ -2541,7 +2552,7 @@ export class XbergClient {
         return response;
       }
 
-      if (this.shouldRetryStatus(method, response.status) && attempt < this.retries) {
+      if (this.shouldRetryStatus(method, response.status, conditional) && attempt < this.retries) {
         attempt += 1;
         const retryAfter = parseRetryAfterHeader(response.headers.get("retry-after"));
         const wait = retryAfter !== undefined ? retryAfter * 1000 : interval;

@@ -451,9 +451,9 @@ func parseRetryAfter(header http.Header) time.Duration {
 // and 502/503/504. Everything else, including 408, is terminal.
 //
 // The client's own retry loop is narrower than this: it retries 502/503/504
-// only for GET, HEAD, OPTIONS, PUT and DELETE unless [WithRetryNonIdempotent]
-// is set, because a POST or PATCH the server timed out on may still have taken
-// effect.
+// only for GET, HEAD, OPTIONS, PUT and DELETE without If-Match unless
+// [WithRetryNonIdempotent] is set, because a POST, PATCH or If-Match write the
+// server timed out on may still have taken effect.
 func IsRetryable(err error) bool {
 	var conn *ConnectionError
 	if errors.As(err, &conn) {

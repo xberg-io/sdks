@@ -82,6 +82,15 @@ well, opt in:
 | TypeScript | `retryNonIdempotent: true` |
 | Go | `WithRetryNonIdempotent(true)` |
 
+A request that carries `If-Match`, such as the versioned data-room writes (`update_room`,
+`reorder_room_items`, `set_room_publication` and their TypeScript and Go counterparts), counts as
+non-idempotent even when it is a `PUT`: once an attempt applied, the version moved, so a replay can
+only fail with 412. It is retried on 502, 503 or 504 only with the option above.
+
+`DELETE` stays retryable. When the first attempt applied before the failure, the replay finds
+nothing to delete and answers 404, raised as `NotFoundError` (`*NotFoundError` in Go); treat that
+404 after a retried delete as already gone.
+
 The status set still decides which statuses are considered at all. 408 is not retried by default:
 a stalled upload body is not fixed by sending it again unchanged.
 

@@ -166,9 +166,10 @@ response header.
 
 `retries` enables retries (off by default). 429 and transport failures are
 retried for every method; 502, 503 and 504 only for GET, HEAD, OPTIONS, PUT and
-DELETE, because a POST or PATCH the gateway timed out on may still have run. Set
-`retryNonIdempotent: true` to retry POST and PATCH on them too. 408 is not
-retried by default.
+DELETE without `If-Match`, because a POST, PATCH or versioned write the gateway
+timed out on may still have run, and a replayed `If-Match` write then fails with
+412. Set `retryNonIdempotent: true` to retry them too. A replayed DELETE whose
+first attempt applied throws `NotFoundError`. 408 is not retried by default.
 
 `verifyWebhookSignature(secret, header, rawBody)` checks a delivery's
 `X-Webhook-Signature` header in constant time and rejects timestamps older or
