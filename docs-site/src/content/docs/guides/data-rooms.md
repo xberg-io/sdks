@@ -237,7 +237,8 @@ nextVersion := reordered.Version
 ```
 
 `GetRoom` returns `Version`, `ListRoomItems` returns `Version`, and `GetRoomPublication` returns `RoomVersion`; all
-three are the same room version. `UpdateRoom` sends `nil` fields as absent, so it cannot clear a description.
+three are the same room version. `UpdateRoom` sends `nil` fields as absent, which keeps their stored
+values; pass `xberg.ClearRoomDescription()` to send `"description": null` and clear the description.
 
 `DownloadRoomItem`, `DownloadPublicRoomItem` and `GetRoomItemPage` (PNG) return the body as `[]byte`. A room that
 does not allow downloads answers 403 (`*AuthError`) on the authenticated route and 404 on the public one.

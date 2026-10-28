@@ -2,6 +2,8 @@ package xberg
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -137,20 +139,65 @@ func (c *Client) GetRoom(ctx context.Context, roomID string) (*RoomResponse, err
 	return roomJSON[RoomResponse](ctx, c, "GetRoom", roomCall{method: methodGet, path: roomPath(roomID, "")})
 }
 
+// UpdateRoomOption configures [Client.UpdateRoom].
+type UpdateRoomOption func(*updateRoomConfig)
+
+type updateRoomConfig struct {
+	clearDescription bool
+}
+
+// ClearRoomDescription makes [Client.UpdateRoom] send "description": null,
+// which the server reads as "clear the description". The generated
+// [UpdateRoomRequest] omits a nil Description, which keeps the stored one.
+func ClearRoomDescription() UpdateRoomOption {
+	return func(c *updateRoomConfig) { c.clearDescription = true }
+}
+
 // UpdateRoom renames a room or changes its description
 // (PATCH /v1/rooms/{roomID}), sending version as If-Match. A stale version
 // returns [PreconditionFailedError]; the answer carries the next version. A
-// nil field keeps its stored value; the generated request type cannot send the
-// explicit null the server reads as "clear the description". Not retried on
-// 502/503/504 unless [WithRetryNonIdempotent] is set. Enterprise only.
+// nil field keeps its stored value; pass [ClearRoomDescription] to clear the
+// description. Not retried on 502/503/504 unless [WithRetryNonIdempotent] is
+// set. Enterprise only.
 func (c *Client) UpdateRoom(
 	ctx context.Context,
 	roomID string,
 	version int64,
 	body UpdateRoomRequest,
+	opts ...UpdateRoomOption,
 ) (*RoomResponse, error) {
-	call := roomCall{method: methodPatch, path: roomPath(roomID, ""), body: body, version: versionRef(version)}
+	var cfg updateRoomConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	payload, err := updateRoomPayload(body, cfg)
+	if err != nil {
+		return nil, err
+	}
+	call := roomCall{method: methodPatch, path: roomPath(roomID, ""), body: payload, version: versionRef(version)}
 	return roomJSON[RoomResponse](ctx, c, "UpdateRoom", call)
+}
+
+// updateRoomPayload returns body, or with [ClearRoomDescription] its JSON
+// fields plus an explicit null description. Going through the encoded fields
+// keeps any field the generated type gains later.
+func updateRoomPayload(body UpdateRoomRequest, cfg updateRoomConfig) (any, error) {
+	if !cfg.clearDescription {
+		return body, nil
+	}
+	if body.Description != nil {
+		return nil, errors.New("xberg: UpdateRoom: ClearRoomDescription conflicts with a non-nil Description")
+	}
+	encoded, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("xberg: encoding request body: %w", err)
+	}
+	fields := map[string]json.RawMessage{}
+	if err := json.Unmarshal(encoded, &fields); err != nil {
+		return nil, fmt.Errorf("xberg: encoding request body: %w", err)
+	}
+	fields["description"] = json.RawMessage("null")
+	return fields, nil
 }
 
 // DeleteRoom deletes a live room (DELETE /v1/rooms/{roomID}). It stays

@@ -9,6 +9,7 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -779,4 +780,46 @@ func TestRooms_PublicRoutesIgnoreTheCookieJar(t *testing.T) {
 	if got := cookies["/v1/rooms/"+testRoomID]; got != "session=dashboard-session" {
 		t.Errorf("authenticated route Cookie = %q, want the jar's cookie", got)
 	}
+}
+
+func TestRooms_UpdateRoomCanClearTheDescription(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	t.Run("explicit null", func(t *testing.T) {
+		t.Parallel()
+		var seen roomRequest
+		client := roomServer(t, http.StatusOK, []byte(roomBody), &seen)
+		name := "Renamed"
+		body := xberg.UpdateRoomRequest{Name: &name}
+		if _, err := client.UpdateRoom(ctx, testRoomID, 41, body, xberg.ClearRoomDescription()); err != nil {
+			t.Fatalf("UpdateRoom: %v", err)
+		}
+		if want := `{"description":null,"name":"Renamed"}`; seen.body != want {
+			t.Errorf("body = %q, want %q", seen.body, want)
+		}
+	})
+	t.Run("absent without the option", func(t *testing.T) {
+		t.Parallel()
+		var seen roomRequest
+		client := roomServer(t, http.StatusOK, []byte(roomBody), &seen)
+		if _, err := client.UpdateRoom(ctx, testRoomID, 41, xberg.UpdateRoomRequest{}); err != nil {
+			t.Fatalf("UpdateRoom: %v", err)
+		}
+		if seen.body != `{}` {
+			t.Errorf("body = %q, want {} so the stored description is kept", seen.body)
+		}
+	})
+	t.Run("conflicts with a description", func(t *testing.T) {
+		t.Parallel()
+		client := mustClient(t,
+			xberg.WithBaseURL(newRefusingServer(t)),
+			xberg.WithTarget(xberg.TargetEnterprise),
+		)
+		description := "kept"
+		body := xberg.UpdateRoomRequest{Description: &description}
+		_, err := client.UpdateRoom(ctx, testRoomID, 41, body, xberg.ClearRoomDescription())
+		if err == nil || !strings.Contains(err.Error(), "ClearRoomDescription") {
+			t.Fatalf("err = %v, want the ClearRoomDescription conflict", err)
+		}
+	})
 }
