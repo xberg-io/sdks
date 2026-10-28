@@ -68,7 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`GetRoomPublication`, `SetRoomPublication`), the anonymous published-room routes (`GetPublicRoom`,
   `ListPublicRoomItems`, `GetPublicRoomItemContent`, `DownloadPublicRoomItem`), and `ListDocuments`.
   The versioned writes take the room version and send it as `If-Match`; the public routes send no
-  credential header and bypass the `http.Client`'s cookie jar.
+  credential header and bypass the `http.Client`'s cookie jar; a custom `Transport` that adds
+  credentials in `RoundTrip` is not affected.
   `UpdateRoom` takes `ClearRoomDescription()` to send the explicit `null` that clears a room's
   description.
 - Go: `DataRoomsDisabledError`, a `NotFoundError` returned for a 404 with code `data_room.disabled`

@@ -1982,7 +1982,8 @@ export class XbergClient {
   /**
    * Enterprise only: add a project document to the end of a room
    * (`POST /v1/rooms/{id}/items`). The document needs a finished version; take
-   * its id from {@link listDocuments}.
+   * its id from {@link listDocuments}. It moves the room version without
+   * returning it: read it again before the next versioned write.
    */
   public async addRoomItem(roomId: string, body: AddRoomItemRequest): Promise<RoomItemResponse> {
     await this.requireTier("enterprise", "addRoomItem");
@@ -2012,6 +2013,8 @@ export class XbergClient {
   /**
    * Enterprise only: remove a document from a room
    * (`DELETE /v1/rooms/{id}/items/{document_id}`). The document stays in the project.
+   * It moves the room version without returning it. A retried call whose first
+   * attempt applied throws {@link NotFoundError}.
    */
   public async removeRoomItem(roomId: string, documentId: string): Promise<void> {
     await this.requireTier("enterprise", "removeRoomItem");

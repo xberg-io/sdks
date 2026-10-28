@@ -349,7 +349,11 @@ RoomListState = Literal["live", "deleted"]
 """Which data rooms :meth:`XbergClient.list_rooms` asks for: the live ones, or the deleted ones still restorable."""
 
 RoomVersion: TypeAlias = int | str
-"""A data room version for ``If-Match``: the integer ``version`` / ``room_version`` read from the room, or an ETag string."""
+"""A data room version for ``If-Match``: the integer ``version`` / ``room_version`` read from the room.
+
+An ``int`` is sent quoted. A ``str`` is sent as given and must hold the room
+version number, quoted or bare (``'"7"'`` or ``"7"``).
+"""
 
 
 class _SupportsToDict(Protocol):
@@ -2485,7 +2489,10 @@ class XbergClient(_BaseClient):
         return ListItemsResponse.from_dict(_expect_object(payload, "room item list"))
 
     def add_room_item(self, room_id: str, body: AddItemRequest | Mapping[str, Any]) -> RoomItemResponse:
-        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201)."""
+        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201).
+
+        It moves the room version without returning it: read it again before the next versioned write.
+        """
         self._require_tier("enterprise", "add_room_item")
         payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/items", json_body=_coerce_body(body))
         return RoomItemResponse.from_dict(_expect_object(payload, "room item"))
@@ -2509,7 +2516,11 @@ class XbergClient(_BaseClient):
         return ReorderItemsResponse.from_dict(_expect_object(payload, "room item order"))
 
     def remove_room_item(self, room_id: str, document_id: str) -> None:
-        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``)."""
+        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``).
+
+        It moves the room version without returning it. A retried call whose
+        first attempt applied raises :class:`NotFoundError`.
+        """
         self._require_tier("enterprise", "remove_room_item")
         self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}")
 
@@ -4165,7 +4176,10 @@ class AsyncXbergClient(_BaseClient):
         return ListItemsResponse.from_dict(_expect_object(payload, "room item list"))
 
     async def add_room_item(self, room_id: str, body: AddItemRequest | Mapping[str, Any]) -> RoomItemResponse:
-        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201)."""
+        """Enterprise only: add a project document to the end of a data room (``POST /v1/rooms/{id}/items``, 201).
+
+        It moves the room version without returning it: read it again before the next versioned write.
+        """
         await self._require_tier("enterprise", "add_room_item")
         payload = await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/items", json_body=_coerce_body(body))
         return RoomItemResponse.from_dict(_expect_object(payload, "room item"))
@@ -4189,7 +4203,11 @@ class AsyncXbergClient(_BaseClient):
         return ReorderItemsResponse.from_dict(_expect_object(payload, "room item order"))
 
     async def remove_room_item(self, room_id: str, document_id: str) -> None:
-        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``)."""
+        """Enterprise only: remove a document from a data room, keeping it in the project (``DELETE /v1/rooms/{id}/items/{document_id}``).
+
+        It moves the room version without returning it. A retried call whose
+        first attempt applied raises :class:`NotFoundError`.
+        """
         await self._require_tier("enterprise", "remove_room_item")
         await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/items/{_q(document_id)}")
 

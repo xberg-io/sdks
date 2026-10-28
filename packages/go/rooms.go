@@ -19,10 +19,12 @@ import (
 // Writes to a room's name, item order or publication take the room version the
 // caller read and send it as If-Match. The server answers a stale version with
 // a [PreconditionFailedError] (412) and a missing one with a
-// [PreconditionRequiredError] (428). It returns the next version in the
-// response body, not in an ETag header: [RoomResponse.Version],
-// [ListItemsResponse.Version], [ReorderItemsResponse.Version] and
-// [PublicationResponse.RoomVersion].
+// [PreconditionRequiredError] (428). The versioned writes return the next
+// version in the response body, not in a header: [RoomResponse.Version],
+// [ReorderItemsResponse.Version] and [PublicationResponse.RoomVersion].
+// [Client.AddRoomItem] and [Client.RemoveRoomItem] also move the version but
+// return none, so read it again ([Client.GetRoom], [ListItemsResponse.Version])
+// before the next versioned write.
 
 // ErrCodeDataRoomDisabled is the error code of the 404 a deployment without
 // data rooms gives on every room route.
@@ -226,7 +228,8 @@ func (c *Client) ListRoomItems(ctx context.Context, roomID string, limit, offset
 
 // AddRoomItem adds a project document to the end of a room
 // (POST /v1/rooms/{roomID}/items). The document needs a finished version; one
-// already in the room, or a full room, is refused with 409. Enterprise only.
+// already in the room, or a full room, is refused with 409. It moves the room
+// version without returning it. Enterprise only.
 func (c *Client) AddRoomItem(ctx context.Context, roomID string, body AddItemRequest) (*RoomItemResponse, error) {
 	call := roomCall{method: methodPost, path: roomPath(roomID, "/items"), body: body}
 	return roomJSON[RoomItemResponse](ctx, c, "AddRoomItem", call)
@@ -250,7 +253,8 @@ func (c *Client) ReorderRoomItems(
 
 // RemoveRoomItem removes a document from a room
 // (DELETE /v1/rooms/{roomID}/items/{documentID}); the document stays in the
-// project. Enterprise only.
+// project. It moves the room version without returning it. A retried call
+// whose first attempt applied returns [NotFoundError]. Enterprise only.
 func (c *Client) RemoveRoomItem(ctx context.Context, roomID, documentID string) error {
 	call := roomCall{method: methodDelete, path: roomPath(roomID, "/items/"+escapePathSegment(documentID))}
 	return c.roomSend(ctx, "RemoveRoomItem", call, nil)

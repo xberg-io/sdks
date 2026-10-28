@@ -28,8 +28,11 @@ the server refuses a stale one with 412 (`PreconditionFailedError`) and a missin
 | Reorder room items | `version` on the item list |
 | Publish or unpublish | `room_version` on the publication settings |
 
-The authenticated room routes send no `ETag` header. Each write returns the new version in its response
-body, so chained writes need no extra read.
+The version travels in response bodies, not in an `ETag` header. Each of the three writes returns the
+new version (`version` on the room and on the reorder answer, `room_version` on the publication
+settings), so one versioned write can follow another without a read. Adding or removing an item also
+moves the version but returns none: after `add_room_item` or `remove_room_item`, read the version again
+with `get_room` or `list_room_items` before the next versioned write, or it fails with 412.
 
 ## Credentials
 
@@ -53,26 +56,40 @@ with XbergClient(api_key="kz_...", base_url="https://xberg.example.com", target=
         raise SystemExit("data rooms are not part of this plan")
 
     room = client.create_room({"name": "Board pack", "description": "Q3 materials"})
+    room_id = str(room.id)
 
-    documents = client.list_documents(limit=100)
-    for entry in documents.documents:
-        client.add_room_item(str(room.id), {"document_id": str(entry.document_id)})
-
+    # Rename while the version create_room returned is still current.
     try:
-        room = client.update_room(str(room.id), {"name": "Board pack Q3"}, if_match=room.version)
+        room = client.update_room(room_id, {"name": "Board pack Q3"}, if_match=room.version)
     except PreconditionFailedError:
-        room = client.get_room(str(room.id))  # someone else changed it: re-read and decide
+        room = client.get_room(room_id)  # someone else changed it: re-read and decide
 
-    items = client.list_room_items(str(room.id))
-    order = [str(item.document_id) for item in reversed(items.items)]
-    client.reorder_room_items(str(room.id), {"document_ids": order}, if_match=items.version)
+    documents = client.list_documents(limit=100)  # 100 is the largest page the server serves
+    for entry in documents.documents:
+        client.add_room_item(room_id, {"document_id": str(entry.document_id)})
 
-    original = client.download_room_item(str(room.id), order[0])  # raw bytes
-    page_png = client.get_room_item_page(str(room.id), order[0], 1)
-    content = client.get_room_item_content(str(room.id), order[0])  # result is None until extracted
+    # Each add moved the version without returning it, so read the items and their version.
+    # A room can hold more items than one page (500 by default), so page through all of them.
+    first = client.list_room_items(room_id, limit=100)
+    document_ids = [str(item.document_id) for item in first.items]
+    while len(document_ids) < first.total:
+        page = client.list_room_items(room_id, limit=100, offset=len(document_ids))
+        if not page.items:
+            break
+        document_ids += [str(item.document_id) for item in page.items]
+
+    if document_ids:
+        order = list(reversed(document_ids))
+        # If the room changed between pages, the first page's version is stale and this answers 412.
+        client.reorder_room_items(room_id, {"document_ids": order}, if_match=first.version)
+
+        original = client.download_room_item(room_id, order[0])  # raw bytes
+        page_png = client.get_room_item_page(room_id, order[0], 1)
+        content = client.get_room_item_content(room_id, order[0])  # result is None until extracted
 ```
 
-`if_match` takes the integer version, sent quoted as an entity tag, or a string sent as given.
+`if_match` takes the integer version, which is sent quoted, or a string holding the room version
+number, quoted or bare, which is sent as given.
 `delete_room` keeps the room restorable until its `restorable_until`; `list_rooms(state="deleted")`
 lists those rooms and `restore_room` brings one back.
 
@@ -96,8 +113,8 @@ preview = client.preview_room_invitation({"token": invitation_token}, session_to
 accepted = client.accept_room_invitation({"token": invitation_token}, session_token=user_session_jwt)
 ```
 
-A token that cannot be accepted answers 404 whatever the reason, and a caller who is already in the
-room gets 409.
+A blank `session_token` raises `ValueError` before any request. A token that cannot be accepted answers
+404 whatever the reason, and a caller who is already in the room gets 409.
 
 ### Publication and the public view
 
@@ -110,16 +127,21 @@ settings = client.set_room_publication(
 anonymous = XbergClient(base_url="https://xberg.example.com", target="enterprise")
 public_room = anonymous.get_public_room(settings.slug)
 public_items = anonymous.list_public_room_items(settings.slug, limit=20)
-first = public_items.items[0].item_ref
-anonymous.get_public_room_item_content(settings.slug, first)
-anonymous.download_public_room_item(settings.slug, first)  # 404 when downloads are off
+if public_items.items:
+    item_ref = public_items.items[0].item_ref
+    anonymous.get_public_room_item_content(settings.slug, item_ref)
+    anonymous.download_public_room_item(settings.slug, item_ref)  # 404 when downloads are off
 ```
 
 ### Retries
 
-With `retries` set, room reads, `PUT` and `DELETE` writes are retried on 502, 503 and 504. The `POST`
-and `PATCH` writes (create, restore, add, invite, accept, transfer, leave, rename, role change) are
-not, unless the client was built with `retry_non_idempotent=True`. 429 is retried for every method.
+With `retries` set, room reads and `DELETE` writes are retried on 502, 503 and 504. The `POST` and
+`PATCH` writes (create, restore, add, invite, accept, transfer, leave, rename, role change) and the
+writes that send `if_match` (`update_room`, `reorder_room_items`, `set_room_publication`) are not,
+unless the client was built with `retry_non_idempotent=True`: a versioned write whose first attempt
+applied moved the version, so its replay raises `PreconditionFailedError`. A retried `DELETE` whose
+first attempt applied raises `NotFoundError`; after a retried delete, read that 404 as already gone.
+429 is retried for every method.
 
 ## TypeScript
 
@@ -142,7 +164,9 @@ const { documents } = await client.listDocuments({ limit: 10 });
 for (const doc of documents) await client.addRoomItem(room.id, { document_id: doc.document_id });
 
 try {
-  const renamed = await client.updateRoom(room.id, { name: "Q3 diligence (final)" }, room.version);
+  // Each addRoomItem moved the room version without returning it: read it again first.
+  const { version } = await client.getRoom(room.id);
+  const renamed = await client.updateRoom(room.id, { name: "Q3 diligence (final)" }, version);
   console.log("now at version", renamed.version);
 } catch (error) {
   if (error instanceof PreconditionFailedError) {
@@ -158,8 +182,9 @@ try {
 `updateRoom(roomId, body, version)`, `reorderRoomItems(roomId, body, version)` and
 `setRoomPublication(roomId, body, version)` take the version as a number and send it as
 `If-Match: "<version>"`. They throw `PreconditionFailedError` on 412 and `PreconditionRequiredError` on
-428. Get the version from `getRoom` or the room returned by a write, from `listRoomItems(...).version`,
-or from `getRoomPublication(...).room_version`.
+428. Get the version from `getRoom` or the room returned by a versioned write, from
+`listRoomItems(...).version`, or from `getRoomPublication(...).room_version`. `addRoomItem` and
+`removeRoomItem` move the version without returning it, so read it again after them.
 
 A 404 with the code `data_room.disabled` throws `DataRoomsDisabledError`. It extends `NotFoundError`, so
 code that already catches `NotFoundError` still matches.
@@ -171,7 +196,8 @@ like `getJobPage`.
 
 `previewRoomInvitation` and `acceptRoomInvitation` take the invitation token in the body and an optional
 `{ sessionToken }`. That token replaces the client's bearer for that call only, so a client holding a
-project API key can still act for the invitee:
+project API key can still act for the invitee. An empty or whitespace `sessionToken` throws
+`ValidationError` before any request:
 
 ```ts title="TypeScript"
 const preview = await client.previewRoomInvitation({ token }, { sessionToken: userSession });
@@ -182,10 +208,14 @@ The public methods (`getPublicRoom`, `listPublicRoomItems`, `getPublicRoomItemCo
 `downloadPublicRoomItem`) remove `Authorization`, `Proxy-Authorization`, `Cookie` and `X-Api-Key` from the
 request and set `credentials: "omit"`, even on a client built with an API key.
 
-Retries follow the client's method-aware policy. With `retries` set, a 502, 503 or 504 retries the `GET`,
-`PUT` and `DELETE` room methods. It does not retry `createRoom`, `addRoomItem`, `addRoomMember`,
+Retries follow the client's method-aware policy. With `retries` set, a 502, 503 or 504 retries the `GET`
+and `DELETE` room methods. It does not retry `createRoom`, `addRoomItem`, `addRoomMember`,
 `createRoomInvitation`, `leaveRoom`, `transferRoomOwnership`, `restoreRoom`, the invitation methods,
-`updateRoom` or `changeRoomMemberRole` unless `retryNonIdempotent` is set. A 429 retries for every method.
+`changeRoomMemberRole`, or the methods that send `If-Match` (`updateRoom`, `reorderRoomItems`,
+`setRoomPublication`) unless `retryNonIdempotent` is set: a versioned write whose first attempt applied
+moved the version, so its replay throws `PreconditionFailedError`. A retried `DELETE` whose first attempt
+applied throws `NotFoundError`, which then means the resource is already gone. A 429 retries for every
+method.
 
 ## Go
 
@@ -217,15 +247,33 @@ for _, doc := range docs.Documents {
 ```
 
 Pass the version you read to the three versioned writes (`UpdateRoom`, `ReorderRoomItems`, `SetRoomPublication`) and
-keep the version each one returns:
+keep the version each one returns. `AddRoomItem` and `RemoveRoomItem` move the version without returning it, so read
+it again after them. A reorder must name every item, and one page holds at most 100, so page through the items:
 
 ```go
-items, err := client.ListRoomItems(ctx, roomID, 0, 0)
+first, err := client.ListRoomItems(ctx, roomID, 100, 0)
 if err != nil {
     return err
 }
-order := []uuid.UUID{ /* every item, each once */ }
-reordered, err := client.ReorderRoomItems(ctx, roomID, items.Version, xberg.ReorderItemsRequest{DocumentIds: order})
+var order []uuid.UUID
+for _, item := range first.Items {
+    order = append(order, item.DocumentId)
+}
+for int64(len(order)) < first.Total {
+    page, err := client.ListRoomItems(ctx, roomID, 100, len(order))
+    if err != nil {
+        return err
+    }
+    if len(page.Items) == 0 {
+        break
+    }
+    for _, item := range page.Items {
+        order = append(order, item.DocumentId)
+    }
+}
+slices.Reverse(order)
+// A change between pages leaves first.Version stale, and the reorder then fails with 412.
+reordered, err := client.ReorderRoomItems(ctx, roomID, first.Version, xberg.ReorderItemsRequest{DocumentIds: order})
 var stale *xberg.PreconditionFailedError
 if errors.As(err, &stale) {
     // Someone changed the room since ListRoomItems: read it again and retry.
@@ -244,9 +292,10 @@ values; pass `xberg.ClearRoomDescription()` to send `"description": null` and cl
 does not allow downloads answers 403 (`*AuthError`) on the authenticated route and 404 on the public one.
 
 The `/public/rooms/{slug}` methods (`GetPublicRoom`, `ListPublicRoomItems`, `GetPublicRoomItemContent`,
-`DownloadPublicRoomItem`) send no `Authorization`, `Proxy-Authorization`, `Cookie` or `X-Api-Key` header and
-bypass the `http.Client`'s cookie jar, even on a client built with `WithAPIKey` or `WithHTTPClient`. A client built
-without `WithAPIKey` can read a published room.
+`DownloadPublicRoomItem`) remove the SDK's own credential headers (`Authorization`, `Proxy-Authorization`, `Cookie`,
+`X-Api-Key`) from the request and bypass the `http.Client`'s cookie jar, also on a client built with `WithAPIKey`. A
+custom `http.Client` whose `Transport` adds credentials in `RoundTrip` is not affected: those headers are set after the
+SDK built the request and still reach the server. A client built without `WithAPIKey` can read a published room.
 
 `PreviewRoomInvitation` and `AcceptRoomInvitation` admit only a signed-in user. Build the client with the invitee's
 session token as its bearer; an API key is refused with 403:
@@ -259,7 +308,8 @@ if err != nil {
 preview, err := invitee.PreviewRoomInvitation(ctx, xberg.RoomAcceptInvitationRequest{Token: token})
 ```
 
-`CreateRoom`, `AddRoomItem`, `CreateRoomInvitation`, `AcceptRoomInvitation` and the other POST and PATCH methods are not
-retried on 502, 503 or 504 unless the client sets `WithRetryNonIdempotent(true)`. `ReorderRoomItems` and
-`SetRoomPublication` are PUTs and are retried; a retry of an attempt that did apply fails with 412, because the version
-moved.
+`CreateRoom`, `AddRoomItem`, `CreateRoomInvitation`, `AcceptRoomInvitation` and the other POST and PATCH methods, and the
+methods that send `If-Match` (`UpdateRoom`, `ReorderRoomItems`, `SetRoomPublication`), are not retried on 502, 503 or 504
+unless the client sets `WithRetryNonIdempotent(true)`. With it, a retry of a versioned write whose first attempt applied
+fails with `*PreconditionFailedError`, because the version moved. The `DELETE` methods are retried; a retry whose first
+attempt applied returns `*NotFoundError`, which then means the resource is already gone.

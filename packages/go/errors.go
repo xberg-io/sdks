@@ -180,7 +180,7 @@ func (e *DataRoomsDisabledError) Error() string {
 func (e *DataRoomsDisabledError) Unwrap() error { return &e.NotFoundError }
 
 // PreconditionFailedError wraps 412 Precondition Failed responses: the
-// resource changed since the ETag sent in If-Match was read.
+// resource changed since the version sent in If-Match was read.
 type PreconditionFailedError struct{ XbergError }
 
 // Error overrides XbergError.Error.
