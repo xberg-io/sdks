@@ -4,7 +4,7 @@ requires = ["hatchling>=1.32.4"]
 
 [project]
 name = "xberg-io-sdk"
-version = "0.9.0"
+version = "0.10.0"
 description = "Official Python client for the Xberg Enterprise and Xberg Pro document-processing APIs."
 readme = "README.md"
 keywords = ["client", "cloud", "document-extraction", "openapi", "sdk", "xberg"]
