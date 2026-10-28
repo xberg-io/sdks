@@ -37,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript: `enterpriseHealthz()` returns the Enterprise data-plane `/healthz` as
   `EnterpriseHealthResponse` (`tier`, `rag`, `auto_tune`, `data_rooms`); a missing feature reads as
   disabled.
+- TypeScript: Enterprise data rooms and `listDocuments()`, one method per operation: rooms, items,
+  members, invitations, publication and the anonymous `/public/rooms` reads. Versioned writes take the
+  room version and send it as `If-Match`. A 404 `data_room.disabled` throws the new
+  `DataRoomsDisabledError`, a `NotFoundError` subclass. Invitation preview and accept take an optional
+  per-call `sessionToken`.
 - TypeScript: `retryNonIdempotent` client option to retry POST and PATCH on 502/503/504.
 - Go: parse the nested error envelope `{"error":{"code","message","details"}}` as well as the older flat
   `{"error":"..."}` and `{"message":"..."}` bodies. `XbergError` gains `Code` and `Details`
