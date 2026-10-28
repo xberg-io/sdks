@@ -94,9 +94,17 @@ def test_dispatch_builds_and_validates_the_requested_release_tag() -> None:
         "validate-go",
         "tag-go",
         "github-release",
+        "publish-npm",
     }
     for name, steps in checkouts.items():
         assert len(steps) == 1, name
+    # publish-npm checks out only the mise config so setup-mise can install Node; it publishes the
+    # packed artifact, never sources from the checkout. ~keep
+    mise_only = checkouts.pop("publish-npm")[0].get("with", {})
+    assert "ref" not in mise_only
+    assert mise_only.get("sparse-checkout-cone-mode") is False
+    assert set(mise_only.get("sparse-checkout", "").split()) == {"mise.toml", "mise.lock"}
+    for name, steps in checkouts.items():
         assert steps[0].get("with", {}).get("ref") == "${{ needs.prepare.outputs.tag }}", name
 
 
