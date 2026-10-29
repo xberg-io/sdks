@@ -400,14 +400,11 @@ def test_pro_health_should_execute_all_four_native_clients_in_the_release_plan()
 
 
 def test_pro_health_http_controls_should_run_before_the_live_documentation_gate() -> None:
-    from ruamel.yaml import YAML
+    from .mise_tasks import file_task
 
-    tasks = YAML(typ="safe").load((SCRIPT.parents[1] / "tasks/docs.yml").read_text())["tasks"]
-    commands = tasks["snippets:test"]["cmds"]
-    assert commands[0] == {"task": "snippets:health:test"}
-    health_commands = tasks["snippets:health:test"]["cmds"]
-    assert health_commands[:2] == [{"task": ":python:build"}, {"task": ":typescript:build"}]
-    assert (
-        sum("scripts/test-health-snippets.py" in command for command in health_commands if isinstance(command, str))
-        == 1
-    )
+    headers, script = file_task("docs:snippets:test")
+    assert headers["depends"] == ["docs:snippets:health:test"]
+    assert "scripts/test-health-snippets.py" not in script
+    health_headers, health_script = file_task("docs:snippets:health:test")
+    assert health_headers["depends"] == ["python:build", "typescript:build"]
+    assert health_script.count("scripts/test-health-snippets.py") == 1

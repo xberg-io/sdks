@@ -9,8 +9,426 @@ uv = "0.13.6"
 node = "26.12.1"
 pnpm = "12.15.0"
 go = "1.27.3"
-task = "3.54.0"
 yq = "4.54.1"
 bats = "1.14.0"
 "github:Goldziher/poly" = "0.31.2"
 "github:Goldziher/ai-rulez" = "5.9.2"
+
+[tasks.default]
+description = "List available tasks"
+run = "mise tasks ls"
+
+[tasks.setup]
+description = "Install the mise toolchain and all language dependencies"
+run = [
+  "mise install",
+  "uv sync",
+  "pnpm install",
+  "cd packages/go && go mod download",
+  "cd tools/oapi-schemaset-config && go mod download",
+  { task = "governance:hooks:install" },
+]
+
+[tasks."governance:hooks:install"]
+file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.4.0/tasks/governance/hooks-install.sh"
+
+[tasks."governance:check"]
+description = "Check materialized local governance outputs against shared sources"
+run = "ai-rulez generate --check --no-local --strict-config"
+
+[tasks.generate]
+description = "Regenerate all language clients from spec/api + spec/pro + spec/backend"
+run = [{ task = "python:generate" }, { task = "typescript:generate" }, { task = "go:generate" }]
+
+[tasks.build]
+description = "Build distributable artifacts for all languages"
+run = [{ task = "python:build" }, { task = "typescript:build" }, { task = "go:build" }]
+
+[tasks.test]
+description = "Run all language test suites"
+run = [
+  { task = "python:test" },
+  { task = "typescript:test" },
+  { task = "go:test" },
+  { task = "scripts:test" },
+  { task = "scripts:test:shell" },
+]
+
+[tasks."scripts:test"]
+description = "Run the contract tests for the repo tooling under scripts/"
+run = "uv run -m pytest scripts/tests -v"
+
+[tasks."scripts:test:shell"]
+description = "Run the bats suites for the shell tooling under scripts/"
+# bats_load_library searches BATS_LIB_PATH and nothing else; every bats run (local and CI) loads the
+# vendored xberg-io/actions xberg-bats library from here. ~keep
+env = { BATS_LIB_PATH = "{{config_root}}/scripts/tests/lib" }
+run = "bats scripts/tests"
+
+[tasks.lint]
+description = "Lint all code via poly"
+run = "poly lint ."
+
+[tasks."lint:check"]
+description = "Alias for lint (check only)"
+run = [{ task = "lint" }]
+
+[tasks.format]
+description = "Format all code via poly"
+run = "poly fmt --fix ."
+
+[tasks."format:check"]
+description = "Check formatting via poly (no writes)"
+run = "poly fmt --check ."
+
+[tasks.fmt]
+description = "Alias for format"
+run = [{ task = "format" }]
+
+[tasks.validate]
+description = "Run lint + tests for all languages (CI parity)"
+# Catches a client surface that drifted between languages, and a reference page left stale by a
+# change to one. Both used to pass silently: the generator skipped a method it could not find, so
+# Go shipping `DeleteDocuments` against `delete_rag_documents` elsewhere rendered three clean pages
+# and no error.
+run = [
+  { task = "lint" },
+  { task = "test" },
+  { task = "spec:coverage" },
+  { task = "docs:reference:check" },
+  { task = "docs:snippets:test" },
+]
+
+[tasks.clean]
+description = "Remove generated clients and build artifacts"
+run = [
+  "rm -rf packages/python/src/xberg_io_sdk/_generated_api packages/python/src/xberg_io_sdk/_generated_pro",
+  "rm -rf packages/python/src/xberg_io_sdk/_generated_backend",
+  "rm -rf packages/typescript/src/_generated",
+  "rm -f packages/go/oapi-codegen-pro.gen.yaml packages/go/spec-pro.gen.yaml",
+  "rm -f packages/go/oapi-codegen-backend.gen.yaml packages/go/spec-backend.gen.yaml",
+  "rm -rf packages/python/dist packages/typescript/dist",
+  "rm -rf .pytest_cache .ruff_cache htmlcov coverage",
+]
+
+[tasks."versions:sync"]
+description = "Propagate root VERSION to all language package manifests"
+run = [{ task = "version:sync" }]
+
+[tasks.update]
+description = "Alias for upgrade"
+run = [{ task = "upgrade" }]
+
+[tasks.upgrade]
+description = "Update dependencies and tool pins"
+run = [
+  "uv sync --upgrade",
+  "pnpm update -r",
+  "cd packages/go && go get -u ./... && go mod tidy",
+  "uvx --from gh-actions-updater gau --update .",
+]
+
+# Version management. Source of truth: the repo-root VERSION file.
+[tasks."version:show"]
+description = "Print the current SDK version"
+run = "cat VERSION"
+
+[tasks."version:sync"]
+description = "Propagate VERSION to all Python, TypeScript, and Go version fields"
+run = "python3 scripts/sync-versions.py"
+
+[tasks."version:set"]
+description = "Set an explicit version and propagate (usage: mise run version:set 0.1.0)"
+file = "mise-tasks/version/bump.sh"
+
+[tasks."version:bump:patch"]
+description = "Bump patch (X.Y.Z -> X.Y.(Z+1)) and propagate"
+run = [{ task = "version:bump patch" }]
+
+[tasks."version:bump:minor"]
+description = "Bump minor (X.Y.Z -> X.(Y+1).0) and propagate"
+run = [{ task = "version:bump minor" }]
+
+[tasks."version:bump:major"]
+description = "Bump major (X.Y.Z -> (X+1).0.0) and propagate"
+run = [{ task = "version:bump major" }]
+
+# The SDK vendors THREE OpenAPI specs and generates one dual-target client from them. Enterprise
+# splits into two binaries: the data plane (`services/api`, :8080) and the control plane
+# (`services/backend`, :8081, whose spec the frontend vendors as `frontend/openapi-backend.yaml`),
+# while Pro (`services/pro`) serves both planes from one binary. Without the control-plane spec the
+# Enterprise target could not create a project or mint an API key while the Pro target could.
+# Merging is deliberately avoided (operationId collisions + topology honesty); see xberg-enterprise
+# ADR-0072. Upstream paths and the per-set mapping live in mise-tasks/.lib/spec.sh. ~keep
+[tasks."spec:coverage"]
+description = "Fail if a spec operation is in no client and not deliberately excluded"
+run = "uv run python scripts/spec-coverage.py"
+
+[tasks."spec:fetch:api"]
+description = "Refresh only the Enterprise data-plane specification from the sibling repository"
+run = [{ task = "spec:fetch api" }]
+
+[tasks."spec:fetch:pro"]
+description = "Refresh only the Pro specification from the sibling repository"
+run = [{ task = "spec:fetch pro" }]
+
+[tasks."spec:sync:resolve"]
+description = "spec-sync: validate PAYLOAD_REF/PAYLOAD_VERSION and emit ref, version and branch to GITHUB_OUTPUT"
+run = "bash scripts/spec-sync.sh resolve"
+
+[tasks."spec:sync:sha"]
+description = "spec-sync: emit the resolved upstream commit of the sibling checkout to GITHUB_OUTPUT"
+run = 'UPSTREAM_DIR="${XBERG_ENTERPRISE_DIR:-../xberg-enterprise}" bash scripts/spec-sync.sh sha'
+
+[tasks."spec:sync:coverage"]
+description = "spec-sync: write the spec coverage report to COVERAGE_FILE; gaps are reported, not fatal"
+run = 'uv run python scripts/spec-coverage.py > "$COVERAGE_FILE" 2>&1 || true'
+
+[tasks."spec:sync:body"]
+description = "spec-sync: write the PR body (REF, VERSION, SHA, COVERAGE_FILE) to BODY_FILE"
+run = "bash scripts/spec-sync.sh body"
+
+[tasks."spec:show"]
+description = "Print the vendored spec paths"
+run = "echo api=spec/api/openapi.yaml pro=spec/pro/openapi.yaml backend=spec/backend/openapi.yaml"
+
+# Every Pro and Enterprise task is a verb of scripts/enterprise-stack.sh. ~keep
+[tasks."enterprise:up"]
+description = "Start isolated Enterprise infrastructure and built Linux services"
+run = "scripts/enterprise-stack.sh up"
+
+[tasks."enterprise:down"]
+description = "Stop only this SDK Enterprise stack, preserving volumes"
+run = "scripts/enterprise-stack.sh down"
+
+[tasks."enterprise:reset"]
+description = "Remove only this SDK Enterprise stack and its data volumes"
+run = "scripts/enterprise-stack.sh reset"
+
+[tasks."enterprise:key"]
+description = "Print this isolated Enterprise project's API key"
+quiet = true
+run = "scripts/enterprise-stack.sh key"
+
+[tasks."enterprise:verify"]
+description = "Exercise real Enterprise extraction, jobs, presets and exclusive SDK calls"
+run = "scripts/enterprise-stack.sh verify"
+
+[tasks."enterprise:prepare-idle-crawl"]
+description = "Prepare separate terminal job and idle SSE fixtures without queueing crawl work"
+run = "scripts/enterprise-stack.sh prepare-idle-crawl"
+
+[tasks."pro:up"]
+description = "Start an isolated shipping Pro container from PRO_IMAGE"
+run = "scripts/enterprise-stack.sh --tier pro up"
+
+[tasks."pro:down"]
+description = "Stop only this SDK Pro stack, preserving volumes"
+run = "scripts/enterprise-stack.sh --tier pro down"
+
+[tasks."pro:reset"]
+description = "Remove only this SDK Pro stack and its data volumes"
+run = "scripts/enterprise-stack.sh --tier pro reset"
+
+[tasks."pro:key"]
+description = "Print this isolated Pro project's API key"
+quiet = true
+run = "scripts/enterprise-stack.sh --tier pro key"
+
+[tasks."pro:verify"]
+description = "Exercise actual Pro extraction, batch, saved presets and jobs through the SDK"
+run = "scripts/enterprise-stack.sh --tier pro verify"
+
+# The Python SDK ships ONE package (`xberg_io_sdk`) with ONE dual-target client, generated from
+# THREE OpenAPI specs kept as separate schema sets in their own modules (never merged; see
+# xberg-enterprise ADR-0072), so a name the specs share needs no renaming, unlike the Go SDK. ~keep
+[tasks."python:install"]
+description = "Install Python package and dev deps via uv"
+run = "uv sync"
+
+[tasks."python:build"]
+description = "Generate schema sets and build Python distributions (wheel + sdist)"
+dir = "{{config_root}}/packages/python"
+run = [{ task = "python:generate" }, "uv build"]
+
+[tasks."python:test"]
+description = "Run Python test suite"
+run = "uv run -m pytest packages/python/tests -v"
+
+[tasks."python:test:cov"]
+description = "Run Python tests with coverage"
+run = "uv run pytest packages/python/tests --cov=xberg_io_sdk --cov-report=term --cov-report=html"
+
+[tasks."python:lint"]
+description = "Lint Python sources (ruff + Pyrefly)"
+run = ["uv run ruff check packages/python/src packages/python/tests", "uv run pyrefly check"]
+
+[tasks."python:format"]
+description = "Format Python sources (ruff)"
+run = [
+  "uv run ruff format packages/python/src packages/python/tests",
+  "uv run ruff check --fix packages/python/src packages/python/tests",
+]
+
+[tasks."python:publish"]
+description = "Publish wheel + sdist to PyPI (uses UV_PUBLISH_TOKEN or trusted publishing)"
+dir = "{{config_root}}/packages/python"
+run = [{ task = "python:build" }, 'uv publish "{{config_root}}/dist/*"']
+
+# The TypeScript SDK ships ONE package (`@xberg-io/sdk`) with ONE dual-target client; each schema
+# set lands in its own src/_generated/<set>.d.ts module. The generated dir is gitignored, so
+# `generate` runs before `build`, `test` and `lint`. ~keep
+[tasks."typescript:generate"]
+description = "Regenerate all three TypeScript schema sets (Enterprise + Pro + control plane)"
+alias = "ts:generate"
+dir = "{{config_root}}/packages/typescript"
+run = "bash scripts/generate.sh"
+
+[tasks."typescript:install"]
+description = "Install TypeScript deps via pnpm"
+alias = "ts:install"
+run = "pnpm install"
+
+[tasks."typescript:build"]
+description = "Regenerate schema types, then bundle TypeScript ESM + .d.ts via tsdown"
+alias = "ts:build"
+dir = "{{config_root}}/packages/typescript"
+run = [{ task = "typescript:generate" }, "pnpm exec tsdown"]
+
+[tasks."typescript:test"]
+description = "Run TypeScript test suite (vitest)"
+alias = "ts:test"
+dir = "{{config_root}}/packages/typescript"
+run = [{ task = "typescript:generate" }, { task = "typescript:typecheck:contracts" }, "pnpm run test"]
+
+[tasks."typescript:test:cov"]
+description = "Run TypeScript tests with coverage"
+alias = "ts:test:cov"
+dir = "{{config_root}}/packages/typescript"
+run = [{ task = "typescript:generate" }, { task = "typescript:typecheck:contracts" }, "pnpm run test:coverage"]
+
+[tasks."typescript:lint"]
+description = "Lint TypeScript (oxlint + tsc --noEmit)"
+alias = "ts:lint"
+dir = "{{config_root}}/packages/typescript"
+run = [{ task = "typescript:generate" }, "pnpm run lint", { task = "typescript:typecheck:contracts" }]
+
+[tasks."typescript:typecheck:contracts"]
+description = "Type-check shared and Pro schema compatibility fixtures"
+alias = "ts:typecheck:contracts"
+dir = "{{config_root}}/packages/typescript"
+run = "pnpm exec tsc --noEmit -p tsconfig.contracts.json"
+
+[tasks."typescript:format"]
+description = "Format TypeScript (oxfmt)"
+alias = "ts:format"
+dir = "{{config_root}}/packages/typescript"
+run = "pnpm run format"
+
+[tasks."typescript:publish"]
+description = "Publish to npm with provenance"
+alias = "ts:publish"
+dir = "{{config_root}}/packages/typescript"
+run = ["pnpm run build", "pnpm publish --access public --provenance --no-git-checks"]
+
+# Opt-in deployment contracts over the built SDK (packages/typescript/integration/README.md). ~keep
+[tasks."typescript:integration:test"]
+description = "Run the local HTTP deployment-contract controls against the built TypeScript SDK"
+dir = "{{config_root}}/packages/typescript/integration"
+run = "node --test contracts.test.mjs transport.test.mjs orchestration.test.mjs project-scope.test.mjs"
+
+[tasks."typescript:integration:test:scope"]
+description = "Run only the project-scope deployment-contract controls"
+dir = "{{config_root}}/packages/typescript/integration"
+run = "node --test project-scope.test.mjs"
+
+[tasks."typescript:integration:live"]
+description = "Run the operator-approved live deployment-contract epoch"
+dir = "{{config_root}}/packages/typescript/integration"
+run = "node run.mjs"
+
+# The Go SDK ships ONE package (`xberg`) generated from THREE specs; see mise-tasks/go/generate.sh. ~keep
+[tasks."go:check:generated"]
+description = "Verify tracked Go sources match all three vendored specifications"
+run = [
+  { task = "go:generate" },
+  "git diff --exit-code -- packages/go/generated_api.go packages/go/generated_pro.go packages/go/generated_backend.go",
+]
+
+[tasks."go:test:package"]
+description = "Build a consumer against the committed Go module without generation"
+run = "bash packages/go/test-package.sh"
+
+[tasks."go:install"]
+description = "Download Go module dependencies"
+dir = "{{config_root}}/packages/go"
+run = ["go mod download", "go mod tidy"]
+
+[tasks."go:build"]
+description = "Compile Go module (verifies build, no artifact)"
+dir = "{{config_root}}/packages/go"
+run = "go build ./..."
+
+[tasks."go:test:tools"]
+description = "Run the codegen-tooling test suite (tools/oapi-schemaset-config)"
+dir = "{{config_root}}/tools/oapi-schemaset-config"
+run = "go test -race ./..."
+
+[tasks."go:test"]
+description = "Run Go test suite"
+dir = "{{config_root}}/packages/go"
+run = [{ task = "go:test:tools" }, "go test -race -v ./..."]
+
+[tasks."go:bench:crawl"]
+description = "Measure complete crawl SSE framing and decoding allocations"
+dir = "{{config_root}}/packages/go"
+run = "go test -run '^$' -bench BenchmarkCrawlEventFrames -benchmem -count 3"
+
+[tasks."go:test:cov"]
+description = "Run Go tests with coverage"
+dir = "{{config_root}}/packages/go"
+run = [{ task = "go:test:tools" }, "go test -race -coverprofile=coverage.out ./...", "go tool cover -func=coverage.out"]
+
+[tasks."go:lint:tools"]
+description = "Lint the codegen tooling (tools/oapi-schemaset-config)"
+dir = "{{config_root}}/tools/oapi-schemaset-config"
+run = "go vet ./..."
+
+[tasks."go:lint"]
+description = "Lint Go sources (golangci-lint + govulncheck)"
+dir = "{{config_root}}/packages/go"
+run = [{ task = "go:lint:tools" }, "golangci-lint run ./...", "govulncheck ./..."]
+
+[tasks."go:format"]
+description = "Format Go sources (gofmt)"
+dir = "{{config_root}}/packages/go"
+run = "go fmt ./..."
+
+# The per-language API reference pages under docs-site/src/content/docs/reference/api-*.md are
+# generated from the client sources by scripts/generate-reference.py, not hand-written; a
+# hand-maintained list of 65 methods per language drifts the first time one is added, which is also
+# why .textlintignore excludes reference/**. Run `mise run docs:reference` after changing a
+# client's surface. ~keep
+[tasks."docs:reference"]
+description = "Regenerate the per-language API reference from the client sources"
+run = "python3 scripts/generate-reference.py"
+
+[tasks."docs:reference:check"]
+description = "Fail if the generated API reference is stale"
+run = "python3 scripts/generate-reference.py --check"
+
+[tasks."docs:install"]
+description = "Install docs-site dependencies"
+run = "pnpm --dir docs-site install --frozen-lockfile"
+
+[tasks."docs:build"]
+description = "Build the documentation site"
+run = [{ task = "docs:install" }, "pnpm --dir docs-site build"]
+
+[tasks."docs:serve"]
+description = "Serve the documentation locally with live reload"
+run = ["pnpm --dir docs-site install", "pnpm --dir docs-site dev"]
+
+[tasks."docs:lint:prose"]
+description = "Lint documentation prose with textlint"
+run = "pnpm exec textlint 'docs-site/src/content/docs/**/*.{md,mdx}'"

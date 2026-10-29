@@ -275,14 +275,11 @@ def test_preparation_fails_if_current_unqueued_pending_fixture_terminalizes(
 
 
 def test_documentation_gate_prepares_idle_fixture_after_state_checks_before_execution() -> None:
-    from ruamel.yaml import YAML
+    from .mise_tasks import file_task
 
-    taskfile = YAML(typ="safe").load((ROOT / "tasks/docs.yml").read_text())
-    commands = taskfile["tasks"]["snippets:test"]["cmds"]
-    scripts = [command for command in commands if isinstance(command, str) and "scripts/test-snippets.py" in command]
-    assert len(scripts) == 1
-    script = scripts[0]
-    preparation = "task enterprise:prepare-idle-crawl"
+    _, script = file_task("docs:snippets:test")
+    assert script.count("scripts/test-snippets.py") == 1
+    preparation = "mise run enterprise:prepare-idle-crawl"
     assert script.count(preparation) == 1
     assert script.index("${XBERG_ENTERPRISE_STATE_DIR:?") < script.index(preparation)
     assert script.index(preparation) < script.index("uv run python scripts/test-snippets.py")

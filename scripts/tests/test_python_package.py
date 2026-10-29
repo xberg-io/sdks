@@ -14,6 +14,8 @@ from pathlib import Path
 import pytest
 from ruamel.yaml import YAML
 
+from .mise_tasks import toml_tasks
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -26,7 +28,7 @@ def tracked_checkout(directory: Path) -> None:
         check=True,
     )
     paths = [Path(name) for name in result.stdout.split("\0") if name]
-    assert Path("tasks/python.yml") in paths
+    assert Path("mise-tasks/python/generate.sh") in paths
     for path in paths:
         destination = directory / path
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -40,8 +42,10 @@ def test_python_build_ships_importable_schema_sets_from_a_fresh_checkout(tmp_pat
     environment = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "VIRTUAL_ENV"}}
     environment["UV_PROJECT_ENVIRONMENT"] = str(checkout / ".venv")
     environment["UV_PYTHON"] = sys.executable
+    # The copy lives outside every trusted path, so mise would refuse its config. ~keep
+    environment["MISE_TRUSTED_CONFIG_PATHS"] = str(checkout)
     build = subprocess.run(
-        ["task", "python:build"],
+        ["mise", "run", "python:build"],
         cwd=checkout,
         env=environment,
         capture_output=True,
@@ -75,8 +79,8 @@ print(json.dumps({'version': xberg_io_sdk.__version__, 'schema_sets': len(module
 
 
 def assert_publish_finds_built_distributions(checkout: Path) -> None:
-    publish = YAML(typ="safe").load(ROOT / "tasks/python.yml")["tasks"]["publish"]
-    command = publish["cmds"][-1].replace("{{.ROOT_DIR}}", str(checkout))
+    publish = toml_tasks()["python:publish"]
+    command = publish["run"][-1].replace("{{config_root}}", str(checkout))
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         listener.listen()
@@ -112,9 +116,9 @@ def assert_publish_finds_built_distributions(checkout: Path) -> None:
 
 
 def test_python_publish_reuses_the_verified_build_task() -> None:
-    tasks = YAML(typ="safe").load(ROOT / "tasks/python.yml")["tasks"]
-    assert tasks["build"]["dir"] == tasks["publish"]["dir"] == "{{.PKG_DIR}}"
-    assert tasks["publish"]["cmds"][0] == {"task": "build"}
+    tasks = toml_tasks()
+    assert tasks["python:build"]["dir"] == tasks["python:publish"]["dir"] == "{{config_root}}/packages/python"
+    assert tasks["python:publish"]["run"][0] == {"task": "python:build"}
 
 
 def test_python_ci_runs_packaging_regressions_with_their_task_inputs() -> None:

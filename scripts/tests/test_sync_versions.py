@@ -7,7 +7,7 @@ a tree that was broken, which is what happened before this suite existed.
 
 Each test builds a throwaway repository in ``tmp_path`` and runs the real
 command line, because the exit code and the on-disk result are the whole
-contract the Taskfile depends on.
+contract the version:sync task depends on.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ def build_repository(root: Path, *, version: str, manifest_version: str) -> None
 
 
 def run_script(root: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
-    """Invoke the copied script exactly as the Taskfile does."""
+    """Invoke the copied script exactly as the version:sync task does."""
     return subprocess.run(  # noqa: S603
         [sys.executable, str(root / "scripts" / SCRIPT.name), *arguments],
         capture_output=True,

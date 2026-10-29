@@ -36,7 +36,7 @@ go.work.sum
 # `go build ./...` inside the tools module drops a binary named after its directory
 tools/oapi-schemaset-config/oapi-schemaset-config
 
-# Generated client code (kept out of git; produced by `task generate`)
+# Generated client code (kept out of git; produced by `mise run generate`)
 packages/python/src/xberg_io_sdk/_generated_api/
 packages/python/src/xberg_io_sdk/_generated_pro/
 packages/python/src/xberg_io_sdk/_generated_backend/
@@ -72,7 +72,7 @@ docs-site/dist/
 docs-site/.astro/
 docs-site/node_modules/
 
-# Machine-local poly hook preferences (task governance:hooks:install writes them).
+# Machine-local poly hook preferences (mise run governance:hooks:install writes them).
 poly.local.toml
 
 # Agent harness output outside the ai-rulez managed block: the machine-local overlay,
