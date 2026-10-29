@@ -32,10 +32,6 @@ run = [
 [tasks."governance:hooks:install"]
 file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.5.0/tasks/governance/hooks-install.sh"
 
-[tasks."governance:check"]
-description = "Check materialized local governance outputs against shared sources"
-run = "ai-rulez generate --check --no-local --strict-config"
-
 [tasks.generate]
 description = "Regenerate all language clients from spec/api + spec/pro + spec/backend"
 run = [{ task = "python:generate" }, { task = "typescript:generate" }, { task = "go:generate" }]
@@ -113,10 +109,6 @@ run = [
 ]
 
 # Version management. Source of truth: the repo-root VERSION file.
-[tasks."version:show"]
-description = "Print the current SDK version"
-run = "cat VERSION"
-
 [tasks."version:sync"]
 description = "Propagate VERSION to all Python, TypeScript, and Go version fields"
 run = "python3 scripts/sync-versions.py"
@@ -148,10 +140,6 @@ run = 'uv run python scripts/spec-coverage.py > "$COVERAGE_FILE" 2>&1 || true'
 description = "spec-sync: write the PR body (REF, VERSION, SHA, COVERAGE_FILE) to BODY_FILE"
 run = "bash scripts/spec-sync.sh body"
 
-[tasks."spec:show"]
-description = "Print the vendored spec paths"
-run = "echo api=spec/api/openapi.yaml pro=spec/pro/openapi.yaml backend=spec/backend/openapi.yaml"
-
 # Every Pro and Enterprise task is a verb of scripts/enterprise-stack.sh. ~keep
 [tasks."enterprise:up"]
 description = "Start isolated Enterprise infrastructure and built Linux services"
@@ -164,11 +152,6 @@ run = "scripts/enterprise-stack.sh down"
 [tasks."enterprise:reset"]
 description = "Remove only this SDK Enterprise stack and its data volumes"
 run = "scripts/enterprise-stack.sh reset"
-
-[tasks."enterprise:key"]
-description = "Print this isolated Enterprise project's API key"
-quiet = true
-run = "scripts/enterprise-stack.sh key"
 
 [tasks."enterprise:verify"]
 description = "Exercise real Enterprise extraction, jobs, presets and exclusive SDK calls"
@@ -190,11 +173,6 @@ run = "scripts/enterprise-stack.sh --tier pro down"
 description = "Remove only this SDK Pro stack and its data volumes"
 run = "scripts/enterprise-stack.sh --tier pro reset"
 
-[tasks."pro:key"]
-description = "Print this isolated Pro project's API key"
-quiet = true
-run = "scripts/enterprise-stack.sh --tier pro key"
-
 [tasks."pro:verify"]
 description = "Exercise actual Pro extraction, batch, saved presets and jobs through the SDK"
 run = "scripts/enterprise-stack.sh --tier pro verify"
@@ -202,10 +180,6 @@ run = "scripts/enterprise-stack.sh --tier pro verify"
 # The Python SDK ships ONE package (`xberg_io_sdk`) with ONE dual-target client, generated from
 # THREE OpenAPI specs kept as separate schema sets in their own modules (never merged; see
 # xberg-enterprise ADR-0072), so a name the specs share needs no renaming, unlike the Go SDK. ~keep
-[tasks."python:install"]
-description = "Install Python package and dev deps via uv"
-run = "uv sync"
-
 [tasks."python:build"]
 description = "Generate schema sets and build Python distributions (wheel + sdist)"
 dir = "{{config_root}}/packages/python"
@@ -223,13 +197,6 @@ run = "uv run pytest packages/python/tests --cov=xberg_io_sdk --cov-report=term 
 description = "Lint Python sources (ruff + Pyrefly)"
 run = ["uv run ruff check packages/python/src packages/python/tests", "uv run pyrefly check"]
 
-[tasks."python:format"]
-description = "Format Python sources (ruff)"
-run = [
-  "uv run ruff format packages/python/src packages/python/tests",
-  "uv run ruff check --fix packages/python/src packages/python/tests",
-]
-
 [tasks."python:publish"]
 description = "Publish wheel + sdist to PyPI (uses UV_PUBLISH_TOKEN or trusted publishing)"
 dir = "{{config_root}}/packages/python"
@@ -242,10 +209,6 @@ run = [{ task = "python:build" }, 'uv publish "{{config_root}}/dist/*"']
 description = "Regenerate all three TypeScript schema sets (Enterprise + Pro + control plane)"
 dir = "{{config_root}}/packages/typescript"
 run = "bash scripts/generate.sh"
-
-[tasks."typescript:install"]
-description = "Install TypeScript deps via pnpm"
-run = "pnpm install"
 
 [tasks."typescript:build"]
 description = "Regenerate schema types, then bundle TypeScript ESM + .d.ts via tsdown"
@@ -271,16 +234,6 @@ run = [{ task = "typescript:generate" }, "pnpm run lint", { task = "typescript:t
 description = "Type-check shared and Pro schema compatibility fixtures"
 dir = "{{config_root}}/packages/typescript"
 run = "pnpm exec tsc --noEmit -p tsconfig.contracts.json"
-
-[tasks."typescript:format"]
-description = "Format TypeScript (oxfmt)"
-dir = "{{config_root}}/packages/typescript"
-run = "pnpm run format"
-
-[tasks."typescript:publish"]
-description = "Publish to npm with provenance"
-dir = "{{config_root}}/packages/typescript"
-run = ["pnpm run build", "pnpm publish --access public --provenance --no-git-checks"]
 
 # Opt-in deployment contracts over the built SDK (packages/typescript/integration/README.md). ~keep
 [tasks."typescript:integration:test"]
@@ -310,11 +263,6 @@ run = [
 description = "Build a consumer against the committed Go module without generation"
 run = "bash packages/go/test-package.sh"
 
-[tasks."go:install"]
-description = "Download Go module dependencies"
-dir = "{{config_root}}/packages/go"
-run = ["go mod download", "go mod tidy"]
-
 [tasks."go:build"]
 description = "Compile Go module (verifies build, no artifact)"
 dir = "{{config_root}}/packages/go"
@@ -330,11 +278,6 @@ description = "Run Go test suite"
 dir = "{{config_root}}/packages/go"
 run = [{ task = "go:test:tools" }, "go test -race -v ./..."]
 
-[tasks."go:bench:crawl"]
-description = "Measure complete crawl SSE framing and decoding allocations"
-dir = "{{config_root}}/packages/go"
-run = "go test -run '^$' -bench BenchmarkCrawlEventFrames -benchmem -count 3"
-
 [tasks."go:test:cov"]
 description = "Run Go tests with coverage"
 dir = "{{config_root}}/packages/go"
@@ -349,11 +292,6 @@ run = "go vet ./..."
 description = "Lint Go sources (golangci-lint + govulncheck)"
 dir = "{{config_root}}/packages/go"
 run = [{ task = "go:lint:tools" }, "golangci-lint run ./...", "govulncheck ./..."]
-
-[tasks."go:format"]
-description = "Format Go sources (gofmt)"
-dir = "{{config_root}}/packages/go"
-run = "go fmt ./..."
 
 # The per-language API reference pages under docs-site/src/content/docs/reference/api-*.md are
 # generated from the client sources by scripts/generate-reference.py, not hand-written; a
