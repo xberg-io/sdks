@@ -41,6 +41,6 @@ Missing state, unsupported metadata, empty discovery and failed examples fail th
 `mise run validate` includes the snippet gate. `mise run release:check` additionally checks both live
 contracts, version agreement, specification drift and package builds before a release.
 
-Stop only these stacks with `mise run enterprise:down` and `mise run pro:down`. Their `reset` counterparts
-also remove the corresponding data volumes. Retain the private state directory to reconnect or
+Stop only these stacks with `mise run enterprise:down` and `mise run pro:down`. `mise run enterprise:reset`
+and `mise run pro:reset` also remove the corresponding data volumes. Retain the private state directory to reconnect or
 inspect a failed run.
