@@ -69,10 +69,6 @@ run = "bats scripts/tests"
 description = "Lint all code via poly"
 run = "poly lint ."
 
-[tasks."lint:check"]
-description = "Alias for lint (check only)"
-run = [{ task = "lint" }]
-
 [tasks.format]
 description = "Format all code via poly"
 run = "poly fmt --fix ."
@@ -80,10 +76,6 @@ run = "poly fmt --fix ."
 [tasks."format:check"]
 description = "Check formatting via poly (no writes)"
 run = "poly fmt --check ."
-
-[tasks.fmt]
-description = "Alias for format"
-run = [{ task = "format" }]
 
 [tasks.validate]
 description = "Run lint + tests for all languages (CI parity)"
@@ -111,14 +103,6 @@ run = [
   "rm -rf .pytest_cache .ruff_cache htmlcov coverage",
 ]
 
-[tasks."versions:sync"]
-description = "Propagate root VERSION to all language package manifests"
-run = [{ task = "version:sync" }]
-
-[tasks.update]
-description = "Alias for upgrade"
-run = [{ task = "upgrade" }]
-
 [tasks.upgrade]
 description = "Update dependencies and tool pins"
 run = [
@@ -137,22 +121,6 @@ run = "cat VERSION"
 description = "Propagate VERSION to all Python, TypeScript, and Go version fields"
 run = "python3 scripts/sync-versions.py"
 
-[tasks."version:set"]
-description = "Set an explicit version and propagate (usage: mise run version:set 0.1.0)"
-file = "mise-tasks/version/bump.sh"
-
-[tasks."version:bump:patch"]
-description = "Bump patch (X.Y.Z -> X.Y.(Z+1)) and propagate"
-run = [{ task = "version:bump patch" }]
-
-[tasks."version:bump:minor"]
-description = "Bump minor (X.Y.Z -> X.(Y+1).0) and propagate"
-run = [{ task = "version:bump minor" }]
-
-[tasks."version:bump:major"]
-description = "Bump major (X.Y.Z -> (X+1).0.0) and propagate"
-run = [{ task = "version:bump major" }]
-
 # The SDK vendors THREE OpenAPI specs and generates one dual-target client from them. Enterprise
 # splits into two binaries: the data plane (`services/api`, :8080) and the control plane
 # (`services/backend`, :8081, whose spec the frontend vendors as `frontend/openapi-backend.yaml`),
@@ -163,14 +131,6 @@ run = [{ task = "version:bump major" }]
 [tasks."spec:coverage"]
 description = "Fail if a spec operation is in no client and not deliberately excluded"
 run = "uv run python scripts/spec-coverage.py"
-
-[tasks."spec:fetch:api"]
-description = "Refresh only the Enterprise data-plane specification from the sibling repository"
-run = [{ task = "spec:fetch api" }]
-
-[tasks."spec:fetch:pro"]
-description = "Refresh only the Pro specification from the sibling repository"
-run = [{ task = "spec:fetch pro" }]
 
 [tasks."spec:sync:resolve"]
 description = "spec-sync: validate PAYLOAD_REF/PAYLOAD_VERSION and emit ref, version and branch to GITHUB_OUTPUT"
@@ -280,54 +240,45 @@ run = [{ task = "python:build" }, 'uv publish "{{config_root}}/dist/*"']
 # `generate` runs before `build`, `test` and `lint`. ~keep
 [tasks."typescript:generate"]
 description = "Regenerate all three TypeScript schema sets (Enterprise + Pro + control plane)"
-alias = "ts:generate"
 dir = "{{config_root}}/packages/typescript"
 run = "bash scripts/generate.sh"
 
 [tasks."typescript:install"]
 description = "Install TypeScript deps via pnpm"
-alias = "ts:install"
 run = "pnpm install"
 
 [tasks."typescript:build"]
 description = "Regenerate schema types, then bundle TypeScript ESM + .d.ts via tsdown"
-alias = "ts:build"
 dir = "{{config_root}}/packages/typescript"
 run = [{ task = "typescript:generate" }, "pnpm exec tsdown"]
 
 [tasks."typescript:test"]
 description = "Run TypeScript test suite (vitest)"
-alias = "ts:test"
 dir = "{{config_root}}/packages/typescript"
 run = [{ task = "typescript:generate" }, { task = "typescript:typecheck:contracts" }, "pnpm run test"]
 
 [tasks."typescript:test:cov"]
 description = "Run TypeScript tests with coverage"
-alias = "ts:test:cov"
 dir = "{{config_root}}/packages/typescript"
 run = [{ task = "typescript:generate" }, { task = "typescript:typecheck:contracts" }, "pnpm run test:coverage"]
 
 [tasks."typescript:lint"]
 description = "Lint TypeScript (oxlint + tsc --noEmit)"
-alias = "ts:lint"
 dir = "{{config_root}}/packages/typescript"
 run = [{ task = "typescript:generate" }, "pnpm run lint", { task = "typescript:typecheck:contracts" }]
 
 [tasks."typescript:typecheck:contracts"]
 description = "Type-check shared and Pro schema compatibility fixtures"
-alias = "ts:typecheck:contracts"
 dir = "{{config_root}}/packages/typescript"
 run = "pnpm exec tsc --noEmit -p tsconfig.contracts.json"
 
 [tasks."typescript:format"]
 description = "Format TypeScript (oxfmt)"
-alias = "ts:format"
 dir = "{{config_root}}/packages/typescript"
 run = "pnpm run format"
 
 [tasks."typescript:publish"]
 description = "Publish to npm with provenance"
-alias = "ts:publish"
 dir = "{{config_root}}/packages/typescript"
 run = ["pnpm run build", "pnpm publish --access public --provenance --no-git-checks"]
 
