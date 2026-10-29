@@ -4,7 +4,9 @@
   "description": "Official TypeScript client for the Xberg Enterprise and Xberg Pro document-processing APIs.",
   "license": "MIT",
   "author": "Na'aman Hirschfeld <naaman@xberg.io>",
-  "contributors": ["Tobias Perlstein <tobias@xberg.io>"],
+  "contributors": [
+    "Tobias Perlstein <tobias@xberg.io>"
+  ],
   "homepage": "https://xberg.io",
   "repository": {
     "type": "git",
@@ -14,7 +16,15 @@
   "bugs": {
     "url": "https://github.com/xberg-io/sdks/issues"
   },
-  "keywords": ["xberg", "enterprise", "pro", "openapi", "client", "sdk", "document-extraction"],
+  "keywords": [
+    "xberg",
+    "enterprise",
+    "pro",
+    "openapi",
+    "client",
+    "sdk",
+    "document-extraction"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -26,7 +36,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=24"
   },
