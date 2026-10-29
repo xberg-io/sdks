@@ -479,7 +479,7 @@ func TestRunWritesTheDerivedSpecEvenWhenNothingDiverges(t *testing.T) {
 		t.Fatalf("run: %v", err)
 	}
 
-	// task go:generate always points oapi-codegen at this path, so it has to
+	// mise run go:generate always points oapi-codegen at this path, so it has to
 	// exist whether or not a rename happened.
 	schemas := readDerivedSpec(t, outPath, proPrefix).Components.Schemas
 	for _, name := range []string{"JobStatus", "JobResult", "LoginRequest", "HealthResponse"} {

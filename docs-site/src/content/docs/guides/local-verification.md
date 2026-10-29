@@ -9,7 +9,7 @@ Failures identify a contract mismatch that transport fixtures alone cannot detec
 
 ## Prepare the deployments
 
-Run commands from the SDK repository after `task setup`. Set `XBERG_ENTERPRISE_DIR` to the sibling
+Run commands from the SDK repository after `mise run setup`. Set `XBERG_ENTERPRISE_DIR` to the sibling
 Enterprise checkout containing the shipping Compose files, migration scripts and specifications.
 The default is `../xberg-enterprise`.
 
@@ -30,17 +30,17 @@ state directories out of version control; they contain credentials.
 
 ## Run the checks
 
-Start the stacks with `task enterprise:up` and `task pro:up`, then run `task enterprise:verify`
-and `task pro:verify`. Both commands fail if an expected check is missing or unsuccessful.
+Start the stacks with `mise run enterprise:up` and `mise run pro:up`, then run `mise run enterprise:verify`
+and `mise run pro:verify`. Both commands fail if an expected check is missing or unsuccessful.
 
-`task docs:snippets:test` builds the local Python wheel and TypeScript tarball, then compiles and
+`mise run docs:snippets:test` builds the local Python wheel and TypeScript tarball, then compiles and
 executes every declared example against its supported tiers. Go examples use the local module.
 Dependencies must already be cached: the runner installs offline and requires local service URLs.
 Missing state, unsupported metadata, empty discovery and failed examples fail the gate.
 
-`task validate` includes the snippet gate. `task release:check` additionally checks both live
+`mise run validate` includes the snippet gate. `mise run release:check` additionally checks both live
 contracts, version agreement, specification drift and package builds before a release.
 
-Stop only these stacks with `task enterprise:down` and `task pro:down`. Their `reset` counterparts
+Stop only these stacks with `mise run enterprise:down` and `mise run pro:down`. Their `reset` counterparts
 also remove the corresponding data volumes. Retain the private state directory to reconnect or
 inspect a failed run.

@@ -10,11 +10,11 @@ Please begin by reading our AI section below, followed by the getting started gu
 
 Make sure to have [Git](https://git-scm.com/) and [mise](https://mise.jdx.dev/getting-started.html) installed, with
 mise [activated](https://mise.jdx.dev/getting-started.html#activate-mise) in your shell. mise installs every tool at
-the version pinned in `mise.toml` (Task, Python, uv, Node.js, pnpm, Go, poly, ai-rulez and the rest).
+the version pinned in `mise.toml` (Python, uv, Node.js, pnpm, Go, poly, ai-rulez and the rest).
 
 ```bash
 mise install
-task setup
+mise run setup
 ```
 
 This installs the toolchain, the dependencies, and the pre-commit hooks via `poly`.
@@ -23,17 +23,17 @@ This installs the toolchain, the dependencies, and the pre-commit hooks via `pol
 
 | Command         | What it does                          |
 | --------------- | ------------------------------------- |
-| `task setup`    | Install all dependencies (idempotent) |
-| `task generate` | Regenerate the SDKs from the API spec |
-| `task build`    | Build every SDK                       |
-| `task test`     | Run all test suites                   |
-| `task lint`     | Run all linters                       |
-| `task format`   | Format all code                       |
-| `task validate` | Run lint, tests, API-operation coverage, reference checks and live snippets |
+| `mise run setup`    | Install all dependencies (idempotent) |
+| `mise run generate` | Regenerate the SDKs from the API spec |
+| `mise run build`    | Build every SDK                       |
+| `mise run test`     | Run all test suites                   |
+| `mise run lint`     | Run all linters                       |
+| `mise run format`   | Format all code                       |
+| `mise run validate` | Run lint, tests, API-operation coverage, reference checks and live snippets |
 
 ## What to keep in mind
 
-Most of this repository is generated from the API specification. Fix the spec or the generator and regenerate — do not hand-edit generated SDK sources, because the next `task generate` will overwrite them.
+Most of this repository is generated from the API specification. Fix the spec or the generator and regenerate — do not hand-edit generated SDK sources, because the next `mise run generate` will overwrite them.
 
 These SDKs carry end-user credentials. Keys must never reach logs, error messages, or serialized output.
 
@@ -65,7 +65,7 @@ Xberg SDKs is written following strict AI engineering practices. That is, its vi
 
 ### Conventions
 
-We use the tool `ai-rulez`, vibe coded by @Goldziher, to manage our AI conventions. You are encouraged to use this tool — running the `task setup` will get you going, or run in your terminal:
+We use the tool `ai-rulez`, vibe coded by @Goldziher, to manage our AI conventions. You are encouraged to use this tool — running the `mise run setup` will get you going, or run in your terminal:
 
 ```sh
 pnpm dlx ai-rulez@latest generate

@@ -8,7 +8,7 @@
 # is why the Pro schema set already carries part of this surface — and why the
 # derived exclusion list below is large.
 #
-# This file is NOT passed to oapi-codegen directly. `task go:generate` runs
+# This file is NOT passed to oapi-codegen directly. `mise run go:generate` runs
 # tools/oapi-schemaset-config with BOTH earlier schema sets as `-prior`, and it
 # writes two files:
 #

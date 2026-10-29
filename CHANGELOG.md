@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Repository tasks run on mise: `mise run <task>` replaces `task <task>` with the same task names,
+  the Taskfiles are gone, CI calls `mise run`, and `go-task` is no longer part of the toolchain. The
+  TypeScript integration controls are now `typescript:integration:test`, `typescript:integration:test:scope`
+  and `typescript:integration:live`.
+
 ## [0.10.0] - 2026-10-28
 
 ### Added

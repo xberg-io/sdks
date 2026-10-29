@@ -366,7 +366,7 @@ def execute_snippet(snippet: Snippet, target: str, directory: Path, command: lis
     if "document" in snippet.requires and not Path(values["XBERG_DOCUMENT"]).is_file():
         raise ValueError(f"{name}: missing document fixture")
     if "crawl-job" in snippet.requires and not values["XBERG_CRAWL_JOB_ID"]:
-        raise ValueError(f"{name}: missing live idle crawl job fixture; run task enterprise:prepare-idle-crawl")
+        raise ValueError(f"{name}: missing live idle crawl job fixture; run mise run enterprise:prepare-idle-crawl")
     if snippet.side_effect == "scratch-project" and not values["XBERG_CONTROL_PLANE_TOKEN"]:
         raise ValueError(f"{name}: scratch project lifecycle requires a fixture control-plane token")
     extension = {"python": "py", "typescript": "ts", "go": "go"}[snippet.language]

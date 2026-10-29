@@ -1,7 +1,7 @@
 # Base config for the Xberg Pro schema set, emitted into the shared `xberg`
 # package alongside generated_api.go.
 #
-# This file is NOT passed to oapi-codegen directly. `task go:generate` runs
+# This file is NOT passed to oapi-codegen directly. `mise run go:generate` runs
 # tools/oapi-schemaset-config, which reads the Enterprise spec (already
 # generated) and the Pro spec, and writes two files:
 #
@@ -23,7 +23,7 @@
 #                              the Enterprise shape instead. oapi-codegen reads
 #                              this derived copy, never the vendored spec, which
 #                              stays byte-identical to upstream so
-#                              `task spec:check` keeps passing.
+#                              `mise run spec:check` keeps passing.
 #
 # Both lists and the renames are recomputed from the specs on every run, so a
 # spec sync cannot leave them stale. Do not pin them here — oapi-schemaset-config

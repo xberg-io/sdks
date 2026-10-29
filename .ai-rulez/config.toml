@@ -16,6 +16,7 @@ builtins = [
   "!ai-governance/explain-reasoning",
   "!security/least-privilege",
   "!security/input-validation",
+  "!token-efficiency/task-runner",
   "default-commands",
 ]
 

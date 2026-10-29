@@ -14,7 +14,7 @@
 // (`-spec`), intersects their `components.schemas` keys and their operation IDs,
 // and writes a derived config that merges those two lists into a checked-in base
 // config. A spec sync that adds, removes, or reclassifies a schema is picked up
-// automatically the next time `task go:generate` runs.
+// automatically the next time `mise run go:generate` runs.
 //
 // A shared NAME does not always mean a shared SHAPE. `ReadinessChecks`, for
 // one, requires `nats` on Enterprise and `storage` on Pro — the two products
@@ -24,7 +24,7 @@
 // schemas that are structurally identical are therefore excluded; a divergent
 // one is renamed behind `-prefix` in a derived copy of the spec, which is what
 // oapi-codegen actually reads. The vendored spec is never touched, so it stays
-// byte-identical to the upstream copy `task spec:check` compares against.
+// byte-identical to the upstream copy `mise run spec:check` compares against.
 //
 // A prior schema set that was itself generated from a derived copy must be
 // passed as that DERIVED copy, not as its vendored original: the renames the
@@ -204,7 +204,7 @@ func alreadyDeclared(priorSpecPaths []string) (map[string]any, map[string]struct
 }
 
 func loadSpec(path string) (*specDocument, error) {
-	raw, err := os.ReadFile(path) //nolint:gosec // path comes from the Taskfile, not user input
+	raw, err := os.ReadFile(path) //nolint:gosec // path comes from the go:generate task, not user input
 	if err != nil {
 		return nil, fmt.Errorf("reading spec %s: %w", path, err)
 	}
@@ -222,7 +222,7 @@ func loadSpec(path string) (*specDocument, error) {
 }
 
 func loadBaseConfig(path string) (map[string]any, error) {
-	raw, err := os.ReadFile(path) //nolint:gosec // path comes from the Taskfile, not user input
+	raw, err := os.ReadFile(path) //nolint:gosec // path comes from the go:generate task, not user input
 	if err != nil {
 		return nil, fmt.Errorf("reading base config %s: %w", path, err)
 	}
@@ -417,10 +417,10 @@ func derivedSpecPathFor(outputPath, prefix string) string {
 // reference to it.
 //
 // It is written unconditionally, even when nothing is renamed, so the
-// `task go:generate` step can always hand oapi-codegen the same path instead
+// `mise run go:generate` step can always hand oapi-codegen the same path instead
 // of branching on whether a rename happened.
 func writeDerivedSpec(path, specPath, prefix string, renames map[string]string) error {
-	raw, err := os.ReadFile(specPath) //nolint:gosec // path comes from the Taskfile, not user input
+	raw, err := os.ReadFile(specPath) //nolint:gosec // path comes from the go:generate task, not user input
 	if err != nil {
 		return fmt.Errorf("reading spec %s: %w", specPath, err)
 	}

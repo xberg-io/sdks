@@ -4,8 +4,8 @@ This opt-in suite uses the built SDK's public exports and real HTTP requests.
 It complements the MSW unit tests and the existing Python live release checks.
 It does not provision infrastructure or connect directly to PostgreSQL.
 
-Run `task typescript:build`, then
-`task -t packages/typescript/integration/Taskfile.yml test` for fifteen local controls.
+Run `mise run typescript:build`, then
+`mise run typescript:integration:test` for fifteen local controls.
 The local HTTP server verifies actual SDK multipart serialization, opaque
 structured/RAG/enrichment payload transport, pagination, typed errors and a
 failed connection. These controls do not establish extraction or model quality.
@@ -21,7 +21,7 @@ It validates exact native text, filenames, result identity/cardinality, cache
 state, successful terminal status, pagination and typed absence errors.
 The terminal-cancel case checks cancellation of an already-completed job and its idempotence; active cancellation remains separate.
 
-Run the `live` task with these environment values:
+Run `mise run typescript:integration:live` with these environment values:
 
 - `XBERG_SDK_LIVE_APPROVED=1`: explicit operator authorization for this epoch.
 - `XBERG_BASE_URL`: API origin.

@@ -2,7 +2,7 @@
 """Sync the version from the root VERSION file into all package manifests.
 
 Single source of truth: ``VERSION`` at the repo root. Run this script (or
-``task version:sync``) after bumping it to propagate to every language package.
+``mise run version:sync``) after bumping it to propagate to every language package.
 Pass ``--check`` to report drift and exit non-zero without writing anything,
 which is what the release pre-flight wants.
 
@@ -196,7 +196,7 @@ def main(argv: list[str]) -> int:
         sys.stderr.write(f"VERSION says {version}, but it is not applied to:\n")
         for name in drifted:
             sys.stderr.write(f"  {name}\n")
-        sys.stderr.write("run `task version:sync` to propagate it\n")
+        sys.stderr.write("run `mise run version:sync` to propagate it\n")
         return 1
     print(f"synced version {version} -> {', '.join(drifted)}")  # noqa: T201
     return 0
