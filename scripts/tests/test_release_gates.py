@@ -121,12 +121,12 @@ def test_language_tests_block_artifact_builds_and_every_publisher(
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/publish.yaml")
     jobs = workflow["jobs"]
     steps = jobs[job_name]["steps"]
-    test_steps = [step for step in steps if step.get("run") == f"task {test_task}"]
+    test_steps = [step for step in steps if step.get("run") == f"mise run {test_task}"]
     assert len(test_steps) == 1, f"{job_name} must execute its coverage test task exactly once"
     test_step = test_steps[0]
     assert "if" not in test_step
     assert test_step.get("continue-on-error", False) is False
-    build_step = next(step for step in steps if step.get("run") == f"task {build_task}")
+    build_step = next(step for step in steps if step.get("run") == f"mise run {build_task}")
     assert steps.index(test_step) < steps.index(build_step)
     for publisher in ("publish-pypi", "publish-npm", "github-release", "tag-go"):
         assert job_name in jobs[publisher]["needs"], publisher

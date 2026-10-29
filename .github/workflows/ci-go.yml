@@ -9,7 +9,7 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/go.yml"
+      - "mise-tasks/go/**"
       - "scripts/**"
       - "tools/oapi-schemaset-config/**"
       - "go.work"
@@ -26,7 +26,7 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/go.yml"
+      - "mise-tasks/go/**"
       - "scripts/**"
       - "tools/oapi-schemaset-config/**"
       - "go.work"
@@ -48,11 +48,13 @@ jobs:
   test:
     name: test (go 1.27)
     runs-on: ubuntu-latest
+    env:
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: go task
+          install-args: go
       # setup-go put the go install target on PATH and cached the module and build caches. ~keep
       - name: Resolve Go paths
         id: go-env
@@ -80,10 +82,10 @@ jobs:
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
       - name: Build committed module consumer
-        run: task go:test:package
+        run: mise run go:test:package
       - name: Check generated client
-        run: task go:check:generated
+        run: mise run go:check:generated
       - name: Lint
-        run: task go:lint
+        run: mise run go:lint
       - name: Test (with coverage)
-        run: task go:test:cov
+        run: mise run go:test:cov

@@ -6,7 +6,7 @@ on:
     paths:
       - "docs-site/**"
       - "spec/**"
-      - "tasks/docs.yml"
+      - "mise-tasks/docs/**"
       - "scripts/generate-reference.py"
       - "packages/python/src/**"
       - "packages/typescript/src/**"
@@ -26,7 +26,7 @@ on:
     paths:
       - "docs-site/**"
       - "spec/**"
-      - "tasks/docs.yml"
+      - "mise-tasks/docs/**"
       - "scripts/generate-reference.py"
       - "packages/python/src/**"
       - "packages/typescript/src/**"
@@ -70,11 +70,12 @@ jobs:
       MISE_PYTHON_VERSION: "3.10.22"
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: python uv task
+          install-args: python uv
       - name: Cache uv downloads
         uses: actions/cache@v6
         with:
@@ -84,7 +85,7 @@ jobs:
       - name: Install deps
         run: uv sync
       - name: Fail if the generated API reference is stale
-        run: task docs:reference:check
+        run: mise run docs:reference:check
 
   docs:
     uses: xberg-io/actions/.github/workflows/reusable-docs-deploy.yml@v1

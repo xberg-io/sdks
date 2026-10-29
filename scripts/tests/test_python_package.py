@@ -125,13 +125,14 @@ def test_python_ci_runs_packaging_regressions_with_their_task_inputs() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/ci-python.yml")
     steps = workflow["jobs"]["test"]["steps"]
     commands = [step.get("run") for step in steps]
-    assert commands.count("task scripts:test") == 1
-    assert commands.index("uv sync") < commands.index("task scripts:test")
-    assert commands.index("task python:generate") < commands.index("task scripts:test")
-    assert commands.index("task scripts:test") < commands.index("task python:test:cov")
+    assert commands.count("mise run scripts:test") == 1
+    assert commands.index("uv sync") < commands.index("mise run scripts:test")
+    assert commands.index("mise run python:generate") < commands.index("mise run scripts:test")
+    assert commands.index("mise run scripts:test") < commands.index("mise run python:test:cov")
     for event in ("pull_request", "push"):
         paths = workflow["on"][event]["paths"]
         assert "scripts/**" in paths
-        assert "Taskfile.yml" in paths
+        assert "mise.toml" in paths
+        assert "mise-tasks/**" in paths
         assert "uv.lock" in paths
         assert ".github/workflows/ci-python.yml" in paths

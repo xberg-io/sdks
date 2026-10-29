@@ -9,7 +9,6 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/typescript.yml"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -27,7 +26,6 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/typescript.yml"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -58,11 +56,12 @@ jobs:
     env:
       MISE_ENV: ci
       MISE_NODE_VERSION: ${{ matrix.node-version }}
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: node pnpm task
+          install-args: node pnpm
       # setup-node cached the pnpm store. ~keep
       - name: Resolve the pnpm store
         id: pnpm-store
@@ -76,10 +75,10 @@ jobs:
       - name: Install deps
         run: pnpm install
       - name: Generate client
-        run: task typescript:generate
+        run: mise run typescript:generate
       - name: Typecheck + lint
-        run: task typescript:lint
+        run: mise run typescript:lint
       - name: Test (with coverage)
-        run: task typescript:test:cov
+        run: mise run typescript:test:cov
       - name: Build
-        run: task typescript:build
+        run: mise run typescript:build

@@ -161,13 +161,14 @@ jobs:
       MISE_PYTHON_VERSION: "3.10.22"
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: python uv task
+          install-args: python uv
           config-ref: ${{ github.sha }}
       - name: Cache uv downloads
         uses: actions/cache@v6
@@ -181,11 +182,11 @@ jobs:
           uv sync --all-extras --all-packages --group dev --no-install-project --no-install-workspace
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Generate client
-        run: task python:generate
+        run: mise run python:generate
       - name: Test Python with coverage
-        run: task python:test:cov
+        run: mise run python:test:cov
       - name: Build wheel + sdist
-        run: task python:build
+        run: mise run python:build
       - uses: actions/upload-artifact@v7
         with:
           name: python-dist
@@ -196,13 +197,15 @@ jobs:
     needs: [prepare, validate-versions]
     if: needs.prepare.outputs.release_node == 'true'
     runs-on: ubuntu-latest
+    env:
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: node pnpm task
+          install-args: node pnpm
           config-ref: ${{ github.sha }}
       # setup-node-workspace installed the workspace without a frozen lockfile and put its bin on PATH. ~keep
       - name: Install dependencies
@@ -210,9 +213,9 @@ jobs:
           pnpm install --no-frozen-lockfile
           pnpm bin >> "$GITHUB_PATH"
       - name: Test TypeScript with coverage
-        run: task typescript:test:cov
+        run: mise run typescript:test:cov
       - name: Build
-        run: task typescript:build
+        run: mise run typescript:build
       - name: Pack
         run: cd packages/typescript && pnpm pack --pack-destination ${{ runner.temp }}
       - uses: actions/upload-artifact@v7
@@ -224,16 +227,21 @@ jobs:
   validate-go:
     needs: [prepare, validate-versions]
     runs-on: ubuntu-latest
+    env:
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.tag }}
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: go task
+          install-args: go
           config-ref: ${{ github.sha }}
       - name: Validate the committed Go module and generation
-        run: task go:test:package go:check:generated go:test
+        run: |
+          mise run go:test:package
+          mise run go:check:generated
+          mise run go:test
 
   publish-pypi:
     needs: [prepare, validate-versions, validate-go, check-pypi, check-npm, build-python, build-typescript]
@@ -295,16 +303,8 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   tag-go:
-    needs: [
-      prepare,
-      validate-versions,
-      validate-go,
-      check-pypi,
-      check-npm,
-      build-python,
-      build-typescript,
-      github-release,
-    ]
+    needs:
+      [prepare, validate-versions, validate-go, check-pypi, check-npm, build-python, build-typescript, github-release]
     if: |
       always() &&
       !cancelled() &&
@@ -332,17 +332,18 @@ jobs:
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
   github-release:
-    needs: [
-      prepare,
-      validate-versions,
-      validate-go,
-      check-pypi,
-      check-npm,
-      build-python,
-      build-typescript,
-      publish-pypi,
-      publish-npm,
-    ]
+    needs:
+      [
+        prepare,
+        validate-versions,
+        validate-go,
+        check-pypi,
+        check-npm,
+        build-python,
+        build-typescript,
+        publish-pypi,
+        publish-npm,
+      ]
     if: |
       always() &&
       !cancelled() &&

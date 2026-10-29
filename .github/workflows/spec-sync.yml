@@ -31,6 +31,7 @@ jobs:
     env:
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
@@ -51,7 +52,7 @@ jobs:
       # showing up as spurious spec drift. ~keep
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: task yq go python uv node pnpm
+          install-args: yq go python uv node pnpm
 
       - name: Resolve the mise Python version
         id: python
@@ -77,7 +78,7 @@ jobs:
         env:
           PAYLOAD_REF: ${{ github.event.client_payload.ref }}
           PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
-        run: task spec:sync:resolve
+        run: mise run spec:sync:resolve
 
       - name: Checkout sibling xberg-enterprise
         uses: actions/checkout@v7
@@ -89,10 +90,10 @@ jobs:
 
       - name: Resolve upstream commit
         id: upstream
-        run: task spec:sync:sha
+        run: mise run spec:sync:sha
 
       - name: Normalise all three upstream specs into the vendored copies
-        run: task spec:fetch
+        run: mise run spec:fetch
         env:
           XBERG_ENTERPRISE_DIR: _xberg-enterprise
 
@@ -102,15 +103,15 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Regenerate Python, TypeScript and Go clients
-        run: task generate
+        run: mise run generate
 
       - name: Report spec coverage
-        run: task spec:sync:coverage
+        run: mise run spec:sync:coverage
         env:
           COVERAGE_FILE: ${{ runner.temp }}/spec-coverage.txt
 
       - name: Compose pull request body
-        run: task spec:sync:body
+        run: mise run spec:sync:body
         env:
           REF: ${{ steps.ref.outputs.ref }}
           VERSION: ${{ steps.ref.outputs.version }}

@@ -9,9 +9,8 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/python.yml"
       - "scripts/**"
-      - "Taskfile.yml"
+      - "mise-tasks/**"
       - "pyproject.toml"
       - "uv.lock"
       - "mise.toml"
@@ -27,9 +26,8 @@ on:
       - "spec/api/**"
       - "spec/pro/**"
       - "spec/backend/**"
-      - "tasks/python.yml"
       - "scripts/**"
-      - "Taskfile.yml"
+      - "mise-tasks/**"
       - "pyproject.toml"
       - "uv.lock"
       - "mise.toml"
@@ -61,11 +59,12 @@ jobs:
       UV_PYTHON: ${{ matrix.python }}
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: python uv task
+          install-args: python uv
       - name: Cache uv downloads
         uses: actions/cache@v6
         with:
@@ -75,12 +74,12 @@ jobs:
       - name: Install deps
         run: uv sync
       - name: Generate client
-        run: task python:generate
+        run: mise run python:generate
       - name: Lint
-        run: task python:lint
+        run: mise run python:lint
       - name: Test packaging and repository tooling
-        run: task scripts:test
+        run: mise run scripts:test
       - name: Test (with coverage)
-        run: task python:test:cov
+        run: mise run python:test:cov
       - name: Build wheel + sdist
-        run: task python:build
+        run: mise run python:build

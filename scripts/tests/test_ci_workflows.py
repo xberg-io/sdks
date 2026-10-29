@@ -32,11 +32,11 @@ def test_go_ci_tracks_shared_contract_tooling() -> None:
 def test_spec_sync_regenerates_every_language_before_detecting_drift() -> None:
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/spec-sync.yml")
     steps = workflow["jobs"]["sync"]["steps"]
-    generation = next(index for index, step in enumerate(steps) if step.get("run") == "task generate")
+    generation = next(index for index, step in enumerate(steps) if step.get("run") == "mise run generate")
     installed = set().union(
         *(setup_mise_tools(step) for step in steps[:generation] if step.get("uses", "").startswith(SETUP_MISE))
     )
-    for tool in ("go", "python", "uv", "node", "pnpm", "task", "yq"):
+    for tool in ("go", "python", "uv", "node", "pnpm", "yq"):
         assert tool in installed, tool
     drift = next(index for index, step in enumerate(steps) if step.get("id") == "diff")
     assert generation < drift
@@ -116,3 +116,18 @@ def test_go_workflows_use_the_verified_patched_toolchain(filename: str) -> None:
         )
     ]
     assert go_jobs, f"no job in {filename} installs go through setup-mise"
+
+
+def test_workflows_run_mise_tasks_and_never_go_task() -> None:
+    workflows = sorted((ROOT / ".github/workflows").glob("*.y*ml"))
+    assert len(workflows) >= 9, workflows
+    mise_runs = 0
+    for path in workflows:
+        workflow = YAML(typ="safe").load(path)
+        for job in workflow["jobs"].values():
+            for step in job.get("steps", []):
+                assert "task" not in setup_mise_tools(step), f"{path.name} still installs go-task"
+                run = step.get("run", "")
+                assert not re.search(r"(^|[\s;&|])task\s", run), f"{path.name} still runs go-task: {run}"
+                mise_runs += run.count("mise run ")
+    assert mise_runs >= 27, mise_runs

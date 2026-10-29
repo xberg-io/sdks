@@ -6,8 +6,7 @@ on:
     branches: [main]
     paths:
       - "scripts/**"
-      - "tasks/spec.yml"
-      - "Taskfile.yml"
+      - "mise-tasks/**"
       - "mise.toml"
       - "mise.lock"
       - ".github/workflows/ci-shell.yml"
@@ -16,8 +15,7 @@ on:
     branches: [main]
     paths:
       - "scripts/**"
-      - "tasks/spec.yml"
-      - "Taskfile.yml"
+      - "mise-tasks/**"
       - "mise.toml"
       - "mise.lock"
       - ".github/workflows/ci-shell.yml"
