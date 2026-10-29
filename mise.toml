@@ -29,9 +29,6 @@ run = [
   { task = "governance:hooks:install" },
 ]
 
-[tasks."governance:hooks:install"]
-file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.5.0/tasks/governance/hooks-install.sh"
-
 [tasks.generate]
 description = "Regenerate all language clients from spec/api + spec/pro + spec/backend"
 run = [{ task = "python:generate" }, { task = "typescript:generate" }, { task = "go:generate" }]
@@ -60,18 +57,6 @@ description = "Run the bats suites for the shell tooling under scripts/"
 # vendored xberg-io/actions xberg-bats library from here. ~keep
 env = { BATS_LIB_PATH = "{{config_root}}/scripts/tests/lib" }
 run = "bats scripts/tests"
-
-[tasks.lint]
-description = "Lint all code via poly"
-run = "poly lint ."
-
-[tasks.format]
-description = "Format all code via poly"
-run = "poly fmt --fix ."
-
-[tasks."format:check"]
-description = "Check formatting via poly (no writes)"
-run = "poly fmt --check ."
 
 [tasks.validate]
 description = "Run lint + tests for all languages (CI parity)"
@@ -306,18 +291,9 @@ run = "python3 scripts/generate-reference.py"
 description = "Fail if the generated API reference is stale"
 run = "python3 scripts/generate-reference.py --check"
 
-[tasks."docs:install"]
-description = "Install docs-site dependencies"
-run = "pnpm --dir docs-site install --frozen-lockfile"
-
-[tasks."docs:build"]
-description = "Build the documentation site"
-run = [{ task = "docs:install" }, "pnpm --dir docs-site build"]
-
-[tasks."docs:serve"]
-description = "Serve the documentation locally with live reload"
-run = ["pnpm --dir docs-site install", "pnpm --dir docs-site dev"]
-
 [tasks."docs:lint:prose"]
 description = "Lint documentation prose with textlint"
 run = "pnpm exec textlint 'docs-site/src/content/docs/**/*.{md,mdx}'"
+
+[task_config]
+includes = ["mise-tasks", "mise-tasks/shared.toml"]
