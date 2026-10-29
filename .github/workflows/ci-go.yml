@@ -48,8 +48,6 @@ jobs:
   test:
     name: test (go 1.27)
     runs-on: ubuntu-latest
-    env:
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1

@@ -56,7 +56,6 @@ jobs:
     env:
       MISE_ENV: ci
       MISE_NODE_VERSION: ${{ matrix.node-version }}
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1

@@ -161,7 +161,6 @@ jobs:
       MISE_PYTHON_VERSION: "3.10.22"
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
@@ -197,8 +196,6 @@ jobs:
     needs: [prepare, validate-versions]
     if: needs.prepare.outputs.release_node == 'true'
     runs-on: ubuntu-latest
-    env:
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
@@ -227,8 +224,6 @@ jobs:
   validate-go:
     needs: [prepare, validate-versions]
     runs-on: ubuntu-latest
-    env:
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
         with:
