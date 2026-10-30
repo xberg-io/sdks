@@ -29,7 +29,6 @@ This installs the toolchain, the dependencies, and the pre-commit hooks via `pol
 | `mise run test`     | Run all test suites                   |
 | `mise run lint`     | Run all linters                       |
 | `mise run format`   | Format all code                       |
-| `mise run validate` | Run lint, tests, API-operation coverage, reference checks and live snippets |
 
 ## What to keep in mind
 

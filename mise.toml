@@ -58,20 +58,6 @@ description = "Run the bats suites for the shell tooling under scripts/"
 env = { BATS_LIB_PATH = "{{config_root}}/scripts/tests/lib" }
 run = "bats scripts/tests"
 
-[tasks.validate]
-description = "Run lint + tests for all languages (CI parity)"
-# Catches a client surface that drifted between languages, and a reference page left stale by a
-# change to one. Both used to pass silently: the generator skipped a method it could not find, so
-# Go shipping `DeleteDocuments` against `delete_rag_documents` elsewhere rendered three clean pages
-# and no error.
-run = [
-  { task = "lint" },
-  { task = "test" },
-  { task = "spec:coverage" },
-  { task = "docs:reference:check" },
-  { task = "docs:snippets:test" },
-]
-
 [tasks.clean]
 description = "Remove generated clients and build artifacts"
 run = [
@@ -226,16 +212,6 @@ description = "Run the local HTTP deployment-contract controls against the built
 dir = "{{config_root}}/packages/typescript/integration"
 run = "node --test contracts.test.mjs transport.test.mjs orchestration.test.mjs project-scope.test.mjs"
 
-[tasks."typescript:integration:test:scope"]
-description = "Run only the project-scope deployment-contract controls"
-dir = "{{config_root}}/packages/typescript/integration"
-run = "node --test project-scope.test.mjs"
-
-[tasks."typescript:integration:live"]
-description = "Run the operator-approved live deployment-contract epoch"
-dir = "{{config_root}}/packages/typescript/integration"
-run = "node run.mjs"
-
 # The Go SDK ships ONE package (`xberg`) generated from THREE specs; see mise-tasks/go/generate.sh. ~keep
 [tasks."go:check:generated"]
 description = "Verify tracked Go sources match all three vendored specifications"
@@ -290,10 +266,6 @@ run = "python3 scripts/generate-reference.py"
 [tasks."docs:reference:check"]
 description = "Fail if the generated API reference is stale"
 run = "python3 scripts/generate-reference.py --check"
-
-[tasks."docs:lint:prose"]
-description = "Lint documentation prose with textlint"
-run = "pnpm exec textlint 'docs-site/src/content/docs/**/*.{md,mdx}'"
 
 [task_config]
 includes = ["mise-tasks", "mise-tasks/shared.toml"]

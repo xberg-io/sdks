@@ -24,7 +24,7 @@
 // schemas that are structurally identical are therefore excluded; a divergent
 // one is renamed behind `-prefix` in a derived copy of the spec, which is what
 // oapi-codegen actually reads. The vendored spec is never touched, so it stays
-// byte-identical to the upstream copy `mise run spec:check` compares against.
+// byte-identical to the upstream copy `mise run spec:fetch` vendors.
 //
 // A prior schema set that was itself generated from a derived copy must be
 // passed as that DERIVED copy, not as its vendored original: the renames the

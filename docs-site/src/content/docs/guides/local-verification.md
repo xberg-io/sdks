@@ -38,9 +38,6 @@ executes every declared example against its supported tiers. Go examples use the
 Dependencies must already be cached: the runner installs offline and requires local service URLs.
 Missing state, unsupported metadata, empty discovery and failed examples fail the gate.
 
-`mise run validate` includes the snippet gate. `mise run release:check` additionally checks both live
-contracts, version agreement, specification drift and package builds before a release.
-
 Stop only these stacks with `mise run enterprise:down` and `mise run pro:down`. `mise run enterprise:reset`
 and `mise run pro:reset` also remove the corresponding data volumes. Retain the private state directory to reconnect or
 inspect a failed run.

@@ -22,8 +22,8 @@
 #                              prefix. Excluding those would silently hand Pro
 #                              the Enterprise shape instead. oapi-codegen reads
 #                              this derived copy, never the vendored spec, which
-#                              stays byte-identical to upstream so
-#                              `mise run spec:check` keeps passing.
+#                              stays byte-identical to the upstream copy
+#                              `mise run spec:fetch` vendors.
 #
 # Both lists and the renames are recomputed from the specs on every run, so a
 # spec sync cannot leave them stale. Do not pin them here — oapi-schemaset-config

@@ -13,8 +13,8 @@ set -euo pipefail
 # IDENTICAL Go, is skipped by the later generation. A schema the specs declare with DIFFERENT
 # structures cannot be skipped (that would hand the later set the earlier shape), so it is renamed
 # behind a prefix (`Pro`, `Backend`) in a derived copy of that spec (packages/go/spec-{pro,backend}.gen.yaml),
-# and oapi-codegen reads that copy. The vendored specs are left untouched so `mise run spec:check`
-# still compares them byte-for-byte with upstream. Both the exclusion sets and the renames are DERIVED
+# and oapi-codegen reads that copy. The vendored specs are left untouched so they stay byte-for-byte
+# what `mise run spec:fetch` vendored from upstream. Both the exclusion sets and the renames are DERIVED
 # from the specs on every run, never hand-maintained, so a spec sync cannot leave them stale. ~keep
 root="$MISE_CONFIG_ROOT"
 config_tool=github.com/xberg-io/sdks/tools/oapi-schemaset-config

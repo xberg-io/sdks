@@ -21,7 +21,7 @@ It validates exact native text, filenames, result identity/cardinality, cache
 state, successful terminal status, pagination and typed absence errors.
 The terminal-cancel case checks cancellation of an already-completed job and its idempotence; active cancellation remains separate.
 
-Run `mise run typescript:integration:live` with these environment values:
+Run `node run.mjs` from this directory with these environment values:
 
 - `XBERG_SDK_LIVE_APPROVED=1`: explicit operator authorization for this epoch.
 - `XBERG_BASE_URL`: API origin.
