@@ -40,8 +40,9 @@ users call stay in code that regeneration never touches.
 * Good, because each package depends only on its own ecosystem's generator and runtime.
 * Bad, because the same method surface, error mapping and retry rules are written three times and can diverge, as
   362168a found when Go alone did not retry transport failures.
-* Bad, because three generators handle the same 3.1 features differently, so the repository carries per-generator
-  workarounds (`scripts/prepare-python-spec.py`, `scripts/patch-python-compat.py`, `tools/oapi-schemaset-config`).
+* Bad, because each generator brings its own gaps, which the repository patches around: for example
+  `scripts/prepare-python-spec.py` names inline union branches for openapi-python-client, and
+  `scripts/patch-python-compat.py` backports its output to Python 3.10.
 
 ### Confirmation
 

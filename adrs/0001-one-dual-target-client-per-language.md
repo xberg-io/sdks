@@ -39,7 +39,8 @@ The Python (aca1bf4), TypeScript (8431d14) and Go (285925f) clients were reworke
 ### Consequences
 
 * Good, because a user installs one package per language whichever product the deployment runs.
-* Good, because a spec change in one tier regenerates only that tier's module.
+* Good, because each tier's types come from its own spec, so operation ids shared by both tiers cannot collapse into
+  one generated type.
 * Bad, because the client must know or discover the tier before a tier-specific call (ADR-0002).
 * Bad, because Go puts all three sets in one package, so `tools/oapi-schemaset-config` has to derive a config for
   each secondary set that excludes the types an earlier set already defines.
