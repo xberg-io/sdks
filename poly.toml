@@ -349,7 +349,7 @@ indent_width = 2
 [[hooks.sources]]
 id = "ai-rulez"
 git = "https://github.com/Goldziher/ai-rulez.git"
-revision = "v5.9.2"
+revision = "v5.9.3"
 hooks = ["ai-rulez-validate"]
 
 [[hooks.sources]]
