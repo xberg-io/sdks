@@ -36,6 +36,9 @@ exclude = [
   "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
   "/.mcp.json",
+  # adrlint owns ADR Markdown with its own rumdl config and content-hash lock; poly would
+  # double-report and its lock-unaware formatter would break locks. ~keep
+  "/adrs/**",
 ]
 
 [per-file-ignores]
@@ -259,6 +262,7 @@ lint = { exclude = [
   "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
   "/.mcp.json",
+  "/adrs/**",
 ] }
 fmt = { exclude = [
   "docs-site/src/snippets/**",
@@ -290,6 +294,7 @@ fmt = { exclude = [
   "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
   "/.mcp.json",
+  "/adrs/**",
 ] }
 commit = { stages = ["commit-msg"] }
 file_safety = { exclude = [
@@ -346,3 +351,9 @@ id = "ai-rulez"
 git = "https://github.com/Goldziher/ai-rulez.git"
 revision = "v5.9.2"
 hooks = ["ai-rulez-validate"]
+
+[[hooks.sources]]
+id = "adrlint"
+git = "https://github.com/Goldziher/adrlint.git"
+revision = "v0.4.0"
+hooks = ["adrlint-lint", "adrlint-format-check", "adrlint-lock-check"]
