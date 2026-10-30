@@ -43,7 +43,7 @@ every Markdown file in `adrs/`.
 ### Confirmation
 
 `.adrlint.toml` sets `dir = "adrs"` and `start = 0`; `adrlint lint` and `adrlint format --check` exit 0 on `adrs/`.
-`.github/workflows/validate.yml` runs the reusable validate workflow with `check-adrs: true`.
+`.github/workflows/validate.yml:29` turns on `check-adrs` in the reusable validate workflow.
 
 ## More Information
 

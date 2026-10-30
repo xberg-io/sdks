@@ -26,3 +26,4 @@ jobs:
     uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
     with:
       setup-python: true
+      check-adrs: true
