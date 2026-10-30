@@ -12,7 +12,8 @@ The repository started as `kreuzberg-cloud-sdk`, a client for one hosted REST AP
 (99e810a, 2026-05-07). The product then split into Xberg Enterprise and Xberg Pro, two self-hosted products over one
 overlapping API with tier-specific operations on each side. Each language needed a way to reach both, and
 xberg-enterprise had just decided, in its ADR-0072 (2026-07-26), not to maintain a single merged OpenAPI document,
-because Pro and Enterprise mount different route sets and operation ids collide when documents are merged.
+because Pro and Enterprise mount different route sets on different topologies. This repository adds a reason of its
+own: merged documents produce operation-id collisions (`mise.toml:93`).
 
 ## Considered Options
 
@@ -24,10 +25,11 @@ because Pro and Enterprise mount different route sets and operation ids collide 
 
 Chosen option: "One client per language that serves both tiers, generated from separate, unmerged schema sets",
 because the shared surface is written once and serves either deployment, while keeping each spec as published avoids
-the operation-id collisions a merge produces and keeps the generated types honest to each service's topology
-(`mise.toml:93`).
+the operation-id collisions a merge produces (`mise.toml:93`) and keeps the generated types true to each service's
+topology, the reason ADR-0072 gives for rejecting a merged document.
 
-* Python, TypeScript and Go each ship one client (`XbergClient`, plus `AsyncXbergClient` in Python). The shared
+* Python, TypeScript and Go each ship one client: `XbergClient` in Python and TypeScript (plus `AsyncXbergClient`),
+  `xberg.Client` in Go. The shared
   surface carries no tier gate; tier-specific methods are gated as ADR-0002 records.
 * Each schema set generates into its own module: `_generated_api`, `_generated_pro` and `_generated_backend` in
   Python, `_generated/{api,pro,backend}` in TypeScript, `generated_{api,pro,backend}.go` in Go.
