@@ -107,6 +107,7 @@ plugin/.ai-rulez/.generated-manifest.json
 .claude/rules/typescript.md
 .claude/skills/
 .codex/agents/
+.codex/config.toml
 .mcp.json
 .opencode/agents/
 .opencode/commands/
