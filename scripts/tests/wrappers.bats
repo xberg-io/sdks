@@ -30,7 +30,7 @@ setup() {
 }
 
 @test "Pro project key forwards credential in environment and defaults its URL" {
-  xberg_stub uv 'test "${XBERG_ADMIN_KEY:-}" = fixture-operator; printf "<%s>\n" "$@"'
+  xberg_stub uv 'test "${XBERG_ADMIN_KEY:-}" = fixture-operator || exit 78; printf "<%s>\n" "$@"'
   run env XBERG_ADMIN_KEY=fixture-operator bash "$REPO_ROOT/scripts/pro-project-key.sh"
   xberg_assert_status 0
   xberg_assert_output "$(printf '<%s>\n' run --project "$REPO_ROOT" python "$REPO_ROOT/scripts/live-sdk-contracts.py" pro-key --base-url http://127.0.0.1:8080)"
