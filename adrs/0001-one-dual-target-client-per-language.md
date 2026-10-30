@@ -28,9 +28,9 @@ because the shared surface is written once and serves either deployment, while k
 the operation-id collisions a merge produces (`mise.toml:93`) and keeps the generated types true to each service's
 topology, the reason ADR-0072 gives for rejecting a merged document.
 
-* Python, TypeScript and Go each ship one client: `XbergClient` in Python and TypeScript (plus `AsyncXbergClient`),
-  `xberg.Client` in Go. The shared
-  surface carries no tier gate; tier-specific methods are gated as ADR-0002 records.
+* Python, TypeScript and Go each ship one client: `XbergClient` (plus `AsyncXbergClient`) in Python, `XbergClient` in
+  TypeScript and `xberg.Client` in Go. The shared surface carries no tier gate; tier-specific methods are gated as
+  ADR-0002 records.
 * Each schema set generates into its own module: `_generated_api`, `_generated_pro` and `_generated_backend` in
   Python, `_generated/{api,pro,backend}` in TypeScript, `generated_{api,pro,backend}.go` in Go.
 * The third set, the Enterprise control plane, was added in 932bd2c (2026-09-06), because without it the Enterprise
