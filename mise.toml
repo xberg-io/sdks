@@ -271,3 +271,11 @@ run = "python3 scripts/generate-reference.py --check"
 
 [task_config]
 includes = ["mise-tasks", "mise-tasks/shared.toml"]
+
+[tasks."test:lib:sync"]
+description = "Refresh shared Bats helpers from their pinned SOURCE ref"
+run = "bash scripts/sync-bats-lib.sh sync"
+
+[tasks."test:lib:check"]
+description = "Check shared Bats helper bytes against their pinned SOURCE ref"
+run = "bash scripts/sync-bats-lib.sh --check"

@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - "scripts/**"
+      - "packages/go/test-package.sh"
+      - "packages/typescript/scripts/**"
       - "mise-tasks/**"
       - "mise.toml"
       - "mise.lock"
@@ -15,6 +17,8 @@ on:
     branches: [main]
     paths:
       - "scripts/**"
+      - "packages/go/test-package.sh"
+      - "packages/typescript/scripts/**"
       - "mise-tasks/**"
       - "mise.toml"
       - "mise.lock"
@@ -34,10 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: xberg-io/actions/setup-mise@v1
+      - uses: xberg-io/actions/install-bats@v1
         with:
-          install-args: bats
+          version: "1.14.0"
       - uses: xberg-io/actions/run-bats@v1
         with:
           path: scripts/tests
           lib-path: scripts/tests/lib
+      - name: Verify pinned shared Bats helpers
+        run: bash scripts/sync-bats-lib.sh --check
