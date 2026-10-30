@@ -13,6 +13,10 @@ yq = "4.54.1"
 bats = "1.14.0"
 "github:Goldziher/poly" = "0.31.2"
 "github:Goldziher/adrlint" = "0.4.0"
+# Repository-owned: go:lint runs both. The golangci-lint release binary is built with Go 1.27, which it
+# must be to lint a Go 1.27 module. ~keep
+golangci-lint = "2.14.0"
+"go:golang.org/x/vuln/cmd/govulncheck" = "1.9.0"
 
 [tasks.default]
 description = "List available tasks"
