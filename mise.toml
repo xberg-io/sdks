@@ -13,6 +13,7 @@ yq = "4.54.1"
 bats = "1.14.0"
 "github:Goldziher/poly" = "0.31.2"
 "github:Goldziher/ai-rulez" = "5.9.3"
+"github:Goldziher/adrlint" = "0.4.0"
 
 [tasks.default]
 description = "List available tasks"
