@@ -1,0 +1,42 @@
+version = 1
+canonical = 1
+
+[adrs."adrs/0000-record-architecture-decisions.md"]
+number = 0
+status = "accepted"
+blake3 = "fdf899e17605f78edbfa7581a0069ff24b3f49f6291fd0a680fd2829cb1df6e9"
+
+[adrs."adrs/0001-one-dual-target-client-per-language.md"]
+number = 1
+status = "accepted"
+blake3 = "701f8a04dffb9447780518b27f99cb009a08af501d8bda8be9141c0ceffea684"
+
+[adrs."adrs/0002-gate-tier-specific-methods-in-the-client.md"]
+number = 2
+status = "accepted"
+blake3 = "dd892c02026efc0c8e4a04146934a5b4f1fc1918019a64d2fcf0b6ff07f66ea5"
+
+[adrs."adrs/0003-hand-written-clients-over-per-language-generators.md"]
+number = 3
+status = "accepted"
+blake3 = "0e37d45ef359825b7861aad1d2e1976c5131cb22e45cb520fd5ac32ffa2c30ec"
+
+[adrs."adrs/0004-vendor-the-specs-from-xberg-enterprise-development.md"]
+number = 4
+status = "accepted"
+blake3 = "ea90521953cb28952a591f264994a5bf47dc14acf4c4db19416ca39e8fb0cd43"
+
+[adrs."adrs/0005-commit-the-generated-go-sources.md"]
+number = 5
+status = "accepted"
+blake3 = "767001eeadfbefa8ddf10bc9179fbe30e249f7935bbfdcca4a06d4c00b352d1b"
+
+[adrs."adrs/0006-one-version-file-for-every-package.md"]
+number = 6
+status = "accepted"
+blake3 = "08a7587214a61faa6939ef52f469479e0945aa106951de79533827e990fc5ada"
+
+[adrs."adrs/0007-python-typescript-and-go-only.md"]
+number = 7
+status = "accepted"
+blake3 = "cbaa01ce563e220c6b83282cc4d9456798937c572752a6eb8058007e8003af63"
