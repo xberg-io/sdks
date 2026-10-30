@@ -206,7 +206,8 @@ description = "Type-check shared and Pro schema compatibility fixtures"
 dir = "{{config_root}}/packages/typescript"
 run = "pnpm exec tsc --noEmit -p tsconfig.contracts.json"
 
-# Opt-in deployment contracts over the built SDK (packages/typescript/integration/README.md). ~keep
+# Deployment contracts over the built SDK (packages/typescript/integration/README.md); ci-typescript
+# runs these local controls after the build, and the live epoch stays operator-run. ~keep
 [tasks."typescript:integration:test"]
 description = "Run the local HTTP deployment-contract controls against the built TypeScript SDK"
 dir = "{{config_root}}/packages/typescript/integration"

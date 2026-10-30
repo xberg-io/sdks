@@ -81,3 +81,5 @@ jobs:
         run: mise run typescript:test:cov
       - name: Build
         run: mise run typescript:build
+      - name: Deployment-contract controls against the built SDK
+        run: mise run typescript:integration:test
