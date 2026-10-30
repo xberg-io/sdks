@@ -38,9 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: xberg-io/actions/install-bats@v1
+      - uses: xberg-io/actions/setup-mise@v1
         with:
-          version: "1.14.0"
+          install-args: bats
       - uses: xberg-io/actions/run-bats@v1
         with:
           path: scripts/tests
