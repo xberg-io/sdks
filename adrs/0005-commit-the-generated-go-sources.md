@@ -42,7 +42,7 @@ source tree is the only thing a Go consumer receives, so it must already contain
 
 ### Confirmation
 
-* `mise.toml:217` to `mise.toml:222` (`go:check:generated`) and `mise.toml:224` to `mise.toml:226`
+* `mise.toml:217` to `mise.toml:223` (`go:check:generated`) and `mise.toml:225` to `mise.toml:227`
   (`go:test:package`, `packages/go/test-package.sh`).
 * `.github/workflows/ci-go.yml:82` to `ci-go.yml:85` run both on changes to the Go package or the specs, and `.github/workflows/publish.yaml:236`
   to `publish.yaml:239` before publishing.

@@ -25,7 +25,7 @@ because Pro and Enterprise mount different route sets and operation ids collide 
 Chosen option: "One client per language that serves both tiers, generated from separate, unmerged schema sets",
 because the shared surface is written once and serves either deployment, while keeping each spec as published avoids
 the operation-id collisions a merge produces and keeps the generated types honest to each service's topology
-(`mise.toml:92`).
+(`mise.toml:93`).
 
 * Python, TypeScript and Go each ship one client (`XbergClient`, plus `AsyncXbergClient` in Python). The shared
   surface carries no tier gate; tier-specific methods are gated as ADR-0002 records.
@@ -49,7 +49,7 @@ The Python (aca1bf4), TypeScript (8431d14) and Go (285925f) clients were reworke
 
 * `docs-site/src/content/docs/concepts/tiers.md:6` ("Rather than two packages per language, each package carries
   one client that works against either").
-* `mise.toml:87` to `mise.toml:93` (three specs, one dual-target client, "Merging is deliberately avoided").
+* `mise.toml:88` to `mise.toml:94` (three specs, one dual-target client, "Merging is deliberately avoided").
 * `packages/python/src/xberg_io_sdk/client.py:1` to `client.py:10`; `tools/oapi-schemaset-config/main.go:5` to
   `main.go:7`.
 * `packages/python/tests/test_dual_target.py`, `packages/typescript/tests/dual-target.test.ts` and

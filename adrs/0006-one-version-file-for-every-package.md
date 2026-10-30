@@ -42,6 +42,6 @@ it releases the packages in lockstep from one edit, as the scaffold commit set o
 
 * `VERSION`; `scripts/sync-versions.py:2` to `sync-versions.py:4` and `sync-versions.py:187` (all targets must
   exist).
-* `mise.toml:83` to `mise.toml:85` (`version:sync`).
+* `mise.toml:83` to `mise.toml:86` (`version:sync`).
 * `.github/workflows/publish.yaml:74` to `publish.yaml:100` (`validate-versions`).
 * `.ai-rulez/context/area-map.md:18`.
