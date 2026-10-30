@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Cover SDK shell wrappers, TypeScript schema generation, and committed Go package validation with offline Bats contracts;
+  check the shared helper library against its pinned upstream source in CI.
+
 - Repository tasks run on mise: `mise run <task>` replaces `task <task>` with the same task names,
   the Taskfiles are gone, CI calls `mise run`, and `go-task` is no longer part of the toolchain. The
   TypeScript integration controls are now `typescript:integration:test`, `typescript:integration:test:scope`
