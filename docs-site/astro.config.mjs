@@ -90,6 +90,7 @@ export default defineConfig({
               { label: "API", items: API_LANGUAGES },
               { label: "Tier capabilities", slug: "reference/tier-capabilities" },
               { label: "OpenAPI", slug: "reference/openapi" },
+              { label: "Decision records", slug: "reference/adr-index" },
             ],
           },
           {
