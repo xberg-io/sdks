@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         # The engines floor and the baseline, both locked in mise.ci.lock. ~keep
-        node-version: ["24.22.1", "26.12.1"]
+        node-version: ["24.22.1", "26.13.0"]
     env:
       MISE_ENV: ci
       MISE_NODE_VERSION: ${{ matrix.node-version }}
