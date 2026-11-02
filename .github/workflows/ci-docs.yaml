@@ -65,9 +65,9 @@ jobs:
     name: reference / Check generated pages
     runs-on: ubuntu-latest
     env:
-      # The Python floor (requires-python >=3.10), locked in mise.ci.lock. ~keep
+      # The Python floor (requires-python >=3.11), locked in mise.ci.lock. ~keep
       MISE_ENV: ci
-      MISE_PYTHON_VERSION: "3.10.22"
+      MISE_PYTHON_VERSION: "3.11.18"
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
     steps:

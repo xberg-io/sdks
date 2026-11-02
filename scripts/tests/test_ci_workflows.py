@@ -78,7 +78,7 @@ def test_python_ci_executes_every_step_with_the_minimum_supported_interpreter() 
     workflow = YAML(typ="safe").load(ROOT / ".github/workflows/ci-python.yml")
     job = workflow["jobs"]["test"]
     legs = job["strategy"]["matrix"]["python"]
-    assert legs == ["3.10.22", "3.14.10"]
+    assert legs == ["3.11.18", "3.14.10"]
     floor = pyproject_floor()
     assert legs[0].split(".")[:2] == floor.split("."), f"first leg {legs[0]} is not the requires-python floor {floor}"
     assert job["strategy"]["fail-fast"] is False

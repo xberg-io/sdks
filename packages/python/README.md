@@ -51,7 +51,7 @@ pip install xberg-io-sdk
 uv add xberg-io-sdk
 ```
 
-Requires Python 3.10+.
+Requires Python 3.11+.
 
 ## Quickstart
 

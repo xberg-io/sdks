@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Python 3.11 is now the minimum supported version; Python 3.10 reached end of life.
 - Cover SDK shell wrappers, TypeScript schema generation, and committed Go package validation with offline Bats contracts;
   check the shared helper library against its pinned upstream source in CI.
 

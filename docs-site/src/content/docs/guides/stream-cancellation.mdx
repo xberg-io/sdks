@@ -20,7 +20,7 @@ Their ordinary request timeout is deliberately shorter, demonstrating that it do
 
 Use the async client to cancel even while the next event is blocked on network I/O. `asyncio.wait_for` cancels the
 consumer task when its deadline expires, and `aclosing` closes the generator when consumption ends. This works on
-Python 3.10 and later.
+Python 3.11 and later.
 
 <PythonCancellation />
 
