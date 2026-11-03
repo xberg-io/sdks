@@ -10,7 +10,7 @@ Xberg Pro.
 | --- | --- | --- |
 | Python | [`xberg-io-sdk`](https://pypi.org/project/xberg-io-sdk/) | Python 3.11+ |
 | TypeScript / Node.js | [`@xberg-io/sdk`](https://www.npmjs.com/package/@xberg-io/sdk) | Node 24+, ESM only |
-| Go | [`github.com/xberg-io/sdks/packages/go`](https://pkg.go.dev/github.com/xberg-io/sdks/packages/go) | Go 1.26+ |
+| Go | [`github.com/xberg-io/sdks/packages/go`](https://pkg.go.dev/github.com/xberg-io/sdks/packages/go) | Go 1.27+ |
 
 ## Python
 

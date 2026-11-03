@@ -28,7 +28,7 @@ Xberg Pro document-processing APIs. One `Client` speaks to either product.
 go get github.com/xberg-io/sdks/packages/go
 ```
 
-Requires Go 1.26+.
+Requires Go 1.27+.
 
 ## Dual-target client
 
