@@ -198,9 +198,9 @@ from xberg_io_sdk.errors import TimeoutError as ClientTimeoutError
 from xberg_io_sdk.errors import ValidationError, XbergError, parse_retry_after, raise_for_status
 
 if TYPE_CHECKING:
-    import sys
     from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
     from types import TracebackType
+    from typing import Self
 
     from xberg_io_sdk._generated_api.models.add_item_request import AddItemRequest
     from xberg_io_sdk._generated_api.models.add_member_request import AddMemberRequest
@@ -279,11 +279,6 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_pro.models.create_integration_request import CreateIntegrationRequest
     from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
     from xberg_io_sdk._generated_pro.models.set_integration_sync_request import SetIntegrationSyncRequest
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 

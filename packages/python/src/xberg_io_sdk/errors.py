@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, Any
 
@@ -172,8 +172,8 @@ def parse_retry_after(value: str | None) -> float | None:
     if target is None:
         return None
     if target.tzinfo is None:
-        target = target.replace(tzinfo=timezone.utc)
-    delta = (target - datetime.now(tz=timezone.utc)).total_seconds()
+        target = target.replace(tzinfo=UTC)
+    delta = (target - datetime.now(tz=UTC)).total_seconds()
     return max(0.0, delta)
 
 

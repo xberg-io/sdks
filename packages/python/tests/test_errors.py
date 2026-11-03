@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 
 import httpx
@@ -188,7 +188,7 @@ def test_parse_retry_after_delay_seconds() -> None:
 
 
 def test_parse_retry_after_http_date_in_future_returns_positive_seconds() -> None:
-    future = datetime.now(tz=timezone.utc) + timedelta(seconds=30)
+    future = datetime.now(tz=UTC) + timedelta(seconds=30)
     header_value = format_datetime(future, usegmt=True)
     result = parse_retry_after(header_value)
     assert result is not None
@@ -196,7 +196,7 @@ def test_parse_retry_after_http_date_in_future_returns_positive_seconds() -> Non
 
 
 def test_parse_retry_after_http_date_without_tzinfo_is_treated_as_utc() -> None:
-    future = datetime.now(tz=timezone.utc) + timedelta(seconds=10)
+    future = datetime.now(tz=UTC) + timedelta(seconds=10)
     naive_rfc1123 = future.strftime("%a, %d %b %Y %H:%M:%S")
     result = parse_retry_after(naive_rfc1123)
     assert result is not None
@@ -204,7 +204,7 @@ def test_parse_retry_after_http_date_without_tzinfo_is_treated_as_utc() -> None:
 
 
 def test_parse_retry_after_http_date_in_past_clamps_to_zero() -> None:
-    past = datetime.now(tz=timezone.utc) - timedelta(seconds=60)
+    past = datetime.now(tz=UTC) - timedelta(seconds=60)
     header_value = format_datetime(past, usegmt=True)
     assert parse_retry_after(header_value) == 0.0
 
@@ -215,7 +215,7 @@ def test_parse_retry_after_unparseable_value_returns_none() -> None:
 
 @respx.mock
 def test_429_with_http_date_retry_after_header(base_url: str, api_key: str) -> None:
-    future = datetime.now(tz=timezone.utc) + timedelta(seconds=20)
+    future = datetime.now(tz=UTC) + timedelta(seconds=20)
     header_value = format_datetime(future, usegmt=True)
     respx.post(f"{base_url}/v1/extract").mock(
         return_value=httpx.Response(
