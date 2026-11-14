@@ -116,9 +116,10 @@ def test_should_keep_backend_gaps_pending_when_only_pro_implements_the_route(tmp
     result = run_gate(tmp_path, without_backend_sync(source), tracked_gaps=tracked)
     assert result.returncode == 0, result.stdout + result.stderr
     total, excluded = backend_operation_count(), backend_exclusion_count()
+    baseline = run_gate(tmp_path / "baseline", source)
+    assert baseline.returncode == 0, baseline.stdout + baseline.stderr
     assert result.stdout.splitlines() == [
-        "enterprise  83/84 reached, 1 excluded, 0 tracked as pending",
-        "pro         66/69 reached, 3 excluded, 0 tracked as pending",
+        *baseline.stdout.splitlines()[:2],
         f"backend     {total - excluded - 2}/{total} reached, {excluded} excluded, 2 tracked as pending",
     ]
     assert result.stderr == ""
