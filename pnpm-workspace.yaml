@@ -8,6 +8,17 @@ allowBuilds:
 sharedWorkspaceLockfile: true
 autoInstallPeers: true
 hoist: true
+minimumReleaseAge: 4320
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
 
 # ~keep Root and SDK pin TypeScript 6 because openapi-typescript and textlint-plugin-mdx
-# need the JavaScript compiler API removed from TypeScript 7.
+# need the JavaScript compiler API removed from TypeScript 7. Node types
+# stay on the supported runtime floor. ~keep
+update:
+  ignoreDeps:
+    - typescript
+    - "@types/node"
+
+overrides:
+  "textlint>glob": "^14.0.2"

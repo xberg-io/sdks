@@ -1,2 +1,10 @@
-baseline = "v1.13.0"
+baseline = "v1.18.0"
 task_sets = ["docs-site", "governance", "lint-format"]
+
+[overrides.go]
+version = "1.27.4"
+reason = "Update the SDK CI toolchain for the Go net/http security fix GO-2026-6859"
+
+[overrides.pnpm]
+version = "12.19.0"
+reason = "Use the newest pnpm release that satisfies the workspace's 72-hour minimum release age"
