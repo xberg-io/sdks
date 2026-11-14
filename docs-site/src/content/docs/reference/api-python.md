@@ -144,6 +144,10 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `remove_room_member` | Enterprise only: remove a member's grant on a data room (``DELETE /v1/rooms/{id}/members/{user_id}``). |
 | `transfer_room_ownership` | Enterprise only: make another room member the owner (``POST /v1/rooms/{id}/ownership``, 204). |
 | `leave_room` | Enterprise only: drop the caller's own grant on a data room (``POST /v1/rooms/{id}/leave``, 204). |
+| `list_room_links` | Enterprise only: list a data room's share links. |
+| `create_room_link` | Enterprise only: create a share link for a data room. |
+| `revoke_room_link` | Enterprise only: revoke a data room share link and its grants. |
+| `accept_room_link` | Enterprise only: accept a share link with a signed-in user's session. |
 | `list_room_invitations` | Enterprise only: list a data room's invitations (``GET /v1/rooms/{id}/invitations``, paginated). |
 | `create_room_invitation` | Enterprise only: invite an email address to a data room (``POST /v1/rooms/{id}/invitations``, 201). |
 | `revoke_room_invitation` | Enterprise only: revoke a pending room invitation (``DELETE /v1/rooms/{id}/invitations/{invitation_id}``). |
@@ -155,6 +159,16 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `list_public_room_items` | Enterprise only: list a published room's items, sending no credential (``GET /public/rooms/{slug}/items``). |
 | `get_public_room_item_content` | Enterprise only: read a published room item's extraction result, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/content``). |
 | `download_public_room_item` | Enterprise only: download a published room item's original file, sending no credential (``GET /public/rooms/{slug}/items/{item_ref}/download``, bytes). |
+
+## Project extraction defaults
+
+Read, replace or clear the extraction defaults used by Enterprise projects.
+
+| Method | Description |
+| --- | --- |
+| `get_project_extraction_config` | Enterprise only: read the project's stored extraction defaults. |
+| `set_project_extraction_config` | Enterprise only: replace the project's stored extraction defaults. |
+| `clear_project_extraction_config` | Enterprise only: clear the project's stored extraction defaults. |
 
 ## Enrich
 
@@ -184,6 +198,9 @@ Pro-only projects, keys and integrations.
 | --- | --- |
 | `list_projects` | Pro only: list the caller's projects (``GET /v1/projects``, paginated). |
 | `create_project` | Pro only: create a project (``POST /v1/projects``). |
+| `pro_get_project` | Pro only: read a live project visible to the caller. |
+| `pro_update_project` | Pro only: rename a project. |
+| `pro_delete_project` | Pro only: soft-delete a project and revoke its API keys. |
 | `list_api_keys` | Pro only: list a project's API keys (``GET /v1/projects/{project_id}/api-keys``). |
 | `create_api_key` | Pro only: mint a project API key (``POST /v1/projects/{project_id}/api-keys``). |
 | `revoke_api_key` | Pro only: revoke an API key (``DELETE /v1/projects/{project_id}/api-keys/{key_id}``). |

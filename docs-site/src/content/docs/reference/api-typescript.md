@@ -144,6 +144,10 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `removeRoomMember` | Enterprise only: remove a member's grant on a room |
 | `transferRoomOwnership` | Enterprise only: make another room member the owner |
 | `leaveRoom` | Enterprise only: remove the caller's own grant on a room |
+| `listRoomLinks` |  |
+| `createRoomLink` |  |
+| `revokeRoomLink` |  |
+| `acceptRoomLink` |  |
 | `listRoomInvitations` | Enterprise only: list a room's invitations (`GET /v1/rooms/{id}/invitations`). |
 | `createRoomInvitation` | Enterprise only: invite an email address to a room |
 | `revokeRoomInvitation` | Enterprise only: revoke a pending room invitation |
@@ -155,6 +159,16 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `listPublicRoomItems` | Enterprise only: list a published room's items in room order |
 | `getPublicRoomItemContent` | Enterprise only: fetch the extraction result of a published room's item |
 | `downloadPublicRoomItem` | Enterprise only: download a published room item's original file |
+
+## Project extraction defaults
+
+Read, replace or clear the extraction defaults used by Enterprise projects.
+
+| Method | Description |
+| --- | --- |
+| `getProjectExtractionConfig` |  |
+| `setProjectExtractionConfig` |  |
+| `clearProjectExtractionConfig` |  |
 
 ## Enrich
 
@@ -184,6 +198,9 @@ Pro-only projects, keys and integrations.
 | --- | --- |
 | `listProjects` |  |
 | `createProject` |  |
+| `proGetProject` |  |
+| `proUpdateProject` |  |
+| `proDeleteProject` |  |
 | `listApiKeys` |  |
 | `createApiKey` |  |
 | `revokeApiKey` |  |

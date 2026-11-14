@@ -71,6 +71,7 @@ from xberg_io_sdk._generated_api.models.list_managed_embedding_presets_response 
 )
 from xberg_io_sdk._generated_api.models.list_project_documents_response import ListProjectDocumentsResponse
 from xberg_io_sdk._generated_api.models.list_room_invitations_response import ListRoomInvitationsResponse
+from xberg_io_sdk._generated_api.models.list_room_links_response import ListRoomLinksResponse
 from xberg_io_sdk._generated_api.models.list_room_members_response import ListRoomMembersResponse
 from xberg_io_sdk._generated_api.models.list_rooms_response import ListRoomsResponse
 from xberg_io_sdk._generated_api.models.list_saved_presets_response import ListSavedPresetsResponse
@@ -79,6 +80,7 @@ from xberg_io_sdk._generated_api.models.list_webhook_deliveries_response import 
 from xberg_io_sdk._generated_api.models.preset_detail import PresetDetail
 from xberg_io_sdk._generated_api.models.preset_summary import PresetSummary
 from xberg_io_sdk._generated_api.models.presign_upload_response import PresignUploadResponse
+from xberg_io_sdk._generated_api.models.project_extraction_config_response import ProjectExtractionConfigResponse
 from xberg_io_sdk._generated_api.models.public_item_content_response import PublicItemContentResponse
 from xberg_io_sdk._generated_api.models.public_items_response import PublicItemsResponse
 from xberg_io_sdk._generated_api.models.public_room_response import PublicRoomResponse
@@ -86,6 +88,7 @@ from xberg_io_sdk._generated_api.models.publication_response import PublicationR
 from xberg_io_sdk._generated_api.models.reorder_items_response import ReorderItemsResponse
 from xberg_io_sdk._generated_api.models.room_invitation_response import RoomInvitationResponse
 from xberg_io_sdk._generated_api.models.room_item_response import RoomItemResponse
+from xberg_io_sdk._generated_api.models.room_link_response import RoomLinkResponse
 from xberg_io_sdk._generated_api.models.room_member_response import RoomMemberResponse
 from xberg_io_sdk._generated_api.models.room_response import RoomResponse
 from xberg_io_sdk._generated_api.models.saved_preset_detail import SavedPresetDetail
@@ -206,9 +209,11 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_api.models.add_member_request import AddMemberRequest
     from xberg_io_sdk._generated_api.models.confirm_upload_request import ConfirmUploadRequest
     from xberg_io_sdk._generated_api.models.create_auto_tune_job_request import CreateAutoTuneJobRequest
+    from xberg_io_sdk._generated_api.models.create_room_link_request import CreateRoomLinkRequest
     from xberg_io_sdk._generated_api.models.create_room_request import CreateRoomRequest
     from xberg_io_sdk._generated_api.models.create_saved_preset_request import CreateSavedPresetRequest
     from xberg_io_sdk._generated_api.models.enrich_text_request import EnrichTextRequest
+    from xberg_io_sdk._generated_api.models.extraction_config import ExtractionConfig
     from xberg_io_sdk._generated_api.models.presign_upload_request import PresignUploadRequest
     from xberg_io_sdk._generated_api.models.promote_profile_request import PromoteProfileRequest
     from xberg_io_sdk._generated_api.models.reorder_items_request import ReorderItemsRequest
@@ -279,6 +284,9 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_pro.models.create_integration_request import CreateIntegrationRequest
     from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
     from xberg_io_sdk._generated_pro.models.set_integration_sync_request import SetIntegrationSyncRequest
+    from xberg_io_sdk._generated_pro.models.update_project_request import (
+        UpdateProjectRequest as ProUpdateProjectRequest,
+    )
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 
@@ -1674,6 +1682,51 @@ class XbergClient(_BaseClient):
         payload = self._request_json("POST", "/v1/projects", json_body=_coerce_body(body))
         return ProjectResponse.from_dict(_expect_object(payload, "project"))
 
+    def pro_get_project(self, project_id: str) -> ProjectResponse:
+        """Pro only: read a live project visible to the caller."""
+        self._require_tier("pro", "pro_get_project")
+        payload = self._request_json("GET", f"/v1/projects/{_q(project_id)}")
+        return ProjectResponse.from_dict(_expect_object(payload, "project"))
+
+    def pro_update_project(self, project_id: str, body: ProUpdateProjectRequest | Mapping[str, Any]) -> ProjectResponse:
+        """Pro only: rename a project."""
+        self._require_tier("pro", "pro_update_project")
+        payload = self._request_json("PATCH", f"/v1/projects/{_q(project_id)}", json_body=_coerce_body(body))
+        return ProjectResponse.from_dict(_expect_object(payload, "project"))
+
+    def pro_delete_project(self, project_id: str) -> None:
+        """Pro only: soft-delete a project and revoke its API keys."""
+        self._require_tier("pro", "pro_delete_project")
+        self._request_json("DELETE", f"/v1/projects/{_q(project_id)}")
+
+    def get_project_extraction_config(self, project_id: str) -> ProjectExtractionConfigResponse:
+        """Enterprise only: read the project's stored extraction defaults."""
+        self._require_tier("enterprise", "get_project_extraction_config")
+        payload = self._request_json(
+            "GET", f"/v1/projects/{_q(project_id)}/extraction-config", extra_headers={"X-Project-ID": project_id}
+        )
+        return ProjectExtractionConfigResponse.from_dict(_expect_object(payload, "project extraction config"))
+
+    def set_project_extraction_config(
+        self, project_id: str, body: ExtractionConfig | Mapping[str, Any]
+    ) -> ProjectExtractionConfigResponse:
+        """Enterprise only: replace the project's stored extraction defaults."""
+        self._require_tier("enterprise", "set_project_extraction_config")
+        payload = self._request_json(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/extraction-config",
+            extra_headers={"X-Project-ID": project_id},
+            json_body=_coerce_body(body),
+        )
+        return ProjectExtractionConfigResponse.from_dict(_expect_object(payload, "project extraction config"))
+
+    def clear_project_extraction_config(self, project_id: str) -> None:
+        """Enterprise only: clear the project's stored extraction defaults."""
+        self._require_tier("enterprise", "clear_project_extraction_config")
+        self._request_json(
+            "DELETE", f"/v1/projects/{_q(project_id)}/extraction-config", extra_headers={"X-Project-ID": project_id}
+        )
+
     def list_api_keys(
         self,
         project_id: str,
@@ -2582,6 +2635,34 @@ class XbergClient(_BaseClient):
         self._require_tier("enterprise", "leave_room")
         self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/leave")
 
+    def list_room_links(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomLinksResponse:
+        """Enterprise only: list a data room's share links."""
+        self._require_tier("enterprise", "list_room_links")
+        payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/links", params=_pagination(limit, offset))
+        return ListRoomLinksResponse.from_dict(_expect_object(payload, "room link list"))
+
+    def create_room_link(self, room_id: str, body: CreateRoomLinkRequest | Mapping[str, Any]) -> RoomLinkResponse:
+        """Enterprise only: create a share link for a data room."""
+        self._require_tier("enterprise", "create_room_link")
+        payload = self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/links", json_body=_coerce_body(body))
+        return RoomLinkResponse.from_dict(_expect_object(payload, "room link"))
+
+    def revoke_room_link(self, room_id: str, link_id: str) -> None:
+        """Enterprise only: revoke a data room share link and its grants."""
+        self._require_tier("enterprise", "revoke_room_link")
+        self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/links/{_q(link_id)}")
+
+    def accept_room_link(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> AcceptedInvitationResponse:
+        """Enterprise only: accept a share link with a signed-in user's session."""
+        _check_session_token(session_token)
+        self._require_tier("enterprise", "accept_room_link")
+        payload = self._request_json("POST", "/v1/room-links/accept", json_body=_coerce_body(body), token=session_token)
+        return AcceptedInvitationResponse.from_dict(_expect_object(payload, "accepted room link"))
+
     def list_room_invitations(
         self, room_id: str, *, limit: int | None = None, offset: int | None = None
     ) -> ListRoomInvitationsResponse:
@@ -3348,6 +3429,53 @@ class AsyncXbergClient(_BaseClient):
         await self._require_tier("pro", "create_project")
         payload = await self._request_json("POST", "/v1/projects", json_body=_coerce_body(body))
         return ProjectResponse.from_dict(_expect_object(payload, "project"))
+
+    async def pro_get_project(self, project_id: str) -> ProjectResponse:
+        """Async equivalent of :meth:`XbergClient.pro_get_project`."""
+        await self._require_tier("pro", "pro_get_project")
+        payload = await self._request_json("GET", f"/v1/projects/{_q(project_id)}")
+        return ProjectResponse.from_dict(_expect_object(payload, "project"))
+
+    async def pro_update_project(
+        self, project_id: str, body: ProUpdateProjectRequest | Mapping[str, Any]
+    ) -> ProjectResponse:
+        """Async equivalent of :meth:`XbergClient.pro_update_project`."""
+        await self._require_tier("pro", "pro_update_project")
+        payload = await self._request_json("PATCH", f"/v1/projects/{_q(project_id)}", json_body=_coerce_body(body))
+        return ProjectResponse.from_dict(_expect_object(payload, "project"))
+
+    async def pro_delete_project(self, project_id: str) -> None:
+        """Async equivalent of :meth:`XbergClient.pro_delete_project`."""
+        await self._require_tier("pro", "pro_delete_project")
+        await self._request_json("DELETE", f"/v1/projects/{_q(project_id)}")
+
+    async def get_project_extraction_config(self, project_id: str) -> ProjectExtractionConfigResponse:
+        """Async equivalent of :meth:`XbergClient.get_project_extraction_config`."""
+        await self._require_tier("enterprise", "get_project_extraction_config")
+        payload = await self._request_json(
+            "GET", f"/v1/projects/{_q(project_id)}/extraction-config", extra_headers={"X-Project-ID": project_id}
+        )
+        return ProjectExtractionConfigResponse.from_dict(_expect_object(payload, "project extraction config"))
+
+    async def set_project_extraction_config(
+        self, project_id: str, body: ExtractionConfig | Mapping[str, Any]
+    ) -> ProjectExtractionConfigResponse:
+        """Async equivalent of :meth:`XbergClient.set_project_extraction_config`."""
+        await self._require_tier("enterprise", "set_project_extraction_config")
+        payload = await self._request_json(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/extraction-config",
+            extra_headers={"X-Project-ID": project_id},
+            json_body=_coerce_body(body),
+        )
+        return ProjectExtractionConfigResponse.from_dict(_expect_object(payload, "project extraction config"))
+
+    async def clear_project_extraction_config(self, project_id: str) -> None:
+        """Async equivalent of :meth:`XbergClient.clear_project_extraction_config`."""
+        await self._require_tier("enterprise", "clear_project_extraction_config")
+        await self._request_json(
+            "DELETE", f"/v1/projects/{_q(project_id)}/extraction-config", extra_headers={"X-Project-ID": project_id}
+        )
 
     async def list_api_keys(
         self,
@@ -4272,6 +4400,38 @@ class AsyncXbergClient(_BaseClient):
         """Enterprise only: drop the caller's own grant on a data room (``POST /v1/rooms/{id}/leave``, 204)."""
         await self._require_tier("enterprise", "leave_room")
         await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/leave")
+
+    async def list_room_links(
+        self, room_id: str, *, limit: int | None = None, offset: int | None = None
+    ) -> ListRoomLinksResponse:
+        """Async equivalent of :meth:`XbergClient.list_room_links`."""
+        await self._require_tier("enterprise", "list_room_links")
+        payload = await self._request_json(
+            "GET", f"{_ROOMS_PATH}/{_q(room_id)}/links", params=_pagination(limit, offset)
+        )
+        return ListRoomLinksResponse.from_dict(_expect_object(payload, "room link list"))
+
+    async def create_room_link(self, room_id: str, body: CreateRoomLinkRequest | Mapping[str, Any]) -> RoomLinkResponse:
+        """Async equivalent of :meth:`XbergClient.create_room_link`."""
+        await self._require_tier("enterprise", "create_room_link")
+        payload = await self._request_json("POST", f"{_ROOMS_PATH}/{_q(room_id)}/links", json_body=_coerce_body(body))
+        return RoomLinkResponse.from_dict(_expect_object(payload, "room link"))
+
+    async def revoke_room_link(self, room_id: str, link_id: str) -> None:
+        """Async equivalent of :meth:`XbergClient.revoke_room_link`."""
+        await self._require_tier("enterprise", "revoke_room_link")
+        await self._request_json("DELETE", f"{_ROOMS_PATH}/{_q(room_id)}/links/{_q(link_id)}")
+
+    async def accept_room_link(
+        self, body: RoomAcceptInvitationRequest | Mapping[str, Any], *, session_token: str | None = None
+    ) -> AcceptedInvitationResponse:
+        """Async equivalent of :meth:`XbergClient.accept_room_link`."""
+        _check_session_token(session_token)
+        await self._require_tier("enterprise", "accept_room_link")
+        payload = await self._request_json(
+            "POST", "/v1/room-links/accept", json_body=_coerce_body(body), token=session_token
+        )
+        return AcceptedInvitationResponse.from_dict(_expect_object(payload, "accepted room link"))
 
     async def list_room_invitations(
         self, room_id: str, *, limit: int | None = None, offset: int | None = None

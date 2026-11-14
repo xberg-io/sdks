@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+from xberg_io_sdk._generated_api.models.accepted_invitation_response import AcceptedInvitationResponse
+from xberg_io_sdk._generated_api.models.create_room_link_request import CreateRoomLinkRequest
 from xberg_io_sdk._generated_api.models.extracted_document import ExtractedDocument
+from xberg_io_sdk._generated_api.models.extraction_config import ExtractionConfig
 from xberg_io_sdk._generated_api.models.extraction_job_response import ExtractionJobResponse
 from xberg_io_sdk._generated_api.models.extraction_options import ExtractionOptions
 from xberg_io_sdk._generated_api.models.file_extraction_config import FileExtractionConfig
 from xberg_io_sdk._generated_api.models.job_result import JobResult
 from xberg_io_sdk._generated_api.models.job_result_error import JobResultError
 from xberg_io_sdk._generated_api.models.job_status import JobStatus
+from xberg_io_sdk._generated_api.models.list_room_links_response import ListRoomLinksResponse
+from xberg_io_sdk._generated_api.models.project_extraction_config_response import ProjectExtractionConfigResponse
+from xberg_io_sdk._generated_api.models.room_accept_invitation_request import RoomAcceptInvitationRequest
+from xberg_io_sdk._generated_api.models.room_link_response import RoomLinkResponse
 from xberg_io_sdk._generated_pro.models.health_response import HealthResponse as ProHealthResponse
 from xberg_io_sdk._generated_pro.models.pro_integration_list_response import ProIntegrationListResponse
+from xberg_io_sdk._generated_pro.models.update_project_request import UpdateProjectRequest as ProUpdateProjectRequest
 from xberg_io_sdk.client import AsyncXbergClient, EnterpriseHealth, GetJobResponse, XbergClient
 from xberg_io_sdk.errors import (
     AuthError,
@@ -45,11 +53,14 @@ Job = ExtractionJobResponse
 __all__ = [
     "DEFAULT_WEBHOOK_TOLERANCE_SECONDS",
     "WEBHOOK_SIGNATURE_HEADER",
+    "AcceptedInvitationResponse",
     "AsyncXbergClient",
     "AuthError",
+    "CreateRoomLinkRequest",
     "DataRoomsDisabledError",
     "EnterpriseHealth",
     "ExtractedDocument",
+    "ExtractionConfig",
     "ExtractionJobResponse",
     "ExtractionOptions",
     "ExtractionResult",
@@ -62,14 +73,19 @@ __all__ = [
     "JobResultError",
     "JobStatus",
     "ListIntegrationsResponse",
+    "ListRoomLinksResponse",
     "NotFoundError",
     "PreconditionFailedError",
     "PreconditionRequiredError",
     "ProHealthResponse",
     "ProIntegrationListResponse",
+    "ProUpdateProjectRequest",
+    "ProjectExtractionConfigResponse",
     "RateLimitError",
     "RequestTimeoutError",
     "ResultExpiredError",
+    "RoomAcceptInvitationRequest",
+    "RoomLinkResponse",
     "ServerError",
     "TimeoutError",
     "ValidationError",

@@ -39,6 +39,7 @@ VERBS = ("get", "put", "post", "delete", "patch", "head", "options")
 # exactly the distinction that went missing when this list lived only in prose.
 DELIBERATE_EXCLUSIONS = {
     ("enterprise", "GET", "/readyz"): "infrastructure probe; /healthz is the tier probe",
+    ("pro", "GET", "/warmz"): "infrastructure probe for prefetching OCR models",
     ("pro", "GET", "/readyz"): "infrastructure probe; /healthz is the tier probe",
     ("pro", "GET", "/v1/oauth/callback"): "browser redirect target in Pro's login flow",
     ("pro", "DELETE", "/auth/account"): "Pro account erasure, deliberately console-only",

@@ -345,6 +345,31 @@ func (c *Client) TransferRoomOwnership(ctx context.Context, roomID string, body 
 	return c.roomSend(ctx, "TransferRoomOwnership", call, nil)
 }
 
+// ListRoomLinks lists a room's share links. Enterprise only.
+func (c *Client) ListRoomLinks(ctx context.Context, roomID string, limit, offset int) (*ListRoomLinksResponse, error) {
+	call := roomCall{method: methodGet, path: roomPath(roomID, "/links") + pageQuery(limit, offset)}
+	return roomJSON[ListRoomLinksResponse](ctx, c, "ListRoomLinks", call)
+}
+
+// CreateRoomLink creates a share link for a data room. Enterprise only.
+func (c *Client) CreateRoomLink(ctx context.Context, roomID string, body CreateRoomLinkRequest) (*RoomLinkResponse, error) {
+	call := roomCall{method: methodPost, path: roomPath(roomID, "/links"), body: body}
+	return roomJSON[RoomLinkResponse](ctx, c, "CreateRoomLink", call)
+}
+
+// RevokeRoomLink revokes a data room share link and its grants. Enterprise only.
+func (c *Client) RevokeRoomLink(ctx context.Context, roomID, linkID string) error {
+	call := roomCall{method: methodDelete, path: roomPath(roomID, "/links/"+escapePathSegment(linkID))}
+	return c.roomSend(ctx, "RevokeRoomLink", call, nil)
+}
+
+// AcceptRoomLink accepts a share link. Set the signed-in user's session as
+// the client credential using [WithAPIKey]. Enterprise only.
+func (c *Client) AcceptRoomLink(ctx context.Context, body RoomAcceptInvitationRequest) (*AcceptedInvitationResponse, error) {
+	call := roomCall{method: methodPost, path: "/v1/room-links/accept", body: body}
+	return roomJSON[AcceptedInvitationResponse](ctx, c, "AcceptRoomLink", call)
+}
+
 // ListRoomInvitations lists a room's invitations with status, role and expiry
 // (GET /v1/rooms/{roomID}/invitations, paginated); never their tokens. A
 // non-positive limit or offset is omitted from the query string. Enterprise

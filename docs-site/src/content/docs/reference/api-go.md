@@ -144,6 +144,10 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `RemoveRoomMember` | RemoveRoomMember removes a member's grant on a room (DELETE /v1/rooms/{roomID}/members/{userID}) |
 | `TransferRoomOwnership` | TransferRoomOwnership makes another member the room's owner (POST /v1/rooms/{roomID}/ownership) |
 | `LeaveRoom` | LeaveRoom removes the caller's own grant on a room (POST /v1/rooms/{roomID}/leave) |
+| `ListRoomLinks` | ListRoomLinks lists a room's share links |
+| `CreateRoomLink` | CreateRoomLink creates a share link for a data room |
+| `RevokeRoomLink` | RevokeRoomLink revokes a data room share link and its grants |
+| `AcceptRoomLink` | AcceptRoomLink accepts a share link |
 | `ListRoomInvitations` | ListRoomInvitations lists a room's invitations with status, role and expiry (GET /v1/rooms/{roomID}/invitations, paginated); never their tokens |
 | `CreateRoomInvitation` | CreateRoomInvitation invites an email address to a room with a role (POST /v1/rooms/{roomID}/invitations) |
 | `RevokeRoomInvitation` | RevokeRoomInvitation revokes a pending invitation (DELETE /v1/rooms/{roomID}/invitations/{invitationID}) |
@@ -155,6 +159,16 @@ Enterprise-only rooms, their items, members, invitations and publication, and th
 | `ListPublicRoomItems` | ListPublicRoomItems lists a published room's items in room order (GET /public/rooms/{slug}/items, paginated) without sending a credential |
 | `GetPublicRoomItemContent` | GetPublicRoomItemContent fetches the extraction result of a published room's item (GET /public/rooms/{slug}/items/{itemRef}/content) without sending a credential |
 | `DownloadPublicRoomItem` | DownloadPublicRoomItem returns the original bytes of a published room's item (GET /public/rooms/{slug}/items/{itemRef}/download) without sending a credential |
+
+## Project extraction defaults
+
+Read, replace or clear the extraction defaults used by Enterprise projects.
+
+| Method | Description |
+| --- | --- |
+| `GetProjectExtractionConfig` | GetProjectExtractionConfig reads a project's stored extraction defaults |
+| `SetProjectExtractionConfig` | SetProjectExtractionConfig replaces a project's stored extraction defaults |
+| `ClearProjectExtractionConfig` | ClearProjectExtractionConfig clears a project's stored extraction defaults |
 
 ## Enrich
 
@@ -186,6 +200,9 @@ Pro-only projects, keys and integrations.
 | --- | --- |
 | `ListProjects` | ListProjects lists the projects visible to the caller (GET /v1/projects, paginated) |
 | `CreateProject` | CreateProject creates a project (POST /v1/projects) |
+| `ProGetProject` | ProGetProject reads a live project visible to the caller |
+| `ProUpdateProject` | ProUpdateProject renames a project |
+| `ProDeleteProject` | ProDeleteProject soft-deletes a project and revokes its API keys |
 | `ListAPIKeys` | ListAPIKeys lists a project's API keys (GET /v1/projects/{projectID}/api-keys, paginated) |
 | `CreateAPIKey` | CreateAPIKey issues a new API key for a project (POST /v1/projects/{projectID}/api-keys) |
 | `RevokeAPIKey` | RevokeAPIKey revokes an API key (DELETE /v1/projects/{projectID}/api-keys/{keyID}) |

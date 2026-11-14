@@ -150,6 +150,12 @@ import type {
   PresetSummary,
   PresignUploadRequest,
   PresignUploadResponse,
+  CreateRoomLinkRequest,
+  ListRoomLinksResponse,
+  RoomLinkResponse,
+  ProjectExtractionConfigResponse,
+  ProUpdateProjectRequest,
+  ExtractionConfig,
   ProjectResponse,
   PromoteProfileRequest,
   RagConfigResponse,
@@ -1130,8 +1136,7 @@ export class XbergClient {
     const documentIds = prepareDocumentLineage(filenames, params.documentIds);
     if (documentIds.size > 0) await this.requireTier("enterprise", "extract document lineage");
     if (params.projectId !== undefined) await this.requireTier("pro", "projectId");
-    const projectHeader =
-      Object.keys(this.headers).find((name) => name.toLowerCase() === "x-project-id") ?? "X-Project-ID";
+    const projectHeader = this.projectHeaderName();
     const form = new FormData();
     // ~keep The Enterprise parser captures lineage when reading each file part.
     for (const [filename, documentId] of documentIds) form.append(`document_id-${filename}`, documentId);
@@ -1673,6 +1678,63 @@ export class XbergClient {
     return this.requestJson<ProjectResponse>("POST", "/v1/projects", { json: body });
   }
 
+  /** Pro only: read a live project visible to the caller. */
+  public async proGetProject(projectId: string): Promise<ProjectResponse> {
+    await this.requireTier("pro", "proGetProject");
+    return this.requestJson<ProjectResponse>("GET", this.projectPath(projectId));
+  }
+
+  /** Pro only: rename a project. */
+  public async proUpdateProject(projectId: string, body: ProUpdateProjectRequest): Promise<ProjectResponse> {
+    await this.requireTier("pro", "proUpdateProject");
+    return this.requestJson<ProjectResponse>("PATCH", this.projectPath(projectId), { json: body });
+  }
+
+  /** Pro only: soft-delete a project and revoke its API keys. */
+  public async proDeleteProject(projectId: string): Promise<void> {
+    await this.requireTier("pro", "proDeleteProject");
+    await this.requestJson("DELETE", this.projectPath(projectId));
+  }
+
+  /** Enterprise only: read the project's stored extraction defaults. */
+  public async getProjectExtractionConfig(projectId: string): Promise<ProjectExtractionConfigResponse> {
+    await this.requireTier("enterprise", "getProjectExtractionConfig");
+    const projectHeader = this.projectHeaderName();
+    return this.requestJson<ProjectExtractionConfigResponse>(
+      "GET",
+      `${this.projectPath(projectId)}/extraction-config`,
+      {
+        headers: { [projectHeader]: projectId },
+      },
+    );
+  }
+
+  /** Enterprise only: replace the project's stored extraction defaults. */
+  public async setProjectExtractionConfig(
+    projectId: string,
+    body: ExtractionConfig,
+  ): Promise<ProjectExtractionConfigResponse> {
+    await this.requireTier("enterprise", "setProjectExtractionConfig");
+    const projectHeader = this.projectHeaderName();
+    return this.requestJson<ProjectExtractionConfigResponse>(
+      "PUT",
+      `${this.projectPath(projectId)}/extraction-config`,
+      {
+        headers: { [projectHeader]: projectId },
+        json: body,
+      },
+    );
+  }
+
+  /** Enterprise only: clear the project's stored extraction defaults. */
+  public async clearProjectExtractionConfig(projectId: string): Promise<void> {
+    await this.requireTier("enterprise", "clearProjectExtractionConfig");
+    const projectHeader = this.projectHeaderName();
+    await this.requestJson("DELETE", `${this.projectPath(projectId)}/extraction-config`, {
+      headers: { [projectHeader]: projectId },
+    });
+  }
+
   /** Pro only: list a project's API keys (`GET /v1/projects/{projectId}/api-keys`). */
   public async listApiKeys(projectId: string, params: PaginationParams = {}): Promise<ListApiKeysResponse> {
     await this.requireTier("pro", "listApiKeys");
@@ -2113,6 +2175,41 @@ export class XbergClient {
     await this.requestJson("POST", `${this.roomPath(roomId)}/ownership`, { json: body });
   }
 
+  /** Enterprise only: list a data room's share links. */
+  public async listRoomLinks(roomId: string, params: PaginationParams = {}): Promise<ListRoomLinksResponse> {
+    await this.requireTier("enterprise", "listRoomLinks");
+    return this.requestJson<ListRoomLinksResponse>("GET", `${this.roomPath(roomId)}/links`, {
+      params: { limit: params.limit, offset: params.offset },
+    });
+  }
+
+  /** Enterprise only: create a share link for a data room. */
+  public async createRoomLink(roomId: string, body: CreateRoomLinkRequest): Promise<RoomLinkResponse> {
+    await this.requireTier("enterprise", "createRoomLink");
+    return this.requestJson<RoomLinkResponse>("POST", `${this.roomPath(roomId)}/links`, {
+      json: body,
+    });
+  }
+
+  /** Enterprise only: revoke a data room share link and its grants. */
+  public async revokeRoomLink(roomId: string, linkId: string): Promise<void> {
+    await this.requireTier("enterprise", "revokeRoomLink");
+    await this.requestJson("DELETE", `${this.roomPath(roomId)}/links/${encodePathSegment(linkId)}`);
+  }
+
+  /** Enterprise only: accept a share link with a signed-in user's session. */
+  public async acceptRoomLink(
+    body: RoomAcceptInvitationRequest,
+    options: RoomInvitationOptions = {},
+  ): Promise<AcceptedRoomInvitationResponse> {
+    const bearer = sessionBearer(options);
+    await this.requireTier("enterprise", "acceptRoomLink");
+    return this.requestJson<AcceptedRoomInvitationResponse>("POST", "/v1/room-links/accept", {
+      json: body,
+      ...bearer,
+    });
+  }
+
   /**
    * Enterprise only: list a room's invitations (`GET /v1/rooms/{id}/invitations`).
    * The answer never carries an invitation token.
@@ -2266,6 +2363,10 @@ export class XbergClient {
   private async jobScope(scope: JobScopeParams): Promise<QueryParams> {
     if (scope.projectId !== undefined) await this.requireTier("pro", "projectId");
     return { project_id: scope.projectId };
+  }
+
+  private projectHeaderName(): string {
+    return Object.keys(this.headers).find((name) => name.toLowerCase() === "x-project-id") ?? "X-Project-ID";
   }
 
   /** Build `/v1/projects/{projectId}` with the id percent-encoded. */

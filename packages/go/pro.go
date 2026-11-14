@@ -119,6 +119,38 @@ func (c *Client) CreateProject(ctx context.Context, body CreateProjectRequest) (
 	return &out, nil
 }
 
+// ProGetProject reads a live project visible to the caller. Pro only.
+func (c *Client) ProGetProject(ctx context.Context, projectID string) (*ProjectResponse, error) {
+	if err := c.requireTier(ctx, TargetPro, "ProGetProject"); err != nil {
+		return nil, err
+	}
+	var out ProjectResponse
+	if err := c.getJSON(ctx, projectPath(projectID, ""), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ProUpdateProject renames a project. Pro only.
+func (c *Client) ProUpdateProject(ctx context.Context, projectID string, body UpdateProjectRequest) (*ProjectResponse, error) {
+	if err := c.requireTier(ctx, TargetPro, "ProUpdateProject"); err != nil {
+		return nil, err
+	}
+	var out ProjectResponse
+	if err := c.callJSON(ctx, methodPatch, projectPath(projectID, ""), body, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ProDeleteProject soft-deletes a project and revokes its API keys. Pro only.
+func (c *Client) ProDeleteProject(ctx context.Context, projectID string) error {
+	if err := c.requireTier(ctx, TargetPro, "ProDeleteProject"); err != nil {
+		return err
+	}
+	return c.callJSON(ctx, methodDelete, projectPath(projectID, ""), nil, nil)
+}
+
 // -- API keys -----------------------------------------------------------------
 
 // ListAPIKeys lists a project's API keys

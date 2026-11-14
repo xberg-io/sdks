@@ -112,6 +112,10 @@ GROUPS: list[tuple[str, str, list[str]]] = [
             "remove_room_member",
             "transfer_room_ownership",
             "leave_room",
+            "list_room_links",
+            "create_room_link",
+            "revoke_room_link",
+            "accept_room_link",
             "list_room_invitations",
             "create_room_invitation",
             "revoke_room_invitation",
@@ -124,6 +128,11 @@ GROUPS: list[tuple[str, str, list[str]]] = [
             "get_public_room_item_content",
             "download_public_room_item",
         ],
+    ),
+    (
+        "Project extraction defaults",
+        "Read, replace or clear the extraction defaults used by Enterprise projects.",
+        ["get_project_extraction_config", "set_project_extraction_config", "clear_project_extraction_config"],
     ),
     ("Enrich", "Enterprise-only text enrichment.", ["submit_enrich", "get_enrich_status"]),
     (
@@ -144,6 +153,9 @@ GROUPS: list[tuple[str, str, list[str]]] = [
         [
             "list_projects",
             "create_project",
+            "pro_get_project",
+            "pro_update_project",
+            "pro_delete_project",
             "list_api_keys",
             "create_api_key",
             "revoke_api_key",

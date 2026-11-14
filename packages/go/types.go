@@ -14,6 +14,14 @@ import (
 // against the old exported name compiling. Prefer ExtractionJobResponse.
 type JobResponse = ExtractionJobResponse
 
+// DeleteProjectParams holds the optional erase flag for Enterprise project
+// deletion. ~keep The backend generator omits the parameter struct when Pro
+// declares the same operation ID, so preserve the exported type here.
+type DeleteProjectParams struct {
+	// Erase permanently removes the project's content.
+	Erase *bool `form:"erase,omitempty" json:"erase,omitempty"`
+}
+
 // terminalJobStatuses lists the statuses for which the server will produce no
 // further updates. WaitForJob polls until one of these is observed. The
 // [JobStatus] values are defined by the generated Enterprise schema set.
