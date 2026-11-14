@@ -10,8 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-14
+
+### Added
+
+- All three SDKs expose Pro project reads, renames and soft deletion.
+- All three SDKs expose Enterprise project extraction defaults and data-room
+  share-link creation, listing, revocation and acceptance.
+
 ### Changed
 
+- Regenerate client types from the Xberg Pro 0.5.0 and matching Enterprise OpenAPI specs.
 - Minimum supported versions raised: Go 1.27.
 - Python 3.11 is now the minimum supported version; Python 3.10 reached end of life.
 - Cover SDK shell wrappers, TypeScript schema generation, and committed Go package validation with offline Bats contracts;
@@ -564,7 +573,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All three packages generated from `services/api`'s public extraction OpenAPI spec.
 - Comprehensive test coverage: 53 tests (Python), 57 tests (TypeScript), ~44 tests (Go).
 
-[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/xberg-io/sdks/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/xberg-io/sdks/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/xberg-io/sdks/compare/v0.9.0...v0.10.0
 [0.8.0]: https://github.com/xberg-io/sdks/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/xberg-io/sdks/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xberg-io/sdks/compare/v0.5.0...v0.6.0
