@@ -31,6 +31,7 @@ jobs:
     env:
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      XBERG_ENTERPRISE_DIR: _xberg-enterprise
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
@@ -79,11 +80,11 @@ jobs:
           PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
         run: mise run spec:sync:resolve
 
-      - name: Checkout sibling xberg-enterprise
+      - name: Checkout xberg-enterprise
         uses: actions/checkout@v7
         with:
           repository: xberg-io/xberg-enterprise
-          path: _xberg-enterprise
+          path: ${{ env.XBERG_ENTERPRISE_DIR }}
           ref: ${{ steps.ref.outputs.ref }}
           token: ${{ steps.app-token.outputs.token }}
 
@@ -93,8 +94,6 @@ jobs:
 
       - name: Normalise all three upstream specs into the vendored copies
         run: mise run spec:fetch
-        env:
-          XBERG_ENTERPRISE_DIR: _xberg-enterprise
 
       - name: Install dependencies
         run: |
