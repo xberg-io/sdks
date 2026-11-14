@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 ROOT = Path(__file__).resolve().parents[2]
 GENERATED_GO = tuple(f"packages/go/generated_{name}.go" for name in ("api", "pro", "backend"))
 SETUP_MISE = "xberg-io/actions/setup-mise@"
-PATCHED_GO = "1.27.3"
+PATCHED_GO = "1.27.4"
 
 
 def setup_mise_tools(step: dict) -> set[str]:
@@ -17,7 +17,7 @@ def setup_mise_tools(step: dict) -> set[str]:
 
 
 def toml_value(path: str, key: str) -> str:
-    """The raw value of a top-level `key = ...` line; tomllib needs Python 3.11 and this suite runs on 3.10."""
+    """The raw value of a top-level `key = ...` line."""
     match = re.search(rf"^{re.escape(key)} = (.+)$", (ROOT / path).read_text(encoding="utf-8"), re.MULTILINE)
     assert match, f"{path} has no {key}"
     return match[1].strip()
