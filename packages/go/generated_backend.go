@@ -1963,13 +1963,6 @@ type UpdateMemberRoleRequest struct {
 	Role string `json:"role"`
 }
 
-// UpdateProjectRequest Request to update an existing project. Enterprise-only today (Pro has no
-// project-update endpoint).
-type UpdateProjectRequest struct {
-	// Name Updated project name.
-	Name *string `json:"name,omitempty"`
-}
-
 // UpdateProjectRoleRequest defines model for UpdateProjectRoleRequest.
 type UpdateProjectRoleRequest struct {
 	Description *string             `json:"description,omitempty"`
@@ -2116,6 +2109,12 @@ type WebhookTestResponse struct {
 	Success bool `json:"success"`
 }
 
+// SamlLoginParams defines parameters for SamlLogin.
+type SamlLoginParams struct {
+	Email    string  `form:"email" json:"email"`
+	Redirect *string `form:"redirect,omitempty" json:"redirect,omitempty"`
+}
+
 // ListScimGroupsParams defines parameters for ListScimGroups.
 type ListScimGroupsParams struct {
 	// Filter SCIM equality filter
@@ -2138,17 +2137,6 @@ type ListScimUsersParams struct {
 
 	// Count Maximum results to return
 	Count *int64 `form:"count,omitempty" json:"count,omitempty"`
-}
-
-// DeleteProjectParams defines parameters for DeleteProject.
-type DeleteProjectParams struct {
-	// Erase Erase the project's content, not only its rows.
-	//
-	// Without it the delete is what this route has always done: the rows are
-	// tombstoned and the caches are purged. With `erase=true` the stored
-	// documents, the cached results, the vector chunks and the retrieval
-	// audit rows go as well, and none of it comes back.
-	Erase *bool `form:"erase,omitempty" json:"erase,omitempty"`
 }
 
 // GetAnalyticsParams defines parameters for GetAnalytics.
@@ -2262,9 +2250,6 @@ type IssueScimTokenFormdataRequestBody = ScimTokenRequest
 
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
 type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
-
-// UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
-type UpdateProjectJSONRequestBody = UpdateProjectRequest
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody = CreateInvitationRequest

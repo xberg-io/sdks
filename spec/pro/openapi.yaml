@@ -2792,6 +2792,294 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{project_id}:
+    get:
+      tags:
+        - projects
+      description: Read a live project visible to its owner, member or configured administrator.
+      operationId: get_project
+      parameters:
+        - name: project_id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        "400":
+          description: Invalid project ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Persistence error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+    delete:
+      tags:
+        - projects
+      description: Soft-delete a project and revoke its API keys atomically, retaining document bytes.
+      operationId: delete_project
+      parameters:
+        - name: project_id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Project soft-deleted and credentials revoked
+        "400":
+          description: Invalid project ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project ownership required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Project holds the configured administrator key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Audited operation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+    patch:
+      tags:
+        - projects
+      description: Rename a project as owner or configured administrator, preserving its slug, limits and metadata.
+      operationId: update_project
+      parameters:
+        - name: project_id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+        required: true
+      responses:
+        "200":
+          description: Project renamed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        "400":
+          description: Invalid project ID or name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project ownership required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Audited operation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{project_id}/api-keys:
     get:
       tags:
@@ -7215,6 +7503,39 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /warmz:
+    get:
+      tags:
+        - health
+      summary: Check whether the service has warmed up.
+      description: |-
+        Runs the same checks as `GET /readyz`, with one difference: on a fenced
+        deployment it does not require the generation to be admitted yet. A new
+        generation answers `200` here while it waits for admission, and `GET
+        /readyz` answers `200` only after admission. Unauthenticated: intended for
+        a container orchestrator's startup probe, not for API clients.
+      operationId: warmz
+      responses:
+        "200":
+          description: Service has warmed up
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        "503":
+          description: A dependency or the deployment is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - {}
 components:
   schemas:
     AnnotationKind:
@@ -9700,6 +10021,13 @@ components:
             Stored and returned verbatim, but **not applied at extraction time** —
             see `preferred_call_mode`. Results produced from a saved preset carry no
             citations regardless of this value. Defaults to `true` when omitted.
+        extraction_config:
+          type:
+            - object
+            - "null"
+          description: |-
+            Enterprise extraction settings applied beneath request and per-file options.
+            Supply LLM credentials, provider URLs, and PDF passwords with each extraction request. Pro rejects this field.
         name:
           type: string
           description: |-
@@ -12933,14 +13261,21 @@ components:
           description: |-
             Target DPI for the image (300 is standard, 600 for small text).
 
-            For a PDF page, this resamples the already-rendered raster; it does not make the page
-            re-render at a higher native resolution. A value above what
-            `image::preprocessing::calculate_target_dpi`'s memory/dimension clamp allows is
-            silently capped (GH#1786: 400 and 600 both clamped to the same ~372 on a Letter page
-            and produced byte-identical output), so upscaling interpolated pixels this way adds no
-            detail. To change the actual PDF render resolution, set `images.target_dpi` on
-            `ExtractionConfig` instead
-            (`image::dpi::effective_pdf_render_dpi`).
+            Forced whole-document PDF OCR with the registered built-in Tesseract backend renders
+            native page content at this density before normalization when a preprocessing block
+            is configured and this value exceeds 150. This includes the synthesized classical
+            pipeline and a block that only sets another option: omitted `target_dpi` defaults to 300.
+            Without a preprocessing block, the default PDF render remains 150 DPI.
+
+            Explicit `images` settings and detected full-page scan density take precedence.
+            Selected-page OCR, prepared rasters, custom backends, explicit OCR pipelines and VLM
+            fallback retain their source-render policy. Mixed native-and-OCR routes likewise keep
+            the source render while layout detection is active or a hidden text layer is being
+            probed. Existing raster memory and dimension limits can cap both rendering and
+            normalization; increasing this value cannot recover detail from a supplied raster. Set
+            `images.target_dpi` on
+            `ExtractionConfig` to configure PDF rendering
+            independently of preprocessing.
           default: 300
       additionalProperties: false
     ImagePreprocessingMetadata:
@@ -13641,6 +13976,24 @@ components:
             - "null"
           format: float
           description: Confidence threshold override
+        formula_model:
+          type:
+            - string
+            - "null"
+          description: |-
+            Formula recognition model: "latex_ocr" turns each region that layout
+            detection marks as a formula into LaTeX. When omitted, a formula region
+            keeps its plain text. On a native PDF page this needs `native_pdf`.
+        native_pdf:
+          type:
+            - boolean
+            - "null"
+          description: |-
+            Also run layout detection on the text layer of native PDF pages, not
+            only on the pages that go through OCR. The layout regions then inform
+            the reading order, the region grouping and the table detection of those
+            pages. Off when omitted. It has no
+            effect when `force_ocr` is set, because every page then goes through OCR.
         preset:
           type:
             - string
@@ -17762,6 +18115,11 @@ components:
             Stored and returned verbatim, but **not applied at extraction time** —
             see `preferred_call_mode`. Results produced from a saved preset carry no
             citations regardless of this value.
+        extraction_config:
+          type:
+            - object
+            - "null"
+          description: Stored Enterprise extraction settings, when present.
         id:
           type: string
           format: uuid
@@ -18055,11 +18413,11 @@ components:
           items:
             type: string
           description: |-
-            Header cells for this fragment, i.e. the first row of `cells`.
+            Declared column header labels for this fragment.
 
-            Populated even when this fragment's own header row was merged away or
-            physically lives in a sibling fragment (see `table_id`), so a single
-            fragment is interpretable in isolation. `None` when no header row
+            These may describe the first row of `cells` or be inherited from a sibling
+            fragment (see `table_id`) whose header row is absent here, so a single
+            fragment is interpretable in isolation. `None` when no column headers
             could be determined.
         markdown:
           type: string
@@ -18587,6 +18945,15 @@ components:
         name:
           type: string
           description: Tuning profile name.
+    UpdateProjectRequest:
+      type: object
+      description: Request to rename an existing project.
+      properties:
+        name:
+          type:
+            - string
+            - "null"
+          description: Updated project name.
     UpdateSavedPresetRequest:
       type: object
       description: Request to update a saved preset.
@@ -18609,6 +18976,11 @@ components:
             Stored and returned verbatim, but **not applied at extraction time** —
             see `preferred_call_mode`. Results produced from a saved preset carry no
             citations regardless of this value.
+        extraction_config:
+          type:
+            - object
+            - "null"
+          description: Replace the Enterprise extraction settings, or send null to clear them. Omission preserves them. Pro rejects this field.
         name:
           type: string
           description: |-

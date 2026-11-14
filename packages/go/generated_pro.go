@@ -1073,6 +1073,9 @@ type ProUpdateSavedPresetRequest struct {
 	// citations regardless of this value.
 	EmitCitations *bool `json:"emit_citations,omitempty"`
 
+	// ExtractionConfig Replace the Enterprise extraction settings, or send null to clear them. Omission preserves them. Pro rejects this field.
+	ExtractionConfig *map[string]interface{} `json:"extraction_config,omitempty"`
+
 	// Name Preset name. Trimmed before storage; a name that is entirely
 	// whitespace is rejected once trimmed.
 	Name *string `json:"name,omitempty"`
@@ -1192,6 +1195,12 @@ type SetRagConfigRequest struct {
 	Enabled bool `json:"enabled"`
 }
 
+// UpdateProjectRequest Request to rename an existing project.
+type UpdateProjectRequest struct {
+	// Name Updated project name.
+	Name *string `json:"name,omitempty"`
+}
+
 // UserInfo User information in the login response.
 type UserInfo struct {
 	// DefaultProjectId The user's active project id.
@@ -1275,6 +1284,9 @@ type LoginJSONRequestBody = LoginRequest
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = CreateProjectRequest
+
+// UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
+type UpdateProjectJSONRequestBody = UpdateProjectRequest
 
 // CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
 type CreateApiKeyJSONRequestBody = CreateApiKeyRequest

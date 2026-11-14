@@ -3116,6 +3116,9 @@ const (
 	ApiKeyRevoke              ListAuditEntriesParamsAction = "api_key.revoke"
 	AuthFailure               ListAuditEntriesParamsAction = "auth.failure"
 	AuthLogin                 ListAuditEntriesParamsAction = "auth.login"
+	AutoTuneDelete            ListAuditEntriesParamsAction = "auto_tune.delete"
+	AutoTuneStart             ListAuditEntriesParamsAction = "auto_tune.start"
+	AutoTuneStop              ListAuditEntriesParamsAction = "auto_tune.stop"
 	CrawlSubmit               ListAuditEntriesParamsAction = "crawl.submit"
 	DataRoomCreate            ListAuditEntriesParamsAction = "data_room.create"
 	DataRoomDelete            ListAuditEntriesParamsAction = "data_room.delete"
@@ -3143,6 +3146,7 @@ const (
 	DbIntegrationsDelete      ListAuditEntriesParamsAction = "db.integrations.delete"
 	DbIntegrationsInsert      ListAuditEntriesParamsAction = "db.integrations.insert"
 	DbOauthConnectionsUpdate  ListAuditEntriesParamsAction = "db.oauth_connections.update"
+	EnrichSubmit              ListAuditEntriesParamsAction = "enrich.submit"
 	IntegrationCreate         ListAuditEntriesParamsAction = "integration.create"
 	IntegrationDelete         ListAuditEntriesParamsAction = "integration.delete"
 	IntegrationDisconnect     ListAuditEntriesParamsAction = "integration.disconnect"
@@ -3163,13 +3167,18 @@ const (
 	ProjectRoleCreate         ListAuditEntriesParamsAction = "project_role.create"
 	ProjectRoleDelete         ListAuditEntriesParamsAction = "project_role.delete"
 	ProjectRoleUpdate         ListAuditEntriesParamsAction = "project_role.update"
+	ProjectUpdate             ListAuditEntriesParamsAction = "project.update"
 	RagCollectionCreate       ListAuditEntriesParamsAction = "rag_collection.create"
 	RagCollectionDelete       ListAuditEntriesParamsAction = "rag_collection.delete"
 	RagCollectionMigrate      ListAuditEntriesParamsAction = "rag_collection.migrate"
 	RagDocumentDelete         ListAuditEntriesParamsAction = "rag_document.delete"
+	RagDocumentIngest         ListAuditEntriesParamsAction = "rag_document.ingest"
+	RagDocumentReindex        ListAuditEntriesParamsAction = "rag_document.reindex"
 	ScimConnectionCreate      ListAuditEntriesParamsAction = "scim.connection.create"
 	ScimConnectionRotate      ListAuditEntriesParamsAction = "scim.connection.rotate"
 	ScimGroupRolesReplace     ListAuditEntriesParamsAction = "scim.group_roles.replace"
+	TuningProfileDelete       ListAuditEntriesParamsAction = "tuning_profile.delete"
+	TuningProfilePromote      ListAuditEntriesParamsAction = "tuning_profile.promote"
 	WebhookCreate             ListAuditEntriesParamsAction = "webhook.create"
 	WebhookDelete             ListAuditEntriesParamsAction = "webhook.delete"
 )
@@ -3186,6 +3195,12 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 	case AuthFailure:
 		return true
 	case AuthLogin:
+		return true
+	case AutoTuneDelete:
+		return true
+	case AutoTuneStart:
+		return true
+	case AutoTuneStop:
 		return true
 	case CrawlSubmit:
 		return true
@@ -3241,6 +3256,8 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 		return true
 	case DbOauthConnectionsUpdate:
 		return true
+	case EnrichSubmit:
+		return true
 	case IntegrationCreate:
 		return true
 	case IntegrationDelete:
@@ -3281,6 +3298,8 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 		return true
 	case ProjectRoleUpdate:
 		return true
+	case ProjectUpdate:
+		return true
 	case RagCollectionCreate:
 		return true
 	case RagCollectionDelete:
@@ -3289,11 +3308,19 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 		return true
 	case RagDocumentDelete:
 		return true
+	case RagDocumentIngest:
+		return true
+	case RagDocumentReindex:
+		return true
 	case ScimConnectionCreate:
 		return true
 	case ScimConnectionRotate:
 		return true
 	case ScimGroupRolesReplace:
+		return true
+	case TuningProfileDelete:
+		return true
+	case TuningProfilePromote:
 		return true
 	case WebhookCreate:
 		return true
@@ -4323,7 +4350,13 @@ type CrawlConfig struct {
 	// AllowSubdomains Allow subdomains of the seed domain (default: true)
 	AllowSubdomains *bool `json:"allow_subdomains,omitempty"`
 
-	// AllowedFileTypes MIME types of documents to extract (default: all supported by xberg)
+	// AllowedFileTypes MIME types of documents to extract (default: all supported by xberg).
+	//
+	// Each entry is one full type, such as `application/pdf`, or a wildcard. `image/*` names
+	// every supported image type. `*/*` names every supported type and keeps every
+	// downloaded document. A parameter such as `; charset=utf-8` is ignored. The request
+	// fails with 400 and names this field and the first entry when an entry matches no
+	// supported type, for example `image/`, `foo/bar`, `*/pdf`, or two types in one entry.
 	AllowedFileTypes *[]string `json:"allowed_file_types,omitempty"`
 
 	// Browser Browser rendering is unavailable pending connect-time DNS pinning.
@@ -4831,6 +4864,15 @@ type CreateDocumentSourceText struct {
 // CreateDocumentSourceTextKind defines model for CreateDocumentSourceText.Kind.
 type CreateDocumentSourceTextKind string
 
+// CreateRoomLinkRequest defines model for CreateRoomLinkRequest.
+type CreateRoomLinkRequest struct {
+	// ExpiresAt When the link stops opening the room. Without it the link works until it is revoked.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Role The presets a room owner may give. Ownership moves by transfer, never by invitation or role change.
+	Role GrantableRole `json:"role"`
+}
+
 // CreateRoomRequest defines model for CreateRoomRequest.
 type CreateRoomRequest struct {
 	Description *string `json:"description,omitempty"`
@@ -4851,6 +4893,10 @@ type CreateSavedPresetRequest struct {
 	// see `preferred_call_mode`. Results produced from a saved preset carry no
 	// citations regardless of this value. Defaults to `true` when omitted.
 	EmitCitations *bool `json:"emit_citations,omitempty"`
+
+	// ExtractionConfig Enterprise extraction settings applied beneath request and per-file options.
+	// Supply LLM credentials, provider URLs, and PDF passwords with each extraction request. Pro rejects this field.
+	ExtractionConfig *map[string]interface{} `json:"extraction_config,omitempty"`
 
 	// Name Preset name (must be unique per project). Trimmed before storage; a
 	// name that is entirely whitespace is rejected once trimmed.
@@ -7235,14 +7281,21 @@ type ImagePreprocessingConfig struct {
 
 	// TargetDpi Target DPI for the image (300 is standard, 600 for small text).
 	//
-	// For a PDF page, this resamples the already-rendered raster; it does not make the page
-	// re-render at a higher native resolution. A value above what
-	// `image::preprocessing::calculate_target_dpi`'s memory/dimension clamp allows is
-	// silently capped (GH#1786: 400 and 600 both clamped to the same ~372 on a Letter page
-	// and produced byte-identical output), so upscaling interpolated pixels this way adds no
-	// detail. To change the actual PDF render resolution, set `images.target_dpi` on
-	// `ExtractionConfig` instead
-	// (`image::dpi::effective_pdf_render_dpi`).
+	// Forced whole-document PDF OCR with the registered built-in Tesseract backend renders
+	// native page content at this density before normalization when a preprocessing block
+	// is configured and this value exceeds 150. This includes the synthesized classical
+	// pipeline and a block that only sets another option: omitted `target_dpi` defaults to 300.
+	// Without a preprocessing block, the default PDF render remains 150 DPI.
+	//
+	// Explicit `images` settings and detected full-page scan density take precedence.
+	// Selected-page OCR, prepared rasters, custom backends, explicit OCR pipelines and VLM
+	// fallback retain their source-render policy. Mixed native-and-OCR routes likewise keep
+	// the source render while layout detection is active or a hidden text layer is being
+	// probed. Existing raster memory and dimension limits can cap both rendering and
+	// normalization; increasing this value cannot recover detail from a supplied raster. Set
+	// `images.target_dpi` on
+	// `ExtractionConfig` to configure PDF rendering
+	// independently of preprocessing.
 	TargetDpi *int32 `json:"target_dpi,omitempty"`
 }
 
@@ -7720,6 +7773,18 @@ type LayoutDetectionConfig struct {
 	// ConfidenceThreshold Confidence threshold override
 	ConfidenceThreshold *float32 `json:"confidence_threshold,omitempty"`
 
+	// FormulaModel Formula recognition model: "latex_ocr" turns each region that layout
+	// detection marks as a formula into LaTeX. When omitted, a formula region
+	// keeps its plain text. On a native PDF page this needs `native_pdf`.
+	FormulaModel *string `json:"formula_model,omitempty"`
+
+	// NativePdf Also run layout detection on the text layer of native PDF pages, not
+	// only on the pages that go through OCR. The layout regions then inform
+	// the reading order, the region grouping and the table detection of those
+	// pages. Off when omitted. It has no
+	// effect when `force_ocr` is set, because every page then goes through OCR.
+	NativePdf *bool `json:"native_pdf,omitempty"`
+
 	// Preset Layout presets are unavailable. xberg's `LayoutDetectionConfig` has no
 	// preset concept, and the wire config has no field to carry one, so a
 	// value here reached nothing. Omit this field; setting it returns HTTP 400.
@@ -7903,6 +7968,14 @@ type ListRoomInvitationsResponse struct {
 	Limit       int64                    `json:"limit"`
 	Offset      int64                    `json:"offset"`
 	Total       int64                    `json:"total"`
+}
+
+// ListRoomLinksResponse defines model for ListRoomLinksResponse.
+type ListRoomLinksResponse struct {
+	Limit  int64              `json:"limit"`
+	Links  []RoomLinkResponse `json:"links"`
+	Offset int64              `json:"offset"`
+	Total  int64              `json:"total"`
 }
 
 // ListRoomMembersResponse defines model for ListRoomMembersResponse.
@@ -9658,6 +9731,11 @@ type ProjectDocumentEntry struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// ProjectExtractionConfigResponse defines model for ProjectExtractionConfigResponse.
+type ProjectExtractionConfigResponse struct {
+	ExtractionConfig *ExtractionConfig `json:"extraction_config"`
+}
+
 // PromoteProfileRequest Request to promote a completed auto-tune result to a named, reusable
 // tuning profile.
 type PromoteProfileRequest struct {
@@ -10278,6 +10356,23 @@ type RoomItemResponse struct {
 	UpdatedAt  time.Time          `json:"updated_at"`
 }
 
+// RoomLinkResponse defines model for RoomLinkResponse.
+type RoomLinkResponse struct {
+	CreatedAt time.Time          `json:"created_at"`
+	CreatedBy string             `json:"created_by"`
+	ExpiresAt *time.Time         `json:"expires_at,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	RevokedAt *time.Time         `json:"revoked_at,omitempty"`
+	Role      string             `json:"role"`
+	RoleName  string             `json:"role_name"`
+
+	// Status `ACTIVE`, `EXPIRED` or `REVOKED`.
+	Status string `json:"status"`
+
+	// Token Present on the create answer only. The service keeps no copy, so a lost token means a new link.
+	Token *string `json:"token,omitempty"`
+}
+
 // RoomMemberResponse defines model for RoomMemberResponse.
 type RoomMemberResponse struct {
 	AddedBy     string    `json:"added_by"`
@@ -10378,6 +10473,9 @@ type SavedPresetDetail struct {
 	// see `preferred_call_mode`. Results produced from a saved preset carry no
 	// citations regardless of this value.
 	EmitCitations bool `json:"emit_citations"`
+
+	// ExtractionConfig Stored Enterprise extraction settings, when present.
+	ExtractionConfig *map[string]interface{} `json:"extraction_config,omitempty"`
 
 	// Id Unique preset ID.
 	Id openapi_types.UUID `json:"id"`
@@ -10631,11 +10729,11 @@ type Table struct {
 	// Cells Table cells as a 2D vector (rows × columns)
 	Cells [][]string `json:"cells"`
 
-	// Columns Header cells for this fragment, i.e. the first row of `cells`.
+	// Columns Declared column header labels for this fragment.
 	//
-	// Populated even when this fragment's own header row was merged away or
-	// physically lives in a sibling fragment (see `table_id`), so a single
-	// fragment is interpretable in isolation. `None` when no header row
+	// These may describe the first row of `cells` or be inherited from a sibling
+	// fragment (see `table_id`) whose header row is absent here, so a single
+	// fragment is interpretable in isolation. `None` when no column headers
 	// could be determined.
 	Columns *[]string `json:"columns,omitempty"`
 
@@ -11010,6 +11108,9 @@ type UpdateSavedPresetRequest struct {
 	// see `preferred_call_mode`. Results produced from a saved preset carry no
 	// citations regardless of this value.
 	EmitCitations *bool `json:"emit_citations,omitempty"`
+
+	// ExtractionConfig Replace the Enterprise extraction settings, or send null to clear them. Omission preserves them. Pro rejects this field.
+	ExtractionConfig *map[string]interface{} `json:"extraction_config,omitempty"`
 
 	// Name Preset name. Trimmed before storage; a name that is entirely
 	// whitespace is rejected once trimmed.
@@ -11467,6 +11568,24 @@ type GetJobResultParams struct {
 	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
+// ClearProjectExtractionConfigParams defines parameters for ClearProjectExtractionConfig.
+type ClearProjectExtractionConfigParams struct {
+	// XProjectID Selected project for an authenticated session
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
+}
+
+// GetProjectExtractionConfigParams defines parameters for GetProjectExtractionConfig.
+type GetProjectExtractionConfigParams struct {
+	// XProjectID Selected project for an authenticated session
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
+}
+
+// SetProjectExtractionConfigParams defines parameters for SetProjectExtractionConfig.
+type SetProjectExtractionConfigParams struct {
+	// XProjectID Selected project for an authenticated session
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
+}
+
 // ListCollectionsParams defines parameters for ListCollections.
 type ListCollectionsParams struct {
 	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
@@ -11505,6 +11624,12 @@ type ListRoomItemsParams struct {
 type ReorderRoomItemsParams struct {
 	// IfMatch The room version the caller read, quoted or bare
 	IfMatch string `json:"If-Match"`
+}
+
+// ListRoomLinksParams defines parameters for ListRoomLinks.
+type ListRoomLinksParams struct {
+	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // ListRoomMembersParams defines parameters for ListRoomMembers.
@@ -11585,6 +11710,9 @@ type ExtractJSONRequestBody = ExtractRequest
 // ExtractMultipartRequestBody defines body for Extract for multipart/form-data ContentType.
 type ExtractMultipartRequestBody = ExtractMultipartForm
 
+// SetProjectExtractionConfigJSONRequestBody defines body for SetProjectExtractionConfig for application/json ContentType.
+type SetProjectExtractionConfigJSONRequestBody = ExtractionConfig
+
 // CreateCollectionJSONRequestBody defines body for CreateCollection for application/json ContentType.
 type CreateCollectionJSONRequestBody = CreateCollectionRequest
 
@@ -11609,6 +11737,9 @@ type AcceptRoomInvitationJSONRequestBody = RoomAcceptInvitationRequest
 // PreviewRoomInvitationJSONRequestBody defines body for PreviewRoomInvitation for application/json ContentType.
 type PreviewRoomInvitationJSONRequestBody = RoomAcceptInvitationRequest
 
+// AcceptRoomLinkJSONRequestBody defines body for AcceptRoomLink for application/json ContentType.
+type AcceptRoomLinkJSONRequestBody = RoomAcceptInvitationRequest
+
 // CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
 type CreateRoomJSONRequestBody = CreateRoomRequest
 
@@ -11623,6 +11754,9 @@ type AddRoomItemJSONRequestBody = AddItemRequest
 
 // ReorderRoomItemsJSONRequestBody defines body for ReorderRoomItems for application/json ContentType.
 type ReorderRoomItemsJSONRequestBody = ReorderItemsRequest
+
+// CreateRoomLinkJSONRequestBody defines body for CreateRoomLink for application/json ContentType.
+type CreateRoomLinkJSONRequestBody = CreateRoomLinkRequest
 
 // AddRoomMemberJSONRequestBody defines body for AddRoomMember for application/json ContentType.
 type AddRoomMemberJSONRequestBody = AddMemberRequest
