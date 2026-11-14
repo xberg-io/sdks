@@ -20,7 +20,14 @@ emit() {
 }
 
 resolve() {
-  local ref="${PAYLOAD_REF:-development}" version="${PAYLOAD_VERSION:-latest}"
+  local ref="${PAYLOAD_REF:-development}" version="${PAYLOAD_VERSION:-}"
+  if [[ -z "$version" ]]; then
+    if [[ "$ref" =~ ^pro-v[0-9]+\.[0-9]+\.[0-9]+([-+][A-Za-z0-9.+-]+)?$ ]]; then
+      version="${ref#pro-v}"
+    else
+      version=latest
+    fi
+  fi
   [[ "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$ref" != *..* ]] || fail "invalid ref '$ref'"
   [[ "$version" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]*$ ]] || fail "invalid version '$version'"
   emit ref "$ref"

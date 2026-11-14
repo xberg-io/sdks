@@ -16,6 +16,12 @@ setup() {
   xberg_assert_github_output "$(printf '%s\n' ref=pro-v0.4.3 version=0.4.3 branch=chore/spec-sync-pro-v0-4-3)"
 }
 
+@test "resolve derives the release version for a manual Pro tag sync" {
+  run env -u PAYLOAD_VERSION PAYLOAD_REF=pro-v0.5.0 "$SCRIPT" resolve
+  xberg_assert_status 0
+  xberg_assert_github_output "$(printf '%s\n' ref=pro-v0.5.0 version=0.5.0 branch=chore/spec-sync-pro-v0-5-0)"
+}
+
 @test "resolve keeps refs with a slash on one branch segment" {
   PAYLOAD_REF=release/0.10 run "$SCRIPT" resolve
   xberg_assert_status 0

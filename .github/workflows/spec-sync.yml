@@ -11,6 +11,11 @@ on:
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: "Upstream Pro release tag (pro-vX.Y.Z). Leave blank to sync development."
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -76,7 +81,7 @@ jobs:
         # A release dispatch still wins via client_payload.ref. ~keep
         id: ref
         env:
-          PAYLOAD_REF: ${{ github.event.client_payload.ref }}
+          PAYLOAD_REF: ${{ github.event.client_payload.ref || inputs.upstream_tag }}
           PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
         run: mise run spec:sync:resolve
 
