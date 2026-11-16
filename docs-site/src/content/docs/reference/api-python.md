@@ -319,12 +319,21 @@ Pro-only session and configuration reads.
 
 | Method | Description |
 | --- | --- |
+| `backend_create_role_bound_api_key` | Enterprise backend: create an API key scoped to a project role. |
+| `bind_integration_rag_target` | Pro only: permanently bind an S3 integration to a managed RAG collection. |
 | `get_integration_sync` | Pro only: read durable synchronization state for an integration. |
+| `get_job_page_inventory` | Pro only: list stored one-based page image numbers for an extraction job. |
 | `get_license_info` | Pro only: report the instance's license state and entitlements (``GET /v1/license``). |
+| `get_saml_connection_test_status` | Enterprise backend: fetch the status of an unexpired SAML connection test. |
 | `get_subscription_delivery` | Enterprise only: read one delivery's payload previews (``GET /v1/webhooks/{id}/deliveries/{delivery_id}``). |
 | `get_webhook_delivery` | Enterprise backend: Fetch bounded payload previews for one retained managed attempt. (``GET /v1/projects/{id}/webhooks/{wh_id}/deliveries/{delivery_id}``). |
 | `list_managed_embedding_presets` | List the curated embedding presets a RAG collection may name (``GET /v1/rag/embedding-presets``). |
+| `list_rag_documents` | List live collection documents. Pass the previous page's cursor to continue. |
 | `list_subscription_deliveries` | Enterprise only: list a subscription's delivery attempts (``GET /v1/webhooks/{id}/deliveries``). |
 | `put_local_upload` | Pro only: write document bytes against a presigned capability (``PUT /v1/uploads/local/{project_id}/{token}``, 204). |
+| `revoke_scim_connection` | Enterprise backend: revoke SCIM credentials and tokens without changing provisioned members. |
 | `set_integration_sync` | Pro only: enable or disable durable synchronization for an integration. |
+| `set_room_link_access` | Enterprise only: update share-link access using the version from the link list. |
+| `start_saml_connection_test` | Enterprise backend: start a SAML connection test without authorizing a login. |
 | `stop_auto_tune_job` | Stop a running auto-tune job, keeping its artifacts (``POST /v1/auto-tune/{id}/stop``, 204). |
+| `update_saml_attribute_mapping` | Enterprise backend: replace a SAML provider's claim mapping. |

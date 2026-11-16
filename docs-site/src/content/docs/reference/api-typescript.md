@@ -319,12 +319,21 @@ Pro-only session and configuration reads.
 
 | Method | Description |
 | --- | --- |
+| `backendCreateRoleBoundApiKey` |  |
+| `bindIntegrationRagTarget` |  |
 | `getIntegrationSync` |  |
+| `getJobPageInventory` |  |
 | `getLicenseInfo` | Pro only: read the running instance's license detail (`GET /v1/license`) — |
+| `getSamlConnectionTestStatus` |  |
 | `getSubscriptionDelivery` | Enterprise only: fetch one delivery attempt with its bounded request and |
 | `getWebhookDelivery` |  |
 | `listManagedEmbeddingPresets` | List the managed embedding presets this server build ships |
+| `listRagDocuments` |  |
 | `listSubscriptionDeliveries` | Enterprise only: list a webhook subscription's delivery attempts |
 | `putLocalUpload` | Pro only: upload a document's bytes against a presigned local capability |
+| `revokeScimConnection` |  |
 | `setIntegrationSync` |  |
+| `setRoomLinkAccess` |  |
+| `startSamlConnectionTest` |  |
 | `stopAutoTuneJob` | Stop a running auto-tune job (`POST /v1/auto-tune/{id}/stop`). |
+| `updateSamlAttributeMapping` |  |
