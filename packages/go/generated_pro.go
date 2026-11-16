@@ -133,8 +133,17 @@ type ApiKeyResponse struct {
 	// RevokedAt Optional revocation timestamp in ISO 8601 format.
 	RevokedAt *string `json:"revoked_at,omitempty"`
 
+	// RoleBinding Present for Enterprise role-bound keys, including inactive bindings.
+	RoleBinding *ApiKeyRoleBinding `json:"role_binding,omitempty"`
+
 	// Scope What the key may do: `read` or `write`.
 	Scope ApiKeyScope `json:"scope"`
+}
+
+// ApiKeyRoleBinding Role ceiling on an Enterprise API key.
+type ApiKeyRoleBinding struct {
+	// RoleId The current role ID. Null means the role was deleted and the key is inactive.
+	RoleId *openapi_types.UUID `json:"role_id,omitempty"`
 }
 
 // ApiKeyScope What an API key may do.
@@ -170,6 +179,12 @@ type AuthMode string
 type BeginOAuthResponse struct {
 	// AuthorizeUrl Provider authorization URL to send the user to.
 	AuthorizeUrl string `json:"authorize_url"`
+}
+
+// BindIntegrationRagTargetRequest Permanently bind one S3 integration to a project collection.
+type BindIntegrationRagTargetRequest struct {
+	// CollectionId Existing same-project collection that uses a managed local embedding preset.
+	CollectionId openapi_types.UUID `json:"collection_id"`
 }
 
 // CreateApiKeyRequest Request to create a new API key.
@@ -213,6 +228,9 @@ type CreateApiKeyResponse struct {
 
 	// Name User-provided name for the key, when set.
 	Name *string `json:"name,omitempty"`
+
+	// RoleBinding Present for Enterprise role-bound keys, including inactive bindings.
+	RoleBinding *ApiKeyRoleBinding `json:"role_binding,omitempty"`
 
 	// Scope What the key may do: `read` or `write`.
 	Scope ApiKeyScope `json:"scope"`
@@ -316,6 +334,12 @@ type IntegrationResponse struct {
 type IntegrationSyncResponse struct {
 	Enabled         bool  `json:"enabled"`
 	IntervalSeconds int32 `json:"interval_seconds"`
+}
+
+// JobPageInventory Page numbers of the objects that are actually present.
+type JobPageInventory struct {
+	// Pages Sorted, unique, positive page numbers. An empty list means no rasters have been stored.
+	Pages []int32 `json:"pages"`
 }
 
 // LicenseHealth Coarse license state for the unauthenticated health probe.
@@ -906,6 +930,9 @@ type ProJobSummary struct {
 	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
 	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
 
+	// Preset Display name captured when this extraction accepted a structured extraction preset.
+	Preset *string `json:"preset,omitempty"`
+
 	// SourceUrl The crawled page URL this document came from, when the job is a
 	// crawl child (#1961). Absent for a direct upload.
 	SourceUrl *string `json:"source_url,omitempty"`
@@ -1216,6 +1243,12 @@ type UserInfo struct {
 	UserId string `json:"user_id"`
 }
 
+// GetJobPageInventoryParams defines parameters for GetJobPageInventory.
+type GetJobPageInventoryParams struct {
+	// ProjectId Project to read; defaults to the credential project
+	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
+}
+
 // OauthCallbackParams defines parameters for OauthCallback.
 type OauthCallbackParams struct {
 	// Code Authorization code from the provider
@@ -1296,6 +1329,9 @@ type CreateIntegrationJSONRequestBody = CreateIntegrationRequest
 
 // SetIntegrationSyncJSONRequestBody defines body for SetIntegrationSync for application/json ContentType.
 type SetIntegrationSyncJSONRequestBody = SetIntegrationSyncRequest
+
+// BindIntegrationRagTargetJSONRequestBody defines body for BindIntegrationRagTarget for application/json ContentType.
+type BindIntegrationRagTargetJSONRequestBody = BindIntegrationRagTargetRequest
 
 // SetRagConfigJSONRequestBody defines body for SetRagConfig for application/json ContentType.
 type SetRagConfigJSONRequestBody = SetRagConfigRequest

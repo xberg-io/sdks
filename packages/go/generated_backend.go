@@ -210,6 +210,24 @@ func (e ProjectPermission) Valid() bool {
 	}
 }
 
+// Defines values for SamlConnectionTestState.
+const (
+	SamlConnectionTestStatePassed  SamlConnectionTestState = "passed"
+	SamlConnectionTestStatePending SamlConnectionTestState = "pending"
+)
+
+// Valid indicates whether the value is a known member of the SamlConnectionTestState enum.
+func (e SamlConnectionTestState) Valid() bool {
+	switch e {
+	case SamlConnectionTestStatePassed:
+		return true
+	case SamlConnectionTestStatePending:
+		return true
+	default:
+		return false
+	}
+}
+
 // AcceptInvitationRequest Request to accept an invitation using its token.
 type AcceptInvitationRequest struct {
 	// Token Invitation token received via email.
@@ -744,6 +762,9 @@ type BackendExtractedDocument struct {
 	//
 	// This field preserves all metadata that would otherwise be lost when
 	// converting to plain text or markdown output formats.
+	//
+	// PDF OCR elements report backend recognitions, including occurrences that
+	// document text pruning can omit from rendered content.
 	//
 	// Only populated when `OcrElementConfig.include_elements` is true.
 	OcrElements *[]OcrElement `json:"ocr_elements,omitempty"`
@@ -1442,6 +1463,21 @@ type CreateProjectRoleRequest struct {
 	Permissions []ProjectPermission `json:"permissions"`
 }
 
+// CreateRoleBoundApiKeyRequest Request to issue an Enterprise API key restricted to a custom project role.
+type CreateRoleBoundApiKeyRequest struct {
+	// ExpiresAt Optional expiration date in ISO 8601 format.
+	ExpiresAt *string `json:"expires_at,omitempty"`
+
+	// Name Descriptive key name.
+	Name string `json:"name"`
+
+	// RoleId Project role that limits this key's permissions.
+	RoleId openapi_types.UUID `json:"role_id"`
+
+	// Scope Method scope. Omitted means write, within the bound role permissions.
+	Scope *ApiKeyScope `json:"scope,omitempty"`
+}
+
 // CreateScimConnectionRequest defines model for CreateScimConnectionRequest.
 type CreateScimConnectionRequest struct {
 	DisplayName string `json:"display_name"`
@@ -1809,6 +1845,28 @@ type SamlAcsForm struct {
 	SAMLResponse string  `json:"SAMLResponse"`
 }
 
+// SamlAttributeMapping Exact, case-sensitive SAML Attribute Names. Null uses the default claim selection.
+type SamlAttributeMapping struct {
+	DisplayNameAttribute *string `json:"display_name_attribute,omitempty"`
+	EmailAttribute       *string `json:"email_attribute,omitempty"`
+}
+
+// SamlConnectionTestStarted defines model for SamlConnectionTestStarted.
+type SamlConnectionTestStarted struct {
+	ExpiresAt   time.Time          `json:"expires_at"`
+	RedirectUrl string             `json:"redirect_url"`
+	TestId      openapi_types.UUID `json:"test_id"`
+}
+
+// SamlConnectionTestState defines model for SamlConnectionTestState.
+type SamlConnectionTestState string
+
+// SamlConnectionTestStatus defines model for SamlConnectionTestStatus.
+type SamlConnectionTestStatus struct {
+	ExpiresAt time.Time               `json:"expires_at"`
+	Status    SamlConnectionTestState `json:"status"`
+}
+
 // SamlDomainRequest defines model for SamlDomainRequest.
 type SamlDomainRequest struct {
 	Domain     string             `json:"domain"`
@@ -1842,26 +1900,30 @@ type SamlExchangeResponse struct {
 
 // SamlProviderRequest defines model for SamlProviderRequest.
 type SamlProviderRequest struct {
-	Enabled             *bool  `json:"enabled,omitempty"`
-	EnforceSso          *bool  `json:"enforce_sso,omitempty"`
-	IdpInitiatedEnabled *bool  `json:"idp_initiated_enabled,omitempty"`
-	JitEnabled          *bool  `json:"jit_enabled,omitempty"`
-	Label               string `json:"label"`
-	MetadataXml         string `json:"metadata_xml"`
+	AttributeMapping    *SamlAttributeMapping `json:"attribute_mapping,omitempty"`
+	Enabled             *bool                 `json:"enabled,omitempty"`
+	EnforceSso          *bool                 `json:"enforce_sso,omitempty"`
+	IdpInitiatedEnabled *bool                 `json:"idp_initiated_enabled,omitempty"`
+	JitEnabled          *bool                 `json:"jit_enabled,omitempty"`
+	Label               string                `json:"label"`
+	MetadataXml         string                `json:"metadata_xml"`
 }
 
 // SamlProviderResponse defines model for SamlProviderResponse.
 type SamlProviderResponse struct {
-	AcsUrl                 string             `json:"acs_url"`
-	Enabled                bool               `json:"enabled"`
-	EnforceSso             bool               `json:"enforce_sso"`
-	EntityId               string             `json:"entity_id"`
-	Id                     openapi_types.UUID `json:"id"`
-	IdpInitiatedEnabled    bool               `json:"idp_initiated_enabled"`
-	IdpInitiatedRelayState string             `json:"idp_initiated_relay_state"`
-	JitEnabled             bool               `json:"jit_enabled"`
-	Label                  string             `json:"label"`
-	ProjectId              openapi_types.UUID `json:"project_id"`
+	AcsUrl string `json:"acs_url"`
+
+	// AttributeMapping Exact, case-sensitive SAML Attribute Names. Null uses the default claim selection.
+	AttributeMapping       SamlAttributeMapping `json:"attribute_mapping"`
+	Enabled                bool                 `json:"enabled"`
+	EnforceSso             bool                 `json:"enforce_sso"`
+	EntityId               string               `json:"entity_id"`
+	Id                     openapi_types.UUID   `json:"id"`
+	IdpInitiatedEnabled    bool                 `json:"idp_initiated_enabled"`
+	IdpInitiatedRelayState string               `json:"idp_initiated_relay_state"`
+	JitEnabled             bool                 `json:"jit_enabled"`
+	Label                  string               `json:"label"`
+	ProjectId              openapi_types.UUID   `json:"project_id"`
 }
 
 // SandboxExtractResponse Sandbox extraction response — mirrors the real API `GET /v1/jobs/{id}` response
@@ -1892,12 +1954,13 @@ type ScimAdminGroupResponse struct {
 
 // ScimConnectionResponse defines model for ScimConnectionResponse.
 type ScimConnectionResponse struct {
-	Active                bool               `json:"active"`
-	ClientId              string             `json:"client_id"`
-	ClientSecretExpiresAt string             `json:"client_secret_expires_at"`
-	DisplayName           string             `json:"display_name"`
-	Id                    openapi_types.UUID `json:"id"`
-	Version               int64              `json:"version"`
+	Active                       bool               `json:"active"`
+	ClientId                     string             `json:"client_id"`
+	ClientSecretExpiresAt        string             `json:"client_secret_expires_at"`
+	DisplayName                  string             `json:"display_name"`
+	Id                           openapi_types.UUID `json:"id"`
+	LastSuccessfulProvisioningAt *string            `json:"last_successful_provisioning_at,omitempty"`
+	Version                      int64              `json:"version"`
 }
 
 // ScimErrorBody defines model for ScimErrorBody.
@@ -2251,6 +2314,9 @@ type IssueScimTokenFormdataRequestBody = ScimTokenRequest
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
 type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
 
+// CreateRoleBoundApiKeyJSONRequestBody defines body for CreateRoleBoundApiKey for application/json ContentType.
+type CreateRoleBoundApiKeyJSONRequestBody = CreateRoleBoundApiKeyRequest
+
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody = CreateInvitationRequest
 
@@ -2289,6 +2355,9 @@ type CreateProviderJSONRequestBody = SamlProviderRequest
 
 // UpdateProviderJSONRequestBody defines body for UpdateProvider for application/json ContentType.
 type UpdateProviderJSONRequestBody = SamlProviderRequest
+
+// UpdateAttributeMappingJSONRequestBody defines body for UpdateAttributeMapping for application/json ContentType.
+type UpdateAttributeMappingJSONRequestBody = SamlAttributeMapping
 
 // PublicSandboxExtractMultipartRequestBody defines body for PublicSandboxExtract for multipart/form-data ContentType.
 type PublicSandboxExtractMultipartRequestBody = PublicSandboxExtractForm

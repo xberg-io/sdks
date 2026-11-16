@@ -321,7 +321,7 @@ paths:
     post:
       tags:
         - saml
-      description: Validates a solicited SAML response and returns a short-lived browser exchange code.
+      description: Validates a SAML response. Normal logins receive a browser exchange code. Owner connection tests return a confirmation without issuing a login.
       operationId: acs
       requestBody:
         content:
@@ -330,6 +330,12 @@ paths:
               $ref: '#/components/schemas/SamlAcsForm'
         required: true
       responses:
+        "200":
+          description: Connection test validated
+          content:
+            text/html:
+              schema:
+                type: string
         "303":
           description: Redirect with a one-time exchange code
         "400":
@@ -2872,6 +2878,109 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{id}/api-keys/role-bound:
+    post:
+      tags:
+        - api_keys
+      summary: Issue a key whose authority is limited by a live custom role and its creator.
+      description: |-
+        A project owner creates the key from a user session. The response includes the secret once, and subsequent requests
+        use the current role and creator permissions together with the requested read or write scope.
+      operationId: create_role_bound_api_key
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleBoundApiKeyRequest'
+        required: true
+      responses:
+        "201":
+          description: Role-bound key issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateApiKeyResponse'
+        "400":
+          description: Invalid key configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: A project owner's user session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project or role not found
           content:
             application/json:
               schema:
@@ -6186,11 +6295,88 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{id}/scim/connections/{connection_id}/revoke:
+    post:
+      tags:
+        - scim
+      description: Disable SCIM client credentials and invalidate all issued tokens without changing provisioned members. Rotate the credential to resume.
+      operationId: revoke_scim_connection
+      parameters:
+        - name: id
+          in: path
+          description: Project ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: connection_id
+          in: path
+          description: SCIM connection ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SCIM connection revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimConnectionResponse'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Insufficient project permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: SCIM connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{id}/scim/connections/{connection_id}/rotate:
     post:
       tags:
         - scim
-      description: Rotate a SCIM connection credential and revoke every access token issued before rotation.
+      description: Issue a fresh client secret, reactivate the connection if revoked and invalidate all prior access tokens.
       operationId: rotate_scim_connection_secret
       parameters:
         - name: id
@@ -6222,6 +6408,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "404":
           description: SCIM connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Another SCIM connection is active for the project
           content:
             application/json:
               schema:
@@ -7603,6 +7795,233 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{project_id}/saml/providers/{provider_id}/attribute-mapping:
+    patch:
+      tags:
+        - saml
+      description: Replaces the SAML claim mapping without changing the provider metadata. A null claim name restores its default.
+      operationId: update_attribute_mapping
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamlAttributeMapping'
+        required: true
+      responses:
+        "200":
+          description: SAML attribute mapping updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlProviderResponse'
+        "400":
+          description: An attribute name is invalid
+        "403":
+          description: Project owner access is required
+        "404":
+          description: Provider not found
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{project_id}/saml/providers/{provider_id}/test:
+    post:
+      tags:
+        - saml
+      description: Starts a signed SAML connection test for the saved provider, without authorizing a login.
+      operationId: start_connection_test
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Connection test started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlConnectionTestStarted'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project owner session required
+        "404":
+          description: Provider or SAML service not configured
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/projects/{project_id}/saml/providers/{provider_id}/test/{test_id}:
+    get:
+      tags:
+        - saml
+      description: Returns the result of an unexpired SAML connection test started by the current project owner.
+      operationId: connection_test_status
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: test_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Connection test status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SamlConnectionTestStatus'
+        "400":
+          description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project owner session required
+        "404":
+          description: Test unknown, expired, or no longer matches the current provider
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/sandbox/public/extract:
     post:
       tags:
@@ -7935,9 +8354,22 @@ components:
             - string
             - "null"
           description: Optional revocation timestamp in ISO 8601 format.
+        role_binding:
+          $ref: '#/components/schemas/ApiKeyRoleBinding'
+          description: Present for Enterprise role-bound keys, including inactive bindings.
         scope:
           $ref: '#/components/schemas/ApiKeyScope'
           description: 'What the key may do: `read` or `write`.'
+    ApiKeyRoleBinding:
+      type: object
+      description: Role ceiling on an Enterprise API key.
+      properties:
+        role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: The current role ID. Null means the role was deleted and the key is inactive.
     ApiKeyScope:
       type: string
       description: |-
@@ -8873,6 +9305,9 @@ components:
             - string
             - "null"
           description: User-provided name for the key, when set.
+        role_binding:
+          $ref: '#/components/schemas/ApiKeyRoleBinding'
+          description: Present for Enterprise role-bound keys, including inactive bindings.
         scope:
           $ref: '#/components/schemas/ApiKeyScope'
           description: 'What the key may do: `read` or `write`.'
@@ -9060,6 +9495,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProjectPermission'
+    CreateRoleBoundApiKeyRequest:
+      type: object
+      description: Request to issue an Enterprise API key restricted to a custom project role.
+      required:
+        - role_id
+        - name
+      properties:
+        expires_at:
+          type:
+            - string
+            - "null"
+          description: Optional expiration date in ISO 8601 format.
+        name:
+          type: string
+          description: Descriptive key name.
+        role_id:
+          type: string
+          format: uuid
+          description: Project role that limits this key's permissions.
+        scope:
+          $ref: '#/components/schemas/ApiKeyScope'
+          description: Method scope. Omitted means write, within the bound role permissions.
     CreateScimConnectionRequest:
       type: object
       required:
@@ -10342,6 +10799,9 @@ components:
 
             This field preserves all metadata that would otherwise be lost when
             converting to plain text or markdown output formats.
+
+            PDF OCR elements report backend recognitions, including occurrences that
+            document text pruning can omit from rendered content.
 
             Only populated when `OcrElementConfig.include_elements` is true.
         ocr_page_failures:
@@ -14365,6 +14825,52 @@ components:
             - "null"
         SAMLResponse:
           type: string
+    SamlAttributeMapping:
+      type: object
+      description: Exact, case-sensitive SAML Attribute Names. Null uses the default claim selection.
+      properties:
+        display_name_attribute:
+          type:
+            - string
+            - "null"
+          maxLength: 512
+        email_attribute:
+          type:
+            - string
+            - "null"
+          maxLength: 512
+      additionalProperties: false
+    SamlConnectionTestStarted:
+      type: object
+      required:
+        - test_id
+        - redirect_url
+        - expires_at
+      properties:
+        expires_at:
+          type: string
+          format: date-time
+        redirect_url:
+          type: string
+        test_id:
+          type: string
+          format: uuid
+    SamlConnectionTestState:
+      type: string
+      enum:
+        - pending
+        - passed
+    SamlConnectionTestStatus:
+      type: object
+      required:
+        - status
+        - expires_at
+      properties:
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/SamlConnectionTestState'
     SamlDomainRequest:
       type: object
       required:
@@ -14458,6 +14964,10 @@ components:
         - label
         - metadata_xml
       properties:
+        attribute_mapping:
+          oneOf:
+            - $ref: '#/components/schemas/SamlAttributeMapping'
+            - type: "null"
         enabled:
           type: boolean
         enforce_sso:
@@ -14478,6 +14988,7 @@ components:
         - project_id
         - label
         - entity_id
+        - attribute_mapping
         - enabled
         - jit_enabled
         - idp_initiated_enabled
@@ -14487,6 +14998,8 @@ components:
       properties:
         acs_url:
           type: string
+        attribute_mapping:
+          $ref: '#/components/schemas/SamlAttributeMapping'
         enabled:
           type: boolean
         enforce_sso:
@@ -14593,6 +15106,10 @@ components:
         id:
           type: string
           format: uuid
+        last_successful_provisioning_at:
+          type:
+            - string
+            - "null"
         version:
           type: integer
           format: int64
