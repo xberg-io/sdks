@@ -141,6 +141,13 @@ func (c *Client) GetRoom(ctx context.Context, roomID string) (*RoomResponse, err
 	return roomJSON[RoomResponse](ctx, c, "GetRoom", roomCall{method: methodGet, path: roomPath(roomID, "")})
 }
 
+// UpdateRoomRequest updates a room name or description. Nil fields leave their
+// stored values unchanged. Use [ClearRoomDescription] to send a null description.
+type UpdateRoomRequest struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
+}
+
 // UpdateRoomOption configures [Client.UpdateRoom].
 type UpdateRoomOption func(*updateRoomConfig)
 
@@ -149,8 +156,8 @@ type updateRoomConfig struct {
 }
 
 // ClearRoomDescription makes [Client.UpdateRoom] send "description": null,
-// which the server reads as "clear the description". The generated
-// [UpdateRoomRequest] omits a nil Description, which keeps the stored one.
+// which the server reads as "clear the description". [UpdateRoomRequest]
+// omits a nil Description, which keeps the stored one.
 func ClearRoomDescription() UpdateRoomOption {
 	return func(c *updateRoomConfig) { c.clearDescription = true }
 }
@@ -349,6 +356,18 @@ func (c *Client) TransferRoomOwnership(ctx context.Context, roomID string, body 
 func (c *Client) ListRoomLinks(ctx context.Context, roomID string, limit, offset int) (*ListRoomLinksResponse, error) {
 	call := roomCall{method: methodGet, path: roomPath(roomID, "/links") + pageQuery(limit, offset)}
 	return roomJSON[ListRoomLinksResponse](ctx, c, "ListRoomLinks", call)
+}
+
+// SetRoomLinkAccess enables or disables share-link access using the room's
+// current version (PUT /v1/rooms/{roomID}/links). Enterprise only.
+func (c *Client) SetRoomLinkAccess(
+	ctx context.Context,
+	roomID string,
+	version int64,
+	body SetRoomLinkAccessRequest,
+) (*RoomLinkAccessResponse, error) {
+	call := roomCall{method: methodPut, path: roomPath(roomID, "/links"), body: body, version: versionRef(version)}
+	return roomJSON[RoomLinkAccessResponse](ctx, c, "SetRoomLinkAccess", call)
 }
 
 // CreateRoomLink creates a share link for a data room. Enterprise only.

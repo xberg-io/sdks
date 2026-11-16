@@ -133,6 +133,22 @@ func (c *Client) GetJobResult(ctx context.Context, jobID string) (*JobResult, er
 	return &result, nil
 }
 
+// GetJobPageInventory lists the page rasters stored for an extraction job
+// (GET /v1/jobs/{jobID}/pages). Use [WithProProject] to select the project. Pro only.
+func (c *Client) GetJobPageInventory(ctx context.Context, jobID string) (*JobPageInventory, error) {
+	if jobID == "" {
+		return nil, fmt.Errorf("xberg: GetJobPageInventory requires a non-empty jobID")
+	}
+	if err := c.requireTier(ctx, TargetPro, "GetJobPageInventory"); err != nil {
+		return nil, err
+	}
+	var out JobPageInventory
+	if err := c.getJSON(ctx, jobPath(jobID, "/pages"), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetJobPage downloads one page raster persisted during a structured
 // extraction (GET /v1/jobs/{jobID}/pages/{pageNumber}). Page numbers are
 // 1-indexed and the endpoint serves image/png, so the body is returned

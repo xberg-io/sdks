@@ -11131,23 +11131,6 @@ type TuningProfileSummary struct {
 	Name string `json:"name"`
 }
 
-// UpdateRoomRequest defines model for UpdateRoomRequest.
-type UpdateRoomRequest struct {
-	union json.RawMessage
-}
-
-// UpdateRoomRequest0 defines model for UpdateRoomRequest.0.
-type UpdateRoomRequest0 struct {
-	Description *string `json:"description,omitempty"`
-	Name        string  `json:"name"`
-}
-
-// UpdateRoomRequest1 defines model for UpdateRoomRequest.1.
-type UpdateRoomRequest1 struct {
-	Description *string `json:"description"`
-	Name        *string `json:"name,omitempty"`
-}
-
 // UpdateSavedPresetRequest Request to update a saved preset.
 type UpdateSavedPresetRequest struct {
 	// ContextTemplate Optional context template.
@@ -15542,68 +15525,6 @@ func (t RoutingOutcome) MarshalJSON() ([]byte, error) {
 }
 
 func (t *RoutingOutcome) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsUpdateRoomRequest0 returns the union data inside the UpdateRoomRequest as a UpdateRoomRequest0
-func (t UpdateRoomRequest) AsUpdateRoomRequest0() (UpdateRoomRequest0, error) {
-	var body UpdateRoomRequest0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpdateRoomRequest0 overwrites any union data inside the UpdateRoomRequest as the provided UpdateRoomRequest0
-func (t *UpdateRoomRequest) FromUpdateRoomRequest0(v UpdateRoomRequest0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUpdateRoomRequest0 performs a merge with any union data inside the UpdateRoomRequest, using the provided UpdateRoomRequest0
-func (t *UpdateRoomRequest) MergeUpdateRoomRequest0(v UpdateRoomRequest0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsUpdateRoomRequest1 returns the union data inside the UpdateRoomRequest as a UpdateRoomRequest1
-func (t UpdateRoomRequest) AsUpdateRoomRequest1() (UpdateRoomRequest1, error) {
-	var body UpdateRoomRequest1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpdateRoomRequest1 overwrites any union data inside the UpdateRoomRequest as the provided UpdateRoomRequest1
-func (t *UpdateRoomRequest) FromUpdateRoomRequest1(v UpdateRoomRequest1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUpdateRoomRequest1 performs a merge with any union data inside the UpdateRoomRequest, using the provided UpdateRoomRequest1
-func (t *UpdateRoomRequest) MergeUpdateRoomRequest1(v UpdateRoomRequest1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t UpdateRoomRequest) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *UpdateRoomRequest) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

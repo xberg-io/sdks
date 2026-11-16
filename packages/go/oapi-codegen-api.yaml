@@ -9,3 +9,6 @@ generate:
   models: true
 output-options:
   skip-prune: true
+  exclude-schemas:
+    # The handwritten type preserves the public PATCH request shape. ~keep
+    - UpdateRoomRequest

@@ -270,6 +270,17 @@ func (c *Client) SetIntegrationSync(
 	return c.callJSON(ctx, methodPut, integrationPath(projectID, integrationID, "/sync"), body, nil)
 }
 
+// BindIntegrationRagTarget permanently binds an integration to an existing
+// collection in the same project (PUT /v1/projects/{project_id}/integrations/{iid}/sync/rag-target). Pro only.
+func (c *Client) BindIntegrationRagTarget(
+	ctx context.Context, projectID, integrationID string, body BindIntegrationRagTargetRequest,
+) error {
+	if err := c.requireTier(ctx, TargetPro, "BindIntegrationRagTarget"); err != nil {
+		return err
+	}
+	return c.callJSON(ctx, methodPut, integrationPath(projectID, integrationID, "/sync/rag-target"), body, nil)
+}
+
 // DeleteIntegration removes an integration
 // (DELETE /v1/projects/{projectID}/integrations/{integrationID}). The endpoint
 // answers 204 with no body. Pro only.
