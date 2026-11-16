@@ -70,6 +70,7 @@ from xberg_io_sdk._generated_api.models.list_managed_embedding_presets_response 
     ListManagedEmbeddingPresetsResponse,
 )
 from xberg_io_sdk._generated_api.models.list_project_documents_response import ListProjectDocumentsResponse
+from xberg_io_sdk._generated_api.models.list_rag_documents_response import ListRagDocumentsResponse
 from xberg_io_sdk._generated_api.models.list_room_invitations_response import ListRoomInvitationsResponse
 from xberg_io_sdk._generated_api.models.list_room_links_response import ListRoomLinksResponse
 from xberg_io_sdk._generated_api.models.list_room_members_response import ListRoomMembersResponse
@@ -88,6 +89,7 @@ from xberg_io_sdk._generated_api.models.publication_response import PublicationR
 from xberg_io_sdk._generated_api.models.reorder_items_response import ReorderItemsResponse
 from xberg_io_sdk._generated_api.models.room_invitation_response import RoomInvitationResponse
 from xberg_io_sdk._generated_api.models.room_item_response import RoomItemResponse
+from xberg_io_sdk._generated_api.models.room_link_access_response import RoomLinkAccessResponse
 from xberg_io_sdk._generated_api.models.room_link_response import RoomLinkResponse
 from xberg_io_sdk._generated_api.models.room_member_response import RoomMemberResponse
 from xberg_io_sdk._generated_api.models.room_response import RoomResponse
@@ -166,12 +168,17 @@ from xberg_io_sdk._generated_backend.models.readiness_response import ReadinessR
 from xberg_io_sdk._generated_backend.models.retry_webhook_delivery_response import (
     RetryWebhookDeliveryResponse as BackendRetryWebhookDeliveryResponse,
 )
+from xberg_io_sdk._generated_backend.models.saml_connection_test_started import SamlConnectionTestStarted
+from xberg_io_sdk._generated_backend.models.saml_connection_test_status import SamlConnectionTestStatus
 from xberg_io_sdk._generated_backend.models.saml_domain_response import SamlDomainResponse as BackendSamlDomainResponse
 from xberg_io_sdk._generated_backend.models.saml_provider_response import (
     SamlProviderResponse as BackendSamlProviderResponse,
 )
 from xberg_io_sdk._generated_backend.models.sandbox_extract_response import (
     SandboxExtractResponse as BackendSandboxExtractResponse,
+)
+from xberg_io_sdk._generated_backend.models.scim_connection_response import (
+    ScimConnectionResponse as BackendScimConnectionResponse,
 )
 from xberg_io_sdk._generated_backend.models.usage_response import UsageResponse as BackendUsageResponse
 from xberg_io_sdk._generated_backend.models.user_profile_response import (
@@ -189,6 +196,7 @@ from xberg_io_sdk._generated_pro.models.create_api_key_response import CreateApi
 from xberg_io_sdk._generated_pro.models.health_response import HealthResponse as ProHealthResponse
 from xberg_io_sdk._generated_pro.models.integration_response import IntegrationResponse
 from xberg_io_sdk._generated_pro.models.integration_sync_response import IntegrationSyncResponse
+from xberg_io_sdk._generated_pro.models.job_page_inventory import JobPageInventory
 from xberg_io_sdk._generated_pro.models.license_info_response import LicenseInfoResponse
 from xberg_io_sdk._generated_pro.models.list_api_keys_response import ListApiKeysResponse
 from xberg_io_sdk._generated_pro.models.list_documents_response import ListDocumentsResponse
@@ -222,7 +230,9 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_api.models.room_invite_request import RoomInviteRequest
     from xberg_io_sdk._generated_api.models.room_transfer_ownership_request import RoomTransferOwnershipRequest
     from xberg_io_sdk._generated_api.models.set_publication_request import SetPublicationRequest
-    from xberg_io_sdk._generated_api.models.update_room_request import UpdateRoomRequest
+    from xberg_io_sdk._generated_api.models.set_room_link_access_request import SetRoomLinkAccessRequest
+    from xberg_io_sdk._generated_api.models.update_room_request_type_0 import UpdateRoomRequestType0
+    from xberg_io_sdk._generated_api.models.update_room_request_type_1 import UpdateRoomRequestType1
     from xberg_io_sdk._generated_api.models.update_saved_preset_request import UpdateSavedPresetRequest
     from xberg_io_sdk._generated_backend.models.accept_invitation_request import (
         AcceptInvitationRequest as BackendAcceptInvitationRequest,
@@ -245,6 +255,7 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_backend.models.create_project_role_request import (
         CreateProjectRoleRequest as BackendCreateProjectRoleRequest,
     )
+    from xberg_io_sdk._generated_backend.models.create_role_bound_api_key_request import CreateRoleBoundApiKeyRequest
     from xberg_io_sdk._generated_backend.models.create_scim_connection_request import (
         CreateScimConnectionRequest as BackendCreateScimConnectionRequest,
     )
@@ -255,6 +266,7 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_backend.models.replace_scim_group_roles_request import (
         ReplaceScimGroupRolesRequest as BackendReplaceScimGroupRolesRequest,
     )
+    from xberg_io_sdk._generated_backend.models.saml_attribute_mapping import SamlAttributeMapping
     from xberg_io_sdk._generated_backend.models.saml_domain_request import SamlDomainRequest as BackendSamlDomainRequest
     from xberg_io_sdk._generated_backend.models.saml_provider_request import (
         SamlProviderRequest as BackendSamlProviderRequest,
@@ -280,6 +292,7 @@ if TYPE_CHECKING:
     from xberg_io_sdk._generated_backend.models.update_webhook_request import (
         UpdateWebhookRequest as BackendUpdateWebhookRequest,
     )
+    from xberg_io_sdk._generated_pro.models.bind_integration_rag_target_request import BindIntegrationRagTargetRequest
     from xberg_io_sdk._generated_pro.models.create_api_key_request import CreateApiKeyRequest
     from xberg_io_sdk._generated_pro.models.create_integration_request import CreateIntegrationRequest
     from xberg_io_sdk._generated_pro.models.create_project_request import CreateProjectRequest
@@ -1399,6 +1412,24 @@ class XbergClient(_BaseClient):
         """Delete a RAG collection (``DELETE /v1/rag/collections/{name}``, 204)."""
         self._request_json("DELETE", f"/v1/rag/collections/{_q(name)}")
 
+    def list_rag_documents(
+        self, name: str, *, limit: int | None = None, cursor: str | None = None, project_id: str | None = None
+    ) -> ListRagDocumentsResponse:
+        """List live collection documents. Pass the previous page's cursor to continue."""
+        headers = None
+        if project_id is not None:
+            self._require_tier("pro", "RAG project selection")
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            headers = {"X-Project-ID": project_id}
+        payload = self._request_json(
+            "GET",
+            f"/v1/rag/collections/{_q(name)}/documents",
+            params=_query_params(limit=limit, cursor=cursor),
+            extra_headers=headers,
+        )
+        return ListRagDocumentsResponse.from_dict(_expect_object(payload, "RAG document list"))
+
     def add_rag_documents(self, name: str, body: Mapping[str, Any]) -> Any:
         """Add documents to a RAG collection (``POST /v1/rag/collections/{name}/documents``)."""
         return self._request_json("POST", f"/v1/rag/collections/{_q(name)}/documents", json_body=body)
@@ -1573,6 +1604,12 @@ class XbergClient(_BaseClient):
         specs default the window to the current month when they are omitted.
         """
         return self._request_json("GET", "/v1/usage", params=params)
+
+    def get_job_page_inventory(self, job_id: str, *, project_id: str | None = None) -> JobPageInventory:
+        """Pro only: list stored one-based page image numbers for an extraction job."""
+        self._require_tier("pro", "get_job_page_inventory")
+        payload = self._request_json("GET", f"/v1/jobs/{_q(job_id)}/pages", project_id=project_id)
+        return JobPageInventory.from_dict(_expect_object(payload, "job page inventory"))
 
     def get_job_page(self, job_id: str, page_number: int, *, project_id: str | None = None) -> bytes:
         """Fetch a rendered page image (``GET /v1/jobs/{id}/pages/{n}``, ``image/png`` bytes)."""
@@ -1806,6 +1843,17 @@ class XbergClient(_BaseClient):
             "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
         )
 
+    def bind_integration_rag_target(
+        self, project_id: str, integration_id: str, body: BindIntegrationRagTargetRequest | Mapping[str, Any]
+    ) -> None:
+        """Pro only: permanently bind an S3 integration to a managed RAG collection."""
+        self._require_tier("pro", "bind_integration_rag_target")
+        self._request_json(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync/rag-target",
+            json_body=_coerce_body(body),
+        )
+
     def delete_integration(self, project_id: str, integration_id: str) -> None:
         """Pro only: delete an integration (``DELETE .../integrations/{integration_id}``)."""
         self._require_tier("pro", "delete_integration")
@@ -1980,6 +2028,15 @@ class XbergClient(_BaseClient):
             "POST", f"/v1/projects/{_q(project_id)}/api-keys", json_body=_coerce_body(body)
         )
         return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "create_api_key"))
+
+    def backend_create_role_bound_api_key(
+        self, project_id: str, body: CreateRoleBoundApiKeyRequest | Mapping[str, Any]
+    ) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: create an API key scoped to a project role."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/api-keys/role-bound", json_body=_coerce_body(body)
+        )
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "role-bound API key"))
 
     def backend_revoke_api_key(self, project_id: str, key_id: str) -> None:
         """Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``)."""
@@ -2248,6 +2305,33 @@ class XbergClient(_BaseClient):
         )
         return BackendSamlProviderResponse.from_dict(_expect_object(payload, "update_provider"))
 
+    def update_saml_attribute_mapping(
+        self, project_id: str, provider_id: str, body: SamlAttributeMapping | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: replace a SAML provider's claim mapping."""
+        payload = self._request_control_json(
+            "PATCH",
+            f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/attribute-mapping",
+            json_body=_coerce_body(body),
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "SAML provider"))
+
+    def start_saml_connection_test(self, project_id: str, provider_id: str) -> SamlConnectionTestStarted:
+        """Enterprise backend: start a SAML connection test without authorizing a login."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/test"
+        )
+        return SamlConnectionTestStarted.from_dict(_expect_object(payload, "SAML connection test"))
+
+    def get_saml_connection_test_status(
+        self, project_id: str, provider_id: str, test_id: str
+    ) -> SamlConnectionTestStatus:
+        """Enterprise backend: fetch the status of an unexpired SAML connection test."""
+        payload = self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/test/{_q(test_id)}"
+        )
+        return SamlConnectionTestStatus.from_dict(_expect_object(payload, "SAML connection test status"))
+
     def delete_saml_provider(self, project_id: str, provider_id: str) -> None:
         """Enterprise backend: Delete a project SAML provider and its dependent domains and identities (``DELETE /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
         self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}")
@@ -2293,6 +2377,13 @@ class XbergClient(_BaseClient):
             f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups/{_q(group_id)}/roles",
             json_body=_coerce_body(body),
         )
+
+    def revoke_scim_connection(self, project_id: str, connection_id: str) -> BackendScimConnectionResponse:
+        """Enterprise backend: revoke SCIM credentials and tokens without changing provisioned members."""
+        payload = self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/revoke"
+        )
+        return BackendScimConnectionResponse.from_dict(_expect_object(payload, "revoked SCIM connection"))
 
     def rotate_scim_connection_secret(self, project_id: str, connection_id: str) -> BackendCreateScimConnectionResponse:
         """Enterprise backend: Rotate a SCIM connection credential and revoke every token issued before it (``POST /v1/projects/{id}/scim/connections/{connection_id}/rotate``)."""
@@ -2497,7 +2588,11 @@ class XbergClient(_BaseClient):
         return RoomResponse.from_dict(_expect_object(payload, "room"))
 
     def update_room(
-        self, room_id: str, body: UpdateRoomRequest | Mapping[str, Any], *, if_match: RoomVersion
+        self,
+        room_id: str,
+        body: UpdateRoomRequestType0 | UpdateRoomRequestType1 | Mapping[str, Any],
+        *,
+        if_match: RoomVersion,
     ) -> RoomResponse:
         """Enterprise only: rename a data room or change its description (``PATCH /v1/rooms/{id}``).
 
@@ -2642,6 +2737,16 @@ class XbergClient(_BaseClient):
         self._require_tier("enterprise", "list_room_links")
         payload = self._request_json("GET", f"{_ROOMS_PATH}/{_q(room_id)}/links", params=_pagination(limit, offset))
         return ListRoomLinksResponse.from_dict(_expect_object(payload, "room link list"))
+
+    def set_room_link_access(
+        self, room_id: str, body: SetRoomLinkAccessRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> RoomLinkAccessResponse:
+        """Enterprise only: update share-link access using the version from the link list."""
+        self._require_tier("enterprise", "set_room_link_access")
+        payload = self._request_json(
+            "PUT", f"{_ROOMS_PATH}/{_q(room_id)}/links", json_body=_coerce_body(body), extra_headers=_if_match(if_match)
+        )
+        return RoomLinkAccessResponse.from_dict(_expect_object(payload, "room link access"))
 
     def create_room_link(self, room_id: str, body: CreateRoomLinkRequest | Mapping[str, Any]) -> RoomLinkResponse:
         """Enterprise only: create a share link for a data room."""
@@ -3153,6 +3258,24 @@ class AsyncXbergClient(_BaseClient):
         """Async equivalent of :meth:`XbergClient.delete_rag_collection`."""
         await self._request_json("DELETE", f"/v1/rag/collections/{_q(name)}")
 
+    async def list_rag_documents(
+        self, name: str, *, limit: int | None = None, cursor: str | None = None, project_id: str | None = None
+    ) -> ListRagDocumentsResponse:
+        """List live collection documents. Pass the previous page's cursor to continue."""
+        headers = None
+        if project_id is not None:
+            await self._require_tier("pro", "RAG project selection")
+            if not project_id.strip():
+                raise ValueError("Pro project ID must not be blank")
+            headers = {"X-Project-ID": project_id}
+        payload = await self._request_json(
+            "GET",
+            f"/v1/rag/collections/{_q(name)}/documents",
+            params=_query_params(limit=limit, cursor=cursor),
+            extra_headers=headers,
+        )
+        return ListRagDocumentsResponse.from_dict(_expect_object(payload, "RAG document list"))
+
     async def add_rag_documents(self, name: str, body: Mapping[str, Any]) -> Any:
         """Async equivalent of :meth:`XbergClient.add_rag_documents`."""
         return await self._request_json("POST", f"/v1/rag/collections/{_q(name)}/documents", json_body=body)
@@ -3332,6 +3455,12 @@ class AsyncXbergClient(_BaseClient):
     async def usage(self, *, params: Mapping[str, Any] | None = None) -> Any:
         """Async equivalent of :meth:`XbergClient.usage`."""
         return await self._request_json("GET", "/v1/usage", params=params)
+
+    async def get_job_page_inventory(self, job_id: str, *, project_id: str | None = None) -> JobPageInventory:
+        """Pro only: list stored one-based page image numbers for an extraction job."""
+        await self._require_tier("pro", "get_job_page_inventory")
+        payload = await self._request_json("GET", f"/v1/jobs/{_q(job_id)}/pages", project_id=project_id)
+        return JobPageInventory.from_dict(_expect_object(payload, "job page inventory"))
 
     async def get_job_page(self, job_id: str, page_number: int, *, project_id: str | None = None) -> bytes:
         """Async equivalent of :meth:`XbergClient.get_job_page`."""
@@ -3557,6 +3686,17 @@ class AsyncXbergClient(_BaseClient):
             "PUT", f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync", json_body=_coerce_body(body)
         )
 
+    async def bind_integration_rag_target(
+        self, project_id: str, integration_id: str, body: BindIntegrationRagTargetRequest | Mapping[str, Any]
+    ) -> None:
+        """Pro only: permanently bind an S3 integration to a managed RAG collection."""
+        await self._require_tier("pro", "bind_integration_rag_target")
+        await self._request_json(
+            "PUT",
+            f"/v1/projects/{_q(project_id)}/integrations/{_q(integration_id)}/sync/rag-target",
+            json_body=_coerce_body(body),
+        )
+
     async def delete_integration(self, project_id: str, integration_id: str) -> None:
         """Async equivalent of :meth:`XbergClient.delete_integration`."""
         await self._require_tier("pro", "delete_integration")
@@ -3738,6 +3878,15 @@ class AsyncXbergClient(_BaseClient):
             "POST", f"/v1/projects/{_q(project_id)}/api-keys", json_body=_coerce_body(body)
         )
         return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "create_api_key"))
+
+    async def backend_create_role_bound_api_key(
+        self, project_id: str, body: CreateRoleBoundApiKeyRequest | Mapping[str, Any]
+    ) -> BackendCreateApiKeyResponse:
+        """Enterprise backend: create an API key scoped to a project role."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/api-keys/role-bound", json_body=_coerce_body(body)
+        )
+        return BackendCreateApiKeyResponse.from_dict(_expect_object(payload, "role-bound API key"))
 
     async def backend_revoke_api_key(self, project_id: str, key_id: str) -> None:
         """Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``)."""
@@ -4012,6 +4161,33 @@ class AsyncXbergClient(_BaseClient):
         )
         return BackendSamlProviderResponse.from_dict(_expect_object(payload, "update_provider"))
 
+    async def update_saml_attribute_mapping(
+        self, project_id: str, provider_id: str, body: SamlAttributeMapping | Mapping[str, Any]
+    ) -> BackendSamlProviderResponse:
+        """Enterprise backend: replace a SAML provider's claim mapping."""
+        payload = await self._request_control_json(
+            "PATCH",
+            f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/attribute-mapping",
+            json_body=_coerce_body(body),
+        )
+        return BackendSamlProviderResponse.from_dict(_expect_object(payload, "SAML provider"))
+
+    async def start_saml_connection_test(self, project_id: str, provider_id: str) -> SamlConnectionTestStarted:
+        """Enterprise backend: start a SAML connection test without authorizing a login."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/test"
+        )
+        return SamlConnectionTestStarted.from_dict(_expect_object(payload, "SAML connection test"))
+
+    async def get_saml_connection_test_status(
+        self, project_id: str, provider_id: str, test_id: str
+    ) -> SamlConnectionTestStatus:
+        """Enterprise backend: fetch the status of an unexpired SAML connection test."""
+        payload = await self._request_control_json(
+            "GET", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}/test/{_q(test_id)}"
+        )
+        return SamlConnectionTestStatus.from_dict(_expect_object(payload, "SAML connection test status"))
+
     async def delete_saml_provider(self, project_id: str, provider_id: str) -> None:
         """Enterprise backend: Delete a project SAML provider and its dependent domains and identities (``DELETE /v1/projects/{project_id}/saml/providers/{provider_id}``)."""
         await self._request_control_none("DELETE", f"/v1/projects/{_q(project_id)}/saml/providers/{_q(provider_id)}")
@@ -4057,6 +4233,13 @@ class AsyncXbergClient(_BaseClient):
             f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/groups/{_q(group_id)}/roles",
             json_body=_coerce_body(body),
         )
+
+    async def revoke_scim_connection(self, project_id: str, connection_id: str) -> BackendScimConnectionResponse:
+        """Enterprise backend: revoke SCIM credentials and tokens without changing provisioned members."""
+        payload = await self._request_control_json(
+            "POST", f"/v1/projects/{_q(project_id)}/scim/connections/{_q(connection_id)}/revoke"
+        )
+        return BackendScimConnectionResponse.from_dict(_expect_object(payload, "revoked SCIM connection"))
 
     async def rotate_scim_connection_secret(
         self, project_id: str, connection_id: str
@@ -4257,7 +4440,11 @@ class AsyncXbergClient(_BaseClient):
         return RoomResponse.from_dict(_expect_object(payload, "room"))
 
     async def update_room(
-        self, room_id: str, body: UpdateRoomRequest | Mapping[str, Any], *, if_match: RoomVersion
+        self,
+        room_id: str,
+        body: UpdateRoomRequestType0 | UpdateRoomRequestType1 | Mapping[str, Any],
+        *,
+        if_match: RoomVersion,
     ) -> RoomResponse:
         """Enterprise only: rename a data room or change its description (``PATCH /v1/rooms/{id}``).
 
@@ -4410,6 +4597,16 @@ class AsyncXbergClient(_BaseClient):
             "GET", f"{_ROOMS_PATH}/{_q(room_id)}/links", params=_pagination(limit, offset)
         )
         return ListRoomLinksResponse.from_dict(_expect_object(payload, "room link list"))
+
+    async def set_room_link_access(
+        self, room_id: str, body: SetRoomLinkAccessRequest | Mapping[str, Any], *, if_match: RoomVersion
+    ) -> RoomLinkAccessResponse:
+        """Enterprise only: update share-link access using the version from the link list."""
+        await self._require_tier("enterprise", "set_room_link_access")
+        payload = await self._request_json(
+            "PUT", f"{_ROOMS_PATH}/{_q(room_id)}/links", json_body=_coerce_body(body), extra_headers=_if_match(if_match)
+        )
+        return RoomLinkAccessResponse.from_dict(_expect_object(payload, "room link access"))
 
     async def create_room_link(self, room_id: str, body: CreateRoomLinkRequest | Mapping[str, Any]) -> RoomLinkResponse:
         """Async equivalent of :meth:`XbergClient.create_room_link`."""

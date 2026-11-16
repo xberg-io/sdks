@@ -74,12 +74,6 @@ def test_delete_rag_documents_sync_sends_body(base_url: str, api_key: str) -> No
     assert json.loads(route.calls.last.request.content) == {"ids": ["a", "b"]}
 
 
-def test_rag_document_listing_method_does_not_exist() -> None:
-    # Neither spec declares GET /v1/rag/collections/{name}/documents — only POST and DELETE.
-    assert not hasattr(XbergClient, "list_rag_documents")
-    assert not hasattr(AsyncXbergClient, "list_rag_documents")
-
-
 @respx.mock
 def test_add_rag_documents_sync_sends_body(base_url: str, api_key: str) -> None:
     route = respx.post(f"{base_url}/v1/rag/collections/docs/documents").mock(

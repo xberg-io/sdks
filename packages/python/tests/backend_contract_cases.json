@@ -1278,7 +1278,11 @@
         "idp_initiated_enabled": false,
         "enforce_sso": true,
         "acs_url": "https://control.example.test/auth/saml/acs",
-        "idp_initiated_relay_state": "relay"
+        "idp_initiated_relay_state": "relay",
+        "attribute_mapping": {
+          "display_name_attribute": null,
+          "email_attribute": null
+        }
       }
     ],
     "model": "SamlProviderResponse",
@@ -1309,7 +1313,11 @@
       "idp_initiated_enabled": false,
       "enforce_sso": true,
       "acs_url": "https://control.example.test/auth/saml/acs",
-      "idp_initiated_relay_state": "relay"
+      "idp_initiated_relay_state": "relay",
+      "attribute_mapping": {
+        "display_name_attribute": null,
+        "email_attribute": null
+      }
     },
     "model": "SamlProviderResponse",
     "public": false
@@ -1340,7 +1348,11 @@
       "idp_initiated_enabled": false,
       "enforce_sso": true,
       "acs_url": "https://control.example.test/auth/saml/acs",
-      "idp_initiated_relay_state": "relay"
+      "idp_initiated_relay_state": "relay",
+      "attribute_mapping": {
+        "display_name_attribute": null,
+        "email_attribute": null
+      }
     },
     "model": "SamlProviderResponse",
     "public": false
@@ -1477,6 +1489,125 @@
       "base_url": "https://control.example.test/scim/v2/c"
     },
     "model": "CreateScimConnectionResponse",
+    "public": false
+  },
+  {
+    "operation_id": "create_role_bound_api_key",
+    "name": "backend_create_role_bound_api_key",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/api-keys/role-bound",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "body": {
+        "name": "read-only",
+        "role_id": "33333333-3333-3333-3333-333333333333",
+        "scope": "read"
+      }
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "key": "fixture",
+      "key_prefix": "fixture",
+      "scope": "read",
+      "created_at": "2026-09-07T10:00:00+00:00"
+    },
+    "model": "CreateApiKeyResponse",
+    "public": false
+  },
+  {
+    "operation_id": "revoke_scim_connection",
+    "name": "revoke_scim_connection",
+    "verb": "POST",
+    "path": "/v1/projects/{id}/scim/connections/{connection_id}/revoke",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "connection_id": "connection_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "display_name": "Okta SCIM",
+      "client_id": "scim-client",
+      "active": false,
+      "version": 2,
+      "client_secret_expires_at": "2027-01-01T00:00:00Z"
+    },
+    "model": "ScimConnectionResponse",
+    "public": false
+  },
+  {
+    "operation_id": "update_attribute_mapping",
+    "name": "update_saml_attribute_mapping",
+    "verb": "PATCH",
+    "path": "/v1/projects/{project_id}/saml/providers/{provider_id}/attribute-mapping",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "provider_id": "provider_id/?#",
+      "body": {
+        "display_name_attribute": null,
+        "email_attribute": "mail"
+      }
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "project_id": "55555555-5555-5555-5555-555555555555",
+      "label": "Okta",
+      "entity_id": "https://idp.example.test",
+      "enabled": true,
+      "jit_enabled": false,
+      "idp_initiated_enabled": false,
+      "enforce_sso": true,
+      "acs_url": "https://control.example.test/auth/saml/acs",
+      "idp_initiated_relay_state": "relay",
+      "attribute_mapping": {
+        "display_name_attribute": null,
+        "email_attribute": "mail"
+      }
+    },
+    "model": "SamlProviderResponse",
+    "public": false
+  },
+  {
+    "operation_id": "start_connection_test",
+    "name": "start_saml_connection_test",
+    "verb": "POST",
+    "path": "/v1/projects/{project_id}/saml/providers/{provider_id}/test",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "provider_id": "provider_id/?#"
+    },
+    "query": {},
+    "status": 201,
+    "response": {
+      "test_id": "33333333-3333-3333-3333-333333333333",
+      "redirect_url": "https://idp.example.test",
+      "expires_at": "2026-09-07T10:00:00+00:00"
+    },
+    "model": "SamlConnectionTestStarted",
+    "public": false
+  },
+  {
+    "operation_id": "connection_test_status",
+    "name": "get_saml_connection_test_status",
+    "verb": "GET",
+    "path": "/v1/projects/{project_id}/saml/providers/{provider_id}/test/{test_id}",
+    "arguments": {
+      "project_id": "project_id/?#",
+      "provider_id": "provider_id/?#",
+      "test_id": "test_id/?#"
+    },
+    "query": {},
+    "status": 200,
+    "response": {
+      "status": "passed",
+      "expires_at": "2026-09-07T10:00:00+00:00"
+    },
+    "model": "SamlConnectionTestStatus",
     "public": false
   }
 ]
