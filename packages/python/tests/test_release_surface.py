@@ -94,7 +94,7 @@ class Operation(NamedTuple):
             (ROOM,),
             {"limit": 2, "offset": 1},
             None,
-            {"links": [], "total": 0, "limit": 2, "offset": 1},
+            {"enabled": False, "room_version": 1, "links": [], "total": 0, "limit": 2, "offset": 1},
             200,
         ),
         Operation(
