@@ -2170,6 +2170,110 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/jobs/{job_id}/pages:
+    get:
+      tags:
+        - jobs
+      summary: List persisted page images for a job in its authorized project.
+      description: |-
+        Returns the sorted one-based page numbers of PNGs stored for the published result. The list can be sparse.
+        The same project authorization and result retention rules apply to the inventory and individual image reads.
+      operationId: get_job_page_inventory
+      parameters:
+        - name: job_id
+          in: path
+          description: Extraction job ID (UUID)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: Project to read; defaults to the credential project
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Available page image numbers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPageInventory'
+        "400":
+          description: Invalid job ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Job or project not visible, or result not published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Inventory exceeds the supported size or request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Inventory lookup failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Inventory or session authentication temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/jobs/{job_id}/pages/{page_number}:
     get:
       tags:
@@ -4585,6 +4689,120 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/projects/{project_id}/integrations/{iid}/sync/rag-target:
+    put:
+      tags:
+        - integrations
+      summary: Allow synchronized objects readable by the S3 integration to be searched in the project collection.
+      description: A project owner or system administrator can bind an S3 integration to one live, managed local collection in the same project. The binding is permanent for the integration. It makes content readable by the S3 credential searchable by collection users once source synchronization is enabled.
+      operationId: bind_integration_rag_target
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindIntegrationRagTargetRequest'
+        required: true
+      responses:
+        "204":
+          description: Target bound
+        "400":
+          description: Integration or collection does not support connector indexing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Project management access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Integration or collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "409":
+          description: Project RAG is disabled or the integration is already bound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Standalone connector or RAG writes are disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/projects/{project_id}/rag-config:
     get:
       tags:
@@ -5230,6 +5448,118 @@ paths:
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/documents:
+    get:
+      tags:
+        - rag
+      summary: List documents in a RAG collection
+      description: Returns live document summaries in the named collection's serving embedding generation for the authenticated project. Results are ordered by ascending document ID. Pass the previous page's next_cursor as cursor to continue.
+      operationId: list_rag_documents
+      parameters:
+        - name: name
+          in: path
+          description: Collection name
+          required: true
+          schema:
+            type: string
+          example: my-docs
+        - name: limit
+          in: query
+          description: Maximum number of documents to return.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: cursor
+          in: query
+          description: Continuation cursor from `next_cursor` in the previous page. Omit for the first page.
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: X-Project-ID
+          in: header
+          description: Optional selected project UUID. Defaults to the authenticated or local workspace project. Human membership and existing endpoint permissions are required; project API keys cannot select another project.
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Page of documents ordered by ascending document ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRagDocumentsResponse'
+        "400":
+          description: Invalid request parameters; X-Project-ID must be a UUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The credential lacks read permission for the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Collection not found or RAG disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
     post:
       tags:
         - rag
@@ -5384,7 +5714,10 @@ paths:
       tags:
         - rag
       summary: Delete documents from a RAG collection
-      description: Accepts either a list of document IDs or a metadata filter expression.
+      description: |-
+        A connector-managed document in an explicit ID batch rejects the whole
+        request. Filter deletion skips connector-managed matches and returns the
+        number of documents actually deleted.
       operationId: delete_documents
       parameters:
         - name: name
@@ -5409,7 +5742,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Documents deleted
+          description: Documents deleted. Filter matches managed by a connector are skipped
           content:
             application/json:
               schema:
@@ -5446,6 +5779,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
+        "409":
+          description: The ID batch includes a connector-managed document. No documents were deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -7719,9 +8058,22 @@ components:
             - string
             - "null"
           description: Optional revocation timestamp in ISO 8601 format.
+        role_binding:
+          $ref: '#/components/schemas/ApiKeyRoleBinding'
+          description: Present for Enterprise role-bound keys, including inactive bindings.
         scope:
           $ref: '#/components/schemas/ApiKeyScope'
           description: 'What the key may do: `read` or `write`.'
+    ApiKeyRoleBinding:
+      type: object
+      description: Role ceiling on an Enterprise API key.
+      properties:
+        role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: The current role ID. Null means the role was deleted and the key is inactive.
     ApiKeyScope:
       type: string
       description: |-
@@ -8376,6 +8728,16 @@ components:
         year_range:
           $ref: '#/components/schemas/YearRange'
           description: Earliest and latest publication years found in the bibliography.
+    BindIntegrationRagTargetRequest:
+      type: object
+      description: Permanently bind one S3 integration to a project collection.
+      required:
+        - collection_id
+      properties:
+        collection_id:
+          type: string
+          format: uuid
+          description: Existing same-project collection that uses a managed local embedding preset.
     BlockType:
       type: string
       description: Types of block-level elements in Djot.
@@ -9531,6 +9893,9 @@ components:
             - string
             - "null"
           description: User-provided name for the key, when set.
+        role_binding:
+          $ref: '#/components/schemas/ApiKeyRoleBinding'
+          description: Present for Enterprise role-bound keys, including inactive bindings.
         scope:
           $ref: '#/components/schemas/ApiKeyScope'
           description: 'What the key may do: `read` or `write`.'
@@ -11891,6 +12256,9 @@ components:
             This field preserves all metadata that would otherwise be lost when
             converting to plain text or markdown output formats.
 
+            PDF OCR elements report backend recognitions, including occurrences that
+            document text pruning can omit from rendered content.
+
             Only populated when `OcrElementConfig.include_elements` is true.
         ocr_page_failures:
           type:
@@ -13505,6 +13873,19 @@ components:
             - string
             - "null"
           description: Open-access license URI from the article's `<license>` element.
+    JobPageInventory:
+      type: object
+      description: Page numbers of the objects that are actually present.
+      required:
+        - pages
+      properties:
+        pages:
+          type: array
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Sorted, unique, positive page numbers. An empty list means no rasters have been stored.
     JobResult:
       type: object
       description: Result envelope returned by GET /v1/jobs/{id}/result. The results array contains the extracted documents produced by this Pro job, in discovery order. The endpoint returns 409 until the job reaches completed or partial_success.
@@ -13762,6 +14143,9 @@ components:
             - "null"
           format: uuid
           description: The crawl job that spawned this job as a child, when any.
+        preset:
+          type: string
+          description: Display name captured when this extraction accepted a structured extraction preset.
         source_url:
           type:
             - string
@@ -13992,8 +14376,9 @@ components:
             Also run layout detection on the text layer of native PDF pages, not
             only on the pages that go through OCR. The layout regions then inform
             the reading order, the region grouping and the table detection of those
-            pages. Off when omitted. It has no
-            effect when `force_ocr` is set, because every page then goes through OCR.
+            pages. A document that omits this option inherits the batch setting,
+            which defaults to false. Set false to opt out of a batch opt-in.
+            This has no effect when `force_ocr` is set.
         preset:
           type:
             - string
@@ -14385,6 +14770,26 @@ components:
           type: integer
           format: int64
           description: Total number of projects for the caller.
+    ListRagDocumentsResponse:
+      type: object
+      description: A page of documents ordered by ascending document ID.
+      required:
+        - documents
+        - limit
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/RagDocumentSummary'
+        limit:
+          type: integer
+          format: int32
+        next_cursor:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: Pass this value as `cursor` to fetch the next page. Null if this is the last page.
     ListSavedPresetsResponse:
       type: object
       description: Response from listing saved presets.
@@ -17372,6 +17777,39 @@ components:
         enabled:
           type: boolean
           description: Whether RAG is enabled for this project.
+    RagDocumentSummary:
+      type: object
+      description: A document in the collection's serving embedding generation.
+      required:
+        - id
+        - chunk_count
+        - status
+      properties:
+        chunk_count:
+          type: integer
+          format: int32
+        external_id:
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+          format: uuid
+        ingested_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        mime:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        title:
+          type:
+            - string
+            - "null"
     RagHealth:
       type: object
       description: RAG readiness summary for the health response.

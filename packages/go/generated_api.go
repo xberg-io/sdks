@@ -3175,6 +3175,7 @@ const (
 	RagDocumentIngest         ListAuditEntriesParamsAction = "rag_document.ingest"
 	RagDocumentReindex        ListAuditEntriesParamsAction = "rag_document.reindex"
 	ScimConnectionCreate      ListAuditEntriesParamsAction = "scim.connection.create"
+	ScimConnectionRevoke      ListAuditEntriesParamsAction = "scim.connection.revoke"
 	ScimConnectionRotate      ListAuditEntriesParamsAction = "scim.connection.rotate"
 	ScimGroupRolesReplace     ListAuditEntriesParamsAction = "scim.group_roles.replace"
 	TuningProfileDelete       ListAuditEntriesParamsAction = "tuning_profile.delete"
@@ -3313,6 +3314,8 @@ func (e ListAuditEntriesParamsAction) Valid() bool {
 	case RagDocumentReindex:
 		return true
 	case ScimConnectionCreate:
+		return true
+	case ScimConnectionRevoke:
 		return true
 	case ScimConnectionRotate:
 		return true
@@ -6188,6 +6191,9 @@ type ExtractedDocument struct {
 	// This field preserves all metadata that would otherwise be lost when
 	// converting to plain text or markdown output formats.
 	//
+	// PDF OCR elements report backend recognitions, including occurrences that
+	// document text pruning can omit from rendered content.
+	//
 	// Only populated when `OcrElementConfig.include_elements` is true.
 	OcrElements *[]OcrElement `json:"ocr_elements,omitempty"`
 
@@ -7603,6 +7609,9 @@ type JobSummary struct {
 	// ParentCrawlJobId The crawl job that spawned this job as a child, when any.
 	ParentCrawlJobId *openapi_types.UUID `json:"parent_crawl_job_id,omitempty"`
 
+	// Preset Display name captured when this extraction accepted a structured extraction preset.
+	Preset *string `json:"preset,omitempty"`
+
 	// SourceUrl The crawled page URL this document came from, when the job is a
 	// crawl child (#1961). Absent for a direct upload.
 	SourceUrl *string `json:"source_url,omitempty"`
@@ -7781,8 +7790,9 @@ type LayoutDetectionConfig struct {
 	// NativePdf Also run layout detection on the text layer of native PDF pages, not
 	// only on the pages that go through OCR. The layout regions then inform
 	// the reading order, the region grouping and the table detection of those
-	// pages. Off when omitted. It has no
-	// effect when `force_ocr` is set, because every page then goes through OCR.
+	// pages. A document that omits this option inherits the batch setting,
+	// which defaults to false. Set false to opt out of a batch opt-in.
+	// This has no effect when `force_ocr` is set.
 	NativePdf *bool `json:"native_pdf,omitempty"`
 
 	// Preset Layout presets are unavailable. xberg's `LayoutDetectionConfig` has no
@@ -7958,8 +7968,17 @@ type ListProjectDocumentsResponse struct {
 	Limit     int64                  `json:"limit"`
 	Offset    int64                  `json:"offset"`
 
-	// Total Number of documents in the project.
+	// Total Number of visible documents matching the filters.
 	Total int64 `json:"total"`
+}
+
+// ListRagDocumentsResponse A page of documents ordered by ascending document ID.
+type ListRagDocumentsResponse struct {
+	Documents []RagDocumentSummary `json:"documents"`
+	Limit     int32                `json:"limit"`
+
+	// NextCursor Pass this value as `cursor` to fetch the next page. Null if this is the last page.
+	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
 }
 
 // ListRoomInvitationsResponse defines model for ListRoomInvitationsResponse.
@@ -7972,10 +7991,12 @@ type ListRoomInvitationsResponse struct {
 
 // ListRoomLinksResponse defines model for ListRoomLinksResponse.
 type ListRoomLinksResponse struct {
-	Limit  int64              `json:"limit"`
-	Links  []RoomLinkResponse `json:"links"`
-	Offset int64              `json:"offset"`
-	Total  int64              `json:"total"`
+	Enabled     bool               `json:"enabled"`
+	Limit       int64              `json:"limit"`
+	Links       []RoomLinkResponse `json:"links"`
+	Offset      int64              `json:"offset"`
+	RoomVersion int64              `json:"room_version"`
+	Total       int64              `json:"total"`
 }
 
 // ListRoomMembersResponse defines model for ListRoomMembersResponse.
@@ -9875,6 +9896,17 @@ type QrCode struct {
 	Payload string `json:"payload"`
 }
 
+// RagDocumentSummary A document in the collection's serving embedding generation.
+type RagDocumentSummary struct {
+	ChunkCount int32              `json:"chunk_count"`
+	ExternalId *string            `json:"external_id,omitempty"`
+	Id         openapi_types.UUID `json:"id"`
+	IngestedAt *time.Time         `json:"ingested_at,omitempty"`
+	Mime       *string            `json:"mime,omitempty"`
+	Status     string             `json:"status"`
+	Title      *string            `json:"title,omitempty"`
+}
+
 // RagJobKind Operation type for RAG async jobs
 type RagJobKind string
 
@@ -10356,6 +10388,12 @@ type RoomItemResponse struct {
 	UpdatedAt  time.Time          `json:"updated_at"`
 }
 
+// RoomLinkAccessResponse defines model for RoomLinkAccessResponse.
+type RoomLinkAccessResponse struct {
+	Enabled     bool  `json:"enabled"`
+	RoomVersion int64 `json:"room_version"`
+}
+
 // RoomLinkResponse defines model for RoomLinkResponse.
 type RoomLinkResponse struct {
 	CreatedAt time.Time          `json:"created_at"`
@@ -10627,6 +10665,11 @@ type SetPublicationRequest struct {
 	DownloadAllowed *bool                `json:"download_allowed,omitempty"`
 	Mode            *PublicationModeName `json:"mode,omitempty"`
 	State           PublicationStateName `json:"state"`
+}
+
+// SetRoomLinkAccessRequest defines model for SetRoomLinkAccessRequest.
+type SetRoomLinkAccessRequest struct {
+	Enabled bool `json:"enabled"`
 }
 
 // SparseEmbedding A sparse learned embedding: vocabulary term indices and their weights.
@@ -11088,12 +11131,6 @@ type TuningProfileSummary struct {
 	Name string `json:"name"`
 }
 
-// UpdateRoomRequest defines model for UpdateRoomRequest.
-type UpdateRoomRequest struct {
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
-}
-
 // UpdateSavedPresetRequest Request to update a saved preset.
 type UpdateSavedPresetRequest struct {
 	// ContextTemplate Optional context template.
@@ -11489,6 +11526,12 @@ type ListDocumentsParams struct {
 
 	// Offset Pagination offset (default 0, clamped to a maximum of 1,000,000).
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// Search Case-insensitive substring of the displayed filename, at most 128 characters.
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// JobId Return only the logical document belonging to this finished job.
+	JobId *openapi_types.UUID `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
 // GetDiffParams defines parameters for GetDiff.
@@ -11592,6 +11635,15 @@ type ListCollectionsParams struct {
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
+// ListRagDocumentsParams defines parameters for ListRagDocuments.
+type ListRagDocumentsParams struct {
+	// Limit Maximum number of documents to return.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Continuation cursor from `next_cursor` in the previous page. Omit for the first page.
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
 // ListRoomsParams defines parameters for ListRooms.
 type ListRoomsParams struct {
 	Limit  *int64                `form:"limit,omitempty" json:"limit,omitempty"`
@@ -11630,6 +11682,12 @@ type ReorderRoomItemsParams struct {
 type ListRoomLinksParams struct {
 	Limit  *int64 `form:"limit,omitempty" json:"limit,omitempty"`
 	Offset *int64 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// SetRoomLinkAccessParams defines parameters for SetRoomLinkAccess.
+type SetRoomLinkAccessParams struct {
+	// IfMatch The room version the caller read, quoted or bare
+	IfMatch string `json:"If-Match"`
 }
 
 // ListRoomMembersParams defines parameters for ListRoomMembers.
@@ -11757,6 +11815,9 @@ type ReorderRoomItemsJSONRequestBody = ReorderItemsRequest
 
 // CreateRoomLinkJSONRequestBody defines body for CreateRoomLink for application/json ContentType.
 type CreateRoomLinkJSONRequestBody = CreateRoomLinkRequest
+
+// SetRoomLinkAccessJSONRequestBody defines body for SetRoomLinkAccess for application/json ContentType.
+type SetRoomLinkAccessJSONRequestBody = SetRoomLinkAccessRequest
 
 // AddRoomMemberJSONRequestBody defines body for AddRoomMember for application/json ContentType.
 type AddRoomMemberJSONRequestBody = AddMemberRequest

@@ -209,6 +209,15 @@ OPERATIONS: list[tuple[str, tuple[Any, ...], dict[str, Any], str, str, int, Any]
         200,
         {"room_id": ROOM_ID, "project_id": PROJECT_ID, "kind": "guest", "role": "VIEWER"},
     ),
+    (
+        "set_room_link_access",
+        (ROOM_ID, {"enabled": True}),
+        {"if_match": 7},
+        "PUT",
+        f"{R}/links",
+        200,
+        {"enabled": True, "room_version": 8},
+    ),
     ("get_room_publication", (ROOM_ID,), {}, "GET", f"{R}/publication", 200, PUBLICATION),
     (
         "set_room_publication",
@@ -246,8 +255,8 @@ def mock_response(status: int, body: Any) -> httpx.Response:
 
 
 def test_the_table_names_every_data_room_operation_once() -> None:
-    assert len(OPERATIONS) == 31
-    assert len({(verb, path) for _, _, _, verb, path, _, _ in OPERATIONS}) == 31
+    assert len(OPERATIONS) == 32
+    assert len({(verb, path) for _, _, _, verb, path, _, _ in OPERATIONS}) == 32
     assert {
         "get_public_room",
         "list_public_room_items",
@@ -316,6 +325,13 @@ IF_MATCH_CALLS: list[tuple[str, Callable[[XbergClient, Any], Any], str, str, dic
         "PUT",
         f"{R}/items/order",
         {"document_ids": [], "version": 8},
+    ),
+    (
+        "set_room_link_access",
+        lambda c, v: c.set_room_link_access(ROOM_ID, {"enabled": True}, if_match=v),
+        "PUT",
+        f"{R}/links",
+        {"enabled": True, "room_version": 8},
     ),
     (
         "set_room_publication",

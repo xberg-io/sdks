@@ -83,6 +83,11 @@ import type {
   BackendWebhookTestResponse,
   BackendAssignProjectRoleRequest,
   BackendCreateProjectRoleRequest,
+  BackendCreateRoleBoundApiKeyRequest,
+  BackendScimConnectionResponse,
+  BackendSamlAttributeMapping,
+  BackendSamlConnectionTestStarted,
+  BackendSamlConnectionTestStatus,
   BackendCreateScimConnectionRequest,
   BackendCreateScimConnectionResponse,
   BackendIntegrationSyncResponse,
@@ -150,6 +155,11 @@ import type {
   PresetSummary,
   PresignUploadRequest,
   PresignUploadResponse,
+  ListRagDocumentsResponse,
+  SetRoomLinkAccessRequest,
+  RoomLinkAccessResponse,
+  JobPageInventory,
+  BindIntegrationRagTargetRequest,
   CreateRoomLinkRequest,
   ListRoomLinksResponse,
   RoomLinkResponse,
@@ -348,6 +358,13 @@ export interface AuditParams {
 export interface PaginationParams {
   limit?: number;
   offset?: number;
+}
+
+export interface ListRagDocumentsParams {
+  limit?: number;
+  cursor?: string;
+  /** Pro only: select a project with the X-Project-ID header. */
+  projectId?: string;
 }
 
 /** Filters accepted by `listExtractionEvents`. */
@@ -586,6 +603,19 @@ export class XbergClient {
       "POST",
       `/v1/projects/${encodePathSegment(projectId)}/api-keys`,
       { json: body },
+    );
+  }
+  /** Enterprise backend: issue an API key restricted to a custom project role. */
+  public async backendCreateRoleBoundApiKey(
+    projectId: string,
+    body: BackendCreateRoleBoundApiKeyRequest,
+  ): Promise<BackendCreateApiKeyResponse> {
+    return await this.backendRequest<BackendCreateApiKeyResponse>(
+      "POST",
+      `${this.projectPath(projectId)}/api-keys/role-bound`,
+      {
+        json: body,
+      },
     );
   }
   /** Enterprise backend `DELETE /v1/projects/{id}/api-keys/{key_id}`. */
@@ -929,18 +959,46 @@ export class XbergClient {
     providerId: string,
     body: BackendSamlProviderRequest,
   ): Promise<BackendSamlProviderResponse> {
+    return await this.backendRequest<BackendSamlProviderResponse>("PUT", this.samlProviderPath(projectId, providerId), {
+      json: body,
+    });
+  }
+  /** Enterprise backend: replace a SAML provider's attribute mapping. */
+  public async updateSamlAttributeMapping(
+    projectId: string,
+    providerId: string,
+    body: BackendSamlAttributeMapping,
+  ): Promise<BackendSamlProviderResponse> {
     return await this.backendRequest<BackendSamlProviderResponse>(
-      "PUT",
-      `/v1/projects/${encodePathSegment(projectId)}/saml/providers/${encodePathSegment(providerId)}`,
+      "PATCH",
+      `${this.samlProviderPath(projectId, providerId)}/attribute-mapping`,
       { json: body },
+    );
+  }
+  /** Enterprise backend: start a SAML test and return its browser redirect. */
+  public async startSamlConnectionTest(
+    projectId: string,
+    providerId: string,
+  ): Promise<BackendSamlConnectionTestStarted> {
+    return await this.backendRequest<BackendSamlConnectionTestStarted>(
+      "POST",
+      `${this.samlProviderPath(projectId, providerId)}/test`,
+    );
+  }
+  /** Enterprise backend: check the status of a SAML connection test. */
+  public async getSamlConnectionTestStatus(
+    projectId: string,
+    providerId: string,
+    testId: string,
+  ): Promise<BackendSamlConnectionTestStatus> {
+    return await this.backendRequest<BackendSamlConnectionTestStatus>(
+      "GET",
+      `${this.samlProviderPath(projectId, providerId)}/test/${encodePathSegment(testId)}`,
     );
   }
   /** Enterprise backend `DELETE /v1/projects/{project_id}/saml/providers/{provider_id}`. */
   public async deleteSamlProvider(projectId: string, providerId: string): Promise<void> {
-    return await this.backendRequest<void>(
-      "DELETE",
-      `/v1/projects/${encodePathSegment(projectId)}/saml/providers/${encodePathSegment(providerId)}`,
-    );
+    return await this.backendRequest<void>("DELETE", this.samlProviderPath(projectId, providerId));
   }
   /** Enterprise backend `POST /v1/projects/{id}/sandbox/extract`. */
   public async sandboxExtract(
@@ -1006,6 +1064,13 @@ export class XbergClient {
     return await this.backendRequest<BackendCreateScimConnectionResponse>(
       "POST",
       `/v1/projects/${encodePathSegment(projectId)}/scim/connections/${encodePathSegment(connectionId)}/rotate`,
+    );
+  }
+  /** Enterprise backend: revoke a SCIM connection. */
+  public async revokeScimConnection(projectId: string, connectionId: string): Promise<BackendScimConnectionResponse> {
+    return await this.backendRequest<BackendScimConnectionResponse>(
+      "POST",
+      `${this.projectPath(projectId)}/scim/connections/${encodePathSegment(connectionId)}/revoke`,
     );
   }
   /** Enterprise backend `GET /v1/projects/{id}/usage`. */
@@ -1331,6 +1396,20 @@ export class XbergClient {
     await this.requestJson("DELETE", `/v1/rag/collections/${encodePathSegment(name)}`);
   }
 
+  /** List the documents in a RAG collection, using the returned cursor for the next page. */
+  public async listRagDocuments(name: string, params: ListRagDocumentsParams = {}): Promise<ListRagDocumentsResponse> {
+    const { limit, cursor, projectId } = params;
+    if (projectId !== undefined) await this.requireTier("pro", "projectId");
+    return await this.requestJson<ListRagDocumentsResponse>(
+      "GET",
+      `/v1/rag/collections/${encodePathSegment(name)}/documents`,
+      {
+        params: { limit, cursor },
+        ...(projectId !== undefined ? { headers: { [this.projectHeaderName()]: projectId } } : {}),
+      },
+    );
+  }
+
   /** Add documents to a RAG collection (`POST /v1/rag/collections/{name}/documents`). */
   public async addRagDocuments(name: string, body: Record<string, unknown>): Promise<unknown> {
     return await this.requestJson("POST", `/v1/rag/collections/${encodePathSegment(name)}/documents`, { json: body });
@@ -1539,6 +1618,14 @@ export class XbergClient {
   public async getJobPage(jobId: string, pageNumber: number, scope: JobScopeParams = {}): Promise<Uint8Array> {
     const path = `${JOBS_PATH}/${encodePathSegment(jobId)}/pages/${encodePathSegment(String(pageNumber))}`;
     return await this.requestBytes("GET", path, { params: await this.jobScope(scope) });
+  }
+
+  /** Pro only: list the available rendered page numbers for an extraction job. */
+  public async getJobPageInventory(jobId: string, scope: JobScopeParams = {}): Promise<JobPageInventory> {
+    await this.requireTier("pro", "getJobPageInventory");
+    return await this.requestJson<JobPageInventory>("GET", `${JOBS_PATH}/${encodePathSegment(jobId)}/pages`, {
+      params: { project_id: scope.projectId },
+    });
   }
 
   /** Submit text for enrichment (`POST /v1/enrich`). */
@@ -1793,6 +1880,16 @@ export class XbergClient {
     await this.requestJson("PUT", `${this.integrationPath(projectId, integrationId)}/sync`, {
       json: body,
     });
+  }
+
+  /** Pro only: permanently bind an integration to a RAG collection in the same project. */
+  public async bindIntegrationRagTarget(
+    projectId: string,
+    integrationId: string,
+    body: BindIntegrationRagTargetRequest,
+  ): Promise<void> {
+    await this.requireTier("pro", "bindIntegrationRagTarget");
+    await this.requestJson("PUT", `${this.integrationPath(projectId, integrationId)}/sync/rag-target`, { json: body });
   }
 
   /** Pro only: delete an integration (`DELETE .../integrations/{integrationId}`). */
@@ -2183,6 +2280,19 @@ export class XbergClient {
     });
   }
 
+  /** Enterprise only: update link access using the room's last observed version. */
+  public async setRoomLinkAccess(
+    roomId: string,
+    body: SetRoomLinkAccessRequest,
+    version: number,
+  ): Promise<RoomLinkAccessResponse> {
+    await this.requireTier("enterprise", "setRoomLinkAccess");
+    return this.requestJson<RoomLinkAccessResponse>("PUT", `${this.roomPath(roomId)}/links`, {
+      json: body,
+      headers: ifMatch(version),
+    });
+  }
+
   /** Enterprise only: create a share link for a data room. */
   public async createRoomLink(roomId: string, body: CreateRoomLinkRequest): Promise<RoomLinkResponse> {
     await this.requireTier("enterprise", "createRoomLink");
@@ -2377,6 +2487,10 @@ export class XbergClient {
   /** Build `/v1/projects/{projectId}/integrations/{integrationId}`. */
   private integrationPath(projectId: string, integrationId: string): string {
     return `${this.projectPath(projectId)}/integrations/${encodePathSegment(integrationId)}`;
+  }
+
+  private samlProviderPath(projectId: string, providerId: string): string {
+    return `${this.projectPath(projectId)}/saml/providers/${encodePathSegment(providerId)}`;
   }
 
   /** Build `/v1/documents/{documentId}` with the id percent-encoded. */

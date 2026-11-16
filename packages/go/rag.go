@@ -3,6 +3,8 @@ package xberg
 import (
 	"context"
 	"encoding/json"
+	"net/url"
+	"strconv"
 )
 
 // The RAG API is part of the shared surface (Enterprise + Pro). Its request and
@@ -41,6 +43,27 @@ func (c *Client) GetRagCollection(ctx context.Context, name string) (json.RawMes
 // The endpoint answers 204 with no body.
 func (c *Client) DeleteRagCollection(ctx context.Context, name string) error {
 	return c.callJSON(ctx, methodDelete, "/v1/rag/collections/"+escapePathSegment(name), nil, nil)
+}
+
+// ListRagDocuments lists a page of documents in a RAG collection
+// (GET /v1/rag/collections/{name}/documents). Pass the response's NextCursor
+// to continue. [WithProProject] selects the project on Pro.
+func (c *Client) ListRagDocuments(ctx context.Context, name string, params *ListRagDocumentsParams) (*ListRagDocumentsResponse, error) {
+	query := url.Values{}
+	if params != nil {
+		if params.Limit != nil {
+			query.Set("limit", strconv.FormatInt(*params.Limit, 10))
+		}
+		if params.Cursor != nil {
+			query.Set("cursor", params.Cursor.String())
+		}
+	}
+	path := "/v1/rag/collections/" + escapePathSegment(name) + "/documents" + querySuffix(query)
+	var out ListRagDocumentsResponse
+	if err := c.getJSON(ctx, path, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // AddRagDocuments adds documents to a RAG collection

@@ -39,7 +39,7 @@ func ownsJobProjectScope(method, path string) bool {
 		return false
 	}
 	return len(parts) == 2 || (len(parts) == 3 && parts[2] != "") ||
-		(len(parts) == 4 && parts[2] != "" && parts[3] == "result") ||
+		(len(parts) == 4 && parts[2] != "" && (parts[3] == "result" || parts[3] == "pages")) ||
 		(len(parts) == 5 && parts[2] != "" && parts[3] == "pages" && parts[4] != "")
 }
 
@@ -92,7 +92,7 @@ func ownsRagHeaderProjectScope(method, path string) bool {
 	if len(parts) == 4 {
 		return method == methodGet || method == methodDelete
 	}
-	return len(parts) == 5 && ((parts[4] == "documents" && (method == methodPost || method == methodDelete)) ||
+	return len(parts) == 5 && ((parts[4] == "documents" && (method == methodGet || method == methodPost || method == methodDelete)) ||
 		(parts[4] == "retrieve" && method == methodPost))
 }
 

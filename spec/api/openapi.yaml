@@ -468,6 +468,7 @@ paths:
               - preset.delete
               - scim.connection.create
               - scim.connection.rotate
+              - scim.connection.revoke
               - scim.group_roles.replace
               - data_room.create
               - data_room.update
@@ -1551,8 +1552,9 @@ paths:
       description: |-
         Returns each logical document once, shown by its newest finished version
         (`COMPLETED` or `PARTIAL_SUCCESS`), most recently updated first. A document with no
-        finished version is absent. The `document_id` of an entry is the id that adds the
-        document to a data room.
+        visible finished version is absent. Search matches the displayed filename literally,
+        ignoring case. A job filter resolves a finished job within the authorized project.
+        The `document_id` of an entry is the id that adds the document to a data room.
       operationId: list_documents
       parameters:
         - name: limit
@@ -1574,6 +1576,20 @@ paths:
             format: int64
             default: 0
             minimum: 0
+        - name: search
+          in: query
+          description: Case-insensitive substring of the displayed filename, at most 128 characters.
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+        - name: job_id
+          in: query
+          description: Return only the logical document belonging to this finished job.
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Documents listed
@@ -1582,7 +1598,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListProjectDocumentsResponse'
         "400":
-          description: Invalid pagination parameters
+          description: Invalid search, job ID or pagination parameters
           content:
             application/json:
               schema:
@@ -1594,7 +1610,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "403":
-          description: An API key's project_id or x-project-id names a project other than the key's own
+          description: Document access is forbidden in the selected project
           content:
             application/json:
               schema:
@@ -3980,6 +3996,111 @@ paths:
       security:
         - bearer_auth: []
   /v1/rag/collections/{name}/documents:
+    get:
+      tags:
+        - rag
+      summary: List documents in a RAG collection
+      description: Returns live document summaries in the named collection's serving embedding generation for the authenticated project. Results are ordered by ascending document ID. Pass the previous page's next_cursor as cursor to continue.
+      operationId: list_rag_documents
+      parameters:
+        - name: name
+          in: path
+          description: Collection name
+          required: true
+          schema:
+            type: string
+          example: my-docs
+        - name: limit
+          in: query
+          description: Maximum number of documents to return.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: cursor
+          in: query
+          description: Continuation cursor from `next_cursor` in the previous page. Omit for the first page.
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Page of documents ordered by ascending document ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRagDocumentsResponse'
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The credential lacks read permission for the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Collection not found or RAG disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Session authentication is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
     post:
       tags:
         - rag
@@ -4127,7 +4248,10 @@ paths:
       tags:
         - rag
       summary: Delete documents from a RAG collection
-      description: Accepts either a list of document IDs or a metadata filter expression.
+      description: |-
+        A connector-managed document in an explicit ID batch rejects the whole
+        request. Filter deletion skips connector-managed matches and returns the
+        number of documents actually deleted.
       operationId: delete_documents
       parameters:
         - name: name
@@ -4145,7 +4269,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Documents deleted
+          description: Documents deleted. Filter matches managed by a connector are skipped
           content:
             application/json:
               schema:
@@ -4182,6 +4306,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
+        "409":
+          description: The ID batch includes a connector-managed document. No documents were deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "413":
           description: The request body is larger than this deployment accepts
           content:
@@ -5142,7 +5272,7 @@ paths:
       tags:
         - rooms
       summary: Take up a room link
-      description: 'Takes up a link token for the signed-in user and gives the user a grant on the room with the role of the link. An anonymous caller gets 401. A token that cannot be taken up answers 404, whatever the reason. A caller who holds a grant on the room already gets 200 with that grant, and nothing changes: the role and the link the grant came from stay. Revoking the link a grant came from ends that grant. The person then takes up another live link to get back in.'
+      description: 'Takes up a link token for the signed-in user and gives the user a grant on the room with the role of the link. An anonymous caller gets 401. A token that cannot be taken up, including in a room with link access disabled, answers 404, whatever the reason. A caller who holds a grant on the room already gets 200 with that grant, and nothing changes: the role and the link the grant came from stay. Revoking the link a grant came from ends that grant. The person then takes up another live link to get back in.'
       operationId: accept_room_link
       requestBody:
         content:
@@ -5549,6 +5679,12 @@ paths:
       responses:
         "204":
           description: Room deleted
+          links:
+            restoreDeletedRoom:
+              operationId: restore_room
+              parameters:
+                id: $request.path.id
+              description: Restore this room before its restore window expires
         "400":
           description: 'The request is malformed: a path parameter, a query parameter or the body did not parse'
           content:
@@ -6877,7 +7013,7 @@ paths:
       tags:
         - rooms
       summary: List the links of a data room
-      description: Lists the links of the room with their status, role and expiry. The answer never carries a link token.
+      description: Lists the links of the room with their status, role and expiry. The answer includes the settings and room version, and never carries a link token.
       operationId: list_room_links
       parameters:
         - name: id
@@ -6973,11 +7109,136 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+    put:
+      tags:
+        - rooms
+      summary: Set anyone-with-link access for a room
+      description: Updates link access with the room version from the link list. Link access starts disabled. Disabling it revokes all links and ends grants taken through them. Separate named grants and the anonymous publication keep their own settings.
+      operationId: set_room_link_access
+      parameters:
+        - name: id
+          in: path
+          description: Room ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          description: The room version the caller read, quoted or bare
+          required: true
+          schema:
+            type: string
+            pattern: ^[ \t]*"*(?:\+?0*(?:[0-9]{1,18}|[0-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)|-0*(?:[0-9]{1,18}|[0-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7]|9223372036854775808))"*[ \t]*(?![\s\S])
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRoomLinkAccessRequest'
+        required: true
+      responses:
+        "200":
+          description: Link access updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomLinkAccessResponse'
+        "400":
+          description: The If-Match value is not a room version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The caller does not hold the member manage right
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The room does not exist or the caller cannot see it, or the plan does not offer data rooms (`data_room.disabled`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "412":
+          description: The room changed since the caller read it
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: The request body is larger than this deployment accepts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "428":
+          description: The If-Match header is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Room authorization or the room store is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
     post:
       tags:
         - rooms
       summary: Make an anyone-with-link grant for a data room
-      description: Makes a link that gives a signed-in user the role sent on the room. The token is in this answer only. The service stores its hash, so a lost token means a new link. A link works until it is revoked, or until the expiry sent. A room holds as many active links as it may hold pending invitations.
+      description: Makes a link that gives a signed-in user the role sent on the room. The token is in this answer only. The service stores its hash, so a lost token means a new link. A link works until it is revoked, or until the expiry sent. Link access must be enabled for the room. A room holds as many active links as it may hold pending invitations.
       operationId: create_room_link
       parameters:
         - name: id
@@ -7031,7 +7292,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
         "409":
-          description: The room holds its limit of active links
+          description: Link access is disabled or the room holds its limit of active links
           content:
             application/json:
               schema:
@@ -11921,10 +12182,10 @@ components:
           type:
             - string
             - "null"
+          pattern: ^[^\u0000]*$
         name:
           type: string
-          maxLength: 100
-          minLength: 1
+          pattern: ^[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000](?:[^\u0000]{0,98}[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000])?[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$
       additionalProperties: false
     CreateSavedPresetRequest:
       type: object
@@ -13902,6 +14163,9 @@ components:
 
             This field preserves all metadata that would otherwise be lost when
             converting to plain text or markdown output formats.
+
+            PDF OCR elements report backend recognitions, including occurrences that
+            document text pruning can omit from rendered content.
 
             Only populated when `OcrElementConfig.include_elements` is true.
         ocr_page_failures:
@@ -16071,6 +16335,9 @@ components:
             - "null"
           format: uuid
           description: The crawl job that spawned this job as a child, when any.
+        preset:
+          type: string
+          description: Display name captured when this extraction accepted a structured extraction preset.
         source_url:
           type:
             - string
@@ -16353,8 +16620,9 @@ components:
             Also run layout detection on the text layer of native PDF pages, not
             only on the pages that go through OCR. The layout regions then inform
             the reading order, the region grouping and the table detection of those
-            pages. Off when omitted. It has no
-            effect when `force_ocr` is set, because every page then goes through OCR.
+            pages. A document that omits this option inherits the batch setting,
+            which defaults to false. Set false to opt out of a batch opt-in.
+            This has no effect when `force_ocr` is set.
         preset:
           type:
             - string
@@ -16667,7 +16935,27 @@ components:
         total:
           type: integer
           format: int64
-          description: Number of documents in the project.
+          description: Number of visible documents matching the filters.
+    ListRagDocumentsResponse:
+      type: object
+      description: A page of documents ordered by ascending document ID.
+      required:
+        - documents
+        - limit
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/RagDocumentSummary'
+        limit:
+          type: integer
+          format: int32
+        next_cursor:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: Pass this value as `cursor` to fetch the next page. Null if this is the last page.
     ListRoomInvitationsResponse:
       type: object
       required:
@@ -16692,11 +16980,15 @@ components:
     ListRoomLinksResponse:
       type: object
       required:
+        - enabled
+        - room_version
         - links
         - total
         - limit
         - offset
       properties:
+        enabled:
+          type: boolean
         limit:
           type: integer
           format: int64
@@ -16705,6 +16997,9 @@ components:
           items:
             $ref: '#/components/schemas/RoomLinkResponse'
         offset:
+          type: integer
+          format: int64
+        room_version:
           type: integer
           format: int64
         total:
@@ -19730,6 +20025,39 @@ components:
         payload:
           type: string
           description: Decoded payload (text, URL, vCard string, …).
+    RagDocumentSummary:
+      type: object
+      description: A document in the collection's serving embedding generation.
+      required:
+        - id
+        - chunk_count
+        - status
+      properties:
+        chunk_count:
+          type: integer
+          format: int32
+        external_id:
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+          format: uuid
+        ingested_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        mime:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        title:
+          type:
+            - string
+            - "null"
     RagJobKind:
       type: string
       description: Operation type for RAG async jobs
@@ -20519,6 +20847,17 @@ components:
         updated_at:
           type: string
           format: date-time
+    RoomLinkAccessResponse:
+      type: object
+      required:
+        - enabled
+        - room_version
+      properties:
+        enabled:
+          type: boolean
+        room_version:
+          type: integer
+          format: int64
     RoomLinkResponse:
       type: object
       required:
@@ -20980,6 +21319,14 @@ components:
             - type: "null"
         state:
           $ref: '#/components/schemas/PublicationStateName'
+      additionalProperties: false
+    SetRoomLinkAccessRequest:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
       additionalProperties: false
     SparseEmbedding:
       type: object
@@ -21671,19 +22018,35 @@ components:
           type: string
           description: Tuning profile name.
     UpdateRoomRequest:
-      type: object
-      properties:
-        description:
-          type:
-            - string
-            - "null"
-        name:
-          type:
-            - string
-            - "null"
-          maxLength: 100
-          minLength: 1
-      additionalProperties: false
+      anyOf:
+        - type: object
+          required:
+            - name
+          properties:
+            description:
+              type:
+                - string
+                - "null"
+              pattern: ^[^\u0000]*$
+            name:
+              type: string
+              pattern: ^[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000](?:[^\u0000]{0,98}[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000])?[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$
+          additionalProperties: false
+        - type: object
+          required:
+            - description
+          properties:
+            description:
+              type:
+                - string
+                - "null"
+              pattern: ^[^\u0000]*$
+            name:
+              type:
+                - string
+                - "null"
+              pattern: ^[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000](?:[^\u0000]{0,98}[^\u0000\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000])?[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$
+          additionalProperties: false
     UpdateSavedPresetRequest:
       type: object
       description: Request to update a saved preset.

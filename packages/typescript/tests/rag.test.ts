@@ -72,9 +72,15 @@ describe("shared RAG surface", () => {
     expect(receivedBody).toEqual({ filter: { source: "stale" } });
   });
 
-  it("exposes no listRagDocuments method because no spec declares GET on that path", () => {
-    const client = makeClient() as unknown as Record<string, unknown>;
-    expect(client["listRagDocuments"]).toBeUndefined();
+  it("listRagDocuments uses server pagination defaults when no options are provided", async () => {
+    const response = { documents: [], limit: 50, next_cursor: null };
+    server.use(
+      http.get(url("/v1/rag/collections/docs/documents"), ({ request }) => {
+        expect(new URL(request.url).search).toBe("");
+        return HttpResponse.json(response);
+      }),
+    );
+    expect(await makeClient().listRagDocuments("docs")).toEqual(response);
   });
 
   it("addRagDocuments posts new documents to a collection", async () => {

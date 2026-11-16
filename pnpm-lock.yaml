@@ -183,7 +183,7 @@ importers:
         version: 3.0.0
       '@vitest/coverage-v8':
         specifier: ^5.1.0
-        version: 5.1.0(vitest@5.1.0)
+        version: 5.1.0(@types/node@26.6.6)(msw@3.0.5(@types/node@26.6.6)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)
       oxfmt:
         specifier: ^0.78.0
         version: 0.78.0
@@ -253,7 +253,7 @@ importers:
         version: 24.19.2
       '@vitest/coverage-v8':
         specifier: ^5.1.0
-        version: 5.1.0(vitest@5.1.0)
+        version: 5.1.0(@types/node@24.19.2)(msw@3.0.5(@types/node@24.19.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)
       msw:
         specifier: ^3.0.5
         version: 3.0.5(@types/node@24.19.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))
@@ -518,8 +518,8 @@ packages:
   '@isaacs/nonrecursive-glob-match@1.1.0':
     resolution: {integrity: sha512-GPm/Dbvk5RLmhRnxXIa7nTpK0xtl4E0wj0MslsuNiJ1FIROU+2+9lgUC/dgF7Ey4QCWhfEsgxilMRMCdHPfDfw==}
 
-  '@jridgewell/resolve-uri@3.1.2':
-    resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
+  '@jridgewell/resolve-uri@3.1.3':
+    resolution: {integrity: sha512-lhTtjtoEArWBjismtfS761S9Hlyn+nIZqOZVYoZ1Xn82PMNMVnk+jj/NhC4fAXGTs7ydONcJiR5vyQBTMDu27g==}
     engines: {node: '>=6.0.0'}
 
   '@jridgewell/sourcemap-codec@1.6.0':
@@ -1027,8 +1027,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rolldown/pluginutils@1.1.0':
-    resolution: {integrity: sha512-K+NU2HDCEem4sClgHH4ZZXwdJeNFkJo+hRk479DIwdIviAPN2hFJH1KHHwg8CxHQXvi0M5XY4deTXINfIiSG6w==}
+  '@rolldown/pluginutils@1.1.1':
+    resolution: {integrity: sha512-glFIJDvLNDtJhT9qrMFWLPbvS+skxgt4L0K8Ei2YtnhPysAJnsI7nyxSJxKj4ADeKX0OLjC4ntRkwpLOoS3rwA==}
 
   '@textlint-rule/textlint-rule-no-invalid-control-character@3.0.0':
     resolution: {integrity: sha512-2o9n4z49ntSPtJPlcJtxakyB4dAg2MKSvR9ZCZEHjye0ee27oWYzK6yHz2HjsXQqt9VeCwxNHDOIGIx2CQX0Dw==}
@@ -1470,8 +1470,8 @@ packages:
     resolution: {integrity: sha512-X6fBC0pmImC70gvX2zm56go9hx0MyoGVdG0tUCkg/D+Xnh5TJsOZ7iDbOdI3PvmtrDxnu1YdDufpK2QJX1Meqw==}
     engines: {node: '>=20.20.0'}
 
-  glob@14.0.5:
-    resolution: {integrity: sha512-nbKW5Sl53DEM5PkmZ5Jwfeyss1ohuqcgOBjOarSjz1fp8W4ss4EOOvKADQRbApD6JmVBX+HkpZYfBez4wXbeQQ==}
+  glob@14.0.6:
+    resolution: {integrity: sha512-OwXjVP2svY5EyLY75Vek96C8qK43gqrt4xsZ+qSILdnaEiJPXkd62mcfUSNx/TQErQRdu5uM5kF67sfONragKw==}
     engines: {node: 18 || 20 || >=22}
 
   hashery@1.5.1:
@@ -2134,11 +2134,11 @@ packages:
     resolution: {integrity: sha512-LgO3D9yZJjApUiuUfl9iFAwrtaX4+lok3wJIqttGoKCHlWUqHqbQpnxCf82L8FjgKsh4iGo78hqJwgL8F6To2A==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@7.4.22:
-    resolution: {integrity: sha512-NRyhrlvJcTwvoRibE0dEZvp6C5RwV4RxpsX1zbkI1k7Fk2pzIhmQ+MvswJEd5KKl3VRFRMDTipXse/ejh/ld/w==}
+  tldts-core@7.5.2:
+    resolution: {integrity: sha512-8W1topazDwhMKbm2I83IPa57Ow5VUxFgLbXv42+vSILnv8FY5OHvdEY/tS6WoWeMbxkHZQhra5cmeFHriKptSQ==}
 
-  tldts@7.4.22:
-    resolution: {integrity: sha512-TmLwkCZ1GFMxGkKfg2ooQhPF8rDMuuXvJHSxFiOU1fofh27L6NaO5T9KSlQXCJX2eoSt14I8F4saSMILOmXmaQ==}
+  tldts@7.5.2:
+    resolution: {integrity: sha512-p+JwEdxIWQx033pMvW9ULBbyC1Eg6JtWo2Mo0jbC8TVSjp2QrHFE+WKs8JpMGc3ECMsmBpU2RH/25NgX3k1ulg==}
     hasBin: true
 
   too-wordy@0.3.6:
@@ -2606,13 +2606,13 @@ snapshots:
 
   '@isaacs/nonrecursive-glob-match@1.1.0': {}
 
-  '@jridgewell/resolve-uri@3.1.2': {}
+  '@jridgewell/resolve-uri@3.1.3': {}
 
   '@jridgewell/sourcemap-codec@1.6.0': {}
 
   '@jridgewell/trace-mapping@0.3.31':
     dependencies:
-      '@jridgewell/resolve-uri': 3.1.2
+      '@jridgewell/resolve-uri': 3.1.3
       '@jridgewell/sourcemap-codec': 1.6.0
 
   '@keyv/bigmap@1.3.1(keyv@5.6.0)':
@@ -2903,7 +2903,7 @@ snapshots:
   '@rolldown/binding-win32-x64-msvc@1.3.2':
     optional: true
 
-  '@rolldown/pluginutils@1.1.0': {}
+  '@rolldown/pluginutils@1.1.1': {}
 
   '@textlint-rule/textlint-rule-no-invalid-control-character@3.0.0': {}
 
@@ -3070,7 +3070,23 @@ snapshots:
 
   '@types/unist@2.0.11': {}
 
-  '@vitest/coverage-v8@5.1.0(vitest@5.1.0)':
+  '@vitest/coverage-v8@5.1.0(@types/node@24.19.2)(msw@3.0.5(@types/node@24.19.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)':
+    dependencies:
+      '@bcoe/v8-coverage': 1.0.2
+      '@vitest/istanbul-lib-coverage': 2.1.0
+      '@vitest/istanbul-lib-report': 2.1.0
+      ast-v8-to-istanbul: 1.0.8
+      magicast: 0.5.5
+      obug: 3.0.0
+      std-env: 4.3.0
+      tinyrainbow: 3.2.0
+      vitest: 5.1.0(@types/node@24.19.2)(@vitest/coverage-v8@5.1.0)(msw@3.0.5(@types/node@24.19.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))
+    transitivePeerDependencies:
+      - '@types/node'
+      - msw
+      - vite
+
+  '@vitest/coverage-v8@5.1.0(@types/node@26.6.6)(msw@3.0.5(@types/node@26.6.6)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/istanbul-lib-coverage': 2.1.0
@@ -3081,6 +3097,10 @@ snapshots:
       std-env: 4.3.0
       tinyrainbow: 3.2.0
       vitest: 5.1.0(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(msw@3.0.5(@types/node@26.6.6)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15))
+    transitivePeerDependencies:
+      - '@types/node'
+      - msw
+      - vite
 
   '@vitest/istanbul-lib-coverage@2.1.0': {}
 
@@ -3375,7 +3395,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  glob@14.0.5:
+  glob@14.0.6:
     dependencies:
       minimatch: 11.0.8
       minipass: 7.1.3
@@ -3936,7 +3956,7 @@ snapshots:
   rolldown@1.2.19:
     dependencies:
       '@oxc-project/types': 0.156.0
-      '@rolldown/pluginutils': 1.1.0
+      '@rolldown/pluginutils': 1.1.1
     optionalDependencies:
       '@rolldown/binding-android-arm-eabi': 1.2.19
       '@rolldown/binding-android-arm64': 1.2.19
@@ -3958,7 +3978,7 @@ snapshots:
   rolldown@1.3.2:
     dependencies:
       '@oxc-project/types': 0.158.0
-      '@rolldown/pluginutils': 1.1.0
+      '@rolldown/pluginutils': 1.1.1
     optionalDependencies:
       '@rolldown/binding-android-arm-eabi': 1.3.2
       '@rolldown/binding-android-arm64': 1.3.2
@@ -4150,7 +4170,7 @@ snapshots:
       '@textlint/utils': 15.8.0
       debug: 4.4.3(supports-color@10.2.2)
       file-entry-cache: 10.1.4
-      glob: 14.0.5
+      glob: 14.0.6
       md5: 2.3.0
       optionator: 0.9.4
       path-to-glob-pattern: 2.0.1
@@ -4176,17 +4196,17 @@ snapshots:
 
   tinyrainbow@3.2.0: {}
 
-  tldts-core@7.4.22: {}
+  tldts-core@7.5.2: {}
 
-  tldts@7.4.22:
+  tldts@7.5.2:
     dependencies:
-      tldts-core: 7.4.22
+      tldts-core: 7.5.2
 
   too-wordy@0.3.6: {}
 
   tough-cookie@6.1.0:
     dependencies:
-      tldts: 7.4.22
+      tldts: 7.5.2
 
   trough@1.0.5: {}
 
@@ -4359,7 +4379,7 @@ snapshots:
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 24.19.2
-      '@vitest/coverage-v8': 5.1.0(vitest@5.1.0)
+      '@vitest/coverage-v8': 5.1.0(@types/node@24.19.2)(msw@3.0.5(@types/node@24.19.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)
     transitivePeerDependencies:
       - msw
 
@@ -4381,7 +4401,7 @@ snapshots:
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 26.6.6
-      '@vitest/coverage-v8': 5.1.0(vitest@5.1.0)
+      '@vitest/coverage-v8': 5.1.0(@types/node@26.6.6)(msw@3.0.5(@types/node@26.6.6)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15))(vitest@5.1.0)
     transitivePeerDependencies:
       - msw
 

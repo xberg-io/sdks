@@ -147,6 +147,14 @@ func (c *Client) BackendCreateAPIKey(
 	)
 }
 
+// BackendCreateRoleBoundAPIKey issues an Enterprise API key restricted to a custom project role.
+func (c *Client) BackendCreateRoleBoundAPIKey(
+	ctx context.Context, projectID string, body CreateRoleBoundApiKeyRequest,
+) (*CreateApiKeyResponse, error) {
+	path := projectPath(projectID, "/api-keys/role-bound")
+	return controlPlaneJSON[CreateApiKeyResponse](ctx, c, "BackendCreateRoleBoundAPIKey", methodPost, path, body)
+}
+
 // BackendRevokeAPIKey calls DELETE /v1/projects/{id}/api-keys/{key_id} on the Enterprise control plane.
 func (c *Client) BackendRevokeAPIKey(ctx context.Context, projectID string, keyID string) error {
 	return c.controlPlaneEmpty(
@@ -662,6 +670,29 @@ func (c *Client) DeleteSamlProvider(
 	)
 }
 
+// UpdateSamlAttributeMapping replaces an Enterprise SAML provider's attribute mapping.
+func (c *Client) UpdateSamlAttributeMapping(
+	ctx context.Context, projectID, providerID string, body SamlAttributeMapping,
+) (*SamlProviderResponse, error) {
+	path := projectPath(projectID, "/saml/providers/"+escapePathSegment(providerID)+"/attribute-mapping")
+	return controlPlaneJSON[SamlProviderResponse](ctx, c, "UpdateSamlAttributeMapping", methodPatch, path, body)
+}
+
+// StartSamlConnectionTest starts an Enterprise SAML provider test and returns
+// the redirect URL the administrator can open.
+func (c *Client) StartSamlConnectionTest(ctx context.Context, projectID, providerID string) (*SamlConnectionTestStarted, error) {
+	path := projectPath(projectID, "/saml/providers/"+escapePathSegment(providerID)+"/test")
+	return controlPlaneJSON[SamlConnectionTestStarted](ctx, c, "StartSamlConnectionTest", methodPost, path, nil)
+}
+
+// GetSamlConnectionTestStatus checks the status of an Enterprise SAML provider test.
+func (c *Client) GetSamlConnectionTestStatus(
+	ctx context.Context, projectID, providerID, testID string,
+) (*SamlConnectionTestStatus, error) {
+	path := projectPath(projectID, "/saml/providers/"+escapePathSegment(providerID)+"/test/"+escapePathSegment(testID))
+	return controlPlaneJSON[SamlConnectionTestStatus](ctx, c, "GetSamlConnectionTestStatus", methodGet, path, nil)
+}
+
 // ListScimConnections calls GET /v1/projects/{id}/scim/connections on the Enterprise control plane.
 func (c *Client) ListScimConnections(
 	ctx context.Context,
@@ -740,6 +771,12 @@ func (c *Client) RotateScimConnectionSecret(
 		"/v1/projects/"+escapePathSegment(projectID)+"/scim/connections/"+escapePathSegment(connectionID)+"/rotate",
 		nil,
 	)
+}
+
+// RevokeScimConnection revokes an Enterprise SCIM connection.
+func (c *Client) RevokeScimConnection(ctx context.Context, projectID, connectionID string) (*ScimConnectionResponse, error) {
+	path := projectPath(projectID, "/scim/connections/"+escapePathSegment(connectionID)+"/revoke")
+	return controlPlaneJSON[ScimConnectionResponse](ctx, c, "RevokeScimConnection", methodPost, path, nil)
 }
 
 // GetUsage calls GET /v1/projects/{id}/usage on the Enterprise control plane.

@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-16
+
+### Added
+
+- List RAG collection documents on Enterprise and Pro.
+- Update Enterprise room link access and read Pro job page inventories.
+- Bind a Pro integration sync to a RAG target.
+- Create role-bound API keys, revoke SCIM connections, and configure or test SAML
+  providers through the Enterprise backend SDK.
+
+### Changed
+
+- Sync the Python, TypeScript, and Go clients with the Xberg Pro 0.6.1 and
+  matching Enterprise OpenAPI schemas.
+
 ## [0.11.0] - 2026-11-14
 
 ### Added
