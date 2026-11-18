@@ -21,8 +21,8 @@
 
 </div>
 
-Official Go client for the [Xberg Enterprise](https://xberg.io) and
-Xberg Pro document-processing APIs. One `Client` speaks to either product.
+Official Go client for the [Xberg Enterprise](https://pro.xberg.io) and
+[Xberg Pro](https://pro.xberg.io) document-processing APIs. One `Client` speaks to either product.
 
 ```sh
 go get github.com/xberg-io/sdks/packages/go

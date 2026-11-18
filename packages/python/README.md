@@ -30,8 +30,8 @@
 
 </div>
 
-Official Python client for the [Xberg Enterprise](https://xberg.io)
-and Xberg Pro document-processing APIs — one client, two targets.
+Official Python client for the [Xberg Enterprise](https://pro.xberg.io)
+and [Xberg Pro](https://pro.xberg.io) document-processing APIs — one client, two targets.
 
 - httpx-based, sync (`XbergClient`) and async (`AsyncXbergClient`) surfaces
 - One client speaks to both products: shared

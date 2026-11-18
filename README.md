@@ -24,8 +24,8 @@
 
 </div>
 
-Official client SDKs for the extraction API served by [Xberg Enterprise](https://xberg.io)
-and Xberg Pro. One package per language, one dual-target client:
+Official client SDKs for the extraction API served by [Xberg Enterprise](https://pro.xberg.io)
+and [Xberg Pro](https://pro.xberg.io). One package per language, one dual-target client:
 point it at an Enterprise or a Pro deployment and it exposes the shared surface plus the tier-specific
 methods available on that target. Generated from the upstream OpenAPI 3.1 specifications.
 

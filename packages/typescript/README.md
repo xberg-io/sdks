@@ -30,8 +30,8 @@
 
 </div>
 
-Official TypeScript / Node.js client for the [Xberg Enterprise](https://xberg.io)
-and Xberg Pro document-processing APIs. One `XbergClient` speaks to either
+Official TypeScript / Node.js client for the [Xberg Enterprise](https://pro.xberg.io)
+and [Xberg Pro](https://pro.xberg.io) document-processing APIs. One `XbergClient` speaks to either
 product: the shared surface (extraction, jobs, audit, curated presets, RAG) is
 written once, and tier-specific methods are capability-gated.
 
