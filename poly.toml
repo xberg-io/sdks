@@ -1,4 +1,4 @@
-required_version = ">=0.36.0"
+required_version = ">=0.36.1"
 
 [discovery]
 exclude = [
@@ -32,7 +32,15 @@ exclude = [
 "packages/python/src/xberg_io_sdk/client.py" = ["file-too-long", "type-too-long"]
 # ~keep The unified public client already exceeds the file limit within its class;
 # retain its API shape while tracking size debt only for this existing file.
-"packages/typescript/src/client.ts" = ["file-too-long", "type-too-long", "unresolved-imports"]
+"packages/typescript/src/client.ts" = [
+  "file-too-long",
+  "type-too-long",
+  "unresolved-imports",
+  # Not debt: the tsrs codes below are explained with the src/_generated/ entries. ~keep
+  "TS2304",
+  "TS2307",
+  "TS2552",
+]
 # --- end quality-debt baseline ---
 # ~keep Not quality debt: a JSON contract-case fixture is data, not code, and its line count
 # tracks how many operations the suite covers. `file-too-long` there penalises ADDING coverage,
@@ -110,9 +118,17 @@ exclude = [
   "require-await",
 ]
 # ~keep src/_generated/ is generated from spec/ by `pnpm generate` and gitignored, so skif cannot
-# resolve imports of it in a fresh checkout (client.ts carries the same entry above).
-"packages/typescript/src/index.ts" = ["unresolved-imports"]
-"packages/typescript/src/types.ts" = ["unresolved-imports"]
+# resolve imports of it in a fresh checkout (client.ts carries the same entry above), and tsrs
+# reports them as TS2307. The narrowing proof's `never` check then fails as TS2322 because the
+# CrawlEvent union it narrows comes from those missing modules.
+# ~keep tsrs is hermetic: without node_modules, `types: ["node"]` supplies no fetch, crypto,
+# setTimeout, Blob, File, FormData or Headers (TS2304, TS2552). `pnpm run lint` (tsc) covers these.
+"packages/typescript/src/index.ts" = ["unresolved-imports", "TS2307"]
+"packages/typescript/src/types.ts" = ["unresolved-imports", "TS2307"]
+"packages/typescript/src/_crawl-event-narrowing.ts" = ["TS2322"]
+"packages/typescript/src/_internal.ts" = ["TS2304", "TS2552"]
+"packages/typescript/src/errors.ts" = ["TS2304"]
+"packages/typescript/src/webhooks.ts" = ["TS2304"]
 "packages/typescript/tests/error-envelope.test.ts" = ["unresolved-imports"]
 "packages/typescript/tests/fixtures.test.ts" = ["unresolved-imports"]
 
@@ -242,6 +258,11 @@ hooks = ["adrlint-lint", "adrlint-format-check", "adrlint-lock-check"]
 [engines.skif]
 enabled = true
 dir = "packages/typescript"
+
+[engines.tsrs]
+enabled = true
+dir = "."
+project = "packages/typescript/tsconfig.json"
 
 [engines.harper]
 enabled = true
