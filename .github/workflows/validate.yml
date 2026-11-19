@@ -26,4 +26,6 @@ jobs:
     uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
     with:
       setup-python: true
+      # poly 0.36 formats Go with the Go on PATH; without the repo's Go the runner's older gofmt disagrees. ~keep
+      setup-go: true
       check-adrs: true
