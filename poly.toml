@@ -1,47 +1,25 @@
-[defaults]
-line_length = 120
-line_ending = "lf"
-final_newline = true
-trim_trailing_whitespace = true
+required_version = ">=0.36.0"
 
 [discovery]
 exclude = [
   "docs-site/src/snippets/**",
-  "docs-site/dist/**",
   "docs-site/.astro/**",
   "docs-site/src/content/docs/reference/**",
   "**/*.lock",
-  "**/Cargo.lock",
   "**/go.sum",
-  "**/package-lock.json",
   "**/pnpm-lock.yaml",
-  "**/uv.lock",
-  "coverage/**",
-  "dist/**",
-  "node_modules/**",
   "packages/go/generated_api.go",
   "packages/go/generated_pro.go",
   "packages/go/generated_backend.go",
-  "packages/go/oapi-codegen-backend.gen.yaml",
-  "packages/go/spec-backend.gen.yaml",
-  "packages/go/oapi-codegen-pro.gen.yaml",
-  "packages/go/spec-pro.gen.yaml",
-  "packages/python/src/xberg_io_sdk/_generated_api/**",
-  "packages/python/src/xberg_io_sdk/_generated_pro/**",
-  "packages/typescript/src/_generated/**",
   "spec/**",
   "packages/go/testdata/public-v0.9.0/fields.json",
-  "spec/openapi.yaml/**",
-  "crates/*-ffi/include/*.h",
-  "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
-  "/.mcp.json",
   # adrlint owns ADR Markdown with its own rumdl config and content-hash lock; poly would
   # double-report and its lock-unaware formatter would break locks. ~keep
   "/adrs/**",
 ]
 
-[per-file-ignores]
+[per_file_ignores]
 # --- quality-debt baseline round 2 ---
 # 5 size/complexity findings across 4 files that predate these
 # metrics. Listed per file rather than switching the rules off, so the metrics still
@@ -54,7 +32,7 @@ exclude = [
 "packages/python/src/xberg_io_sdk/client.py" = ["file-too-long", "type-too-long"]
 # ~keep The unified public client already exceeds the file limit within its class;
 # retain its API shape while tracking size debt only for this existing file.
-"packages/typescript/src/client.ts" = ["file-too-long", "type-too-long"]
+"packages/typescript/src/client.ts" = ["file-too-long", "type-too-long", "unresolved-imports"]
 # --- end quality-debt baseline ---
 # ~keep Not quality debt: a JSON contract-case fixture is data, not code, and its line count
 # tracks how many operations the suite covers. `file-too-long` there penalises ADDING coverage,
@@ -131,20 +109,14 @@ exclude = [
   # every `require-await` in packages/typescript/src was fixed with a real `await`. ~keep
   "require-await",
 ]
-"e2e/**" = ["comment", "doc-comment"]
-"**/e2e/**" = ["comment", "doc-comment"]
-"test_apps/**" = ["comment", "doc-comment"]
-"**/test_apps/**" = ["comment", "doc-comment"]
-"docs/assets/**" = ["comment", "doc-comment"]
-"**/generated/**" = ["comment", "doc-comment"]
-"**/*.generated.*" = ["comment", "doc-comment"]
-"**/*.g.*" = ["comment", "doc-comment"]
-"**/*.freezed.*" = ["comment", "doc-comment"]
-"crates/*-ffi/include/*.h" = ["comment", "doc-comment"]
-"packages/go/include/*.h" = ["comment", "doc-comment"]
-"Package.swift" = ["comment", "doc-comment"]
+# ~keep src/_generated/ is generated from spec/ by `pnpm generate` and gitignored, so skif cannot
+# resolve imports of it in a fresh checkout (client.ts carries the same entry above).
+"packages/typescript/src/index.ts" = ["unresolved-imports"]
+"packages/typescript/src/types.ts" = ["unresolved-imports"]
+"packages/typescript/tests/error-envelope.test.ts" = ["unresolved-imports"]
+"packages/typescript/tests/fixtures.test.ts" = ["unresolved-imports"]
 
-[lint.python.ruff]
+[engines.ruff.lint]
 pydocstyle_convention = "google"
 mccabe_max_complexity = 15
 pylint_max_args = 10
@@ -183,11 +155,22 @@ ignore = [
   "TRY",
 ]
 
-[lint.markdown.rumdl]
+[engines.rumdl.lang.markdown]
 disable = ["MD013", "MD033", "MD041"]
 
+[engines.shfmt.format]
+# Shell is two-space in this tree. Both keys are load-bearing: without `enabled` poly runs no shell
+# formatter at all, and without `indent_width` it falls through to the language default of four and
+# reindents every script. poly resolves this from here, not .editorconfig -- it pipes stdin to shfmt
+# with an explicit -i, under which .editorconfig is inert by design. ~keep
+enabled = true
+indent_width = 2
 
-[lint.uncomment]
+[engines.typos]
+# typos is opt-in in poly v2; this keeps the v1 default (on).
+enabled = true
+
+[engines.uncomment]
 enabled = true
 remove_todos = false
 remove_fixme = false
@@ -225,109 +208,15 @@ preserve_patterns = [
   "specific language governing permissions",
   "limitations under the license",
 ]
-[fmt.markdown.rumdl]
-disable = ["MD013", "MD033", "MD041"]
 
 [hooks]
 stages = ["pre-commit"]
 
 [hooks.builtin]
-lint = { exclude = [
-  "docs-site/src/snippets/**",
-  "docs-site/dist/**",
-  "docs-site/.astro/**",
-  "docs-site/src/content/docs/reference/**",
-  "**/*.lock",
-  "**/Cargo.lock",
-  "**/go.sum",
-  "**/package-lock.json",
-  "**/pnpm-lock.yaml",
-  "**/uv.lock",
-  "coverage/**",
-  "dist/**",
-  "node_modules/**",
-  "packages/go/generated_api.go",
-  "packages/go/generated_pro.go",
-  "packages/go/generated_backend.go",
-  "packages/go/oapi-codegen-backend.gen.yaml",
-  "packages/go/spec-backend.gen.yaml",
-  "packages/go/oapi-codegen-pro.gen.yaml",
-  "packages/go/spec-pro.gen.yaml",
-  "packages/python/src/xberg_io_sdk/_generated_api/**",
-  "packages/python/src/xberg_io_sdk/_generated_pro/**",
-  "packages/typescript/src/_generated/**",
-  "spec/**",
-  "spec/openapi.yaml/**",
-  "crates/*-ffi/include/*.h",
-  "packages/go/include/*.h",
-  "/.ai-rulez/.generated-manifest.json",
-  "/.mcp.json",
-  "/adrs/**",
-] }
-fmt = { exclude = [
-  "docs-site/src/snippets/**",
-  "docs-site/dist/**",
-  "docs-site/.astro/**",
-  "docs-site/src/content/docs/reference/**",
-  "**/*.lock",
-  "**/Cargo.lock",
-  "**/go.sum",
-  "**/package-lock.json",
-  "**/pnpm-lock.yaml",
-  "**/uv.lock",
-  "coverage/**",
-  "dist/**",
-  "node_modules/**",
-  "packages/go/generated_api.go",
-  "packages/go/generated_pro.go",
-  "packages/go/generated_backend.go",
-  "packages/go/oapi-codegen-backend.gen.yaml",
-  "packages/go/spec-backend.gen.yaml",
-  "packages/go/oapi-codegen-pro.gen.yaml",
-  "packages/go/spec-pro.gen.yaml",
-  "packages/python/src/xberg_io_sdk/_generated_api/**",
-  "packages/python/src/xberg_io_sdk/_generated_pro/**",
-  "packages/typescript/src/_generated/**",
-  "spec/**",
-  "spec/openapi.yaml/**",
-  "crates/*-ffi/include/*.h",
-  "packages/go/include/*.h",
-  "/.ai-rulez/.generated-manifest.json",
-  "/.mcp.json",
-  "/adrs/**",
-] }
+lint = true
+fmt = true
 commit = { stages = ["commit-msg"] }
-file_safety = { exclude = [
-  "docs-site/src/snippets/**",
-  "docs-site/dist/**",
-  "docs-site/.astro/**",
-  "docs-site/src/content/docs/reference/**",
-  "**/*.lock",
-  "**/Cargo.lock",
-  "**/go.sum",
-  "**/package-lock.json",
-  "**/pnpm-lock.yaml",
-  "**/uv.lock",
-  "coverage/**",
-  "dist/**",
-  "node_modules/**",
-  "packages/go/generated_api.go",
-  "packages/go/generated_pro.go",
-  "packages/go/generated_backend.go",
-  "packages/go/oapi-codegen-backend.gen.yaml",
-  "packages/go/spec-backend.gen.yaml",
-  "packages/go/oapi-codegen-pro.gen.yaml",
-  "packages/go/spec-pro.gen.yaml",
-  "packages/python/src/xberg_io_sdk/_generated_api/**",
-  "packages/python/src/xberg_io_sdk/_generated_pro/**",
-  "packages/typescript/src/_generated/**",
-  "spec/**",
-  "spec/openapi.yaml/**",
-  "crates/*-ffi/include/*.h",
-  "packages/go/include/*.h",
-  "/.ai-rulez/.generated-manifest.json",
-  "/.mcp.json",
-] }
+file_safety = true
 
 [tools.actionlint]
 enabled = true
@@ -337,14 +226,6 @@ enabled = true
 
 [tools.golangci-lint]
 enabled = true
-
-# Shell is two-space in this tree. Both keys are load-bearing: without `enabled` poly runs no shell
-# formatter at all, and without `indent_width` it falls through to the language default of four and
-# reindents every script. poly resolves this from here, not .editorconfig -- it pipes stdin to shfmt
-# with an explicit -i, under which .editorconfig is inert by design. ~keep
-[fmt.shell.shfmt]
-enabled = true
-indent_width = 2
 
 [[hooks.sources]]
 id = "ai-rulez"
@@ -357,3 +238,22 @@ id = "adrlint"
 git = "https://github.com/Goldziher/adrlint.git"
 revision = "v0"
 hooks = ["adrlint-lint", "adrlint-format-check", "adrlint-lock-check"]
+
+[engines.skif]
+enabled = true
+dir = "packages/typescript"
+
+[engines.harper]
+enabled = true
+# Off: rules that contradict the org's sentence-case headings and no-Oxford-comma style, or misread technical prose
+# (denylist, MB, stdin). ~keep
+ignore = [
+  "UseTitleCase",
+  "OxfordComma",
+  "SplitWords",
+  "OrthographicConsistency",
+  "ExpandMemoryShorthands",
+  "ExpandStandardInputAndOutput",
+  "ExpandConfiguration",
+  "ExpandMinimum",
+]
