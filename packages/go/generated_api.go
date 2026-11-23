@@ -7424,6 +7424,12 @@ type JatsMetadata struct {
 // JatsMetadataFormatType defines model for JatsMetadata.FormatType.
 type JatsMetadataFormatType string
 
+// JobPageInventory Page numbers of the objects that are actually present.
+type JobPageInventory struct {
+	// Pages Sorted, unique, positive page numbers. An empty list means no rasters have been stored.
+	Pages []int32 `json:"pages"`
+}
+
 // JobResult The result envelope `GET /v1/jobs/{id}/result` serves on both tiers.
 //
 // `results` holds the extracted document(s) produced by this job, in
@@ -11608,6 +11614,12 @@ type GetJobParams struct {
 // GetJobResultParams defines parameters for GetJobResult.
 type GetJobResultParams struct {
 	// ProjectId Must match the authenticated project
+	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
+}
+
+// GetJobPageInventoryParams defines parameters for GetJobPageInventory.
+type GetJobPageInventoryParams struct {
+	// ProjectId Project to read; sessions require current membership, API keys remain scoped to their own project
 	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 

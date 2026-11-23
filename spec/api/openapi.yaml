@@ -3047,6 +3047,122 @@ paths:
                 $ref: '#/components/schemas/TimeoutErrorResponse'
       security:
         - bearer_auth: []
+  /v1/jobs/{job_id}/pages:
+    get:
+      tags:
+        - jobs
+      summary: List persisted page images for a job in its authorized project.
+      description: |-
+        The list can be sparse. The same project authorization and result retention rules apply
+        to the inventory and individual image reads.
+      operationId: get_job_page_inventory
+      parameters:
+        - name: job_id
+          in: path
+          description: Extraction job ID (UUID)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: Project to read; sessions require current membership, API keys remain scoped to their own project
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Available page image numbers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPageInventory'
+        "400":
+          description: Invalid job ID or project selector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Credential cannot read the selected project or job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Job or project not visible, or result not published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Job does not support page images
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "410":
+          description: Job result has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Inventory exceeds the supported size or request fails validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Rate limit exceeded for this caller. The body is the shared error envelope with code `rate_limited`; `Retry-After` and the `x-ratelimit-*` headers carry the wait.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Inventory lookup failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Inventory or session authentication temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
   /v1/jobs/{job_id}/pages/{page_number}:
     get:
       tags:
@@ -16043,6 +16159,19 @@ components:
             - string
             - "null"
           description: Open-access license URI from the article's `<license>` element.
+    JobPageInventory:
+      type: object
+      description: Page numbers of the objects that are actually present.
+      required:
+        - pages
+      properties:
+        pages:
+          type: array
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Sorted, unique, positive page numbers. An empty list means no rasters have been stored.
     JobResult:
       type: object
       description: |-

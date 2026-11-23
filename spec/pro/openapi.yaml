@@ -1652,7 +1652,8 @@ paths:
         refused with `422` rather than answered with an unrendered page.
 
         Accepts `application/json` or the equivalent `multipart/form-data` form
-        shape; a multipart body carries documents only.
+        shape; a multipart body carries documents only. Use `/v1/extract/keyed` when
+        submitting with an `Idempotency-Key`.
       operationId: extract
       parameters:
         - name: X-Project-ID
@@ -1754,7 +1755,134 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "503":
-          description: Crawl extraction is not available on this instance
+          description: Crawl extraction is unavailable or extraction intake is closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: The server did not produce a response in time (`details.limit` is `handler`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+      security:
+        - bearer_auth: []
+  /v1/extract/keyed:
+    post:
+      tags:
+        - extract
+      summary: Accept one retryable inline batch on the qualified replicated S3 profile.
+      description: |-
+        Submit inline bytes as JSON or multipart. Multipart requests may supply
+        `options` and per-file `config-<filename>` text parts containing JSON.
+        Callbacks, external sources, existing-document lineage and crawl are refused.
+      operationId: extract_keyed
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          description: Required project-scoped retry key; reuse it only with the same input and effective configuration.
+          required: true
+          schema:
+            type: string
+        - name: X-Project-ID
+          in: header
+          description: Optional authorized project for either content type. A JSON body project_id takes precedence.
+          required: false
+          schema:
+            type:
+              - string
+              - "null"
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtractRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/KeyedExtractMultipartForm'
+        required: true
+      responses:
+        "202":
+          description: Jobs accepted or an accepted response replayed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractResponse'
+        "400":
+          description: Missing or invalid key, or unsupported request; X-Project-ID must be a UUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The API key is read-only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "408":
+          description: The request body stopped arriving before the upload completed (`details.limit` is `body_idle`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeoutErrorResponse'
+        "409":
+          description: Idempotency key conflicts, is in progress, or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "413":
+          description: Request exceeds the configured upload limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "415":
+          description: 'The request body was not sent with Content-Type: application/json'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Project monthly extraction quota exhausted
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until this request may be retried.
+            x-ratelimit-after:
+              schema:
+                type: integer
+              description: Seconds until the rate-limit bucket admits another request.
+            x-ratelimit-limit:
+              schema:
+                type: integer
+              description: Maximum requests allowed in the current rate-limit burst.
+            x-ratelimit-remaining:
+              schema:
+                type: integer
+              description: Requests remaining in the current rate-limit burst.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Keyed extraction is unavailable
           content:
             application/json:
               schema:
@@ -10567,6 +10695,11 @@ components:
         installation_id:
           type: string
           format: uuid
+        instance_id:
+          type:
+            - string
+            - "null"
+          format: uuid
         maintenance:
           type: boolean
         registered:
@@ -14175,6 +14308,24 @@ components:
           type: string
         value:
           type: string
+    KeyedExtractMultipartForm:
+      type: object
+      description: |-
+        Multipart body for a retryable keyed extraction. Repeat the binary part
+        for each file. Use `X-Project-ID` to select an authorized project and
+        `config-<filename>` for an optional JSON per-file configuration.
+      required:
+        - file
+      properties:
+        file:
+          type: array
+          items:
+            type: string
+            format: binary
+          description: Inline files with filenames and document Content-Types.
+        options:
+          $ref: '#/components/schemas/ExtractionOptions'
+          description: Optional `options` part with JSON-encoded extraction options.
     Keyword:
       type: object
       description: Extracted keyword with metadata.
