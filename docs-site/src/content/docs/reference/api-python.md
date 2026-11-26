@@ -240,9 +240,6 @@ All backend operations use the configured control-plane origin and credential.
 | `backend_revoke_api_key` | Enterprise backend: Revoke an API key (``DELETE /v1/projects/{id}/api-keys/{key_id}``). |
 | `regenerate_api_key` | Enterprise backend: Regenerate an API key (``POST /v1/projects/{id}/api-keys/{key_id}/regenerate``). |
 | `list_project_audit` | Enterprise backend: List a project's audit events, most recent first. (``GET /v1/projects/{id}/audit``). |
-| `get_billing` | Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``). |
-| `create_checkout` | Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``). |
-| `create_portal` | Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``). |
 | `backend_list_integrations` | Enterprise backend: List all integrations for a project (``GET /v1/projects/{id}/integrations``). |
 | `backend_create_integration` | Enterprise backend: Create a new integration (``POST /v1/projects/{id}/integrations``). |
 | `backend_get_integration` | Enterprise backend: Get a specific integration (``GET /v1/projects/{id}/integrations/{iid}``). |

@@ -44,8 +44,6 @@ import type {
   BackendUserProfileResponse,
   BackendUpdateUserProfileRequest,
   BackendBeginConnectResponse,
-  BackendBillingResponse,
-  BackendCheckoutResponse,
   BackendCreateApiKeyRequest,
   BackendCreateApiKeyResponse,
   BackendCreateIntegrationRequest,
@@ -67,7 +65,6 @@ import type {
   BackendLoginRequest,
   BackendLoginResponse,
   BackendMemberResponse,
-  BackendPortalResponse,
   BackendProjectResponse,
   BackendRagConfigResponse,
   BackendReadinessResponse,
@@ -654,27 +651,6 @@ export class XbergClient {
       "GET",
       `/v1/projects/${encodePathSegment(projectId)}/audit`,
       { params: { action: params.action, limit: params.limit, offset: params.offset } },
-    );
-  }
-  /** Enterprise backend `GET /v1/projects/{id}/billing`. */
-  public async getBilling(projectId: string): Promise<BackendBillingResponse> {
-    return await this.backendRequest<BackendBillingResponse>(
-      "GET",
-      `/v1/projects/${encodePathSegment(projectId)}/billing`,
-    );
-  }
-  /** Enterprise backend `POST /v1/projects/{id}/billing/checkout`. */
-  public async createCheckout(projectId: string): Promise<BackendCheckoutResponse> {
-    return await this.backendRequest<BackendCheckoutResponse>(
-      "POST",
-      `/v1/projects/${encodePathSegment(projectId)}/billing/checkout`,
-    );
-  }
-  /** Enterprise backend `POST /v1/projects/{id}/billing/portal`. */
-  public async createPortal(projectId: string): Promise<BackendPortalResponse> {
-    return await this.backendRequest<BackendPortalResponse>(
-      "POST",
-      `/v1/projects/${encodePathSegment(projectId)}/billing/portal`,
     );
   }
   /** Enterprise backend `GET /v1/projects/{id}/integrations`. */

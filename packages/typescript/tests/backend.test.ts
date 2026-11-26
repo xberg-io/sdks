@@ -274,39 +274,6 @@ const cases: BackendCase[] = [
     call: (client) => client.listProjectAudit(PATH_ID, { action: "value /?", limit: 2, offset: 2 }),
   },
   {
-    name: "getBilling",
-    method: "GET",
-    path: "/v1/projects/project%20%2F%3F%23/billing",
-    query: {},
-    status: 200,
-    public: false,
-    binary: false,
-    multipart: false,
-    call: (client) => client.getBilling(PATH_ID),
-  },
-  {
-    name: "createCheckout",
-    method: "POST",
-    path: "/v1/projects/project%20%2F%3F%23/billing/checkout",
-    query: {},
-    status: 200,
-    public: false,
-    binary: false,
-    multipart: false,
-    call: (client) => client.createCheckout(PATH_ID),
-  },
-  {
-    name: "createPortal",
-    method: "POST",
-    path: "/v1/projects/project%20%2F%3F%23/billing/portal",
-    query: {},
-    status: 200,
-    public: false,
-    binary: false,
-    multipart: false,
-    call: (client) => client.createPortal(PATH_ID),
-  },
-  {
     name: "backendListIntegrations",
     method: "GET",
     path: "/v1/projects/project%20%2F%3F%23/integrations",
@@ -900,7 +867,7 @@ const cases: BackendCase[] = [
 ];
 
 describe("Enterprise backend operations", () => {
-  it("covers every one of the 71 operations", () => expect(cases).toHaveLength(71));
+  it("covers every one of the 68 operations", () => expect(cases).toHaveLength(68));
   for (const scenario of cases) {
     it(`${scenario.name} uses the declared control-plane wire contract`, async () => {
       let calls = 0;

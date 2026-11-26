@@ -193,42 +193,6 @@ func (c *Client) ListProjectAudit(
 	)
 }
 
-// GetBilling calls GET /v1/projects/{id}/billing on the Enterprise control plane.
-func (c *Client) GetBilling(ctx context.Context, projectID string) (*BillingResponse, error) {
-	return controlPlaneJSON[BillingResponse](
-		ctx,
-		c,
-		"GetBilling",
-		methodGet,
-		"/v1/projects/"+escapePathSegment(projectID)+"/billing",
-		nil,
-	)
-}
-
-// CreateCheckout calls POST /v1/projects/{id}/billing/checkout on the Enterprise control plane.
-func (c *Client) CreateCheckout(ctx context.Context, projectID string) (*CheckoutResponse, error) {
-	return controlPlaneJSON[CheckoutResponse](
-		ctx,
-		c,
-		"CreateCheckout",
-		methodPost,
-		"/v1/projects/"+escapePathSegment(projectID)+"/billing/checkout",
-		nil,
-	)
-}
-
-// CreatePortal calls POST /v1/projects/{id}/billing/portal on the Enterprise control plane.
-func (c *Client) CreatePortal(ctx context.Context, projectID string) (*PortalResponse, error) {
-	return controlPlaneJSON[PortalResponse](
-		ctx,
-		c,
-		"CreatePortal",
-		methodPost,
-		"/v1/projects/"+escapePathSegment(projectID)+"/billing/portal",
-		nil,
-	)
-}
-
 // BackendListIntegrations calls GET /v1/projects/{id}/integrations on the Enterprise control plane.
 func (c *Client) BackendListIntegrations(
 	ctx context.Context,

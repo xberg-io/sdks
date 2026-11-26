@@ -240,9 +240,6 @@ All backend operations use the configured control-plane origin and credential.
 | `backendRevokeApiKey` |  |
 | `regenerateApiKey` |  |
 | `listProjectAudit` |  |
-| `getBilling` |  |
-| `createCheckout` |  |
-| `createPortal` |  |
 | `backendListIntegrations` |  |
 | `backendCreateIntegration` |  |
 | `backendGetIntegration` |  |

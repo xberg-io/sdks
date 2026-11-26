@@ -38,9 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # yq runs the real spec:fetch filter in spec-fetch.bats. ~keep
       - uses: xberg-io/actions/setup-mise@v1
         with:
-          install-args: bats
+          install-args: bats yq
       - uses: xberg-io/actions/run-bats@v1
         with:
           path: scripts/tests

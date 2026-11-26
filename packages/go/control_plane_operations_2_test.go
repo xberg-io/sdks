@@ -17,33 +17,6 @@ func TestControlPlaneListProjectAudit(t *testing.T) {
 	})
 }
 
-func TestControlPlaneGetBilling(t *testing.T) {
-	runControlPlaneCase(t, controlPlaneCase{
-		name: "GetBilling", method: "GET", path: "/v1/projects/id%2F%20space/billing",
-		query: map[string]string{},
-		body:  false, public: false,
-		call: func(ctx context.Context, c *Client) error { _, err := c.GetBilling(ctx, "id/ space"); return err },
-	})
-}
-
-func TestControlPlaneCreateCheckout(t *testing.T) {
-	runControlPlaneCase(t, controlPlaneCase{
-		name: "CreateCheckout", method: "POST", path: "/v1/projects/id%2F%20space/billing/checkout",
-		query: map[string]string{},
-		body:  false, public: false,
-		call: func(ctx context.Context, c *Client) error { _, err := c.CreateCheckout(ctx, "id/ space"); return err },
-	})
-}
-
-func TestControlPlaneCreatePortal(t *testing.T) {
-	runControlPlaneCase(t, controlPlaneCase{
-		name: "CreatePortal", method: "POST", path: "/v1/projects/id%2F%20space/billing/portal",
-		query: map[string]string{},
-		body:  false, public: false,
-		call: func(ctx context.Context, c *Client) error { _, err := c.CreatePortal(ctx, "id/ space"); return err },
-	})
-}
-
 func TestControlPlaneBackendListIntegrations(t *testing.T) {
 	runControlPlaneCase(t, controlPlaneCase{
 		name: "BackendListIntegrations", method: "GET", path: "/v1/projects/id%2F%20space/integrations",
