@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Submit a retryable Pro extraction batch with an `Idempotency-Key` through `POST /v1/extract/keyed`
+  (`extract_keyed`, `extractKeyed`, `ExtractKeyed`).
+
 ## [0.12.0] - 2026-11-16
 
 ### Added

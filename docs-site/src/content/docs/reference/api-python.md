@@ -16,6 +16,7 @@ Submit documents and wait for results.
 | --- | --- |
 | `extract` | Submit a single document for extraction via ``POST /v1/extract`` (multipart). |
 | `extract_batch` | Submit multiple documents in a SINGLE multipart request carrying every file. |
+| `extract_keyed` | Submit one retryable inline batch via Pro's ``POST /v1/extract/keyed`` (multipart). |
 | `extract_and_wait` | Submit a document and block until extraction completes (raises on failure/timeout). |
 
 ## Jobs

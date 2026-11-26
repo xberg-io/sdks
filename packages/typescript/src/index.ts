@@ -11,6 +11,7 @@ export {
   type CreateClientOptions,
   type ExtractAndWaitParams,
   type ExtractBatchParams,
+  type ExtractKeyedParams,
   type ExtractParams,
   type FileLike,
   type ListExtractionEventsParams,

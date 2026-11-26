@@ -16,6 +16,7 @@ Submit documents and wait for results.
 | --- | --- |
 | `Extract` | Extract submits a single document for asynchronous extraction and returns the queued [ExtractionJobResponse] |
 | `ExtractBatch` | ExtractBatch submits multiple documents in a single multipart request |
+| `ExtractKeyed` | ExtractKeyed submits one retryable inline batch to Pro's POST /v1/extract/keyed |
 | `ExtractAndWait` | ExtractAndWait is a convenience wrapper that submits a single document and blocks until extraction completes, returning the terminal [ExtractionJobResponse] |
 
 ## Jobs

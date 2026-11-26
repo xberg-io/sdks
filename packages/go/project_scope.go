@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-const extractPath = "/v1/extract"
+const (
+	extractPath      = "/v1/extract"
+	extractKeyedPath = "/v1/extract/keyed"
+)
 
 type proProjectKey struct{}
 
@@ -23,7 +26,7 @@ func WithProProject(ctx context.Context, projectID string) context.Context {
 
 func ownsJobProjectScope(method, path string) bool {
 	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
-	if path == extractPath {
+	if path == extractPath || path == extractKeyedPath {
 		return method == methodPost
 	}
 	if ownsCrawlOrEnrichProjectScope(method, parts) {
@@ -162,7 +165,7 @@ func (c *Client) applyProProject(ctx context.Context, spec requestSpec) (request
 	if err := c.requireTier(ctx, TargetPro, "job project selection"); err != nil {
 		return spec, err
 	}
-	if u.Path == extractPath {
+	if u.Path == extractPath || u.Path == extractKeyedPath {
 		spec.projectID = projectID
 	} else {
 		query := u.Query()

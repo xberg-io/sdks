@@ -64,8 +64,7 @@ func (c *Client) ExtractBatch(
 	if err != nil {
 		return nil, err
 	}
-	var resp ExtractResponse
-	spec := requestSpec{
+	return c.submitExtraction(ctx, requestSpec{
 		method:          methodPost,
 		path:            extractPath,
 		body:            bytes.NewReader(body),
@@ -73,7 +72,64 @@ func (c *Client) ExtractBatch(
 		rewindBody: func() (io.Reader, error) {
 			return bytes.NewReader(body), nil
 		},
+	}, len(files))
+}
+
+// ExtractKeyed submits one retryable inline batch to Pro's POST /v1/extract/keyed.
+// It sends every file in a single multipart request with idempotencyKey as the
+// required Idempotency-Key header. Resubmitting the same files and configuration under
+// the same key replays the accepted response instead of creating new jobs;
+// reusing the key for different input fails with 409. Select a project with
+// [WithProProject]. Each returned job is fetched via [Client.GetJob], as in
+// [Client.ExtractBatch].
+//
+// Pro only.
+func (c *Client) ExtractKeyed(
+	ctx context.Context,
+	idempotencyKey string,
+	files []FileSource,
+	opts *ExtractKeyedOptions,
+) ([]*ExtractionJobResponse, error) {
+	if strings.TrimSpace(idempotencyKey) == "" {
+		return nil, fmt.Errorf("xberg: ExtractKeyed requires a non-blank idempotency key")
 	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("xberg: ExtractKeyed requires at least one file")
+	}
+	if err := validateFileSources(files); err != nil {
+		return nil, err
+	}
+	shared := &ExtractOptions{}
+	if opts != nil {
+		shared.Extraction = opts.Extraction
+		shared.Configs = opts.Configs
+	}
+	if err := validatePerFileConfigs(files, shared.Configs); err != nil {
+		return nil, err
+	}
+	if err := c.requireTier(ctx, TargetPro, "ExtractKeyed"); err != nil {
+		return nil, err
+	}
+	body, contentType, err := buildMultipartBody(files, shared, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.submitExtraction(ctx, requestSpec{
+		method:          methodPost,
+		path:            extractKeyedPath,
+		body:            bytes.NewReader(body),
+		bodyContentType: contentType,
+		idempotencyKey:  idempotencyKey,
+		rewindBody: func() (io.Reader, error) {
+			return bytes.NewReader(body), nil
+		},
+	}, len(files))
+}
+
+// submitExtraction posts an extraction submission and fetches the job record
+// for every job ID it answers with, in submission order.
+func (c *Client) submitExtraction(ctx context.Context, spec requestSpec, fileCount int) ([]*ExtractionJobResponse, error) {
+	var resp ExtractResponse
 	if err := c.doJSON(ctx, spec, &resp); err != nil {
 		return nil, err
 	}
@@ -84,8 +140,8 @@ func (c *Client) ExtractBatch(
 	if len(jobIDs) == 0 {
 		return nil, fmt.Errorf("xberg: extract response contained no job IDs")
 	}
-	if len(jobIDs) != len(files) {
-		return nil, fmt.Errorf("xberg: expected %d job IDs, got %d", len(files), len(jobIDs))
+	if len(jobIDs) != fileCount {
+		return nil, fmt.Errorf("xberg: expected %d job IDs, got %d", fileCount, len(jobIDs))
 	}
 	jobs := make([]*ExtractionJobResponse, len(jobIDs))
 	for i, id := range jobIDs {
