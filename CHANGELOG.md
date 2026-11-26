@@ -7,14 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-26
+
 ### Added
 
 - Submit a retryable Pro extraction batch with an `Idempotency-Key` through `POST /v1/extract/keyed`
   (`extract_keyed`, `extractKeyed`, `ExtractKeyed`).
 
+### Changed
+
+- Sync the Python, TypeScript, and Go clients with the Xberg Pro 0.8.1 and
+  matching Enterprise OpenAPI schemas.
+- Refresh SDK, tooling and docs dependencies, including `oapi-codegen/runtime` 1.9.1 for the Go module.
+
 ### Removed
 
-- The retired Enterprise billing methods (`get_billing`, `create_checkout`, `create_portal` and their
+- **Breaking:** the retired Enterprise billing methods (`get_billing`, `create_checkout`, `create_portal` and their
   TypeScript and Go equivalents). The spec sync now drops the billing routes from the vendored
   control-plane spec; the TypeScript and Go billing response types stay exported.
 
