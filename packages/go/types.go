@@ -84,6 +84,14 @@ type ExtractOptions struct {
 	Configs []*FileExtractionConfig
 }
 
+// ExtractKeyedOptions configures [Client.ExtractKeyed]. Webhooks and document
+// lineage are not accepted on the keyed route, so only the shared extraction
+// options and per-file overrides are carried; both behave as in [ExtractOptions].
+type ExtractKeyedOptions struct {
+	Extraction *ExtractionOptions
+	Configs    []*FileExtractionConfig
+}
+
 // ExtractAndWaitOptions configures [Client.ExtractAndWait].
 type ExtractAndWaitOptions struct {
 	Extract *ExtractOptions

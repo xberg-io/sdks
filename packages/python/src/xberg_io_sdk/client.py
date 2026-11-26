@@ -102,8 +102,6 @@ from xberg_io_sdk._generated_backend.models.auth_config_response import AuthConf
 from xberg_io_sdk._generated_backend.models.begin_connect_response import (
     BeginConnectResponse as BackendBeginConnectResponse,
 )
-from xberg_io_sdk._generated_backend.models.billing_response import BillingResponse as BackendBillingResponse
-from xberg_io_sdk._generated_backend.models.checkout_response import CheckoutResponse as BackendCheckoutResponse
 from xberg_io_sdk._generated_backend.models.create_api_key_response import (
     CreateApiKeyResponse as BackendCreateApiKeyResponse,
 )
@@ -158,7 +156,6 @@ from xberg_io_sdk._generated_backend.models.list_webhooks_response import (
 )
 from xberg_io_sdk._generated_backend.models.login_response import LoginResponse as BackendLoginResponse
 from xberg_io_sdk._generated_backend.models.member_response import MemberResponse as BackendMemberResponse
-from xberg_io_sdk._generated_backend.models.portal_response import PortalResponse as BackendPortalResponse
 from xberg_io_sdk._generated_backend.models.project_response import ProjectResponse as BackendProjectResponse
 from xberg_io_sdk._generated_backend.models.project_role_response import (
     ProjectRoleResponse as BackendProjectRoleResponse,
@@ -324,6 +321,8 @@ _AUTO_TUNE_PATH = "/v1/auto-tune"
 _TUNING_PROFILES_PATH = "/v1/tuning-profiles"
 _ENRICH_PATH = "/v1/enrich"
 _EXTRACTIONS_PATH = "/v1/extractions"
+# ~keep Both extraction submissions take the Pro project selector as `X-Project-ID`, not a query parameter.
+_EXTRACT_PATHS = frozenset({"/v1/extract", "/v1/extract/keyed"})
 _ROOMS_PATH = "/v1/rooms"
 _PUBLIC_ROOMS_PATH = "/public/rooms"
 
@@ -593,6 +592,24 @@ def _per_file_config_data(
     return data
 
 
+def _keyed_extract_parts(
+    files: Iterable[FileInput],
+    idempotency_key: str,
+    options: OptionsInput,
+    configs: Sequence[FileConfigInput] | None,
+) -> tuple[list[tuple[str, tuple[str, bytes | BinaryIO, str]]], dict[str, str]]:
+    """Validate a keyed submission and build its multipart file and text parts before any request."""
+    if not idempotency_key.strip():
+        raise XbergError("extract_keyed requires a non-blank idempotency_key", status_code=None)
+    materialized = list(files)
+    if not materialized:
+        raise XbergError("extract_keyed called with no files", status_code=None)
+    file_parts = _multipart_files(materialized)
+    data = _multipart_data(options, None)
+    data.update(_per_file_config_data(file_parts, configs))
+    return file_parts, data
+
+
 def _job_ids_from_extract_response(payload: Any) -> list[str]:
     """Pluck the ``job_ids`` list out of a ``POST /v1/extract`` response body."""
     if not isinstance(payload, dict):
@@ -854,8 +871,8 @@ def _resolve_control_plane_base_url(control_plane_base_url: str | None, base_url
     """Resolve the base URL of the Enterprise control plane, defaulting to the data plane's.
 
     Enterprise runs the control plane (projects, API keys, integrations, RAG
-    config, members, invitations, managed webhooks, usage, analytics, billing)
-    as a second binary on its own origin; Pro serves it from the same one. The
+    config, members, invitations, managed webhooks, usage, analytics) as a
+    second binary on its own origin; Pro serves it from the same one. The
     default therefore has to be ``base_url``, exactly as the console's
     ``NEXT_PUBLIC_BACKEND_API_URL`` is same-origin unless set — anything else
     would break every Pro control-plane call the moment this argument existed.
@@ -1101,7 +1118,7 @@ class XbergClient(_BaseClient):
             if not project_id.strip():
                 raise ValueError("Pro project ID must not be blank")
             self._require_tier("pro", "job project selection")
-            if path == "/v1/extract":
+            if path in _EXTRACT_PATHS:
                 headers = {**(headers or {}), "X-Project-ID": project_id}
             else:
                 params = {**(params or {}), "project_id": project_id}
@@ -1298,6 +1315,36 @@ class XbergClient(_BaseClient):
         data.update(_per_file_config_data(file_parts, configs))
         data.update(lineage)
         payload = self._request_json("POST", "/v1/extract", files=file_parts, data=data, project_id=project_id)
+        job_ids = _job_ids_from_extract_response(payload)
+        return [_extraction_job(self.get_job(job_id, project_id=project_id)) for job_id in job_ids]
+
+    def extract_keyed(
+        self,
+        files: Iterable[FileInput],
+        *,
+        idempotency_key: str,
+        options: OptionsInput = None,
+        configs: Sequence[FileConfigInput] | None = None,
+        project_id: str | None = None,
+    ) -> list[ExtractionJobResponse]:
+        """Submit one retryable inline batch via Pro's ``POST /v1/extract/keyed`` (multipart).
+
+        ``idempotency_key`` is sent as the required ``Idempotency-Key`` header. Reusing it
+        with the same files and configuration replays the accepted response instead of
+        creating new jobs; reusing it with different input answers 409. ``configs``
+        follows :meth:`extract_batch`. Webhooks and document lineage are not accepted
+        on this route.
+        """
+        file_parts, data = _keyed_extract_parts(files, idempotency_key, options, configs)
+        self._require_tier("pro", "extract_keyed")
+        payload = self._request_json(
+            "POST",
+            "/v1/extract/keyed",
+            files=file_parts,
+            data=data,
+            project_id=project_id,
+            extra_headers={"Idempotency-Key": idempotency_key},
+        )
         job_ids = _job_ids_from_extract_response(payload)
         return [_extraction_job(self.get_job(job_id, project_id=project_id)) for job_id in job_ids]
 
@@ -2057,21 +2104,6 @@ class XbergClient(_BaseClient):
             params=_query_params(action=action, limit=limit, offset=offset),
         )
         return BackendListAuditEntriesResponse.from_dict(_expect_object(payload, "list_project_audit"))
-
-    def get_billing(self, project_id: str) -> BackendBillingResponse:
-        """Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``)."""
-        payload = self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/billing")
-        return BackendBillingResponse.from_dict(_expect_object(payload, "get_billing"))
-
-    def create_checkout(self, project_id: str) -> BackendCheckoutResponse:
-        """Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``)."""
-        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/checkout")
-        return BackendCheckoutResponse.from_dict(_expect_object(payload, "create_checkout"))
-
-    def create_portal(self, project_id: str) -> BackendPortalResponse:
-        """Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``)."""
-        payload = self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/portal")
-        return BackendPortalResponse.from_dict(_expect_object(payload, "create_portal"))
 
     def backend_list_integrations(
         self, project_id: str, *, limit: int | None = None, offset: int | None = None
@@ -2969,7 +3001,7 @@ class AsyncXbergClient(_BaseClient):
             if not project_id.strip():
                 raise ValueError("Pro project ID must not be blank")
             await self._require_tier("pro", "job project selection")
-            if path == "/v1/extract":
+            if path in _EXTRACT_PATHS:
                 headers = {**(headers or {}), "X-Project-ID": project_id}
             else:
                 params = {**(params or {}), "project_id": project_id}
@@ -3145,6 +3177,32 @@ class AsyncXbergClient(_BaseClient):
         data.update(_per_file_config_data(file_parts, configs))
         data.update(lineage)
         payload = await self._request_json("POST", "/v1/extract", files=file_parts, data=data, project_id=project_id)
+        job_ids = _job_ids_from_extract_response(payload)
+        return [
+            _extraction_job(job)
+            for job in await asyncio.gather(*(self.get_job(job_id, project_id=project_id) for job_id in job_ids))
+        ]
+
+    async def extract_keyed(
+        self,
+        files: Iterable[FileInput],
+        *,
+        idempotency_key: str,
+        options: OptionsInput = None,
+        configs: Sequence[FileConfigInput] | None = None,
+        project_id: str | None = None,
+    ) -> list[ExtractionJobResponse]:
+        """Async equivalent of :meth:`XbergClient.extract_keyed`."""
+        file_parts, data = _keyed_extract_parts(files, idempotency_key, options, configs)
+        await self._require_tier("pro", "extract_keyed")
+        payload = await self._request_json(
+            "POST",
+            "/v1/extract/keyed",
+            files=file_parts,
+            data=data,
+            project_id=project_id,
+            extra_headers={"Idempotency-Key": idempotency_key},
+        )
         job_ids = _job_ids_from_extract_response(payload)
         return [
             _extraction_job(job)
@@ -3909,21 +3967,6 @@ class AsyncXbergClient(_BaseClient):
             params=_query_params(action=action, limit=limit, offset=offset),
         )
         return BackendListAuditEntriesResponse.from_dict(_expect_object(payload, "list_project_audit"))
-
-    async def get_billing(self, project_id: str) -> BackendBillingResponse:
-        """Enterprise backend: Get billing and quota information for a project (``GET /v1/projects/{id}/billing``)."""
-        payload = await self._request_control_json("GET", f"/v1/projects/{_q(project_id)}/billing")
-        return BackendBillingResponse.from_dict(_expect_object(payload, "get_billing"))
-
-    async def create_checkout(self, project_id: str) -> BackendCheckoutResponse:
-        """Enterprise backend: Create a Stripe Checkout Session for a project (``POST /v1/projects/{id}/billing/checkout``)."""
-        payload = await self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/checkout")
-        return BackendCheckoutResponse.from_dict(_expect_object(payload, "create_checkout"))
-
-    async def create_portal(self, project_id: str) -> BackendPortalResponse:
-        """Enterprise backend: Create a Stripe Customer Portal Session for a project (``POST /v1/projects/{id}/billing/portal``)."""
-        payload = await self._request_control_json("POST", f"/v1/projects/{_q(project_id)}/billing/portal")
-        return BackendPortalResponse.from_dict(_expect_object(payload, "create_portal"))
 
     async def backend_list_integrations(
         self, project_id: str, *, limit: int | None = None, offset: int | None = None

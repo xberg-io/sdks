@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Submit a retryable Pro extraction batch with an `Idempotency-Key` through `POST /v1/extract/keyed`
+  (`extract_keyed`, `extractKeyed`, `ExtractKeyed`).
+
+### Removed
+
+- The retired Enterprise billing methods (`get_billing`, `create_checkout`, `create_portal` and their
+  TypeScript and Go equivalents). The spec sync now drops the billing routes from the vendored
+  control-plane spec; the TypeScript and Go billing response types stay exported.
+
 ## [0.12.0] - 2026-11-16
 
 ### Added

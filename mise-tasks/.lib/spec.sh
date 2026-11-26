@@ -21,7 +21,30 @@ spec_upstream() {
   esac
 }
 
-# Normalise any OpenAPI document to the vendored YAML form.
+# Upstream routes a set does not vendor, one per line. xberg-enterprise still emits the retired billing
+# routes (sdks#55), so deleting them by hand would be undone by the next sync. Only the paths and their
+# tag go: the response schemas stay because the Go module's published-type contract
+# (packages/go/testdata/public-v0.8.0) pins BillingResponse, CheckoutResponse and PortalResponse. A
+# renamed upstream route escapes this filter and then fails `mise run spec:coverage` as an unreached
+# operation, so the filter cannot hide a new route. ~keep
+spec_retired_paths() {
+  case "$1" in
+  backend) printf '%s\n' '/v1/projects/{id}/billing' '/v1/projects/{id}/billing/checkout' '/v1/projects/{id}/billing/portal' ;;
+  esac
+}
+
+spec_retired_tags() {
+  case "$1" in
+  backend) printf '%s\n' billing ;;
+  esac
+}
+
+# Normalise an OpenAPI document of set $1 at path $2 to the vendored YAML form, dropping retired routes.
 spec_normalise() {
-  yq -P -oy '.' "$1"
+  RETIRED_PATHS="$(spec_retired_paths "$1")" RETIRED_TAGS="$(spec_retired_tags "$1")" yq -P -oy '
+    (strenv(RETIRED_PATHS) | split("\n")) as $paths |
+    (strenv(RETIRED_TAGS) | split("\n")) as $tags |
+    del(.paths[] | select(key as $route | $paths | any_c(. == $route))) |
+    del(.tags[]? | select(.name as $name | $tags | any_c(. == $name)))
+  ' "$2"
 }

@@ -16,6 +16,7 @@ Submit documents and wait for results.
 | --- | --- |
 | `Extract` | Extract submits a single document for asynchronous extraction and returns the queued [ExtractionJobResponse] |
 | `ExtractBatch` | ExtractBatch submits multiple documents in a single multipart request |
+| `ExtractKeyed` | ExtractKeyed submits one retryable inline batch to Pro's POST /v1/extract/keyed |
 | `ExtractAndWait` | ExtractAndWait is a convenience wrapper that submits a single document and blocks until extraction completes, returning the terminal [ExtractionJobResponse] |
 
 ## Jobs
@@ -241,9 +242,6 @@ All backend operations use the configured control-plane origin and credential.
 | `BackendRevokeAPIKey` | BackendRevokeAPIKey calls DELETE /v1/projects/{id}/api-keys/{key_id} on the Enterprise control plane. |
 | `RegenerateAPIKey` | RegenerateAPIKey calls POST /v1/projects/{id}/api-keys/{key_id}/regenerate on the Enterprise control plane. |
 | `ListProjectAudit` | ListProjectAudit calls GET /v1/projects/{id}/audit on the Enterprise control plane. |
-| `GetBilling` | GetBilling calls GET /v1/projects/{id}/billing on the Enterprise control plane. |
-| `CreateCheckout` | CreateCheckout calls POST /v1/projects/{id}/billing/checkout on the Enterprise control plane. |
-| `CreatePortal` | CreatePortal calls POST /v1/projects/{id}/billing/portal on the Enterprise control plane. |
 | `BackendListIntegrations` | BackendListIntegrations calls GET /v1/projects/{id}/integrations on the Enterprise control plane. |
 | `BackendCreateIntegration` | BackendCreateIntegration calls POST /v1/projects/{id}/integrations on the Enterprise control plane. |
 | `BackendGetIntegration` | BackendGetIntegration calls GET /v1/projects/{id}/integrations/{iid} on the Enterprise control plane. |

@@ -279,13 +279,14 @@ type CreateProjectRequest struct {
 
 // DeploymentReadiness defines model for DeploymentReadiness.
 type DeploymentReadiness struct {
-	Admitted       bool               `json:"admitted"`
-	Compatible     bool               `json:"compatible"`
-	GenerationId   openapi_types.UUID `json:"generation_id"`
-	InstallationId openapi_types.UUID `json:"installation_id"`
-	Maintenance    bool               `json:"maintenance"`
-	Registered     bool               `json:"registered"`
-	Retired        bool               `json:"retired"`
+	Admitted       bool                `json:"admitted"`
+	Compatible     bool                `json:"compatible"`
+	GenerationId   openapi_types.UUID  `json:"generation_id"`
+	InstallationId openapi_types.UUID  `json:"installation_id"`
+	InstanceId     *openapi_types.UUID `json:"instance_id,omitempty"`
+	Maintenance    bool                `json:"maintenance"`
+	Registered     bool                `json:"registered"`
+	Retired        bool                `json:"retired"`
 }
 
 // DocumentResponse Single document's metadata, as reported by a connected integration.
@@ -336,10 +337,15 @@ type IntegrationSyncResponse struct {
 	IntervalSeconds int32 `json:"interval_seconds"`
 }
 
-// JobPageInventory Page numbers of the objects that are actually present.
-type JobPageInventory struct {
-	// Pages Sorted, unique, positive page numbers. An empty list means no rasters have been stored.
-	Pages []int32 `json:"pages"`
+// KeyedExtractMultipartForm Multipart body for a retryable keyed extraction. Repeat the binary part
+// for each file. Use `X-Project-ID` to select an authorized project and
+// `config-<filename>` for an optional JSON per-file configuration.
+type KeyedExtractMultipartForm struct {
+	// File Inline files with filenames and document Content-Types.
+	File []openapi_types.File `json:"file"`
+
+	// Options Optional `options` part with JSON-encoded extraction options.
+	Options *ExtractionOptions `json:"options,omitempty"`
 }
 
 // LicenseHealth Coarse license state for the unauthenticated health probe.
@@ -1243,10 +1249,13 @@ type UserInfo struct {
 	UserId string `json:"user_id"`
 }
 
-// GetJobPageInventoryParams defines parameters for GetJobPageInventory.
-type GetJobPageInventoryParams struct {
-	// ProjectId Project to read; defaults to the credential project
-	ProjectId *openapi_types.UUID `form:"project_id,omitempty" json:"project_id,omitempty"`
+// ExtractKeyedParams defines parameters for ExtractKeyed.
+type ExtractKeyedParams struct {
+	// IdempotencyKey Required project-scoped retry key; reuse it only with the same input and effective configuration.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XProjectID Optional authorized project for either content type. A JSON body project_id takes precedence.
+	XProjectID *openapi_types.UUID `json:"X-Project-ID,omitempty"`
 }
 
 // OauthCallbackParams defines parameters for OauthCallback.
@@ -1314,6 +1323,12 @@ type ListIntegrationDocumentsParams struct {
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
+
+// ExtractKeyedJSONRequestBody defines body for ExtractKeyed for application/json ContentType.
+type ExtractKeyedJSONRequestBody = ProExtractRequest
+
+// ExtractKeyedMultipartRequestBody defines body for ExtractKeyed for multipart/form-data ContentType.
+type ExtractKeyedMultipartRequestBody = KeyedExtractMultipartForm
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = CreateProjectRequest

@@ -44,8 +44,6 @@ import type {
   BackendUserProfileResponse,
   BackendUpdateUserProfileRequest,
   BackendBeginConnectResponse,
-  BackendBillingResponse,
-  BackendCheckoutResponse,
   BackendCreateApiKeyRequest,
   BackendCreateApiKeyResponse,
   BackendCreateIntegrationRequest,
@@ -67,7 +65,6 @@ import type {
   BackendLoginRequest,
   BackendLoginResponse,
   BackendMemberResponse,
-  BackendPortalResponse,
   BackendProjectResponse,
   BackendRagConfigResponse,
   BackendReadinessResponse,
@@ -329,6 +326,19 @@ export interface ExtractBatchParams extends JobScopeParams {
    * a filename cannot carry different overrides; that combination throws rather
    * than dropping one silently.
    */
+  configs?: readonly (FileExtractionConfig | null)[];
+}
+
+export interface ExtractKeyedParams extends JobScopeParams {
+  files: readonly FileLike[];
+  /**
+   * Required project-scoped `Idempotency-Key`. Resubmitting the same files and
+   * configuration under the same key replays the accepted response instead of
+   * creating new jobs; reusing it for different input answers 409.
+   */
+  idempotencyKey: string;
+  options?: ExtractionOptions;
+  /** Per-file overrides aligned with `files`, as in {@link ExtractBatchParams.configs}. */
   configs?: readonly (FileExtractionConfig | null)[];
 }
 
@@ -641,27 +651,6 @@ export class XbergClient {
       "GET",
       `/v1/projects/${encodePathSegment(projectId)}/audit`,
       { params: { action: params.action, limit: params.limit, offset: params.offset } },
-    );
-  }
-  /** Enterprise backend `GET /v1/projects/{id}/billing`. */
-  public async getBilling(projectId: string): Promise<BackendBillingResponse> {
-    return await this.backendRequest<BackendBillingResponse>(
-      "GET",
-      `/v1/projects/${encodePathSegment(projectId)}/billing`,
-    );
-  }
-  /** Enterprise backend `POST /v1/projects/{id}/billing/checkout`. */
-  public async createCheckout(projectId: string): Promise<BackendCheckoutResponse> {
-    return await this.backendRequest<BackendCheckoutResponse>(
-      "POST",
-      `/v1/projects/${encodePathSegment(projectId)}/billing/checkout`,
-    );
-  }
-  /** Enterprise backend `POST /v1/projects/{id}/billing/portal`. */
-  public async createPortal(projectId: string): Promise<BackendPortalResponse> {
-    return await this.backendRequest<BackendPortalResponse>(
-      "POST",
-      `/v1/projects/${encodePathSegment(projectId)}/billing/portal`,
     );
   }
   /** Enterprise backend `GET /v1/projects/{id}/integrations`. */
@@ -1221,26 +1210,39 @@ export class XbergClient {
       body: form,
       ...(params.projectId !== undefined ? { headers: { [projectHeader]: params.projectId } } : {}),
     });
-    const jobIds = body.job_ids ?? [];
-    const now = new Date().toISOString();
-    // ~keep `POST /v1/extract` answers with job IDs alone, so the rest of each record is
-    // synthesized from what was submitted; `mime_type` is the type the file was uploaded under.
-    return parts.map(({ blob, filename }, index) => {
-      const id = jobIds[index];
-      if (id === undefined) {
-        throw new XbergError(`Server returned ${jobIds.length} job IDs for ${params.files.length} files`, {
-          status: 500,
-          body,
-        });
-      }
-      return {
-        id,
-        filename,
-        mime_type: blob.type.length > 0 ? blob.type : OCTET_STREAM_MEDIA_TYPE,
-        status: "pending",
-        created_at: now,
-      };
-    });
+    return pendingJobs(parts, body);
+  }
+
+  /**
+   * Submit one retryable inline batch to Pro's `POST /v1/extract/keyed`.
+   *
+   * Sends every file in a single multipart request with `idempotencyKey` as the
+   * `Idempotency-Key` header. Webhooks and document lineage are not accepted on
+   * this route. Returns one {@link Job} per file, in the same order.
+   */
+  public async extractKeyed(params: ExtractKeyedParams): Promise<Job[]> {
+    if (params.idempotencyKey.trim().length === 0) {
+      throw new ValidationError("extractKeyed requires a non-blank idempotencyKey", { status: 0, body: null });
+    }
+    if (params.files.length === 0) {
+      throw new XbergError("extractKeyed called with no files", { status: 400, body: null });
+    }
+    const filenames = params.files.map(describeFile);
+    await this.requireTier("pro", "extractKeyed");
+    const form = new FormData();
+    const parts = params.files.map(toBlob);
+    for (const { blob, filename } of parts) {
+      form.append("file", blob, filename);
+    }
+    if (params.options !== undefined) {
+      form.append("options", JSON.stringify(params.options));
+    }
+    appendPerFileConfigs(form, filenames, params.configs);
+
+    const headers: Record<string, string> = { "Idempotency-Key": params.idempotencyKey };
+    if (params.projectId !== undefined) headers[this.projectHeaderName()] = params.projectId;
+    const body = await this.requestJson<ExtractResponse>("POST", "/v1/extract/keyed", { body: form, headers });
+    return pendingJobs(parts, body);
   }
 
   /** Fetch a tagged extraction or crawl job record (`GET /v1/jobs/{id}`). */
@@ -2798,6 +2800,33 @@ interface RequestParts {
   json?: unknown;
   headers?: Record<string, string>;
   params?: QueryParams;
+}
+
+/**
+ * Build the pending {@link Job} records for an extraction submission.
+ *
+ * Both extraction routes answer with job IDs alone, so the rest of each record is
+ * synthesized from what was submitted; `mime_type` is the type the file was uploaded under.
+ */
+function pendingJobs(parts: readonly { blob: Blob; filename: string }[], body: ExtractResponse): Job[] {
+  const jobIds = body.job_ids ?? [];
+  const now = new Date().toISOString();
+  return parts.map(({ blob, filename }, index) => {
+    const id = jobIds[index];
+    if (id === undefined) {
+      throw new XbergError(`Server returned ${jobIds.length} job IDs for ${parts.length} files`, {
+        status: 500,
+        body,
+      });
+    }
+    return {
+      id,
+      filename,
+      mime_type: blob.type.length > 0 ? blob.type : OCTET_STREAM_MEDIA_TYPE,
+      status: "pending",
+      created_at: now,
+    };
+  });
 }
 
 /** The `If-Match` header a room write sends: the room version, quoted as an entity tag. */

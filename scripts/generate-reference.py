@@ -21,7 +21,11 @@ OUT = ROOT / "docs-site/src/content/docs/reference"
 
 # Method name -> the area it belongs to. Ordering here is the ordering on the page.
 GROUPS: list[tuple[str, str, list[str]]] = [
-    ("Extraction", "Submit documents and wait for results.", ["extract", "extract_batch", "extract_and_wait"]),
+    (
+        "Extraction",
+        "Submit documents and wait for results.",
+        ["extract", "extract_batch", "extract_keyed", "extract_and_wait"],
+    ),
     (
         "Jobs",
         "Poll, read, page through and cancel extraction jobs.",
@@ -193,9 +197,6 @@ GROUPS: list[tuple[str, str, list[str]]] = [
             "backend_revoke_api_key",
             "regenerate_api_key",
             "list_project_audit",
-            "get_billing",
-            "create_checkout",
-            "create_portal",
             "backend_list_integrations",
             "backend_create_integration",
             "backend_get_integration",

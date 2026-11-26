@@ -16,7 +16,7 @@ The control-plane origin defaults to the data-plane origin.
 | RAG, auto-tune, tuning profiles | Yes | Yes | Shared methods. On Pro these are operator switches (`PRO_RAG_ENABLED`, `PRO_AUTO_TUNE_ENABLED`), both on by default — not licence entitlements. |
 | Inline extraction webhooks | Yes | Yes | Supplied on the extraction request. |
 | Projects, API keys, integrations, project RAG configuration | Yes | Yes | Existing Pro methods use `base_url`; Enterprise uses dedicated backend methods. |
-| Members, invitations, managed webhook subscriptions, billing, analytics | No | Yes | Dedicated Enterprise backend methods use `control_plane_base_url`. |
+| Members, invitations, managed webhook subscriptions, analytics | No | Yes | Dedicated Enterprise backend methods use `control_plane_base_url`. |
 | Enrichment, upload staging, page images | Yes | Yes | Data-plane methods use `base_url`. |
 | Document lineage and versions, extraction telemetry | No | Yes | Enterprise data-plane methods use `base_url`. |
 | Data rooms: rooms, items, members, invitations, publication, public room view; project document list | No | Yes | Enterprise data-plane methods use `base_url`. A plan without rooms answers 404 `data_room.disabled` (`DataRoomsDisabledError`). See [Data rooms](/guides/data-rooms/). |

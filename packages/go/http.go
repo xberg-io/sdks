@@ -45,6 +45,8 @@ type requestSpec struct {
 	rewindBody      func() (io.Reader, error)
 	// ifMatch, when set, is sent verbatim as the If-Match header.
 	ifMatch string
+	// idempotencyKey, when set, is sent verbatim as the Idempotency-Key header.
+	idempotencyKey string
 	// anonymous sends no credential header and no cookie for routes that take no credential.
 	anonymous bool
 }
@@ -221,6 +223,9 @@ func (c *Client) doOnceWithCancel(
 	}
 	if spec.ifMatch != "" {
 		req.Header.Set("If-Match", spec.ifMatch)
+	}
+	if spec.idempotencyKey != "" {
+		req.Header.Set("Idempotency-Key", spec.idempotencyKey)
 	}
 	if err := c.authorize(ctx, req); err != nil {
 		cancel()

@@ -17,7 +17,7 @@ for set in "${sets[@]}"; do
   upstream=$(spec_upstream "$set")
   target=$(spec_vendored "$set")
   # A missing or unparsable upstream must not leave a truncated vendored spec behind. ~keep
-  spec_normalise "$upstream" >"$target.tmp" || {
+  spec_normalise "$set" "$upstream" >"$target.tmp" || {
     rm -f "$target.tmp"
     exit 1
   }

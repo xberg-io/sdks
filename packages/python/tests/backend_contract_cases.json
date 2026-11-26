@@ -365,63 +365,6 @@
     "public": false
   },
   {
-    "operation_id": "get_billing",
-    "name": "get_billing",
-    "verb": "GET",
-    "path": "/v1/projects/{id}/billing",
-    "arguments": {
-      "project_id": "project_id/?#"
-    },
-    "query": {},
-    "status": 200,
-    "response": {
-      "project_id": "fixture",
-      "period_start": "fixture",
-      "period_end": "fixture",
-      "plan": {},
-      "usage": {
-        "pages_used": 1,
-        "total_documents": 1,
-        "total_failed": 1,
-        "by_mime_type": {}
-      }
-    },
-    "model": "BillingResponse",
-    "public": false
-  },
-  {
-    "operation_id": "create_checkout",
-    "name": "create_checkout",
-    "verb": "POST",
-    "path": "/v1/projects/{id}/billing/checkout",
-    "arguments": {
-      "project_id": "project_id/?#"
-    },
-    "query": {},
-    "status": 200,
-    "response": {
-      "url": "fixture"
-    },
-    "model": "CheckoutResponse",
-    "public": false
-  },
-  {
-    "operation_id": "create_portal",
-    "name": "create_portal",
-    "verb": "POST",
-    "path": "/v1/projects/{id}/billing/portal",
-    "arguments": {
-      "project_id": "project_id/?#"
-    },
-    "query": {},
-    "status": 200,
-    "response": {
-      "url": "fixture"
-    },
-    "model": "PortalResponse",
-    "public": false
-  },
-  {
     "operation_id": "list_integrations",
     "name": "backend_list_integrations",
     "verb": "GET",

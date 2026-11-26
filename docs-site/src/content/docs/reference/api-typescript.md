@@ -16,6 +16,7 @@ Submit documents and wait for results.
 | --- | --- |
 | `extract` | Submit a single document for extraction. Returns the initial {@link Job} |
 | `extractBatch` | Submit multiple documents in a single multipart request. Returns one |
+| `extractKeyed` | Submit one retryable inline batch to Pro's `POST /v1/extract/keyed`. |
 | `extractAndWait` |  |
 
 ## Jobs
@@ -239,9 +240,6 @@ All backend operations use the configured control-plane origin and credential.
 | `backendRevokeApiKey` |  |
 | `regenerateApiKey` |  |
 | `listProjectAudit` |  |
-| `getBilling` |  |
-| `createCheckout` |  |
-| `createPortal` |  |
 | `backendListIntegrations` |  |
 | `backendCreateIntegration` |  |
 | `backendGetIntegration` |  |
