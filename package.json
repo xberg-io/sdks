@@ -15,10 +15,10 @@
   },
   "devDependencies": {
     "@textlint-rule/textlint-rule-no-invalid-control-character": "^3.0.0",
-    "@vitest/coverage-v8": "^5.1.0",
-    "oxfmt": "^0.78.0",
-    "oxlint": "^1.93.0",
-    "textlint": "^15.8.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "textlint": "^16.1.3",
     "textlint-filter-rule-comments": "^1.3.0",
     "textlint-filter-rule-node-types": "^1.1.0",
     "textlint-plugin-mdx": "^1.1.0",
@@ -27,14 +27,14 @@
     "textlint-rule-no-empty-section": "^1.1.0",
     "textlint-rule-no-start-duplicated-conjunction": "^2.0.2",
     "textlint-rule-no-surrogate-pair": "^1.0.1",
-    "textlint-rule-no-zero-width-spaces": "^1.0.1",
+    "textlint-rule-no-zero-width-spaces": "^1.0.2",
     "textlint-rule-stop-words": "^5.2.0",
     "textlint-rule-terminology": "^5.2.16",
     "textlint-rule-write-good": "^2.0.0",
     "tsdown": "^0.23.7",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "packageManager": "pnpm@12.19.0",
   "engines": {
